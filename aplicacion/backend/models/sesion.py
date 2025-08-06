@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Time, ForeignKey
+from sqlalchemy.orm import relationship
 from database import Base
 
 class Sesion(Base):
@@ -10,3 +11,8 @@ class Sesion(Base):
     dia = Column(String)  # lunes, martes, etc.
     hora_inicio = Column(Time)
     hora_fin = Column(Time)
+
+    # Relationships
+    asignatura = relationship('Asignatura', back_populates='sesiones')
+    profesor = relationship('Profesor', back_populates='sesiones')
+    aula = relationship('Aula', back_populates='sesiones')

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from database import Base
 
 class Restriccion(Base):
@@ -9,3 +10,8 @@ class Restriccion(Base):
     asignatura_id = Column(Integer, ForeignKey('asignaturas.id'))
     profesor_id = Column(Integer, ForeignKey('profesores.id'))
     aula_id = Column(Integer, ForeignKey('aulas.id'))
+
+    # Relationships
+    asignatura = relationship('Asignatura')
+    profesor = relationship('Profesor')
+    aula = relationship('Aula')

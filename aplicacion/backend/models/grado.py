@@ -7,5 +7,6 @@ class Grado(Base):
     id = Column(Integer, primary_key=True)
     nombre = Column(String)
 
+    # Relationships
     menciones = relationship('Mencion', back_populates='grado')
     asignaturas = relationship('AsignaturaGrado', back_populates='grado')

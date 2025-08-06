@@ -8,4 +8,6 @@ class Mencion(Base):
     nombre = Column(String)
     grado_id = Column(Integer, ForeignKey('grados.id'))
 
+    # Relationships
     grado = relationship('Grado', back_populates='menciones')
+    asignaturas = relationship('AsignaturaMencion', back_populates='mencion')

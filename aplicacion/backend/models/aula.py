@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from database import Base
 
 class Aula(Base):
@@ -7,3 +8,6 @@ class Aula(Base):
     nombre = Column(String)
     capacidad = Column(Integer)
     tipo = Column(String)
+
+    # Relationships
+    sesiones = relationship('Sesion', back_populates='aula')
