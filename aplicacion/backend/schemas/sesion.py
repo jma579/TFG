@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import time, datetime, date
 from typing import Optional
-from .enums import DiaSemanaEnum
+from constants.enums import DiaSemanaEnum
 
 class SesionBase(BaseModel):
     asignatura_id: int = Field(gt=0, description="ID de la asignatura")

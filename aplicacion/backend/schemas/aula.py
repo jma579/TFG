@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
-from .enums import TipoAulaEnum
+from constants.enums import TipoAulaEnum
 
 class AulaBase(BaseModel):
     nombre: str = Field(

@@ -1,4 +1,4 @@
-from .enums import *
+from constants.enums import *
 from .grado import *
 from .mencion import *
 from .asignatura import *

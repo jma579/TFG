@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional, Dict, Any, Union
-from .enums import TipoRestriccionEnum
+from constants.enums import TipoRestriccionEnum
 import json
 
 class RestriccionBase(BaseModel):

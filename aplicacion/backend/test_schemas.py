@@ -2,7 +2,7 @@
 Test completo para verificar que todos los schemas funcionan correctamente
 """
 from datetime import time
-from schemas.enums import DiaSemanaEnum, CuatrimestreEnum, TipoAulaEnum, TipoRestriccionEnum
+from constants.enums import DiaSemanaEnum, CuatrimestreEnum, TipoAulaEnum, TipoRestriccionEnum
 from schemas.grado import GradoCreate, GradoUpdate
 from schemas.mencion import MencionCreate, MencionUpdate
 from schemas.asignatura import AsignaturaCreate, AsignaturaUpdate
