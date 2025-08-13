@@ -31,7 +31,7 @@ from .conflictos_temporales import (
 )
 
 from .conflictos_restricciones import (
-    detectar_todos_conflictos_restriccion,
+    detectar_todos_conflictos_restricciones,
     detectar_conflictos_restriccion_profesor,
     detectar_conflictos_restriccion_aula,
     detectar_conflictos_bloqueo_temporal,
@@ -122,7 +122,7 @@ def detectar_todos_los_conflictos(db, sesion, sesion_id_ignorar=None):
         # Ejecutar todas las detecciones en paralelo
         conflictos_resultado = {
             'temporales': detectar_todos_conflictos_temporales(db, sesion, sesion_id_ignorar),
-            'restricciones': detectar_todos_conflictos_restriccion(db, sesion, sesion_id_ignorar), 
+            'restricciones': detectar_todos_conflictos_restricciones(db, sesion, sesion_id_ignorar), 
             'capacidad': detectar_todos_conflictos_capacidad(db, sesion),
             'compatibilidad': detectar_todos_conflictos_compatibilidad(db, sesion, sesion_id_ignorar)
         }
