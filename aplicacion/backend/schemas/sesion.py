@@ -40,17 +40,17 @@ class SesionBase(BaseModel):
         datetime_fin = datetime.combine(date.today(), self.hora_fin)
         duracion = datetime_fin - datetime_inicio
         duracion_minutos = duracion.total_seconds() / 60
-        
-        # Validar duración mínima (50 minutos) y máxima (4 horas)
-        if duracion_minutos < 50:
-            raise ValueError('Las sesiones deben durar mínimo 50 minutos')
-        
-        if duracion_minutos > 240:  # 4 horas
-            raise ValueError('Las sesiones no pueden durar más de 4 horas')
-        
-        # Verificar que la duración sea en incrementos de 30 minutos
-        if duracion_minutos % 30 != 0:
-            raise ValueError('La duración debe ser en incrementos de 30 minutos')
+
+        # Validar duración mínima (60 minutos) y máxima (2 horas)
+        if duracion_minutos < 60:
+            raise ValueError('Las sesiones deben durar mínimo 60 minutos')
+
+        if duracion_minutos > 180:  # 3 horas
+            raise ValueError('Las sesiones no pueden durar más de 3 horas')
+
+        # Verificar que la duración sea en incrementos de 60 minutos
+        if duracion_minutos % 60 != 0:
+            raise ValueError('La duración debe ser en incrementos de 60 minutos')
         
         return self
     

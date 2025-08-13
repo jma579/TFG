@@ -23,10 +23,8 @@ class TipoAulaEnum(str, Enum):
     MAGNA = "magna"
 
 class TipoRestriccionEnum(str, Enum):
-    """Tipos de restricciones posibles"""
-    HORARIO_PROFESOR = "horario_profesor"
-    DISPONIBILIDAD_AULA = "disponibilidad_aula"
-    PREREQUISITO_ASIGNATURA = "prerequisito_asignatura"
-    INCOMPATIBILIDAD = "incompatibilidad"
-    CAPACIDAD_MAXIMA = "capacidad_maxima"
-    EQUIPAMIENTO_ESPECIAL = "equipamiento_especial"
+    """Tipos de restricciones de disponibilidad temporal"""
+    HORARIO_PROFESOR = "horario_profesor"           # Días/horas no disponibles del profesor
+    DISPONIBILIDAD_AULA = "disponibilidad_aula"     # Aula no disponible por reservas/uso específico
+    BLOQUEO_TEMPORAL = "bloqueo_temporal"           # Bloqueos específicos de horarios
+    MANTENIMIENTO = "mantenimiento"                 # Mantenimiento programado de aulas/equipos
