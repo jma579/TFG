@@ -1,100 +1,201 @@
 🔍 TABLAS ENCONTRADAS:
 ==================================================
 
-📋 Tabla: grados
+📋 Tabla: programas
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - nombre: VARCHAR
+    - nombre: VARCHAR(200) NOT NULL
+    - tipo: VARCHAR(6) NOT NULL
+    - activo: BOOLEAN NOT NULL
 
 📋 Tabla: asignaturas
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - nombre: VARCHAR
-    - creditos: INTEGER
-    - horas_semanales: INTEGER
-    - curso: INTEGER
-    - cuatrimestre: INTEGER
+    - codigo_plan: VARCHAR(6) NOT NULL
+    - nombre: VARCHAR(250) NOT NULL
+    - periodo: VARCHAR(5) NOT NULL
+    - ects: INTEGER
+    - modalidad: VARCHAR(10) NOT NULL
+    - idioma: VARCHAR(8) NOT NULL
+    - english_friendly: BOOLEAN NOT NULL
+    - activo: BOOLEAN NOT NULL
 
 📋 Tabla: profesores
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - nombre: VARCHAR
-    - disponibilidad: TEXT
+    - nombre: VARCHAR(20) NOT NULL
+    - apellido1: VARCHAR(30) NOT NULL
+    - apellido2: VARCHAR(30)
+    - email: VARCHAR(200) NOT NULL
+    - activo: BOOLEAN NOT NULL
 
 📋 Tabla: aulas
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - nombre: VARCHAR
+    - nombre: VARCHAR(60) NOT NULL
+    - codigo: VARCHAR(10) NOT NULL
     - capacidad: INTEGER
-    - tipo: VARCHAR
+    - tipo: VARCHAR(11) NOT NULL
+    - recursos: TEXT
+    - activo: BOOLEAN NOT NULL
 
 📋 Tabla: menciones
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - nombre: VARCHAR
-    - grado_id: INTEGER
-
-📋 Tabla: asignatura_grado
-  Columnas:
-    - id: INTEGER (PK) NOT NULL
-    - asignatura_id: INTEGER
-    - grado_id: INTEGER
-
-📋 Tabla: profesor_asignatura
-  Columnas:
-    - id: INTEGER (PK) NOT NULL
-    - profesor_id: INTEGER
-    - asignatura_id: INTEGER
-
-📋 Tabla: sesiones
-  Columnas:
-    - id: INTEGER (PK) NOT NULL
-    - asignatura_id: INTEGER
-    - profesor_id: INTEGER
-    - aula_id: INTEGER
-    - dia: VARCHAR
-    - hora_inicio: TIME
-    - hora_fin: TIME
+    - nombre: VARCHAR(60) NOT NULL
+    - programa_id: INTEGER NOT NULL
+    - activo: BOOLEAN NOT NULL
 
 📋 Tabla: restricciones
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - tipo: VARCHAR
-    - valor: TEXT
-    - asignatura_id: INTEGER
+    - tipo: VARCHAR(19) NOT NULL
+    - dureza: VARCHAR(6) NOT NULL
     - profesor_id: INTEGER
     - aula_id: INTEGER
+    - inicio: DATETIME NOT NULL
+    - fin: DATETIME NOT NULL
+    - detalles: TEXT
 
-📋 Tabla: asignatura_mencion
+📋 Tabla: grupos_docentes
   Columnas:
     - id: INTEGER (PK) NOT NULL
-    - asignatura_id: INTEGER
-    - mencion_id: INTEGER
+    - asignatura_id: INTEGER NOT NULL
+    - tipo: VARCHAR(9) NOT NULL
+    - etiqueta: VARCHAR(5) NOT NULL
+    - descripcion: VARCHAR(100)
+
+📋 Tabla: programas_asignaturas
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - programa_id: INTEGER NOT NULL
+    - asignatura_id: INTEGER NOT NULL
+    - curso: INTEGER
+    - obligatoria: BOOLEAN NOT NULL
+
+📋 Tabla: profesores_asignaturas
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - profesor_id: INTEGER NOT NULL
+    - asignatura_id: INTEGER NOT NULL
+    - activo: BOOLEAN NOT NULL
+
+📋 Tabla: documentos
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - nombre_archivo: VARCHAR(255) NOT NULL
+    - tipo: VARCHAR(20) NOT NULL
+    - programa_id: INTEGER
+    - ruta_almacenamiento: VARCHAR(500) NOT NULL
+    - subido_por: VARCHAR(150)
+    - creado_en: DATETIME NOT NULL
+
+📋 Tabla: sesiones
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - grupo_docente_id: INTEGER NOT NULL
+    - aula_id: INTEGER
+    - modalidad: VARCHAR(2)
+    - tipo_recurrencia: VARCHAR(7) NOT NULL
+    - dia_semana: VARCHAR(3)
+    - hora_inicio: TIME
+    - hora_fin: TIME
+    - inicio: DATETIME
+    - fin: DATETIME
+
+📋 Tabla: asignaturas_menciones
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - asignatura_id: INTEGER NOT NULL
+    - mencion_id: INTEGER NOT NULL
+
+📋 Tabla: import_runs
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - documento_id: INTEGER NOT NULL
+    - estado: VARCHAR(20) NOT NULL
+    - inicio_en: DATETIME NOT NULL
+    - fin_en: DATETIME
+    - resumen: TEXT
+
+📋 Tabla: profesores_sesiones
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - profesor_id: INTEGER NOT NULL
+    - sesion_id: INTEGER NOT NULL
+    - rol_en_sesion: VARCHAR(40)
+
+📋 Tabla: conflictos
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - tipo: VARCHAR(20) NOT NULL
+    - estado: VARCHAR(11) NOT NULL
+    - severidad: VARCHAR(5) NOT NULL
+    - sesion_id: INTEGER NOT NULL
+    - sesion_2_id: INTEGER
+    - profesor_id: INTEGER
+    - aula_id: INTEGER
+    - restriccion_id: INTEGER
+    - detectado_en: DATETIME NOT NULL
+    - hash_deteccion: VARCHAR(80)
+    - descripcion: TEXT
+
+📋 Tabla: extracciones
+  Columnas:
+    - id: INTEGER (PK) NOT NULL
+    - import_run_id: INTEGER NOT NULL
+    - documento_id: INTEGER NOT NULL
+    - tipo: VARCHAR(20) NOT NULL
+    - bloque: VARCHAR(80) NOT NULL
+    - contenido: TEXT NOT NULL
+    - creado_en: DATETIME NOT NULL
 
 🔗 CLAVES FORÁNEAS:
 ==================================================
 
 📋 menciones:
-    grado_id -> grados.id
-
-📋 asignatura_grado:
-    grado_id -> grados.id
-    asignatura_id -> asignaturas.id
-
-📋 profesor_asignatura:
-    asignatura_id -> asignaturas.id
-    profesor_id -> profesores.id
-
-📋 sesiones:
-    aula_id -> aulas.id
-    profesor_id -> profesores.id
-    asignatura_id -> asignaturas.id
+    programa_id -> programas.id
 
 📋 restricciones:
     aula_id -> aulas.id
     profesor_id -> profesores.id
+
+📋 grupos_docentes:
     asignatura_id -> asignaturas.id
 
-📋 asignatura_mencion:
+📋 programas_asignaturas:
+    asignatura_id -> asignaturas.id
+    programa_id -> programas.id
+
+📋 profesores_asignaturas:
+    asignatura_id -> asignaturas.id
+    profesor_id -> profesores.id
+
+📋 documentos:
+    programa_id -> programas.id
+
+📋 sesiones:
+    aula_id -> aulas.id
+    grupo_docente_id -> grupos_docentes.id
+
+📋 asignaturas_menciones:
     mencion_id -> menciones.id
     asignatura_id -> asignaturas.id
+
+📋 import_runs:
+    documento_id -> documentos.id
+
+📋 profesores_sesiones:
+    sesion_id -> sesiones.id
+    profesor_id -> profesores.id
+
+📋 conflictos:
+    restriccion_id -> restricciones.id
+    aula_id -> aulas.id
+    profesor_id -> profesores.id
+    sesion_2_id -> sesiones.id
+    sesion_id -> sesiones.id
+
+📋 extracciones:
+    documento_id -> documentos.id
+    import_run_id -> import_runs.id

@@ -5,7 +5,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, declarative_base
 
 # Importar enums desde constants
-from aplicacion.backend.constants.enums import (
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from backend.constants.enums import (
     TipoPrograma, Periodo, ModalidadAsignatura, Idioma, TipoAula,
     ModalidadSesion, TipoGrupoDocente, TipoRecurrencia, DiaSemana,
     TipoRestriccion, DurezaRestriccion, SeveridadConflicto, 
