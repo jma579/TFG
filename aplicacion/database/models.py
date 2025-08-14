@@ -19,9 +19,7 @@ Base = declarative_base()
 class Programa(Base):
     __tablename__ = "programas"
     id = Column(Integer, primary_key=True)
-    nombre = Column(String(30), nullable=False)
-    apellido1 = Column(String(30), nullable=False)
-    apellido2 = Column(String(30), nullable=True)
+    nombre = Column(String(200), nullable=False)
     tipo = Column(Enum(TipoPrograma), nullable=False)
     activo = Column(Boolean, default=True, nullable=False)
 
@@ -92,7 +90,7 @@ class Restriccion(Base):
 # ---------- DOCENCIA ----------
 
 class GrupoDocente(Base):
-    __tablename__ = "grupo_docente"
+    __tablename__ = "grupos_docentes"
     id = Column(Integer, primary_key=True)
     asignatura_id = Column(Integer, ForeignKey('asignaturas.id', ondelete="CASCADE"), nullable=False)
     tipo = Column(Enum(TipoGrupoDocente), nullable=False)
@@ -104,7 +102,7 @@ class GrupoDocente(Base):
 class Sesion(Base):
     __tablename__ = "sesiones"
     id = Column(Integer, primary_key=True)
-    grupo_docente_id = Column(Integer, ForeignKey('grupo_docente.id', ondelete="CASCADE"), nullable=False)
+    grupo_docente_id = Column(Integer, ForeignKey('grupos_docentes.id', ondelete="CASCADE"), nullable=False)
     aula_id = Column(Integer, ForeignKey('aulas.id', ondelete="SET NULL"))
     modalidad = Column(Enum(ModalidadSesion))
     tipo_recurrencia = Column(Enum(TipoRecurrencia), nullable=False)
@@ -119,7 +117,7 @@ class Sesion(Base):
 # ---------- TABLAS PUENTE ----------
 
 class ProgramaAsignatura(Base):
-    __tablename__ = "programa_asignatura"
+    __tablename__ = "programas_asignaturas"
     id = Column(Integer, primary_key=True)
     programa_id = Column(Integer, ForeignKey('programas.id', ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey('asignaturas.id', ondelete="CASCADE"), nullable=False)
@@ -129,7 +127,7 @@ class ProgramaAsignatura(Base):
     __table_args__ = (UniqueConstraint('programa_id', 'asignatura_id', name='uq_programa_asignatura'),)
 
 class AsignaturaMencion(Base):
-    __tablename__ = "asignatura_mencion"
+    __tablename__ = "asignaturas_menciones"
     id = Column(Integer, primary_key=True)
     asignatura_id = Column(Integer, ForeignKey('asignaturas.id', ondelete="CASCADE"), nullable=False)
     mencion_id = Column(Integer, ForeignKey('menciones.id', ondelete="CASCADE"), nullable=False)
@@ -137,7 +135,7 @@ class AsignaturaMencion(Base):
     __table_args__ = (UniqueConstraint('asignatura_id', 'mencion_id', name='uq_asignatura_mencion'),)
 
 class ProfesorAsignatura(Base):
-    __tablename__ = "profesor_asignatura"
+    __tablename__ = "profesores_asignaturas"
     id = Column(Integer, primary_key=True)
     profesor_id = Column(Integer, ForeignKey('profesores.id', ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey('asignaturas.id', ondelete="CASCADE"), nullable=False)
@@ -146,7 +144,7 @@ class ProfesorAsignatura(Base):
     __table_args__ = (UniqueConstraint('profesor_id', 'asignatura_id', name='uq_profesor_asignatura'),)
 
 class ProfesorSesion(Base):
-    __tablename__ = "profesor_sesion"
+    __tablename__ = "profesores_sesiones"
     id = Column(Integer, primary_key=True)
     profesor_id = Column(Integer, ForeignKey('profesores.id', ondelete="CASCADE"), nullable=False)
     sesion_id = Column(Integer, ForeignKey('sesiones.id', ondelete="CASCADE"), nullable=False)
