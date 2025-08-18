@@ -1,0 +1,1 @@
+# Módulo detección de conflictos
