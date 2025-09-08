@@ -184,10 +184,10 @@ settings = Settings()
 
 #### Criterios de Validación:
 
-- [ ] App FastAPI arranca sin errores
-- [ ] GET /health devuelve {"status": "ok"}
-- [ ] Conexión a base de datos funciona
-- [ ] Todos los módulos se importan correctamente
+- [X] App FastAPI arranca sin errores
+- [X] GET /health devuelve {"status": "ok"}
+- [X] Conexión a base de datos funciona
+- [X] Todos los módulos se importan correctamente
 
 ---
 
@@ -293,12 +293,12 @@ class ConflictDetectionEngine:
     ) -> List[ResultadoDeteccion]:
         """
         Detecta conflictos que involucran a una sesión específica
-    
+  
         Args:
             sesion_id: ID de la sesión a analizar
             db_session: Sesión de SQLAlchemy
             params: Parámetros de configuración
-        
+      
         Returns:
             Lista de conflictos detectados
         """
@@ -312,11 +312,11 @@ class ConflictDetectionEngine:
     ) -> List[ResultadoDeteccion]:
         """
         Detecta conflictos en un rango completo (toda la BD o filtrado)
-    
+  
         Args:
             db_session: Sesión de SQLAlchemy
             params: Parámetros de configuración
-        
+      
         Returns:
             Lista de conflictos detectados
         """
@@ -330,11 +330,11 @@ class ConflictDetectionEngine:
     ) -> List[ResultadoDeteccion]:
         """
         Valida que una sesión (nueva o modificada) no genere conflictos
-    
+  
         Args:
             sesion_data: Datos de la sesión a validar
             db_session: Sesión de SQLAlchemy
-        
+      
         Returns:
             Lista de conflictos potenciales
         """
@@ -382,10 +382,10 @@ class OCRExtractor:
     def extract_text_from_pdf(self, pdf_path: str) -> str:
         """
         Extrae texto de un PDF usando PyPDF2 + OCR como fallback
-    
+  
         Args:
             pdf_path: Ruta al archivo PDF
-        
+      
         Returns:
             Texto extraído
         """
@@ -395,10 +395,10 @@ class OCRExtractor:
     def extract_text_from_image(self, image_path: str) -> str:
         """
         Extrae texto de una imagen usando Tesseract
-    
+  
         Args:
             image_path: Ruta a la imagen
-        
+      
         Returns:
             Texto extraído
         """
@@ -408,10 +408,10 @@ class OCRExtractor:
     def extract_metadata_from_pdf(self, pdf_path: str) -> Dict[str, Any]:
         """
         Extrae metadatos del PDF (autor, título, fechas, etc.)
-    
+  
         Args:
             pdf_path: Ruta al archivo PDF
-        
+      
         Returns:
             Diccionario con metadatos
         """
@@ -501,7 +501,7 @@ class ProgramaRepository:
     ) -> List[Programa]:
         """Lista programas con filtros y paginación"""
         query = db.query(Programa)
-    
+  
         if filters:
             if filters.get("tipo"):
                 query = query.filter(Programa.tipo == filters["tipo"])
@@ -511,7 +511,7 @@ class ProgramaRepository:
                 query = query.filter(
                     Programa.nombre.ilike(f"%{filters['nombre_like']}%")
                 )
-    
+  
         return query.offset(skip).limit(limit).all()
   
     def get_by_id(self, db: Session, programa_id: int) -> Optional[Programa]:
@@ -542,11 +542,11 @@ class ProgramaRepository:
         programa = self.get_by_id(db, programa_id)
         if not programa:
             return None
-    
+  
         update_data = programa_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(programa, field, value)
-    
+  
         db.commit()
         db.refresh(programa)
         return programa
@@ -556,7 +556,7 @@ class ProgramaRepository:
         programa = self.get_by_id(db, programa_id)
         if not programa:
             return False
-    
+  
         programa.activo = False
         db.commit()
         return True
@@ -564,13 +564,13 @@ class ProgramaRepository:
     def count(self, db: Session, filters: Optional[Dict[str, Any]] = None) -> int:
         """Cuenta programas con filtros"""
         query = db.query(Programa)
-    
+  
         if filters:
             if filters.get("tipo"):
                 query = query.filter(Programa.tipo == filters["tipo"])
             if filters.get("activo") is not None:
                 query = query.filter(Programa.activo == filters["activo"])
-    
+  
         return query.count()
 
 programa_repo = ProgramaRepository()
@@ -626,7 +626,7 @@ class ProgramaService:
         """Crea un nuevo programa"""
         # Validaciones de negocio
         self._validate_programa_business_rules(db, programa_data)
-    
+  
         programa = self.repo.create(db, programa_data)
         return ProgramaOut.model_validate(programa)
   
@@ -795,18 +795,18 @@ class SesionService:
         """Crea sesión y detecta conflictos automáticamente"""
         # 1. Crear sesión
         sesion = self.repo.create(db, sesion_data)
-    
+  
         # 2. DETECTAR CONFLICTOS automáticamente
         conflictos = conflict_engine.detect_conflicts_for_session(
             sesion.id, db
         )
-    
+  
         # 3. Persistir conflictos encontrados
         for conflicto_data in conflictos:
             conflicto_service.create_conflicto_from_detection(
                 db, conflicto_data
             )
-    
+  
         return SesionOut.model_validate(sesion)
 ```
 
@@ -922,7 +922,7 @@ class TestConflictDetection:
         conflictos = conflict_engine.detect_conflicts_for_session(
             sesion_id=1, db_session=db_session
         )
-    
+  
         assert len(conflictos) > 0
         assert any(c.tipo == TipoConflicto.SOLAPAMIENTO_PROFESOR for c in conflictos)
   
