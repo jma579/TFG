@@ -200,10 +200,17 @@ settings = Settings()
 
 #### Tareas:
 
-- [ ] **2.1.1** Definir tipos base en `core/conflicts/types.py`
-- [ ] **2.1.2** Implementar `core/conflicts/hashing.py` para generar hashes únicos
-- [ ] **2.1.3** Crear esqueleto de reglas en `core/conflicts/rules.py`
-- [ ] **2.1.4** Implementar interfaz principal en `core/conflicts/engine.py`
+- [X] **2.1.1** Definir tipos base en `core/conflicts/types.py`
+- [X] **2.1.2** Implementar `core/conflicts/hashing.py` para generar hashes únicos
+- [X] **2.1.3** Implementar reglas básicas en `core/conflicts/basic_rules.py`
+- [X] **2.1.4** Implementar interfaz principal en `core/conflicts/engine.py`
+
+**Nota**: La arquitectura de reglas se ha diseñado de forma modular:
+
+- `basic_rules.py` contiene las reglas fundamentales (solapamientos, restricciones básicas)
+- Futuras reglas avanzadas irán en módulos especializados (capacity_rules.py, business_rules.py, etc.)
+- Esta separación permite mejor mantenibilidad y configuración granular
+- **Las reglas avanzadas se implementarán en la Fase 4.1.4** (ver sección de Ampliación de Reglas)
 
 #### core/conflicts/types.py:
 
@@ -298,7 +305,7 @@ class ConflictDetectionEngine:
             sesion_id: ID de la sesión a analizar
             db_session: Sesión de SQLAlchemy
             params: Parámetros de configuración
-      
+  
         Returns:
             Lista de conflictos detectados
         """
@@ -316,7 +323,7 @@ class ConflictDetectionEngine:
         Args:
             db_session: Sesión de SQLAlchemy
             params: Parámetros de configuración
-      
+  
         Returns:
             Lista de conflictos detectados
         """
@@ -334,7 +341,7 @@ class ConflictDetectionEngine:
         Args:
             sesion_data: Datos de la sesión a validar
             db_session: Sesión de SQLAlchemy
-      
+  
         Returns:
             Lista de conflictos potenciales
         """
@@ -385,7 +392,7 @@ class OCRExtractor:
   
         Args:
             pdf_path: Ruta al archivo PDF
-      
+  
         Returns:
             Texto extraído
         """
@@ -398,7 +405,7 @@ class OCRExtractor:
   
         Args:
             image_path: Ruta a la imagen
-      
+  
         Returns:
             Texto extraído
         """
@@ -411,7 +418,7 @@ class OCRExtractor:
   
         Args:
             pdf_path: Ruta al archivo PDF
-      
+  
         Returns:
             Diccionario con metadatos
         """
@@ -836,12 +843,40 @@ class SesionService:
 
 #### Tareas:
 
-- [ ] **4.1.1** Implementar detección de solapamientos de profesores
-- [ ] **4.1.2** Implementar detección de solapamientos de aulas
-- [ ] **4.1.3** Implementar validación de restricciones
-- [ ] **4.1.4** Algoritmo de generación de hash de conflictos
+- [ ] **4.1.1** Implementar detección de solapamientos de profesores (ya implementado en basic_rules.py)
+- [ ] **4.1.2** Implementar detección de solapamientos de aulas (ya implementado en basic_rules.py)
+- [ ] **4.1.3** Implementar validación de restricciones (ya implementado en basic_rules.py)
+- [ ] **4.1.4** **AMPLIAR**: Implementar reglas avanzadas en módulos especializados
 - [ ] **4.1.5** Motor de detección masiva (toda la base de datos)
 - [ ] **4.1.6** Optimizaciones de rendimiento
+
+#### 4.1.4 Ampliación de Reglas de Detección:
+
+Las reglas básicas implementadas en `basic_rules.py` (Fase 2.1.3) cubren los conflictos fundamentales.
+En esta fase se implementarán reglas avanzadas en módulos especializados:
+
+**Módulos de Reglas Avanzadas a Implementar**:
+
+- **`capacity_rules.py`**: Reglas de capacidad y recursos físicos
+
+  - CapacidadAulaInsuficienteRule
+  - RecursosEquipamientoInsuficientesRule
+  - ViolacionAfororMaximoRule
+- **`business_rules.py`**: Reglas de negocio específicas académicas
+
+  - RestriccionModalidadIncompatibleRule
+  - ConflictoAsignaturasCorrelativasRule
+  - ViolacionPoliticasHorariosRule
+- **`scheduling_rules.py`**: Reglas de planificación temporal avanzada
+
+  - ViolacionVentanasTemporalesRule
+  - ConflictoDistribucionSemanalRule
+  - OptimizacionUsoRecursosRule
+- **`custom_rules.py`**: Reglas personalizables por institución
+
+  - ReglasEspecificasUniversidadRule
+  - ReglasTemporalesEventosEspecialesRule
+  - ConfiguracionPoliticasPersonalizadasRule
 
 #### Algoritmos Críticos:
 
