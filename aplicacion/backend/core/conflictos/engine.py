@@ -404,11 +404,12 @@ class ConflictDetectionEngine:
         Punto único para generación de hashes, usando hashing.py.
         Corregido: llama directamente generar_hash_conflicto(resultado).
         """
-        for resultado in resultados:
-            # Generar hash usando hashing.py - pasando el ResultadoDeteccion completo
-            resultado.hash_deteccion = generar_hash_conflicto(resultado)
-        
-        return resultados
+        resultados_con_hash: List[ResultadoDeteccion] = []
+        for r in resultados:
+            h = generar_hash_conflicto(r)  # recibe ResultadoDeteccion completo (ya corregido)
+            r2 = r.model_copy(update={"hash_deteccion": h})
+            resultados_con_hash.append(r2)
+        return resultados_con_hash
     
     def _deduplicate_by_hash(self, resultados: List[ResultadoDeteccion]) -> List[ResultadoDeteccion]:
         """
