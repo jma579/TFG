@@ -354,10 +354,10 @@ conflict_engine = ConflictDetectionEngine()
 
 #### Criterios de Validación:
 
-- [ ] Tipos base compilar sin errores
-- [ ] Interfaces del engine están definidas
-- [ ] Hash generation funciona (aunque sea stub)
-- [ ] Tests unitarios básicos pasan
+- [X] Tipos base compilar sin errores
+- [X] Interfaces del engine están definidas
+- [X] Hash generation funciona (aunque sea stub)
+- [X] Tests unitarios básicos pasan
 
 ### 2.2 Core Extraction (OCR/PLN)
 
@@ -366,7 +366,7 @@ conflict_engine = ConflictDetectionEngine()
 
 #### Tareas:
 
-- [ ] **2.2.1** Implementar `core/extraction/ocr.py` (stub con Tesseract)
+- [X] **2.2.1** Implementar `core/extraction/ocr.py` (stub con Tesseract)
 - [ ] **2.2.2** Crear `core/extraction/parsing.py` (regex/spaCy básico)
 - [ ] **2.2.3** Implementar `core/extraction/normalize.py` (a estructuras intermedias)
 
