@@ -1,0 +1,472 @@
+GRADO EN INGENIERÍA INFORMÁTICA
+PRIMER CUATRIMEST RE
+LUNES
+Sistemas Digitales
+PL1
+SEM.INF o LSC 1, 2 o 3??
+Fund. Físicos
+Grupo PL1
+AULA 13
+(*)Sistemas Digitales
+PL3
+SEM.INF o LSC 1??Sistemas Digitales
+PL2
+LSC 1????PRIMER CURSO
+Fundamentos Físicos
+AULA 8
+Intro al
+software
+PA2
+AULA 5Intro al
+software
+TE / PA1
+AULA 14Intro al
+software
+PA4
+AULA 7Intro al
+software
+PL3 y PL4
+LSC 1ODS
+AULA 8
+Intro al software
+TE
+AULA 2
+Algebra Lineal y Discreta
+AULA 14ODS
+AULA 8Sistemas Digitales
+PL4
+LSC 1?? O SEM.INF??Fundamentos Físicos
+AULA 2Algebra Lineal y Discreta
+AULA 2
+Intro al software
+PA3
+AULA 5
+15:30
+16:30Sistemas Digitales
+AULA 2
+Algebra Lineal y Discreta
+AULA 2
+Fund.
+Físicos
+PL2
+AULA 13
+(*)
+Fund. Físicos
+Grupo PL4
+AULA 13
+(*)MIÉRCOLES
+14:30
+15:3012:30
+13:30Fund. Físicos
+Grupo PL3
+AULA 13
+(*)9:30
+10:30
+17:30
+18:3016:30
+17:30Introduc. al
+software
+PL1 y PL2
+LSC 110:30
+11:30Sist. Digitales
+TE / PA 1
+AULA 7
+Sist. Digitales
+PA 2
+AULA 7MARTES
+18:30
+19:3011:30
+12:30
+13:30
+14:308:30
+9:30
+(*) La programación de práctiacs de laboratorio y simulación se dará a conocer a principio de curso. JUEVES VIERNES
+VIERNES JUEVES
+Estructura
+Computad
+ores
+PA2
+AULA 29:30
+10:30
+Interacción persona-computador
+TE
+AULA 7
+Interacción persona-comp.
+TE / PA1 y PA2
+AULA 7MARTES MIÉRCOLES
+Estructura de Computadores
+TE/tutoría
+AULA 2Estructura
+Computadores
+PA1
+AULA 2
+Matemática Discreta
+AULA 2
+Estructura de
+Computadores
+PL1
+L ATC 14:30
+15:30Estructura
+de Datos
+PA2
+AULA 9
+15:30
+16:3011:30
+12:0010:30
+11:30
+12:00
+12:30
+Estructuras de Datos
+PL1
+AULA 2Matemática Discreta
+AULA 213:30
+14:30
+Estructuras de Datos
+TE / PA 2
+AULA 28:30
+9:30LUNES
+Estructuras de Datos
+TE AULA 2
+Estructura de
+Computadores
+PL5
+LATCEstructura de Computadores
+AULA 2
+Estructuras
+de Datos
+PL2
+AULA 217:30
+19:3016:30
+17:30
+Econ. y ADE
+AULA 14Estructura de Computadores
+PL3 LATC
+Econ. y ADE
+AULA 14Estructura de
+Computadores
+PL4 LATC
+Int.persona-comp.
+PL1 y PL2
+AULA 7Estructura
+de Datos
+PA1
+AULA 912:30
+13:30SEGUNDO CURSO
+Estructura
+de
+Computad
+ores
+PL2 LATC
+Prog. paralela, concurrente y de
+tiempo real PL3
+LTR/ATC
+Ingeniería de software
+I
+PA 2
+SEM INFIntroducción a los sistemas
+inteligentes
+AULA 14Prog.
+paralela,
+concurrente
+y de tiempo
+real PL5
+LTR/ATC
+Interacción persona-comp.
+TE / PA1 y PA2
+AULA 14MARTES
+Programación paralela,
+concurrente y de tiempo real
+AULA 14
+Intr. a redes de computadoras TE
+AULA 14
+Prog. paralela, concurrente y de
+tiempo real PL1
+LTR/ATCMIÉRCOLES JUEVES LUNES
+Programación paralela, concurrente
+y de tiempo real
+AULA 14
+Interacción persona-computador TE
+AULA 14
+Ingeniería de software I
+AULA 1409:30
+10:30
+Prog. paralela, concurrente y de tiempo real
+PL2
+LTR/ATCVIERNES
+Introducció
+n a los
+sistemas
+inteligente
+s
+PL3
+AULA 13
+13:30
+14:30Ingeniería de
+software I
+PL2
+SEM INFIntroducció
+n a los
+sistemas
+inteligente
+s
+PL1
+AULA 13Introducció
+n a los
+sistemas
+inteligente
+s
+PL2
+AULA 13
+Ingeniería
+de
+software I
+PL1
+SEM INF
+Introducción a redes de
+computadoras
+PL4
+LATC Introducció
+n a redes
+de
+computado
+ras
+PL1
+LATCProg.
+paralela,
+concurrent
+e y de
+tiempo real
+PL4
+LRT
+17:30
+19:3012:30
+13:30
+15:30
+17:3014:30
+15:30Intr. a
+redes de
+computado
+ras PA1
+AULA 13
+Intr. a
+redes de
+computado
+ras PA2
+AULA 13Ingeniería de soft I
+PA1
+SEM INF10:30
+11:30
+11:30
+12:3008:30
+09:30
+Int.persona-comp.
+PL1 y PL2
+AULA 14
+Introducción a los sistemas inteligentes
+AULA 14Ingeniería de
+software I
+PL3
+SEM INF
+Introducción a redes de computadoras
+PL2
+LATC Introducción a redes de
+computadoras
+PL3
+LATC
+Intr. a redes de computadoras TE
+AULA 14TERCER CURSO
+Diseño y
+administración de
+redes
+AULA 1518:30
+19:30
+LUNES
+08:30
+09:30
+11:30
+12:30
+12:30
+13:30
+Sistemas operativos
+avanzados
+UNICAN-LABS
+AULA 15
+Multiprocesadores
+LAB ATC MIÉRCOLES
+Sistemas operativos
+avanzados
+UNICAN-LABS
+AULA 1513:30
+14:30
+Sistemas embebidos
+AULA 15
+15:30
+16:30
+Sist.
+informacio
+n
+empresa
+AULA 5
+16:30
+17:30
+17:30
+18:30Diseño y
+administración de
+redes
+AULA 1514:30
+15:30Computer
+animation
+and
+videogames
+Portátiles
+AULA 13Bases de
+datos
+avanzadas
+AULA 15 CUARTO CURSO MENCIÓN EN COMPUTADORES
+Computer
+animation
+and
+videogames
+Portátiles
+AULA 13
+JUEVES
+Bases de
+datos
+avanzadas
+AULA 15Sist.
+informacio
+n
+empresaSistemas embebidos
+AULA LSC409:30
+10:30
+10:30
+11:30VIERNES
+MARTES
+Diseño y administración de redes
+LSC DICOM - AULA 15Multiprocesadores
+AULA 15
+18:30
+19:30
+LUNES MIÉRCOLES
+Diseño de algoritmos
+AULA 13Modelos de cálculo
+AULA 13Gráficos por computador y realidad
+virtual
+AULA 13
+12:30
+13:3009:30
+10:30
+Sist.
+informacio
+n
+empresa
+AULA 5
+Representación del
+conocimiento
+AULA 13Representación del
+conocimiento
+AULA 13
+Computer
+animation
+and
+videogames
+Portátiles
+AULA 13JUEVES VIERNES
+08:30
+09:30
+11:30
+1230
+Computer
+animation
+and
+videogames
+Portátiles
+AULA 13
+Gráficos por
+computador y realidad
+virtual
+AULA 13Diseño de algoritmos
+AULA 13
+17:30
+18:30
+Modelos de cálculo
+AULA 1313:30
+14:30
+15:30
+16:30
+16:30
+17:3010:30
+11:30
+14:30
+15:30CUARTO CURSO MENCIÓN EN COMPUTACIÓN
+MARTES
+Bases de
+datos
+avanzadas
+AULA 15Sist.
+informacio
+n
+empresa
+AULA 5Bases de
+datos
+avanzadas
+AULA 15
+16:30
+17:3015:30
+16:30MIÉRCOLES
+LUNES MARTES
+Procesos software
+SEM INFVIERNES
+Métodos de desarrollo
+Software
+SEM INFBases de
+datos
+avanzadas
+AULA 15Sist.
+informacio
+n
+empresa
+AULA 5
+13:30
+14:3008:30
+09:30JUEVES
+10:30
+11:30
+09:30
+10:45
+Métodos de desarrollo
+Software
+SEM INF
+Computer
+animation
+and
+videogames
+Portátiles
+AULA 13Bases de
+datos
+avanzadas
+AULA 15Sist.
+informacio
+n
+empresa
+AULA 5
+Procesos software
+SEM INFDiseño Software
+SEM INFComputer
+animation
+and
+videogames
+Portátiles
+AULA 13
+17:30
+18:30Calidad y auditoría
+SEM INF12:30
+13:30
+14:30
+15:3011:30
+12:30
+18:30
+19:30Diseño Software
+SEM INFCalidad y auditoría
+SEM INF
+CUARTO CURSO MENCIÓN EN I. SOFTWARE

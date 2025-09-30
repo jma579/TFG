@@ -8,12 +8,7 @@ from typing import Optional, List, Dict, Any, Tuple
 # ENUMS PARA EXTRACCIÓN OCR
 # =============================================================================
 
-class ExtractionMethod(str, Enum):
-    """Métodos disponibles para extracción de texto de PDFs."""
-    NATIVE = "native"          # PyPDF2 - Extracción nativa de texto embebido
-    OCR = "ocr"               # Tesseract - OCR para PDFs escaneados
-    HYBRID = "hybrid"         # Combinación de ambos métodos
-    FALLBACK = "fallback"     # Método de respaldo usado cuando falla el primario
+
 
 
 class ExtractionQuality(str, Enum):
@@ -56,8 +51,6 @@ MIN_CHARACTERS_FOR_USEFUL_TEXT = 5  # Mínimo de caracteres para considerar text
 class ExtractionMetadata:
     """Metadatos optimizados del proceso de extracción."""
     # Campos obligatorios (sin defaults)
-    method: ExtractionMethod                    # Método finalmente utilizado
-    methods_attempted: List[ExtractionMethod]  # Métodos que se intentaron
     processing_time_seconds: float             # Tiempo total de procesamiento
     page_count: int                            # Número total de páginas
     file_size_mb: float                        # Tamaño del archivo en MB

@@ -367,7 +367,7 @@ conflict_engine = ConflictDetectionEngine()
 #### Tareas:
 
 - [X] **2.2.1** Implementar `core/extraction/ocr.py` (stub con Tesseract)
-- [ ] **2.2.2** Crear `core/extraction/parsing.py` (regex/spaCy básico)
+- [X] **2.2.2** Crear `core/extraction/parsing.py` (regex/spaCy básico)
 - [ ] **2.2.3** Implementar `core/extraction/normalize.py` (a estructuras intermedias)
 
 #### core/extraction/ocr.py:

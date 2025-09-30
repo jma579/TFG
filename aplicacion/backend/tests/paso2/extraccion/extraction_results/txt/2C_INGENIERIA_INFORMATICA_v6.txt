@@ -1,0 +1,622 @@
+GRADO EN INGENIERÍA INFORMÁTICA
+SEGUNDO CUATRIMESTRE
+Lógica
+PA2/PL2
+AULA L4PRIMER CURSO
+Lógica
+PA1/PL1
+AULA 13VIERNES
+Lógica
+AULA 2
+14:30
+15:30MARTES
+Lógica
+AULA 2
+11:30
+12:30Estadística y
+Optimización
+AULA 2
+Estadística y Optimización
+TE/ PA1
+AULA 2
+13:30
+14:3008:30
+09:30
+9:30
+10:30
+12:30
+13:30Análisis M. y Met Num.
+AULA 2Estadíst.
+y Optimiza- ción
+PA2
+AULA2 10:30
+11:30LUNES
+Métodos
+de progra-
+mación
+PL1 y PL2
+AULA 13Intr. a los
+computa-
+dores
+PL4
+ATCIntr. a los
+computa-
+dores
+PL5
+ATC
+Métodos de programación
+AULA 2MIÉRCOLES JUEVES
+Métodos
+de progra-
+mación
+PL3 y PL4
+AULA 13
+Intr. a los
+computa-
+dores
+PL1
+ATC
+Introducción a los
+Computadores
+AULA 2
+Métodos de programación
+TE/PA 2
+AULA 2
+Met.
+Progr.
+PA1
+AULA 2Análisis M. y Métodos
+Numéricos
+AULA 2
+Análisis M. y Métodos
+Numéricos
+AULA 2
+Análisis M. y Métodos
+Numéricos
+AULA 2Est. y Optimización
+AULA 2Introducción a los
+Computadores
+AULA 2
+17:30
+18:30
+Introducción a los
+computadores
+PL3
+ATC
+16:30
+17:30
+18:30
+19:30I.Compu-
+tadores
+PA 2
+AULA 7
+15:30
+16:30 Introducción a los
+computadores
+PL2
+ATC I.Computadores
+PA 1
+AULA 2
+Sistemas operativos
+PL1 y PL2
+LSC 1Sist. Operativos PA1
+AULA 14Organización computadores
+TE / PA2
+AULA 14 16:30
+17:3015:30
+16:30
+El número de grupos podría reducirse si el número de alumnos matriculados es inferior al estimado.Algorítmica y complejidad
+AULA 14Bases de datos
+AULA 14Alg. y
+complejidad
+PL 1/ PA 1
+PL 3/ PA 3
+AULA 14
+Org. Comp. PA1
+AULA 14Sistemas operativos
+TE
+AULA 14Sistemas de Información
+TE/ PA2
+AULA 14
+18:30
+19:3013:30
+14:30
+Sistemas de
+Información
+PL1
+AULA 99:30
+10:30
+11:30
+12:3010:30
+11:30SEGUNDO CURSO
+JUEVES
+12:30
+13:30
+Org. Computadores TE
+AULA 14Org.
+Computa-
+dores
+PL3
+LATC
+Sistemas de Información
+TE
+AULA 14Sistemas de
+Información
+PL2
+AULA 9
+Alg. y
+complejidad
+PL 2
+PA 2
+AULA 14Sistemas
+operativos
+PL3 y PL4
+LSC 1Org.
+Computadores
+PL1
+LATCBases datos
+TE /PA
+AULA 14Algorítmica y
+complejidad
+AULA 14MARTES
+14:30
+15:30
+17:30
+18:30Sistemas operativos
+TE/PA2
+AULA 14
+Org. Computadores
+PL2
+LATCBases de
+datos
+PL1
+AULA 1408:30
+09:30MIÉRCOLES LUNES
+Sistemas de Información
+PA1
+AULA 14Bases de datos
+PL2
+AULA 14VIERNES
+10:30
+11:30
+Ingeniería
+de
+software II
+PL3
+AULA 13R. comput. y
+sist.
+Distribuidos
+PL3
+LTR/LATC
+Sistemas
+informátic
+os
+PL3
+AULA 13Redes de computadores y
+sistemas distribuidos
+PL4
+LTR / LATC
+Obligatorias R. comput.
+y sist.
+Distribui-
+dos
+PL2
+LTR /LATCRedes de computadores y
+sistemas distribuidos
+PL5
+LTR / LATC 17:30
+18:30
+Optativas R. comput.
+y sist.
+Distribui-
+dos
+PL1
+LTR/LATC14:30
+15:30
+16:30
+17:30
+18:30
+19:3015:30
+16:3012:30
+13:30Sistemas
+tiempo real
+AULA 15
+13:30
+14:30Sistemas
+informáticos
+PL1 y PL4
+AULA 4Redes de comp. y sist.
+distribuidos
+AULA 4
+11:30
+12:30Sistemas informáticos
+AULA 4TERCER CURSO MENCIÓN EN COMPUTADORES
+Arq. e Ing. de
+computadores
+LSC 2Arq. e Ing. de
+computadores
+LSC 2JUEVES
+Ingeniería de software II
+TE / PA 2
+AULA 4
+Ing. de Softw. II
+PA1
+SEM INFMIÉRCOLES VIERNES
+Ingeniería de software II
+TE
+AULA 408:30
+09:30
+Redes de comp. y sist.
+distribuidos
+AULA 4
+Sistemas de tiempo
+real
+PL1
+LTRRC y S. Distrib.
+PA 2
+AULA 49:30
+10:30MARTES
+Redes de comp. y sist.
+Distribuidos
+PA1
+AULA 4Ingeniería
+de
+software II
+PL1
+y
+PL2
+AULA 7Sistemas
+informá-
+ticos
+PL2
+AULA 4LUNES
+Redes de
+computadores y
+sistemas distribuidos
+PL5
+LTR / LATC15:30
+16:30
+Obligatorias Optativas18:30
+19:30Sistemas
+informátic
+os
+PL3
+AULA 13R. comput.
+y sist.
+Distribui-
+dos
+PL1
+LTR/LATCRedes de
+computadores y
+sistemas distribuidos
+PL4
+LTR / LATC
+17:30
+18:30R. comput.
+y sist.
+Distribui-
+dos
+PL2
+LTR /LATC16:30
+17:3014:30
+15:30A.A. y
+minería
+datos
+SEM InfRC y S.
+Distrib. PA
+2
+AULA 4Ing. de
+Softw. II
+PA1
+SEM INF
+Redes de comp. y sist.
+Distribuidos
+PA1
+AULA 4
+13:30
+14:30Sistemas
+informá-
+ticos
+PL2
+AULA 411:30
+12:30Ingeniería de software
+II
+TE
+AULA 4
+A.A. y minería de datos
+SEM INF
+12:30
+13:30Lenguajes formales
+SEM INF
+10:30
+11:30
+Sistemas
+informátic
+os
+PL1 y PL4
+AULA 4
+R. comput.
+y sist.
+Distribuido
+s
+PL3
+LTR/LATCLenguajes formales
+SEM INFSistemas informáticos
+AULA 4Ingeniería de software
+II
+TE / PA 2
+AULA 49:30
+10:30
+Ingeniería de
+software II
+PL3
+AULA 13Ingeniería
+de
+software II
+PL1
+y
+PL2
+AULA 7Redes de comp. y sist.
+distribuidos
+AULA 4MENCIÓN EN COMPUTACIÓN
+08:30
+09:30LUNES
+Redes de comp. y sist.
+distribuidos
+AULA 4JUEVES VIERNES MARTES MIÉRCOLESTERCER CURSO
+TERCER CURSO
+17:30
+18:3016:30
+17:30
+Redes de
+computadores y
+sistemas distribuidos
+PL5
+LTR / LATCRedes de
+computadores y
+sistemas distribuidos
+PL4
+LTR / LATC
+Obligatorias Optativas18:30
+19:3015:30
+16:3014:30
+15:30
+Sistemas
+informátic
+os
+PL3
+AULA 13R. comput.
+y sist.
+Distribui-
+dos
+PL1
+LTR/LATC
+R. comput.
+y sist.
+Distribui-
+dos
+PL2
+LTR /LATCSistemas
+informátic
+os
+PL1 y PL4
+AULA 4Ing. de
+Softw. II
+PA1
+SEM INF11:30
+12:30
+Ingeniería de
+requisitos
+AULA 4
+12:30
+13:30R. comput.
+y sist.
+distribuido
+s
+PL3
+LTR/ LATCIngeniería de software
+II
+TE / PA 2
+AULA 4 Ingeniería de
+Requisitos
+AULA 4Desarrollo de sistemas
+de información
+AULA 4
+Ingeniería
+de
+software II
+PL3
+AULA 13Ingeniería
+de
+software II
+PL1
+y
+PL2
+AULA 7Sistemas
+informá-
+ticos
+PL2
+AULA 4
+13:30
+14:30RC y S.
+Distrib. PA
+2
+AULA 4
+Redes de comp. y sist.
+Distribuidos
+PA1
+AULA 49:30
+10:30Sistemas informáticos
+AULA 4
+Desarrollo
+de
+sistemas
+de
+informació
+n
+AULA 408:30
+09:30MENCIÓN EN I. SOFTWARE
+10:30
+11:30LUNES MARTES MIÉRCOLES VIERNES JUEVES
+Desarrollo de sistemas
+de información
+AULA 4
+Redes de comp. y sist.
+distribuidos
+AULA 4Desarrollo de sistemas
+de información
+AULA 4Ingeniería de software
+II
+TE
+AULA 4Redes de comp. y sist.
+distribuidos
+AULA 4
+Diseño y Gestión de
+sistemas informáticos
+AULA L414:30
+15:30
+18:30
+19:30Informática industrial
+AULA L4 (5 semanas)
+L ElectrónicaInformática industrial
+AULA L4 (5 semanas)
+L Electrónica
+16:30
+17:30
+Gestión de proyectos
+software
+SEM INF
+A.A. y minería de datos
+SEM INF
+15:30
+16:3013:30
+14:30
+11:30
+12:30
+Diseño y Gestión de sistemas
+informáticos
+AULA L4
+Gestión de proyectos software
+SEM INF
+17:30
+18:30System and network
+secutity and assurance
+AULA L4
+10:30
+11:30
+Optativas Obligatorias de mención12:30
+13:309:30
+10:30 08:30
+09:30
+CUARTO CURSO
+MENCIÓN EN COMPUTADORES
+JUEVES VIERNES
+LUNES MARTES MIÉRCOLES
+A.A. y minería datos
+SEM Inf
+System and network
+secutity and assurance
+AULA L4
+Natural Language
+Processing
+Aula 8
+14:30
+15:30
+Informática industrial
+AULA L4 (5 semanas)
+L Electrónica
+15:30
+16:30Natural Language
+Processing
+AULA 8Natural Language
+Processing
+AULA 8
+16:30
+17:30 MARTES
+OptativasSystem and network
+secutity and assurance
+AULA L4
+18:30
+19:3013:30
+14:30
+Lenguajes de
+programación
+AULA 8
+System and network
+secutity and assurance
+AULA L4
+17:30
+18:30Lenguajes de
+programación
+AULA 8
+Gestión de proyectos
+software
+SEM INFGestión de proyectos
+software
+SEM INF
+Obligatorias de
+mención12:30
+13:30
+Informática industrial
+AULA L4 (5 semanas)
+L Electrónica
+9:30
+10:30
+10:30
+11:30
+11:30
+12:3008:30
+09:30
+JUEVES
+CUARTO CURSO MENCIÓN EN COMPUTACIÓN
+MIÉRCOLES LUNES VIERNES
+14:30
+15:30
+Obligatorias de
+mención17:30
+18:30
+OptativasSystem and network
+secutity and assurance
+AULA L4
+16:30
+17:30
+System and network
+secutity and assurance
+AULA L4
+Servicios sotware
+SEM INF
+Portátiles A.A. y mineria datos
+SEM.INF
+(3 sesiones)
+12:30
+13:30Informática industrial
+AULA L4 (5 semanas)
+L Electrónica
+Servicios sotware
+SEM INF
+Portátiles
+Gestión de proyectos
+software
+SEM INFGestión de proyectos
+software
+SEM INF15:30
+16:3013:30
+14:30
+18:30
+19:30 Informática industrial
+AULA L4 (5 semanas)
+L Electrónica9:30
+10:30
+LUNES
+10:30
+11:30
+11:30
+12:30
+A.A. y minería de datos
+SEM INF CUARTO CURSO
+MARTES MIÉRCOLESMENCIÓN EN I. SOFTWARE
+VIERNES
+08:30
+09:30 JUEVES
+A.A. y minería datos
+SEM Inf
