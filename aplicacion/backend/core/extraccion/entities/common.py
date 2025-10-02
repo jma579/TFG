@@ -29,3 +29,12 @@ class ParseReport:
     warnings: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
     extra: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class ParsingMetadata:
+    parser_name: str
+    parser_version: str
+    parse_timestamp: str
+    parse_duration: float
+    warnings: List[str]
+    errors: List[str]

@@ -1,0 +1,250 @@
+{
+  "programa": "DOBLE GRADO EN FÍSIC A Y MATEMÁTICAS",
+  "periodo_text": "PRIMER CUATRIMESTRE",
+  "entries": [
+    {
+      "asignatura": "S",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "09:30:00",
+      "hora_fin": "10:30:00",
+      "aula": "AULA 2JUEVE",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": ":30",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "09:30:00",
+      "hora_fin": "18:30:00",
+      "aula": "AULA 208",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": ":30",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "13:30:00",
+      "hora_fin": "14:30:00",
+      "aula": "AULA 208",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": ":30",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "15:30:00",
+      "hora_fin": "17:30:00",
+      "aula": "AULA 208",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "S",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "12:30:00",
+      "hora_fin": "13:30:00",
+      "aula": "AULA 6JUEVE",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "S",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "15:30:00",
+      "hora_fin": "16:30:00",
+      "aula": "AULA 6JUEVE",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "S",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "11:30:00",
+      "hora_fin": "12:30:00",
+      "aula": "AULA 6JUEVE",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Física Estadística",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "17:30:00",
+      "hora_fin": "18:30:00",
+      "aula": "AULA 2",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Física Estadística",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "09:30:00",
+      "hora_fin": "10:30:00",
+      "aula": "AULA 2",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Advanced Computation",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "02:08:00",
+      "hora_fin": "09:30:00",
+      "aula": "AULA 1414",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Advanced Computation",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "10:30:00",
+      "hora_fin": "11:30:00",
+      "aula": "AULA 1414",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Advanced Computation",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "13:30:00",
+      "hora_fin": "14:30:00",
+      "aula": "AULA 1414",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Advanced Computation",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "18:30:00",
+      "hora_fin": "19:30:00",
+      "aula": "AULA 1414",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Numérico II",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "MIÉRCOLES",
+      "hora_inicio": "16:30:00",
+      "hora_fin": "17:30:00",
+      "aula": "PL 1",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "V.Diferenciables",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "13:30:00",
+      "hora_fin": "14:30:00",
+      "aula": "AULA 9",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "V.Diferenciables",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "12:30:00",
+      "hora_fin": "13:30:00",
+      "aula": "AULA 9",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "V.Diferenciables",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "11:30:00",
+      "hora_fin": "12:30:00",
+      "aula": "AULA 9",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "V.Diferenciables",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "10:30:00",
+      "hora_fin": "11:30:00",
+      "aula": "AULA 9",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "álisis Funcional",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "18:30:00",
+      "hora_fin": "19:30:00",
+      "aula": "AULA 815",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "(*)",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "17:30:00",
+      "hora_fin": "18:30:00",
+      "aula": "AULA 8",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "(*)",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "08:30:00",
+      "hora_fin": "09:30:00",
+      "aula": "AULA 8",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    },
+    {
+      "asignatura": "Advanced Probability",
+      "curso": null,
+      "grupo": "G0",
+      "dia_semana": "LUNES",
+      "hora_inicio": "16:30:00",
+      "hora_fin": "17:30:00",
+      "aula": "AULA 3",
+      "modalidad": "TEORIA",
+      "recurrencia": "SEMANAL"
+    }
+  ],
+  "raw_text": "DOBLE GRADO EN FÍSIC A Y MATEMÁTICAS\nPRIMER CUATRIMESTRE\nMIÉRCOLES\nÁlgebra Lineal\nAULA 1\nIntroducción al lenguaje matemático\nAULA 1Cálculo Diferencial\nAULA 1\nCálculo Diferencial\nAULA 1\nFísica Básica I\nAULA 4\nODS\nAULA 7Física Básica II\nAULA 4\nFísica Básica II\nGrupo 4\nLAB15:30\n16:00\n16:00\n17:00 Física\nBásica II\nGrupo 1\nLABFísica Básica II\nGrupo 5\nLAB\n18:00\n19:00Física Básica I\nGrupo 5\nLAB\nLa programación de prácticas de laboratorio y simulación se dará a conocer a principio de curso. Física Básica I\nGrupo 2\nLAB12:00\n12:30JUEVES\n11:30\n1200\n12:30\n13:3010:30\n11:30MARTES\nIntroducción al lenguaje\nmatemático\nAULA 1\n13:30\n14:00ODS\nAULA 79:30\n10:308:30\n9:30Álgebra Lineal\nAULA 1\nIntroducción al lenguaje\nmatemático\nAULA 1\nCálculo Diferencial\nAULA 1\n19:00\n19:3017:00\n18:0014:00\n14:30\n14:30\n15:30LUNES\nFísica\nBásica I\nGrupo 3\nLABPRIMER CURSO\nFísica Básica II\nGrupo 2\nLABÁlgebra Lineal\nAULA 1\nIntroducción al lenguaje\nmatemático\nAULA 1VIERNES\nFísica Básica I/II\nAULA 4Álgebra Lineal\nAULA 1\nFísica Básica I\nAULA 4\nFísica\nBásica I\nGrupo 1\nLABFísica Básica II\nAULA 4\n16:30\n17:30\nÁlgebra Lineal II\nAULA 1\nTermodinámica\nAULA 4\nÁlgebra Lineal II\nAULA 1MARTES\n12:30\n13:30\n18:30\n19:3014:30\n15:30\nEcuaciones Dif.\nAULA 1Ampl. Cálculo Dif.\nGrupo 1\nAULA 1Ampl.\nCálculo Dif.\nGrupo 2\nAULA 8\nTermodinámica\nAULA 4Álgebra\nLineal II\nPráct.\nGrupo 2\nAULA 4JUEVES\n9:30\n10:30LUNES\n17:30\n18:3014:00\n14:3011:30\n12:3010:30\n11:30\n15:30\n16:3013:30\n14:00MIÉRCOLES\n8:30\n9:30\nAmpl.\nCálculo Dif.\nGrupo 2\nAULA 4\nEcuaciones Dif.\nAULA 1Mecánica Clásica y\nrelatividad\nAULA 4\nTopología\nAULA 1Ampl. Cálculo Dif.\nGrupo 1\nAULA 1Ampl.\nCálculo Dif.\nGrupo 2\nAULA 8\nTopología\nAULA 1Ampl. Cálculo Dif. Grupo 1\nAULA 1\nÁlgebra Lineal II Práct.\nGrupo 1\nAULA 1\nTermodinámica\nAULA 4SEGUNDO CURSO\nMecánica Clásica y relatividad\nAULA 4VIERNES\nFísica Estadística\nAULA 2\n13:30\n14:30\n19:30\n20:3016:30\n17:30 Electromagnetismo I\nAULA 4\nElectromagnetismo I\nAULA 4Electromagnetismo I\nAULA 4\nMARTES\nEstructura de Moléculas y Sólidos\nAULA 2\nEstructura de Moléculas y Sólidos\nAULA 2Física Atómica y Molecular\nAULA 2Física Atómica y Molecular\nAULA 2\nFísica Atómica y Molecular\nAULA 2\nMIÉRCOLES\n15:30\n16:30Espacios de Hilbert\nAULA 1410:30\n11:30\nFísica Atómica y Molecular\nAULA 2JUEVES\n09:30\n10:30VIERNES\nEstructura de Moléculas y Sólidos\nAULA 208:30\n09:30\n18:30\n19:30LUNES\n11:30\n12:30\n12:30\n13:30\n14:30\n15:30\n17:30\n18:30Estructura de\nMoléculas y Sólidos\nAULA 2\nCálculo de Probabilidades\nAULA 14Física Estadística\nAULA 2\nCálculo de\nProbabilidades\nAULA 1\nEspacios de Hilbert\nAULA 14\nFísica Estadística\nAULA 2TERCER CURSO\nAdvanced\nExperimen\ntal\nTechniques\nPL 1\nAULA 6Advanced\nComputati\non\nPL1\nLSC 2\nCálculo Numérico II\nAULA 14\nTeoría global de superficies\nAULA 14Teoría de Galois\nAULA 14\nCálculo Numérico II\nAULA 14\nTeoría global de superficies\nAULA 14Física Estadística\nAULA 2MARTESCUARTO CURSO\nAdvanced Experimental\nTechniques\nPL 1\nAULA 6JUEVES\n12:30\n13:30\n15:30\n16:3011:30\n12:30\nAdvanced\nComputation\nAULA 8Cálculo Numérico II\nPL2\nLSC 1\nFísica Estadística\nAULA 2\n17:30\n18:30MIÉRCOLES\n9:30\n10:30\nFísica Estadística\nAULA 2LUNES\nEspacios de Hilbert\nAULA 14Espacios de Hilbert\nAULA 14Teoría de Galois\nAULA 14\nAdvanced Computation\nPL2\nLSC 208:30\n09:30\n10:30\n11:30VIERNES\n13:30\n14:30\n18:30\n19:30 Teoría global de superficies\nAULA 1414:30\n15:30Cálculo\nNumérico II\nPL 1 LSC 1\n16:30\n17:30\nLUNES\nFísica de partículas elementales\nAULA 8Mecánica cuántica\nAULA 8Análisis Funcional\nAULA 9\nRelatividad General\nAULA 8Fotónica\nAULA 8Física de partículas elementales\nAULA 8Mecánica cuántica\nAULA 8\nFísica de partículas elementales\nAULA 8Mecánica cuántica\nAULA 8MARTES\nFotónica\nAULA 8Advanced Probability\nAULA 3VIERNES\nTeoría Cualitativa de EDO\nAULA 9\nAmpliación de Análisis\nAULA 7QUINTO CURSO\nTeoría Cualitativa de EDO\nAULA 9JUEVES\nAdv. Statistics\nAULA 3V.Diferenciables\nAULA 9MIÉRCOLES\nV.Diferenciables\nAULA 9\n13:30\n14:3012:30\n13:3011:30\n12:3010:30\n11:30\nTop.Algebraica\nAULA 9\nMecánica cuántica\nAULA 8Análisis Funcional\nAULA 9\n18:30\n19:30Fotónica\nAULA 815:30\n16:30Astrofísica\nAULA 8\nFísica de\npartículas\nelementales\nAula 9\n(*)\n(*) Las prácticas de laboratorio serán 8 semanas. La programación estará disponible al inicio del curso. 17:30\n18:3008:30\n09:30\nRelatividad General\nAULA 89:30\n10:30Ampliación de Análisis\nAULA 7\nRelatividad General\nAULA 814:30\n15:30Análisis Funcional\nAULA 9Top.Algebraica\nAULA 9Adv. Statistics\nAULA 3\nAdvanced Probability\nAULA 3\n16:30\n17:30Física de\npartículas\nelementale\ns\nGrupo 2 (*)\nAula 9Astrofísica\nAULA 8Relatividad General\nAULA 8",
+  "metadata": null
+}

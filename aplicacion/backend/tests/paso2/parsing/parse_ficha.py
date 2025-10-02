@@ -12,12 +12,12 @@ FICHAS_OUTDIR = os.path.join(os.path.dirname(__file__), "fichas")
 def parse_pdf_text(pdf_path):
     extractor = get_pdf_extractor()
     result = extractor.extract_from_pdf(pdf_path)
-    if not result or not result.text or result.quality.value == "unusable":
+    if not result or not result.text or result.metadata.quality == "unusable":
         print(f"No se pudo extraer texto útil de {os.path.basename(pdf_path)} (calidad: {getattr(result.quality, 'value', 'N/A')})")
         return None
     print(f"\n--- Extracción PDF: {os.path.basename(pdf_path)} ---")
-    print(f"Calidad: {result.quality.value}, Confianza: {result.confidence:.2f}")
-    return result.text
+    print(f"Calidad: {result.metadata.quality}, Confianza: {result.metadata.confidence:.2f}")
+    return result.text, result.metadata
 
 def save_result(obj, outdir, pdf_path):
     os.makedirs(outdir, exist_ok=True)
@@ -40,12 +40,12 @@ def save_result(obj, outdir, pdf_path):
     print(f"Guardado resultado en: {outpath_json}")
 
 def run_ficha_parser(pdf_path):
-    text = parse_pdf_text(pdf_path)
+    text, extraction_metadata = parse_pdf_text(pdf_path)
     if not text:
         return
     parser = FichaParser()
     try:
-        ficha = parser.parse_text(text)
+        ficha = parser.parse_text(text, extraction_metadata=extraction_metadata)
         print("\n--- Resultado FichaParser ---")
         print(ficha)
         save_result(ficha, FICHAS_OUTDIR, pdf_path)

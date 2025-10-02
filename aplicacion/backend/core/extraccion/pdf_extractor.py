@@ -173,14 +173,11 @@ class PDFExtractor:
             
             text_content = final_text['text']
             metadata = self._build_success_metadata(
-                text_content, processing_time, pdf_path, final_text
+                quality, confidence, text_content, processing_time, pdf_path, final_text
             )
             
             result = ExtractionResult(
                 text=text_content,
-                quality=quality,
-                confidence=confidence,
-                status=ProcessingStatus.COMPLETED,
                 metadata=metadata
             )
             
@@ -456,14 +453,17 @@ class PDFExtractor:
         total = self.stats['extractions_total']
         current_avg = self.stats['avg_processing_time']
         self.stats['avg_processing_time'] = ((current_avg * (total - 1)) + processing_time) / total
-    
-    def _build_success_metadata(self, text_content: str, processing_time: float, 
+
+    def _build_success_metadata(self, quality: ExtractionQuality, confidence: float, text_content: str, processing_time: float,
                                pdf_path: str, extraction_result: Dict) -> ExtractionMetadata:
         """Construir metadatos para extracción exitosa de PDF nativo."""
         # Determinar si realmente hay texto embebido útil
         has_embedded_text = len(text_content.strip()) >= MIN_CHARACTERS_FOR_USEFUL_TEXT
         
         metadata_dict = {
+            'quality': quality.value,
+            'confidence': confidence,
+            'status': ProcessingStatus.COMPLETED.value,
             'processing_time_seconds': processing_time,
             'page_count': extraction_result.get('page_count', 0),
             'file_size_mb': Path(pdf_path).stat().st_size / (1024 * 1024),

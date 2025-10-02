@@ -2,17 +2,19 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 import re
+from datetime import datetime
+import time
 
 from core.extraccion.entities.extractor import ExtractionMetadata
-from core.extraccion.entities.common import ParserError
+from core.extraccion.entities.common import ParserError, ParsingMetadata
 from core.extraccion.parsers.base_parser import BaseParser
 
 from core.extraccion.constants.fichas import (
-    DEFAULT_FICHA_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_ECTS, PATTERN_PERIODO,
+    DEFAULT_FICHA_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_TITULACION, PATTERN_ECTS, PATTERN_PERIODO,
     PATTERN_MODALIDAD, PATTERN_IDIOMA, PATTERN_ENGLISH_FRIENDLY, PATTERN_PROFESORADO,
-    MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA
+    PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA
 )
-from core.extraccion.entities.fichas import SubjectSheet, Teacher
+from core.extraccion.entities.fichas import SubjectSheet, Teacher, Titulacion
 
 class FichaParser(BaseParser[SubjectSheet]):
     """
@@ -46,7 +48,7 @@ class FichaParser(BaseParser[SubjectSheet]):
         self.name = self.__class__.__name__ # TODO: Si ya se asigna en la clase padre revisar
 
 
-    def parse_text(self, text: str, metadata: Optional[ExtractionMetadata] = None) -> SubjectSheet:
+    def parse_text(self, text: str, extraction_metadata: Optional[ExtractionMetadata] = None) -> SubjectSheet:
         """
         Punto de entrada principal del parser. Extrae y valida todos los campos relevantes de la ficha académica.
         Args:
@@ -57,29 +59,109 @@ class FichaParser(BaseParser[SubjectSheet]):
         Raises:
             ParserError: Si la validación de la ficha falla.
         """
+        # Valores iniciales del parsing
+        start_time = time.time()
+        warnings: List[str] = []
+        errors: List[str] = []
+
         # Preprocesamiento del texto
-        t = self.preprocess_text(text)
+        text = self.preprocess_text(text)
 
         # Extracción de campos principales usando los extractores
-        codigo, nombre = self._extract_codigo_nombre(t)
-        ects = self._extract_ects(t)
-        periodo = self._extract_periodo(t)
-        modalidad = self._extract_modalidad(t)
-        idioma, english_friendly = self._extract_idioma_ef(t)
-        profesores = self._extract_profesorado(t)
+        try:
+            codigo, nombre = self._extract_codigo_nombre(text)
+            if not codigo:
+                errors.append("No se pudo extraer el código de la asignatura.")
+            if not nombre:
+                errors.append("No se pudo extraer el nombre de la asignatura.")
+        except Exception as e:
+            codigo, nombre = "", ""
+            errors.append(f"Error extrayendo código/nombre: {e}")
+        try:
+            titulaciones = self._extract_titulaciones(text)
+            if not titulaciones:
+                warnings.append("No se encontraron titulaciones asociadas.")
+        except Exception as e:
+            titulaciones = []
+            errors.append(f"Error extrayendo titulaciones: {e}")
+        try:
+            ects = self._extract_ects(text)
+        except Exception as e:
+            ects = 0
+            errors.append(f"Error extrayendo ECTS: {e}")
+        try:
+            periodo = self._extract_periodo(text)
+            if not periodo or periodo == "N.A.":
+                warnings.append("No se pudo extraer el periodo de impartición.")
+        except Exception as e:
+            periodo = "N.A."
+            errors.append(f"Error extrayendo periodo: {e}")
+        try:
+            num_periodo = self._extract_num_periodo(text)
+        except Exception as e:
+            num_periodo = None
+            errors.append(f"Error extrayendo número de periodo: {e}")
+        try:
+            modalidad = self._extract_modalidad(text)
+            if not modalidad or modalidad == "N.A.":
+                warnings.append("No se pudo extraer la modalidad de impartición.")
+        except Exception as e:
+            modalidad = "N.A."
+            errors.append(f"Error extrayendo modalidad: {e}")
+        try:
+            idioma, english_friendly = self._extract_idioma_ef(text)
+        except Exception as e:
+            idioma, english_friendly = "N.A.", False
+            errors.append(f"Error extrayendo idioma/english friendly: {e}")
+        try:
+            profesores = self._extract_profesorado(text)
+            if not profesores:
+                warnings.append("No se extrajo ningún profesor.")
+        except Exception as e:
+            profesores = []
+            errors.append(f"Error extrayendo profesorado: {e}")
+        try:
+            centro = self._extract_centro(text)
+            if not centro:
+                warnings.append("No se pudo extraer el centro responsable.")
+        except Exception as e:
+            centro = None
+            errors.append(f"Error extrayendo centro: {e}")
+        try:
+            departamento = self._extract_departamento(text)
+            if not departamento:
+                warnings.append("No se pudo extraer el departamento responsable.")
+        except Exception as e:
+            departamento = None
+            errors.append(f"Error extrayendo departamento: {e}")
+
+        # Construcción de los metadatos de parsing
+        parser_metadata = ParsingMetadata(
+            parser_name=self.name,
+            parser_version=self.config.get("version"),
+            parse_timestamp=datetime.now().isoformat() + 'Z',
+            parse_duration=time.time() - start_time,
+            warnings=warnings,
+            errors=errors,
+        )
 
         # Construcción del objeto SubjectSheet
         ficha = SubjectSheet(
             codigo_plan=codigo,
             nombre=nombre,
+            titulaciones=titulaciones,
             periodo=periodo,
+            num_periodo=num_periodo,
             ects=ects,
             modalidad=modalidad,
             idioma=idioma,
             english_friendly=english_friendly,
             profesores=profesores,
-            raw_text=t,
-            metadata=metadata,
+            centro=centro,
+            departamento=departamento,
+            raw_text=text,
+            parsing_metadata=parser_metadata,
+            extraction_metadata=extraction_metadata,
         )
 
         # Validación de la ficha
@@ -102,16 +184,34 @@ class FichaParser(BaseParser[SubjectSheet]):
         Raises:
             ParserError: Si no se encuentra el patrón esperado.
         """
-        m = re.search(PATTERN_CODIGO_NOMBRE, text, flags=re.IGNORECASE)
-        if not m:
+        match = re.search(PATTERN_CODIGO_NOMBRE, text, re.IGNORECASE)
+        if not match:
             raise ParserError("No se pudo extraer el código y nombre de la asignatura.")
-        codigo = m.group(1).strip().upper()
-        nombre = re.sub(r"\s{2,}", " ", m.group(2).strip())
-        # Capitalización conservadora del nombre (opcional):
-        if nombre:
-            nombre = nombre[0].upper() + nombre[1:]
+        codigo = match.group(1).strip()
+        nombre = match.group(2).strip()
+        # Solo tomar la primera línea del nombre (evita capturar bloques enteros)
+        nombre = nombre.split('\n')[0].strip()
         return codigo, nombre
-
+    
+    def _extract_titulaciones(self, text: str) -> List[Titulacion]:
+        """
+        Extrae las titulaciones, tipo de asignatura y curso.
+        Ejemplo de línea: 'Grado en Física OBLIGATORIA 2'
+        """
+        titulaciones = []
+        # Busca líneas tipo: Grado en Física OBLIGATORIA 2
+        patron = re.compile(PATTERN_TITULACION, re.IGNORECASE)
+        for match in patron.finditer(text):
+            titulacion = match.group(1).strip()
+            tipo = match.group(2).strip().capitalize()
+            curso = match.group(3).strip()
+            titulaciones.append(Titulacion(
+                titulacion=titulacion,
+                tipo_asignatura=tipo,
+                curso=curso
+            ))
+        return titulaciones
+    
     def _extract_ects(self, text: str) -> int:
         """
         Extrae el número de créditos ECTS de la asignatura.
@@ -122,16 +222,15 @@ class FichaParser(BaseParser[SubjectSheet]):
         Raises:
             ParserError: Si el formato es incorrecto o el campo está ausente.
         """
-        m = re.search(PATTERN_ECTS, text, flags=re.IGNORECASE)
-        if not m:
-            raise ParserError("No se pudo extraer el número de créditos ECTS.")
-        ects_str = m.group(1).replace(",", ".").strip()
+        match = re.search(PATTERN_ECTS, text, re.IGNORECASE)
+        if not match:
+            raise ParserError("No se pudo extraer el número de ECTS.")
+        ects_str = match.group(1).replace(',', '.')
         try:
-            ects_int = int(float(ects_str))
+            ects = float(ects_str)
         except ValueError:
-            raise ParserError(f"Formato de créditos ECTS no válido: {ects_str}")
-        # Normaliza a entero (si usas enums/validador que exijan int)
-        return ects_int
+            raise ParserError(f"ECTS no numérico: {ects_str}")
+        return int(ects)
 
     def _extract_periodo(self, text: str) -> str:
         """
@@ -146,6 +245,19 @@ class FichaParser(BaseParser[SubjectSheet]):
             return "N.A."
         periodo_raw = m.group(1).strip()
         return MAP_PERIODO.get(periodo_raw, periodo_raw.upper())
+    
+    def _extract_num_periodo(self, text: str) -> Optional[int]:
+        """
+        Extrae el número de periodo/cuatrimestre si está presente en el texto.
+        Ejemplo: 'Nº: 1' -> 1
+        """
+        match = re.search(PATTERN_NUM_CUATRIMESTRE, text)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                return None
+        return None
 
     def _extract_modalidad(self, text: str) -> str:
         """
@@ -190,27 +302,46 @@ class FichaParser(BaseParser[SubjectSheet]):
         Returns:
             Lista de objetos Teacher con nombre, apellidos y tipo.
         """
-        profesores: List[Teacher] = []
-        mblock = re.search(PATTERN_PROFESORADO, text, flags=re.IGNORECASE | re.DOTALL)
-        if not mblock:
-            return profesores
-
-        block = mblock.group(1)
-
-        # Nuevo patrón: tipo + apellidos + nombre
-        line_rx = re.compile(
-            r"^\s*([A-Z]{2})\s+([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑ\s\-'’]+?),\s*([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ\s\-'’]+)\s*$"
-        )
-        for raw in block.splitlines():
-            line = raw.strip()
-            if not line:
+        profesores = []
+        bloque = re.search(PATTERN_PROFESORADO, text, re.DOTALL | re.IGNORECASE)
+        if not bloque:
+            return []
+        bloque_texto = bloque.group(1)
+        patron_sufijos = re.compile('|'.join(PROFESOR_SUFIXES), re.IGNORECASE)
+        for linea in bloque_texto.splitlines():
+            linea = linea.strip()
+            if not linea or "PROFESOR" in linea.upper() or "TIPO" in linea.upper():
                 continue
-            m = line_rx.match(line)
-            if m:
-                apellidos = m.group(2).title().replace(" De ", " de ").replace(" Del ", " del ")
-                nombre = m.group(3).title()
+            # Elimina posibles columnas de tipo al principio (una o dos letras y espacio)
+            linea = re.sub(r'^[A-Z]{1,2}\s+', '', linea)
+            # Solo considera la parte antes de la universidad o de los números
+            linea = patron_sufijos.split(linea)[0]
+            linea = re.split(r'\s+\d+([,.]\d+)?\s*', linea)[0]
+            # Busca patrón "APELLIDOS, NOMBRE"
+            match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea, re.IGNORECASE)
+            if match:
+                apellidos = match.group(1).title().strip()
+                nombre = match.group(2).title().strip()
                 profesores.append(Teacher(nombre=nombre, apellidos=apellidos))
         return profesores
+
+    def _extract_centro(self, text: str) -> Optional[str]:
+        match = re.search(r'CENTRO RESPONSABLE\s*:\s*([^\n\r]+)', text, re.IGNORECASE)
+        if match:
+            centro = match.group(1).strip()
+            # Elimina números iniciales y espacios
+            centro = re.sub(r'^\d+\s*', '', centro)
+            return centro
+        return None
+
+    def _extract_departamento(self, text: str) -> Optional[str]:
+        match = re.search(r'DEPARTAMENTO RESPONSABLE\s*:\s*([^\n\r]+)', text, re.IGNORECASE)
+        if match:
+            departamento = match.group(1).strip()
+            # Elimina números iniciales y espacios
+            departamento = re.sub(r'^\d+\s*', '', departamento)
+            return departamento
+        return None
     
     
     # Validación y normalización
@@ -222,7 +353,11 @@ class FichaParser(BaseParser[SubjectSheet]):
         Returns:
             Texto preprocesado listo para parsing.
         """
-        return super().preprocess(text)
+        # Elimina espacios dobles y normaliza saltos de línea
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = re.sub(r'\r\n?', '\n', text)
+        text = re.sub(r'\n{2,}', '\n', text)
+        return text.strip()
 
     def validate(self, parsed: SubjectSheet) -> Tuple[bool, List[str]]:
         """
@@ -233,37 +368,35 @@ class FichaParser(BaseParser[SubjectSheet]):
             Tupla (bool, lista de errores). True si es válido, False si hay errores.
         """
         errores: List[str] = []
-        if not parsed.codigo_plan or not re.match(r"^[A-Z]{1,2}\d{1,4}$", parsed.codigo_plan):
-            errores.append("Código de plan inválido o ausente.")
-        if not parsed.nombre or len(parsed.nombre) < 3:
-            errores.append("Nombre de asignatura inválido o ausente.")
-        if not isinstance(parsed.ects, int) or parsed.ects <= 0:
-            errores.append("ECTS debe ser un entero positivo.")
-        # Opcional: valida enums si los usas como strings
-        if not parsed.periodo or not isinstance(parsed.periodo, str):
-            errores.append("Periodo ausente o inválido.")
-        if not parsed.modalidad or not isinstance(parsed.modalidad, str):
-            errores.append("Modalidad ausente o inválida.")
-        if not parsed.idioma or not isinstance(parsed.idioma, str):
-            errores.append("Idioma ausente o inválido.")
-        return (len(errores) == 0), errores
+        if not re.match(r"^[A-Z]{1,2}\d{1,4}[A-Z]?$", parsed.codigo_plan):
+            errores.append("Código de plan no válido: " + parsed.codigo_plan)
+        if not parsed.nombre:
+            errores.append("Nombre de asignatura vacío.")
+        if parsed.ects <= 0:
+            errores.append("ECTS no válido.")
+        return (len(errores) == 0, errores)
 
     def to_normalized(self, parsed: SubjectSheet) -> Dict[str, Any]:
         """
         Convierte el objeto SubjectSheet a un dict alineado con los modelos de BD.
-        Args:
-            parsed: Objeto SubjectSheet a normalizar.
-        Returns:
-            Diccionario con la estructura esperada por la capa de persistencia o integración.
         """
         return {
             "subject": {
                 "codigo_plan": parsed.codigo_plan,
                 "nombre": parsed.nombre,
-                "periodo": parsed.periodo,            # Map a Enum en capa de servicio si procede
+                "titulaciones": [
+                    {
+                        "titulacion": t.titulacion,
+                        "tipo_asignatura": t.tipo_asignatura,
+                        "curso": t.curso,
+                    }
+                    for t in (parsed.titulaciones or [])
+                ],
+                "periodo": parsed.periodo,
+                "num_periodo": parsed.num_periodo,  
                 "ects": parsed.ects,
-                "modalidad": parsed.modalidad,        # Idem
-                "idioma": parsed.idioma,              # Idem
+                "modalidad": parsed.modalidad,
+                "idioma": parsed.idioma,
                 "english_friendly": parsed.english_friendly,
             },
             "teaching_staff": [
@@ -273,7 +406,6 @@ class FichaParser(BaseParser[SubjectSheet]):
                 }
                 for t in (parsed.profesores or [])
             ],
-            # Útil si quieres auditar
             "_meta": {
                 "source": "ficha",
                 "chars": len(parsed.raw_text or ""),

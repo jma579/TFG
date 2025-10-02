@@ -35,6 +35,9 @@ class ErrorType(str, Enum):
 # Metadatos emitidos por pdf_extractor
 @dataclass(frozen=True)
 class ExtractionMetadata:
+    quality: ExtractionQuality
+    confidence: float
+    status: ProcessingStatus
     processing_time_seconds: float
     page_count: int
     file_size_mb: float
@@ -53,9 +56,6 @@ class ExtractionMetadata:
 @dataclass(frozen=True)
 class ExtractionResult:
     text: str
-    quality: ExtractionQuality
-    confidence: float
-    status: ProcessingStatus
     metadata: ExtractionMetadata
     error_type: Optional[ErrorType] = None
     error_message: Optional[str] = None
