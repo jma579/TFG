@@ -4,13 +4,13 @@ import json
 from dataclasses import asdict
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-from core.extraccion.pdf_extractor import get_pdf_extractor
-from core.extraccion.parsers.ficha_parser import FichaParser
+from core.extraccion.fichas.extractor import get_ficha_extractor
+from core.extraccion.fichas.parser import FichaParser
 
 FICHAS_OUTDIR = os.path.join(os.path.dirname(__file__), "fichas")
 
 def parse_pdf_text(pdf_path):
-    extractor = get_pdf_extractor()
+    extractor = get_ficha_extractor()
     result = extractor.extract_from_pdf(pdf_path)
     if not result or not result.text or result.metadata.quality == "unusable":
         print(f"No se pudo extraer texto útil de {os.path.basename(pdf_path)} (calidad: {getattr(result.quality, 'value', 'N/A')})")

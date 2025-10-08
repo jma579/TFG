@@ -38,7 +38,7 @@ SAVE_JSON = True
 # =========================
 try:
     # Tu extractor y entidades/constantes
-    from core.extraccion.pdf_extractor import get_pdf_extractor, PDFExtractor  # type: ignore
+    from aplicacion.backend.core.extraccion.fichas.extractor import get_pdf_extractor, PDFExtractor  # type: ignore
 except Exception:
     # Si no tienes factory, instanciamos directamente más abajo
     get_pdf_extractor = None  # type: ignore

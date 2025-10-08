@@ -30,8 +30,8 @@
   "parsing_metadata": {
     "parser_name": "FichaParser",
     "parser_version": "1.0.0",
-    "parse_timestamp": "2025-10-01T22:28:58.087631Z",
-    "parse_duration": 0.004637956619262695,
+    "parse_timestamp": "2025-10-02T16:41:20.404301Z",
+    "parse_duration": 0.002277374267578125,
     "warnings": [],
     "errors": []
   },
@@ -39,7 +39,7 @@
     "quality": "good",
     "confidence": 0.7890117821782178,
     "status": "completed",
-    "processing_time_seconds": 0.041483402252197266,
+    "processing_time_seconds": 0.020204544067382812,
     "page_count": 2,
     "file_size_mb": 0.045848846435546875,
     "has_embedded_text": true,
