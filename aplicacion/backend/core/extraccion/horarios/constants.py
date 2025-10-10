@@ -80,22 +80,22 @@ QUALITY_EXCELLENT_CONFIDENCE = 0.9
 #--- Constantes del parser (invariantes) ---
 
 # Normalizacion / splitting
-TOKEN_SPLIT_REGEX = r"[\\n,;]+|\\s+—\\s+|\\s+-\\s+"
-RE_WHITESPACE_NORM = r"[ \\t]+"
+TOKEN_SPLIT_REGEX = r"[\n,;]+|\s+—\s+|\s+-\s+"
+RE_WHITESPACE_NORM = r"[ \t]+"
 RE_DASHES = r"[–—-]+"
 UNKNOWN_TOKENS = {"", "-", "—"}
 
 # Grupos
-RE_GRUPO_PL = r"\\bPL\\s?\\d+\\b"
-RE_GRUPO_PA = r"\\bPA\\s?\\d+\\b"
-RE_GRUPO_GENERIC = r"\\bGrupo\\s?\\d+\\b"
+RE_GRUPO_PL = r"\bPL\s?\d+\b"
+RE_GRUPO_PA = r"\bPA\s?\d+\b"
+RE_GRUPO_GENERIC = r"\bGrupo\s?\d+\b"
 
 # Aulas
-RE_AULA = r"\\b(?:AULA\\s?\\d+)\\b"
-RE_AULA_LAB = r"\\bLAB\\b"
-RE_AULA_LSC = r"\\bLSC\\s?\\d+\\b"
-RE_AULA_SEMINARIO = r"\\bSEMINARIO(?:\\s+[A-ZÁÉÍÓÚÜÑa-záéíóúüñ]+)?\\b"
-RE_AULA_ABBREV = r"\\bAULA\\b|\\bLAB\\b|\\bLSC\\b"
+RE_AULA = r"\b(?:AULA\s?\d+)\b"
+RE_AULA_LAB = r"\bLAB\b"
+RE_AULA_LSC = r"\bLSC\s?\d+\b"
+RE_AULA_SEMINARIO = r"\bSEMINARIO(?:\s+[A-ZÁÉÍÓÚÜÑa-záéíóúüñ]+)?\b"
+RE_AULA_ABBREV = r"\b(?:AULA|LAB|LSC)\b"
 
 # Modalidad (keywords y mapeo canon)
 MODALIDAD_KEYWORDS = {
@@ -122,5 +122,5 @@ AMBIGUOUS_TOKENS = {"GRUPO", "G.", "P.", "PL", "PA"}
 AULA_PREFIXES = {"AULA", "LAB", "LSC", "SEMINARIO"} 
 
 # Asignatura
-RE_PUNCT_TRIM = r"^[\\s,;:-]+|[\\s,;:-]+$"
-RE_MULTI_SPACE = r"\\s{2,}"
+RE_PUNCT_TRIM = r"^[\s,;:-]+|[\s,;:-]+$"
+RE_MULTI_SPACE = r"\s{2,}"

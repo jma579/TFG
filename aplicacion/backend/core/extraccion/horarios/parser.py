@@ -139,13 +139,11 @@ class ScheduleParser:
     def _parse_page(self, clean_table: CleanTable) -> List[Session]:
         """
         Convierte una CleanTable en sesiones (lista de Session), aplicando:
+         - propagación de valores por columna (día),
          - tokenización de celdas,
          - inferencia de campos por token,
-         - creación de runs por franja,
-         - merge de contiguos por día,
-         - normalización de horas y modalidades.
+         - creación de sesiones por franja horaria.
         """
-        # --- Validaciones mínimas de la tabla
         header_days = getattr(clean_table, "header_days", None)
         time_axis = getattr(clean_table, "time_axis", None)
         cells = getattr(clean_table, "cells", None)
@@ -159,70 +157,79 @@ class ScheduleParser:
         if not isinstance(cells, list) or len(cells) != len(time_axis):
             raise ParserError("cells ausente o su número de filas no coincide con time_axis.")
 
-        # Normalización canónica de días (aplicar alias si aparece)
-        unknown_days = []
-        normalized_days: List[str] = []
-        for d in header_days:
-            d_up = (d or "").strip().upper()
-            d_up = DAY_ALIASES.get(d_up, d_up)
-            if d_up not in DAYS_CANONICAL:
-                # día desconocido: lo anotamos pero seguimos (el índice sigue siendo 0..4)
-                # No lanzamos error aquí; delegamos en validaciones posteriores si hiciera falta.
-                unknown_days.append(d)
-            normalized_days.append(d_up)
-        if unknown_days:
-            self._warn(f"Días desconocidos en header: {unknown_days}", "low")
+        n_cols = len(header_days)
+        n_rows = len(time_axis)
 
-        # Verificación rápida de HH:MM y orden
-        def _valid_time(s: str) -> bool:
-            return bool(re.fullmatch(r"\d{2}:\d{2}", s))
+        # Inicializar estado por columna (día)
+        last_values = [
+            {"asignatura": None, "aula": None, "grupo": None, "modalidad": None}
+            for _ in range(n_cols)
+        ]
 
-        for i, t in enumerate(time_axis):
-            if not isinstance(t, str) or not _valid_time(t):
-                raise ParserError(f"time_axis contiene una marca inválida en pos {i}: {t!r}")
-            if i > 0 and time_axis[i] <= time_axis[i - 1]:
-                raise ParserError("time_axis no está estrictamente ordenado de menor a mayor.")
+        sesiones: List[Session] = []
 
-        # Matriz columnas (días) consistente
-        n_cols = len(normalized_days)
-        for r, row in enumerate(cells):
-            if not isinstance(row, list):
-                raise ParserError(f"Fila {r} de cells no es una lista.")
-            if len(row) < n_cols:
-                raise ParserError(f"Fila {r} de cells tiene {len(row)} columnas, se esperaban {n_cols}.")
-            if len(row) > n_cols:
-                self._warn(f"Fila {r} tiene columnas extra ({len(row)}>{n_cols}); se ignorarán las sobrantes.", "low")
-
-        # --- Generación de runs
-        runs: List[Dict[str, Any]] = []
-        for r, row in enumerate(cells):
-            for c in range(n_cols):
-                cell_text = row[c]
-                if not isinstance(cell_text, str) or not cell_text.strip():
-                    continue
-                # Heurística OCR sospechoso: solo dígitos/espacios/puntuación
-                if re.fullmatch(r"[0-9\s\.\,\-\–\—\/\\:;]+", cell_text.strip()):
-                    self._warn(f"Contenido sospechoso en celda r{r}c{c!s}: {cell_text!r}", "moderate")
+        for row_idx in range(n_rows):
+            for col_idx in range(n_cols):
+                cell_text = cells[row_idx][col_idx]
                 tokens = self._tokenize_cell(cell_text)
-                entries = self._infer_fields(tokens)
-                if not entries:
-                    # no se generan entradas a partir de un texto no vacío
-                    self._warn(f"Celda no parseada r{r}c{c!s}: {cell_text!r}", "moderate")
-                    continue
-                for e in entries:
-                    runs.append({
-                        "dia_idx": c,
-                        "row_idx": r,
-                        "asignatura": e.get("asignatura"),
-                        "aula": e.get("aula"),
-                        "grupo": e.get("grupo"),
-                        "modalidad": e.get("modalidad") or "teoria",
-                    })
+                entries = self._infer_fields(tokens) if tokens else []
 
-        # --- Merge y construcción de sesiones
-        sesiones = self._merge_runs_por_dia(runs, time_axis)
-        return sesiones
+                # Si hay entrada, actualiza el estado; si no, hereda el anterior
+                if entries:
+                    # Tomamos solo la primera entrada (en horarios académicos raramente hay más de una por celda)
+                    entry = entries[0]
+                    for key in ["asignatura", "aula", "grupo", "modalidad"]:
+                        if entry.get(key):
+                            last_values[col_idx][key] = entry[key]
+                # Si no hay entrada, se hereda el valor anterior (ya está en last_values)
 
+                # Solo creamos sesión si hay asignatura o aula (evita sesiones vacías)
+                asignatura = last_values[col_idx]["asignatura"]
+                aula = last_values[col_idx]["aula"]
+                grupo = last_values[col_idx]["grupo"]
+                modalidad = last_values[col_idx]["modalidad"] or "teoria"
+
+                if asignatura or aula:
+                    hora_inicio = time_axis[row_idx]
+                    # hora_fin: siguiente marca, o None si es la última (no debería ocurrir)
+                    if row_idx + 1 < n_rows:
+                        hora_fin = time_axis[row_idx + 1]
+                    else:
+                        continue  # no se puede formar sesión sin hora_fin
+
+                    dia_str = header_days[col_idx]
+
+                    sesiones.append(
+                        Session(
+                            asignatura=asignatura,
+                            aula=aula,
+                            hora_inicio=hora_inicio,
+                            hora_fin=hora_fin,
+                            dia=dia_str,
+                            modalidad=modalidad,
+                            grupo=grupo,
+                        )
+                    )
+
+        # Deduplicar sesiones exactas
+        keyset = set()
+        uniq: List[Session] = []
+        for s in sesiones:
+            k = (
+                s.dia,
+                s.hora_inicio,
+                s.hora_fin,
+                (s.asignatura or "").strip().lower(),
+                (s.aula or "").strip().lower(),
+                (s.grupo or "").strip().lower(),
+                s.modalidad or "teoria",
+            )
+            if k in keyset:
+                continue
+            keyset.add(k)
+            uniq.append(s)
+
+        return uniq
 
     # -------- Tokenización e inferencia
     def _tokenize_cell(self, text: str) -> List[str]:
@@ -261,132 +268,81 @@ class ScheduleParser:
 
     def _infer_fields(self, tokens: List[str]) -> List[Dict[str, Optional[str]]]:
         """
-        A partir de tokens, devuelve una o varias entradas con campos inferidos:
-            [{asignatura, aula?, grupo?, modalidad}, ...]
-        Puede generar múltiples entradas si la celda contiene varios 'bloques' separados.
+        Dada una lista de tokens, infiere los campos: asignatura, aula, grupo, modalidad.
+        Devuelve una lista de dicts (uno por posible entrada, normalmente solo uno).
         """
-        if not tokens:
-            return []
+        import re
 
-        grupos: List[str] = []
-        aulas: List[str] = []
-        modo_votes = {
-            "practicas_laboratorio": 0,
-            "practicas_aula": 0,
-            "teoria": 0,
-        }
-        subj_fragments: List[str] = []
-
-        # Helpers de matching case-insensitive
-        def m(pattern: str, t: str) -> bool:
-            return re.search(pattern, t, flags=re.IGNORECASE) is not None
-
-        def is_aula_token(t: str) -> bool:
-            return (
-                m(RE_AULA_LSC, t) or
-                m(RE_AULA_LAB, t) or
-                m(RE_AULA, t) or
-                m(RE_AULA_SEMINARIO, t) or
-                (re.fullmatch(RE_AULA_ABBREV, t, flags=re.IGNORECASE) is not None)
-            )
-
-        # 1) Clasificación de tokens
-        for t in tokens:
-            # Grupos
-            if m(RE_GRUPO_PL, t) or m(RE_GRUPO_PA, t) or m(RE_GRUPO_GENERIC, t):
-                if t not in grupos:
-                    grupos.append(t)
-                # Modalidad por inferencia rápida según el prefijo del grupo
-                if m(RE_GRUPO_PL, t):
-                    modo_votes["practicas_laboratorio"] += 1
-                elif m(RE_GRUPO_PA, t):
-                    modo_votes["practicas_aula"] += 1
-                continue
-
-            # Aulas
-            if is_aula_token(t):
-                if t not in aulas:
-                    aulas.append(t)
-                # Modalidad por heurística de aula
-                if m(RE_AULA_LSC, t) or m(RE_AULA_LAB, t):
-                    modo_votes["practicas_laboratorio"] += 1
-                elif m(RE_AULA, t) or m(RE_AULA_SEMINARIO, t):
-                    modo_votes["practicas_aula"] += 1
-                continue
-
-            # Modalidad explícita por keywords
-            t_upper = t.upper()
-            for key, words in MODALIDAD_KEYWORDS.items():
-                # si cualquiera de las keywords aparece como palabra o prefijo razonable
-                if any(re.search(rf"\b{re.escape(w)}\b", t_upper, flags=re.IGNORECASE) for w in words):
-                    modo_votes[key] += 1
-
-            # Ambiguos sueltos no se añaden a asignatura
-            if t_upper in AMBIGUOUS_TOKENS:
-                continue
-
-            # El resto contribuye a la asignatura (incluye "ODS")
-            subj_fragments.append(t)
-
-        # 2) Asignatura: junta fragmentos conservando acentos y espacios
-        asignatura = " ".join(subj_fragments).strip()
-        asignatura = re.sub(RE_MULTI_SPACE, " ", asignatura)
-
-        # Si quedó vacía pero había “ODS” explícito entre tokens, la usamos
-        if not asignatura and any(tok.strip().upper() == "ODS" for tok in tokens):
-            asignatura = "ODS"
-
-        # 3) Modalidad: por prioridad (si no hay votos, cae en 'teoria')
-        modalidad = "teoria"
-        # si hay algún voto, ganan por ranking
-        if any(v > 0 for v in modo_votes.values()):
-            for key in MODALIDAD_PRIORITY:
-                if modo_votes.get(key, 0) > 0:
-                    modalidad = key
-                    break
-
-        # 4) Composición de entradas (cartesiano mínimo entre grupos y aulas)
-        # Casos:
-        #   - sin grupos y sin aulas -> una entrada base
-        #   - n grupos, 0 aulas -> n entradas
-        #   - 0 grupos, n aulas -> n entradas
-        #   - n grupos, m aulas -> n*m entradas
-        entries: List[Dict[str, Optional[str]]] = []
-
-        base = {
-            "asignatura": asignatura if asignatura else None,
+        # Unir tokens para análisis global
+        text = " ".join(tokens).strip()
+        result = {
+            "asignatura": None,
             "aula": None,
             "grupo": None,
-            "modalidad": modalidad,
+            "modalidad": None,
         }
 
-        gs = grupos if grupos else [None]
-        as_ = aulas if aulas else [None]
+        # Buscar grupo
+        grupo_match = re.search(RE_GRUPO_PL, text)
+        if not grupo_match:
+            grupo_match = re.search(RE_GRUPO_PA, text)
+        if not grupo_match:
+            grupo_match = re.search(RE_GRUPO_GENERIC, text)
+        if grupo_match:
+            result["grupo"] = grupo_match.group(0)
+            text = text.replace(result["grupo"], "").strip()
 
-        for g in gs:
-            for a in as_:
-                e = dict(base)
-                e["grupo"] = g
-                e["aula"] = a
-                entries.append(e)
+        # Buscar aula
+        aula_match = re.search(RE_AULA, text)
+        if not aula_match:
+            aula_match = re.search(RE_AULA_LSC, text)
+        if not aula_match:
+            aula_match = re.search(RE_AULA_SEMINARIO, text)
+        if not aula_match:
+            aula_match = re.search(RE_AULA_ABBREV, text)
+        if aula_match:
+            result["aula"] = aula_match.group(0)
+            text = text.replace(result["aula"], "").strip()
+        else:
+            # Si no hay patrón claro, buscar última palabra tipo "AULA X"
+            m = re.search(r"(AULA\s*\d+)$", text)
+            if m:
+                result["aula"] = m.group(1)
+                text = text.replace(result["aula"], "").strip()
 
-        # 5) Limpieza final: si asignatura quedó None y no hay grupo ni aula, devolvemos lista vacía
-        # (celda irrelevante o solo compuesta de abreviaturas ambiguas)
-        cleaned = []
-        for e in entries:
-            if e["asignatura"] or e["grupo"] or e["aula"]:
-                # Normalización de modalidad al canon garantizado por constantes
-                if e["modalidad"] not in ("teoria", "practicas_laboratorio", "practicas_aula"):
-                    e["modalidad"] = "teoria"
-                cleaned.append(e)
+        # Inferir modalidad por keywords
+        modalidad = None
+        for key, keywords in MODALIDAD_KEYWORDS.items():
+            for kw in keywords:
+                if kw in text.upper():
+                    modalidad = key
+                    break
+            if modalidad:
+                break
+        if not modalidad and result["grupo"]:
+            if "PL" in result["grupo"]:
+                modalidad = "practicas_laboratorio"
+            elif "PA" in result["grupo"]:
+                modalidad = "practicas_aula"
+        result["modalidad"] = modalidad
 
-        return cleaned
+        # El resto es la asignatura (si queda algo)
+        asignatura = text.strip(" -–—;:,")
+        if asignatura:
+            result["asignatura"] = asignatura
+        else:
+            result["asignatura"] = None
+
+        return [result]
 
     # -------- Merge de runs por día
     def _merge_runs_por_dia(self, runs: ParserRuns, time_axis: List[str]) -> List[Session]:
         """
         Une bloques contiguos (misma asignatura/aula/modalidad/grupo y mismo día)
         para formar sesiones con hora_inicio y hora_fin correctas.
+        - Etiqueta cada sesión con el día canónico (str, p.ej. "LUNES").
+        - Descarta bloques fuera de ventana.
+        - Deduplica sesiones idénticas al final.
         """
         if not runs:
             return []
@@ -396,175 +352,177 @@ class ScheduleParser:
             h, m = hhmm.split(":")
             return int(h) * 60 + int(m)
 
+        lo = _to_minutes(TIME_WINDOW_START)
+        hi = _to_minutes(TIME_WINDOW_END)
+
         def _in_window(hhmm: str) -> bool:
-            return _to_minutes(TIME_WINDOW_START) <= _to_minutes(hhmm) <= _to_minutes(TIME_WINDOW_END)
+            t = _to_minutes(hhmm)
+            return lo <= t <= hi
 
         def _same_payload(a: Dict[str, Any], b: Dict[str, Any]) -> bool:
             return (
-                (a.get("asignatura") or "").strip() == (b.get("asignatura") or "").strip() and
-                (a.get("aula") or "").strip() == (b.get("aula") or "").strip() and
-                (a.get("grupo") or "").strip() == (b.get("grupo") or "").strip() and
-                (a.get("modalidad") or "teoria") == (b.get("modalidad") or "teoria")
+                (a.get("asignatura") or "").strip() == (b.get("asignatura") or "").strip()
+                and (a.get("aula") or "").strip() == (b.get("aula") or "").strip()
+                and (a.get("grupo") or "").strip() == (b.get("grupo") or "").strip()
+                and (a.get("modalidad") or "teoria") == (b.get("modalidad") or "teoria")
+                and a.get("dia_idx") == b.get("dia_idx")
             )
 
-        # Agrupar runs por día
+        # 1) Agrupar runs por día (usamos dia_idx interno solo para mapear a string canónico)
         by_day: Dict[int, List[Dict[str, Any]]] = {}
         for r in runs:
             by_day.setdefault(r["dia_idx"], []).append(r)
 
         sesiones: List[Session] = []
 
-        # Recorrer cada día y consolidar
+        # 2) Consolidar por día
         for dia_idx, day_runs in by_day.items():
             if not day_runs:
                 continue
 
-            # Aviso por solapes: mismo row_idx con payload distinto
-            seen_by_row: Dict[int, Dict[str, Any]] = {}
-            for r in day_runs:
-                k = r["row_idx"]
-                if k in seen_by_row and not _same_payload(r, seen_by_row[k]):
-                    # Warning moderado; seguimos procesando
-                    self._warn(f"Solape en día {dia_idx}, fila {k}: múltiples runs distintos.", "moderate")
-                else:
-                    seen_by_row[k] = r
-
-            # Ordenar por fila (robustez)
             day_runs.sort(key=lambda x: x["row_idx"])
+            dia_str = DAYS_CANONICAL[dia_idx] if 0 <= dia_idx < len(DAYS_CANONICAL) else "DESCONOCIDO"
 
-            current: Optional[Dict[str, Any]] = None  # bloque activo (payload del run)
+            current: Optional[Dict[str, Any]] = None
             start_r: Optional[int] = None
             end_r: Optional[int] = None
 
-            def _flush_current():
+            def _flush():
                 nonlocal current, start_r, end_r
                 if current is None or start_r is None or end_r is None:
                     return
 
-                # Necesitamos la marca posterior a end_r
                 if end_r + 1 >= len(time_axis):
-                    self._warn(f"Sin marca de fin para bloque (día {dia_idx}, filas {start_r}-{end_r}).", "low")
-                    current = None
-                    start_r = None
-                    end_r = None
+                    self._warn(f"Sin marca de fin para bloque (día {dia_str}, filas {start_r}-{end_r}).", "minor")
+                    current = None; start_r = None; end_r = None
                     return
 
                 hora_inicio = time_axis[start_r]
                 hora_fin = time_axis[end_r + 1]
 
-                # Duración válida
                 if hora_fin <= hora_inicio:
-                    self._warn(f"Duración cero o negativa (día {dia_idx} {hora_inicio}-{hora_fin}).", "low")
-                    current = None
-                    start_r = None
-                    end_r = None
+                    self._warn(f"Duración no positiva (día {dia_str} {hora_inicio}-{hora_fin}).", "minor")
+                    current = None; start_r = None; end_r = None
                     return
 
-                # Dentro de la ventana objetivo
                 if not (_in_window(hora_inicio) and _in_window(hora_fin)):
-                    self._warn(f"Sesión fuera de ventana ({hora_inicio}-{hora_fin}); descartada.", "low")
-                    current = None
-                    start_r = None
-                    end_r = None
+                    # fuera de ventana objetivo → no añadimos
+                    current = None; start_r = None; end_r = None
                     return
 
-                # Aviso por campos vacíos relevantes
-                if not (current.get("asignatura")) and (current.get("aula") or current.get("grupo")):
-                    self._warn(f"Sesión sin asignatura (día {dia_idx}, {hora_inicio}-{hora_fin}) con aula/grupo.", "low")
+                sesiones.append(
+                    Session(
+                        asignatura=(current.get("asignatura") or "").strip() or None,
+                        aula=(current.get("aula") or "").strip() or None,
+                        hora_inicio=hora_inicio,
+                        hora_fin=hora_fin,
+                        dia=dia_str,  # <- obligatorio
+                        modalidad=current.get("modalidad") or "teoria",
+                        grupo=(current.get("grupo") or "").strip() or None,
+                    )
+                )
 
-                # Construir Session
-                sesiones.append(Session(
-                    asignatura=current.get("asignatura"),
-                    aula=current.get("aula"),
-                    grupo=current.get("grupo"),
-                    modalidad=current.get("modalidad") or "teoria",
-                    hora_inicio=hora_inicio,
-                    hora_fin=hora_fin,
-                ))
-
-                current = None
-                start_r = None
-                end_r = None
+                current = None; start_r = None; end_r = None
 
             for r in day_runs:
                 if current is None:
-                    current = r
-                    start_r = r["row_idx"]
-                    end_r = r["row_idx"]
+                    current = r; start_r = r["row_idx"]; end_r = r["row_idx"]
                     continue
 
-                # ¿Es contiguo y con el mismo payload?
-                if r["row_idx"] == (end_r + 1) and _same_payload(r, current):
+                if r["row_idx"] == end_r + 1 and _same_payload(r, current):
                     end_r = r["row_idx"]
                 else:
-                    _flush_current()
-                    current = r
-                    start_r = r["row_idx"]
-                    end_r = r["row_idx"]
+                    _flush()
+                    current = r; start_r = r["row_idx"]; end_r = r["row_idx"]
 
-            # Cerrar último bloque del día
-            _flush_current()
+            _flush()
 
-        return sesiones
+        # 3) Deduplicar sesiones exactas (incluyendo el día como string)
+        keyset = set()
+        uniq: List[Session] = []
+        for s in sesiones:
+            k = (
+                s.dia,
+                s.hora_inicio,
+                s.hora_fin,
+                (s.asignatura or "").strip().lower(),
+                (s.aula or "").strip().lower(),
+                (s.grupo or "").strip().lower(),
+                s.modalidad or "teoria",
+            )
+            if k in keyset:
+                continue
+            keyset.add(k)
+            uniq.append(s)
+
+        return uniq
+
 
     # -------- Metadatos y validación
     def _validate_sesiones(self, sesiones: List[Session]) -> List[str]:
         """
-        Reglas de coherencia:
-          - HH:MM válidas; fin > inicio
-          - sin solapes exactos por día para misma (asignatura, grupo, aula) tras merge
-          - modalidades en el canon
-        Devuelve lista de warnings (sin abortar salvo errores críticos en parse()).
+        Reglas de coherencia (solo warnings):
+        - HH:MM válidas; fin > inicio
+        - ventana horaria respetada
+        - sin solapes por día (string) para misma (asignatura, grupo, aula, modalidad)
+        - modalidades en el canon
         """
         warnings: List[str] = []
         canon_modalidades = {"teoria", "practicas_laboratorio", "practicas_aula"}
 
-        # Utilidad para comparar horas
         def _to_minutes(hhmm: str) -> int:
             h, m = map(int, hhmm.split(":"))
             return h * 60 + m
 
-        # 1. Validar horas y duración
+        lo = _to_minutes(TIME_WINDOW_START)
+        hi = _to_minutes(TIME_WINDOW_END)
+
+        # 1) Horas y ventana
         for idx, s in enumerate(sesiones):
             if not isinstance(s.hora_inicio, str) or not re.fullmatch(r"\d{2}:\d{2}", s.hora_inicio):
                 warnings.append(f"Sesión {idx}: hora_inicio inválida: {s.hora_inicio!r}")
+                continue
             if not isinstance(s.hora_fin, str) or not re.fullmatch(r"\d{2}:\d{2}", s.hora_fin):
                 warnings.append(f"Sesión {idx}: hora_fin inválida: {s.hora_fin!r}")
-            try:
-                if _to_minutes(s.hora_fin) <= _to_minutes(s.hora_inicio):
-                    warnings.append(f"Sesión {idx}: hora_fin <= hora_inicio ({s.hora_inicio}-{s.hora_fin})")
-            except Exception:
-                pass
+                continue
 
-        # 2. Validar solapes exactos por día y payload
-        # Clave: (asignatura, grupo, aula, modalidad, día)
-        seen = {}
+            a, b = _to_minutes(s.hora_inicio), _to_minutes(s.hora_fin)
+            if b <= a:
+                warnings.append(f"Sesión {idx} ({s.dia}): hora_fin <= hora_inicio ({s.hora_inicio}-{s.hora_fin})")
+            if not (lo <= a <= hi and lo <= b <= hi):
+                warnings.append(f"Sesión {idx} ({s.dia}): fuera de ventana [{TIME_WINDOW_START}-{TIME_WINDOW_END}]")
+
+        # 2) Solapes por día (string) y payload (intersección real)
+        # Clave: (dia, asignatura, grupo, aula, modalidad)
+        by_key: Dict[tuple, List[tuple]] = {}
         for idx, s in enumerate(sesiones):
             key = (
+                s.dia,
                 (s.asignatura or "").strip().lower(),
                 (s.grupo or "").strip().lower(),
                 (s.aula or "").strip().lower(),
                 (s.modalidad or "teoria"),
-                # Día no está explícito en Session, pero podrías añadirlo si lo necesitas
-                # Si no, puedes omitirlo o inferirlo si tienes esa info
             )
             interval = (_to_minutes(s.hora_inicio), _to_minutes(s.hora_fin))
-            if key in seen:
-                for other_idx, other_interval in seen[key]:
-                    # Solape exacto
-                    if interval == other_interval:
-                        warnings.append(
-                            f"Solape exacto en sesiones {other_idx} y {idx} para {key} en {s.hora_inicio}-{s.hora_fin}"
-                        )
-            seen.setdefault(key, []).append((idx, interval))
+            by_key.setdefault(key, []).append((idx, interval))
 
-        # 3. Modalidades en el canon
+        for key, items in by_key.items():
+            items.sort(key=lambda x: x[1][0])  # orden por inicio
+            for i in range(1, len(items)):
+                idx_i, (ai, bi) = items[i]
+                idx_p, (ap, bp) = items[i-1]
+                if ai < bp:  # solape real
+                    warnings.append(
+                        f"Solape en {key[0]} entre sesiones {idx_p} y {idx_i} para payload={key[1:]}"
+                    )
+
+        # 3) Modalidades
         for idx, s in enumerate(sesiones):
             if (s.modalidad or "teoria") not in canon_modalidades:
-                warnings.append(f"Sesión {idx}: modalidad fuera de canon: {s.modalidad!r}")
+                warnings.append(f"Sesión {idx} ({s.dia}): modalidad fuera de canon: {s.modalidad!r}")
 
         return warnings
-        
+
     
     # ------- Helpers de warnings
     def _warn(self, msg: str, severity: str) -> None:

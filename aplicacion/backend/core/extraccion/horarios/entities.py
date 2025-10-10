@@ -77,6 +77,7 @@ class Session:
     aula: str
     hora_inicio: str  # "HH:MM"
     hora_fin: str     # "HH:MM"
+    dia: str          # día canónico ("LUNES", ...)
     modalidad: ModalidadLiteral
     grupo: Optional[str] = None  # p. ej., "PL1", "PA2"; en teoría suele ser None
 
