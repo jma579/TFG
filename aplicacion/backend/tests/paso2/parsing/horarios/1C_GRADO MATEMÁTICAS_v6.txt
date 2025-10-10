@@ -1,0 +1,42 @@
+Titulación: MATEMÁTICAS
+Día	Hora inicio	Hora fin	Asignatura	Grupo	Aula	Modalidad
+	08:30	09:30	Álgebra Li eal AULA 1	None	None	teoria
+	09:30	10:30	I roducció al le guaje ma emá ico AULA 1	None	None	teoria
+	10:30	11:30	Cálculo Difere cial Grupo 1 AULA 1	None	None	teoria
+	11:30	12:30	Física Básica Ex Labora orio (*)	None	None	teoria
+	08:30	09:30	I roducció al le guaje ma emá ico AULA 1	None	None	teoria
+	09:30	10:30	Álgebra Li eal AULA 1	None	None	teoria
+	10:30	11:30	Física Básica Ex Labora orio (*)	None	None	teoria
+	08:30	09:30	Álgebra Li eal AULA 1	None	None	teoria
+	09:30	10:30	I roducció al le guaje ma emá ico AULA 1	None	None	teoria
+	10:30	11:30	Cálculo Difere cial AULA 1	None	None	teoria
+	11:30	12:30	Física Básica Ex Labora orio (*)	None	None	teoria
+	08:30	09:30	Cálculo Difere cial AULA 1	None	None	teoria
+	10:30	11:30	Física Básica Ex AULA 1	None	None	teoria
+	08:30	09:30	Álgebra Li eal AULA 1	None	None	teoria
+	09:30	10:30	I roducció al le guaje ma emá ico AULA 1	None	None	teoria
+	10:30	11:30	Física Básica Ex AULA 1	None	None	teoria
+	14:30	15:30	Cálculo de Probabilidades AULA 1	None	None	teoria
+	14:30	15:30	Ampl. Cálculo Dif. Grupo 1 AULA 1	None	None	teoria
+	14:30	15:30	Cálculo de Probabilidades AULA 1	None	None	teoria
+	14:30	15:30	Ampl. Cálculo Dif. Grupo 1 AULA 1	None	None	teoria
+	14:30	15:30	Ampl. Cálculo Dif. Grupo 1 AULA 1	None	None	teoria
+	10:30	11:30	Cálculo Numérico II PL 1 LSC 1	None	None	practicas_laboratorio
+	14:30	15:30	Espacios de Hilber AULA 14	None	None	teoria
+	10:30	11:30	Cálculo Numérico II PL 2 LSC 1	None	None	practicas_laboratorio
+	14:30	15:30	Cálculo de Probabilidades AULA 14	None	None	teoria
+	11:30	12:30	Cálculo Numérico II PL 3 LSC 1	None	None	practicas_laboratorio
+	14:30	15:30	Teoría de Galois AULA 14	None	None	teoria
+	14:30	15:30	Cálculo de Probabilidades AULA 1	None	None	teoria
+	14:30	15:30	Teoría de Galois AULA 14	None	None	teoria
+	08:30	09:30	Ampliació de A álisis AULA 7	None	None	teoria
+	08:30	09:30	Teoría Cuali a iva de EDO AULA 9	None	None	teoria
+	08:30	09:30	V.Difere ciables AULA 9	None	None	teoria
+	08:30	09:30	Teoría Cuali a iva de EDO AULA 9	None	None	teoria
+	08:30	09:30	V.Difere ciables AULA 9	None	None	teoria
+	08:30	09:30	I roducció a los sis emas i elige es PL3 AULA 13	None	None	teoria
+	10:30	11:30	I roducció a los sis emas i elige es PL2 AULA 13	None	None	teoria
+	12:30	13:30	I roducció a los sis emas i elige es PL1 AULA 13	None	None	teoria
+	10:30	11:30	I roducció a los sis emas i elige es AULA 14	None	None	teoria
+	10:30	11:30	I roducció a los sis emas i elige es AULA 14	None	None	teoria
+	14:30	15:30	Modelos de cálculo AULA 13	None	None	teoria

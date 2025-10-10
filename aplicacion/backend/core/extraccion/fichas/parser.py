@@ -14,7 +14,7 @@ from core.extraccion.fichas.constants import (
 )
 from core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
 
-class FichaParser:
+class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura de Warning
     """
     Parser especializado para fichas académicas universitarias.
     

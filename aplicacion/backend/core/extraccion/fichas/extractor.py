@@ -62,7 +62,7 @@ from core.extraccion.fichas.constants import (
 # CLASE PRINCIPAL FICHA EXTRACTOR
 # =============================================================================
 
-class FichaExtractor:
+class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructura de Warning
     """
     Extractor de texto nativo de PDFs académicos españoles.
     

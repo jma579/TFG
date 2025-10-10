@@ -11,8 +11,14 @@ DEFAULT_EXTRACTOR_CONFIG = {
     "window_strict": True,
 }
 
+DEFAULT_PARSER_CONFIG = {
+    "version": "0.1.0",
+}
+
+
 # --- Constantes del extractor (invariantes) ---
 TIME_WINDOW = ("08:00", "20:30")
+TIME_WINDOW_START, TIME_WINDOW_END = TIME_WINDOW
 DAYS_CANONICAL = ["LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES"]
 DAY_ALIASES = {"LUNES":"LUNES",
                "MARTES":"MARTES",
@@ -20,6 +26,7 @@ DAY_ALIASES = {"LUNES":"LUNES",
                "MIÉRCOLES":"MIÉRCOLES",
                "JUEVES":"JUEVES",
                "VIERNES":"VIERNES"}
+HEADER_DAYS_ORDER = {"LUNES":0,"MARTES":1,"MIÉRCOLES":2,"JUEVES":3,"VIERNES":4}
 
 EXPECTED_DAYS_COUNT = 5
 TIME_FORMAT = "%H:%M"
@@ -68,3 +75,52 @@ QUALITY_GOOD_CONFIDENCE = 0.75
 QUALITY_EXCELLENT_PAGE_RATIO = 0.9
 QUALITY_EXCELLENT_CELL_COVERAGE = 0.9
 QUALITY_EXCELLENT_CONFIDENCE = 0.9
+
+
+#--- Constantes del parser (invariantes) ---
+
+# Normalizacion / splitting
+TOKEN_SPLIT_REGEX = r"[\\n,;]+|\\s+—\\s+|\\s+-\\s+"
+RE_WHITESPACE_NORM = r"[ \\t]+"
+RE_DASHES = r"[–—-]+"
+UNKNOWN_TOKENS = {"", "-", "—"}
+
+# Grupos
+RE_GRUPO_PL = r"\\bPL\\s?\\d+\\b"
+RE_GRUPO_PA = r"\\bPA\\s?\\d+\\b"
+RE_GRUPO_GENERIC = r"\\bGrupo\\s?\\d+\\b"
+
+# Aulas
+RE_AULA = r"\\b(?:AULA\\s?\\d+)\\b"
+RE_AULA_LAB = r"\\bLAB\\b"
+RE_AULA_LSC = r"\\bLSC\\s?\\d+\\b"
+RE_AULA_SEMINARIO = r"\\bSEMINARIO(?:\\s+[A-ZÁÉÍÓÚÜÑa-záéíóúüñ]+)?\\b"
+RE_AULA_ABBREV = r"\\bAULA\\b|\\bLAB\\b|\\bLSC\\b"
+
+# Modalidad (keywords y mapeo canon)
+MODALIDAD_KEYWORDS = {
+    "practicas_laboratorio": {"PL", "LAB", "LSC", "LABORATORIO"},
+    "practicas_aula": {"PA", "PRÁCT.", "PRÁCTICAS", "PRACT."},
+    "teoria": {"TEOR", "TEORÍA", "CLASE", "LECCIÓN"}
+}
+MODALIDAD_CANON_MAP = {
+    "lab": "practicas_laboratorio",
+    "pl": "practicas_laboratorio", 
+    "pa":"practicas_aula", 
+}
+
+# Orden de prioridad de modalidades (de más específica a más general)
+# Se usa para resolver casos donde una misma celda activa varias categorías.
+MODALIDAD_PRIORITY = [
+    "practicas_laboratorio",  # máxima prioridad: laboratorio, LSC, PL
+    "practicas_aula",         # segunda: prácticas en aula o PA
+    "teoria",                 # por defecto, si no hay ninguna otra señal
+]
+
+# Ambigüedades / avisos
+AMBIGUOUS_TOKENS = {"GRUPO", "G.", "P.", "PL", "PA"} 
+AULA_PREFIXES = {"AULA", "LAB", "LSC", "SEMINARIO"} 
+
+# Asignatura
+RE_PUNCT_TRIM = r"^[\\s,;:-]+|[\\s,;:-]+$"
+RE_MULTI_SPACE = r"\\s{2,}"

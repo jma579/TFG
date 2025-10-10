@@ -74,7 +74,7 @@ class Session:
     Sesión académica consolidada (una asignatura en un bloque horariodía).
     """
     asignatura: str
-    aula: Optional[str]
+    aula: str
     hora_inicio: str  # "HH:MM"
     hora_fin: str     # "HH:MM"
     modalidad: ModalidadLiteral

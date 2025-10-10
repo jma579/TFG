@@ -1,0 +1,1675 @@
+{
+  "titulacion": "MATEMÁTICAS",
+  "sesiones": [
+    {
+      "asignatura": "Álgebra Li eal AULA 1",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció al le guaje ma emá ico AULA 1",
+      "aula": null,
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Difere cial Grupo 1 AULA 1",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex Labora orio (*)",
+      "aula": null,
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció al le guaje ma emá ico AULA 1",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Álgebra Li eal AULA 1",
+      "aula": null,
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex Labora orio (*)",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Álgebra Li eal AULA 1",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció al le guaje ma emá ico AULA 1",
+      "aula": null,
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Difere cial AULA 1",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex Labora orio (*)",
+      "aula": null,
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Difere cial AULA 1",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex AULA 1",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Álgebra Li eal AULA 1",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció al le guaje ma emá ico AULA 1",
+      "aula": null,
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex AULA 1",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades AULA 1",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades AULA 1",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Numérico II PL 1 LSC 1",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Espacios de Hilber AULA 14",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Numérico II PL 2 LSC 1",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades AULA 14",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Numérico II PL 3 LSC 1",
+      "aula": null,
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría de Galois AULA 14",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades AULA 1",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría de Galois AULA 14",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Ampliació de A álisis AULA 7",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría Cuali a iva de EDO AULA 9",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "V.Difere ciables AULA 9",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría Cuali a iva de EDO AULA 9",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "V.Difere ciables AULA 9",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció a los sis emas i elige es PL3 AULA 13",
+      "aula": null,
+      "hora_inicio": "08:30",
+      "hora_fin": "09:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció a los sis emas i elige es PL2 AULA 13",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció a los sis emas i elige es PL1 AULA 13",
+      "aula": null,
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció a los sis emas i elige es AULA 14",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "I roducció a los sis emas i elige es AULA 14",
+      "aula": null,
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Modelos de cálculo AULA 13",
+      "aula": null,
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "modalidad": "teoria",
+      "grupo": null
+    }
+  ],
+  "raw_tables": [
+    {
+      "page": 1,
+      "grid": [
+        [
+          "",
+          "PRIMER CURSO",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "LUNES",
+          "MARTES",
+          "MIÉRCOLES",
+          "JUEVES",
+          "VIERNES"
+        ],
+        [
+          "8:30 9:30",
+          "Álgebra Lineal AULA 1",
+          "Introducción al lenguaje matemático AULA 1",
+          "Álgebra Lineal AULA 1",
+          "Cálculo Diferencial AULA 1",
+          "Álgebra Lineal AULA 1"
+        ],
+        [
+          "9:30 10:30",
+          "Introducción al lenguaje matemático AULA 1",
+          "Álgebra Lineal AULA 1",
+          "Introducción al lenguaje matemático AULA 1",
+          "",
+          "Introducción al lenguaje matemático AULA 1"
+        ],
+        [
+          "10:30 11:30",
+          "Cálculo Diferencial Grupo 1 AULA 1",
+          "Física Básica Ex Laboratorio (*)",
+          "Cálculo Diferencial AULA 1",
+          "Física Básica Ex AULA 1",
+          "Física Básica Ex AULA 1"
+        ],
+        [
+          "11:30 1200 12:00 12:30 12:30 13:30",
+          "Física Básica Ex Laboratorio (*)",
+          "",
+          "Física Básica Ex Laboratorio (*)",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "ODS AULA 1",
+          "ODS AULA 1"
+        ],
+        [
+          "",
+          "",
+          "Física Básica Ex Laboratorio (*)",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:30 14:00 14:00 14:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "14:30 15:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:30 1630",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:30 17:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "17:30 18:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "18:30 19:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 2,
+      "grid": [
+        [
+          "",
+          "SEGUNDO CURSO",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "LUNES",
+          "MARTES",
+          "",
+          "MIÉRCOLES",
+          "JUEVES",
+          "",
+          "VIERNES",
+          ""
+        ],
+        [
+          "8:30 9:30",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "9:30 10:30",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:30 11:30",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:30 12:30",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:30 13:30",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:30 14:30",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "14:30 15:30 15:30 16:30",
+          "Cálculo de Probabilidades AULA 1",
+          "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+          "Ampl. Cálculo Dif. Grupo 2 AULA 8",
+          "Cálculo de Probabilidades AULA 1",
+          "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+          "Ampl. Cálculo Dif. Grupo 2 AULA 8",
+          "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+          "Ampl. Cálculo Dif. Grupo 2 AULA 4"
+        ],
+        [
+          "",
+          "",
+          "Topología AULA 1",
+          "",
+          "",
+          "Topología AULA 1",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:30 17:30 17:30 18:30",
+          "Ecuaciones Dif. AULA 1",
+          "",
+          "",
+          "Ecuaciones Dif. AULA 1",
+          "",
+          "",
+          "Álgebra Lineal II Práct. Grupo 1 AULA 1",
+          "Álgebra Lineal II Práct. Grupo 2 AULA 4"
+        ],
+        [
+          "",
+          "",
+          "Álgebra Lineal II AULA 1",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "18:30 19:30",
+          "",
+          "Álgebra Lineal II AULA 1",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 3,
+      "grid": [
+        [
+          "",
+          "TERCER CURSO",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "LUNES",
+          "MARTES",
+          "MIÉRCOLES",
+          "JUEVES",
+          "VIERNES"
+        ],
+        [
+          "08:30 09:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "09:30 10:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:30 11:30",
+          "",
+          "",
+          "Cálculo Numérico II PL 1 LSC 1",
+          "",
+          "Cálculo Numérico II PL 2 LSC 1"
+        ],
+        [
+          "11:30 12:30",
+          "",
+          "",
+          "",
+          "Cálculo Numérico II PL 3 LSC 1",
+          ""
+        ],
+        [
+          "12:30 13:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:30 14:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "14:30 15:30 15:30 16:30",
+          "Cálculo de Probabilidades AULA 1",
+          "Teoría de Galois AULA 14",
+          "Espacios de Hilbert AULA 14",
+          "Teoría de Galois AULA 14",
+          "Cálculo de Probabilidades AULA 14"
+        ],
+        [
+          "16:30 17:30 17:30 18:30",
+          "Espacios de Hilbert AULA 14",
+          "Cálculo Numérico II AULA 14",
+          "",
+          "Cálculo Numérico II AULA 14",
+          "Teoría global de superficies AULA 14"
+        ],
+        [
+          "",
+          "",
+          "Teoría global de superficies AULA 14",
+          "",
+          "Teoría global de superficies AULA 14",
+          ""
+        ],
+        [
+          "18:30 19:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 4,
+      "grid": [
+        [
+          "",
+          "CUARTO CURSO MENCIÓN EN MATEMÁTICA PURA Y APLICADA",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "LUNES",
+          "MARTES",
+          "MIÉRCOLES",
+          "JUEVES",
+          "VIERNES"
+        ],
+        [
+          "08:30 09:30 09:30 10:30",
+          "Ampliación de Análisis AULA 7",
+          "Teoría Cualitativa de EDO AULA 9",
+          "V.Diferenciables AULA 9",
+          "Teoría Cualitativa de EDO AULA 9",
+          "V.Diferenciables AULA 9"
+        ],
+        [
+          "10:30 11:30 11:30 12:30",
+          "Top.Algebraica AULA 9",
+          "Ampliación de Análisis AULA 7",
+          "Top.Algebraica AULA 9",
+          "Adv. Statistics Aula 3",
+          "Adv. Statistics Aula 3"
+        ],
+        [
+          "12:30 13:30 13:30 14:30",
+          "Análisis Funcional AULA 9",
+          "Análisis Funcional AULA 9",
+          "Análisis Funcional AULA 9",
+          "Advanced Probability AULA 3",
+          "Advanced Probability AULA 3"
+        ],
+        [
+          "",
+          "",
+          "Economía y ADE AULA 9",
+          "Economía y ADE AULA 9",
+          "",
+          ""
+        ],
+        [
+          "14:30 15:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:30 16:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:30 17:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "17:30 18:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "18:30 19:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 5,
+      "grid": [
+        [
+          "",
+          "CUARTO CURSO MECIÓN EN INFORMÁTICA",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "LUNES",
+          "MARTES",
+          "MIÉRCOLES",
+          "JUEVES",
+          "VIERNES"
+        ],
+        [
+          "08:30 09:30",
+          "",
+          "",
+          "",
+          "",
+          "Introducción a los sistemas inteligentes PL3 AULA 13"
+        ],
+        [
+          "9:30 9:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:30 11:30",
+          "",
+          "Introducción a los sistemas inteligentes AULA 14",
+          "Introducción a los sistemas inteligentes AULA 14",
+          "",
+          "Introducción a los sistemas inteligentes PL2 AULA 13"
+        ],
+        [
+          "11:30 12:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:30 13:30",
+          "",
+          "",
+          "",
+          "",
+          "Introducción a los sistemas inteligentes PL1 AULA 13"
+        ],
+        [
+          "13:30 14:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "14:30 15:30 15:30 16:30",
+          "Modelos de cálculo AULA 13",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "Métodos de Programación Aula 9",
+          "",
+          "Estructuras de Datos AULA 2",
+          "Métodos de Programación Aula 9"
+        ],
+        [
+          "16:30 17:30",
+          "",
+          "",
+          "Modelos de cálculo AULA 13",
+          "Estructuras de Datos TE /PA1 AULA 2",
+          ""
+        ],
+        [
+          "17:30 18:30",
+          "",
+          "Estructura de Datos PL1 AULA 2",
+          "",
+          "",
+          ""
+        ],
+        [
+          "18:30 19:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 6,
+      "grid": [
+        [
+          "",
+          "CUARTO CURSO MENCIÓN EN ECONOMIA Y FINANZAS",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "LUNES",
+          "MARTES",
+          "MIÉRCOLES",
+          "JUEVES",
+          "VIERNES"
+        ],
+        [
+          "08:30 09:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "9:30 10:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:30 11:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:30 12:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:30 13:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:30 14:30",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "14:30 15:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00 16:00",
+          "",
+          "Análisis y evaluación de Inversiones 3º D GADE A7 (F. C. Económicas y Emp)",
+          "Análisis y evaluación de Inversiones 3º D GADE A7 (F. C. Económicas y Emp)",
+          "Herramientas para la decisión en operaciones 3º D GADE A7 (F. C. Económicas y Emp)",
+          "Herramientas para la decisión en operaciones 3º D GADE A7 (F. C. Económicas y Emp)"
+        ],
+        [
+          "16:00 17:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "17:00 18:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "18:00 19:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    }
+  ],
+  "clean_tables": [
+    {
+      "page": 1,
+      "header_days": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "time_axis": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "cells": [
+        [
+          "Álgebra Lineal AULA 1",
+          "Introducción al lenguaje matemático AULA 1",
+          "Álgebra Lineal AULA 1",
+          "Cálculo Diferencial AULA 1",
+          "Álgebra Lineal AULA 1"
+        ],
+        [
+          "Introducción al lenguaje matemático AULA 1",
+          "Álgebra Lineal AULA 1",
+          "Introducción al lenguaje matemático AULA 1",
+          "",
+          "Introducción al lenguaje matemático AULA 1"
+        ],
+        [
+          "Cálculo Diferencial Grupo 1 AULA 1",
+          "Física Básica Ex Laboratorio (*)",
+          "Cálculo Diferencial AULA 1",
+          "Física Básica Ex AULA 1",
+          "Física Básica Ex AULA 1"
+        ],
+        [
+          "Física Básica Ex Laboratorio (*)",
+          "",
+          "Física Básica Ex Laboratorio (*)",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 2,
+      "header_days": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "time_axis": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "cells": [
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Cálculo de Probabilidades AULA 1",
+          "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+          "Cálculo de Probabilidades AULA 1",
+          "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+          "Ampl. Cálculo Dif. Grupo 1 AULA 1"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 3,
+      "header_days": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "time_axis": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "cells": [
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "Cálculo Numérico II PL 1 LSC 1",
+          "",
+          "Cálculo Numérico II PL 2 LSC 1"
+        ],
+        [
+          "",
+          "",
+          "",
+          "Cálculo Numérico II PL 3 LSC 1",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Cálculo de Probabilidades AULA 1",
+          "Teoría de Galois AULA 14",
+          "Espacios de Hilbert AULA 14",
+          "Teoría de Galois AULA 14",
+          "Cálculo de Probabilidades AULA 14"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 4,
+      "header_days": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "time_axis": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "cells": [
+        [
+          "Ampliación de Análisis AULA 7",
+          "Teoría Cualitativa de EDO AULA 9",
+          "V.Diferenciables AULA 9",
+          "Teoría Cualitativa de EDO AULA 9",
+          "V.Diferenciables AULA 9"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 5,
+      "header_days": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "time_axis": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "cells": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "Introducción a los sistemas inteligentes PL3 AULA 13"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "Introducción a los sistemas inteligentes AULA 14",
+          "Introducción a los sistemas inteligentes AULA 14",
+          "",
+          "Introducción a los sistemas inteligentes PL2 AULA 13"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "Introducción a los sistemas inteligentes PL1 AULA 13"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Modelos de cálculo AULA 13",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "page": 6,
+      "header_days": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "time_axis": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30"
+      ],
+      "cells": [
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    }
+  ],
+  "extraccion_metadata": {
+    "quality": "poor",
+    "confidence": 0.6477611940298507,
+    "status": "low_quality",
+    "processing_time_seconds": 3.868725061416626,
+    "page_count": 6,
+    "file_size_mb": 0.12401199340820312,
+    "has_embedded_text": true,
+    "char_count": 4186,
+    "word_count": 619,
+    "errors": [],
+    "warnings": [],
+    "pages_with_text": 6
+  },
+  "parse_metadata": {
+    "parser_name": "ScheduleParser",
+    "parser_version": "Unknown version",
+    "parse_timestamp": "2025-10-10T09:41:47Z",
+    "parse_duration": 0.007132291793823242,
+    "warnings": [
+      "Solape exacto en sesiones 0 y 7 para ('álgebra li eal aula 1', '', '', 'teoria') en 08:30-09:30",
+      "Solape exacto en sesiones 1 y 8 para ('i roducció al le guaje ma emá ico aula 1', '', '', 'teoria') en 09:30-10:30",
+      "Solape exacto en sesiones 3 y 10 para ('física básica ex labora orio (*)', '', '', 'teoria') en 11:30-12:30",
+      "Solape exacto en sesiones 0 y 13 para ('álgebra li eal aula 1', '', '', 'teoria') en 08:30-09:30",
+      "Solape exacto en sesiones 7 y 13 para ('álgebra li eal aula 1', '', '', 'teoria') en 08:30-09:30",
+      "Solape exacto en sesiones 1 y 14 para ('i roducció al le guaje ma emá ico aula 1', '', '', 'teoria') en 09:30-10:30",
+      "Solape exacto en sesiones 8 y 14 para ('i roducció al le guaje ma emá ico aula 1', '', '', 'teoria') en 09:30-10:30",
+      "Solape exacto en sesiones 12 y 15 para ('física básica ex aula 1', '', '', 'teoria') en 10:30-11:30",
+      "Solape exacto en sesiones 16 y 18 para ('cálculo de probabilidades aula 1', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 17 y 19 para ('ampl. cálculo dif. grupo 1 aula 1', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 17 y 20 para ('ampl. cálculo dif. grupo 1 aula 1', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 19 y 20 para ('ampl. cálculo dif. grupo 1 aula 1', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 16 y 27 para ('cálculo de probabilidades aula 1', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 18 y 27 para ('cálculo de probabilidades aula 1', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 26 y 28 para ('teoría de galois aula 14', '', '', 'teoria') en 14:30-15:30",
+      "Solape exacto en sesiones 30 y 32 para ('teoría cuali a iva de edo aula 9', '', '', 'teoria') en 08:30-09:30",
+      "Solape exacto en sesiones 31 y 33 para ('v.difere ciables aula 9', '', '', 'teoria') en 08:30-09:30",
+      "Solape exacto en sesiones 37 y 38 para ('i roducció a los sis emas i elige es aula 14', '', '', 'teoria') en 10:30-11:30"
+    ],
+    "errors": []
+  }
+}

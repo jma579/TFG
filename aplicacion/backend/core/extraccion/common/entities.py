@@ -46,7 +46,7 @@ class ExtractionMetadata:
     char_count: int
     word_count: int
     errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    warnings: List[Warning] = field(default_factory=list)
     # Diagnóstico útil
     pages_with_text: Optional[int] = None
 
@@ -66,5 +66,5 @@ class ParsingMetadata:
     parser_version: str
     parse_timestamp: str
     parse_duration: float
-    warnings: List[str]
+    warnings: List[Warning]
     errors: List[str]
