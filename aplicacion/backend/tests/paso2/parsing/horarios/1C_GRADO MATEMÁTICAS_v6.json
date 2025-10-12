@@ -13,10 +13,91 @@
     {
       "asignatura": "Introducción al lenguaje matemático",
       "aula": "AULA 1",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Diferencial",
+      "aula": "AULA 1",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": "Grupo 1"
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "LUNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "dia": "LUNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "13:30",
+      "hora_fin": "14:30",
+      "dia": "LUNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Introducción al lenguaje matemático",
+      "aula": "AULA 1",
       "hora_inicio": "08:30",
       "hora_fin": "09:30",
       "dia": "MARTES",
       "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Álgebra Lineal",
+      "aula": "AULA 1",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "MARTES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MARTES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "MARTES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "dia": "MARTES",
+      "modalidad": "practicas_laboratorio",
       "grupo": null
     },
     {
@@ -29,10 +110,91 @@
       "grupo": null
     },
     {
+      "asignatura": "Introducción al lenguaje matemático",
+      "aula": "AULA 1",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Diferencial",
+      "aula": "AULA 1",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "LABORATORIO (*)",
+      "hora_inicio": "13:30",
+      "hora_fin": "14:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
       "asignatura": "Cálculo Diferencial",
       "aula": "AULA 1",
       "hora_inicio": "08:30",
       "hora_fin": "09:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Diferencial",
+      "aula": "AULA 1",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "AULA 1",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "AULA 1",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Física Básica Ex",
+      "aula": "AULA 1",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
       "dia": "JUEVES",
       "modalidad": "teoria",
       "grupo": null
@@ -51,79 +213,7 @@
       "aula": "AULA 1",
       "hora_inicio": "09:30",
       "hora_fin": "10:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Álgebra Lineal",
-      "aula": "AULA 1",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción al lenguaje matemático",
-      "aula": "AULA 1",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Cálculo Diferencial",
-      "aula": "AULA 1",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción al lenguaje matemático",
-      "aula": "AULA 1",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
       "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Cálculo Diferencial",
-      "aula": "AULA 1",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Cálculo Diferencial",
-      "aula": "AULA 1",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "JUEVES",
       "modalidad": "teoria",
       "grupo": null
     },
@@ -137,83 +227,11 @@
       "grupo": null
     },
     {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
       "asignatura": "Física Básica Ex",
       "aula": "AULA 1",
       "hora_inicio": "11:30",
       "hora_fin": "12:30",
       "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "JUEVES",
       "modalidad": "teoria",
       "grupo": null
     },
@@ -227,276 +245,6 @@
       "grupo": null
     },
     {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex Laboratorio (*)",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Física Básica Ex",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
       "asignatura": "Cálculo de Probabilidades",
       "aula": "AULA 1",
       "hora_inicio": "14:30",
@@ -506,10 +254,46 @@
       "grupo": null
     },
     {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 1",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 1",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
       "asignatura": "Ampl. Cálculo Dif.",
       "aula": "AULA 1",
       "hora_inicio": "14:30",
       "hora_fin": "15:30",
+      "dia": "MARTES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "Grupo 1"
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif.",
+      "aula": "AULA 1",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "MARTES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "Grupo 1"
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif.",
+      "aula": "AULA 1",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
       "dia": "MARTES",
       "modalidad": "practicas_laboratorio",
       "grupo": "Grupo 1"
@@ -524,10 +308,46 @@
       "grupo": null
     },
     {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 1",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 1",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
       "asignatura": "Ampl. Cálculo Dif.",
       "aula": "AULA 1",
       "hora_inicio": "14:30",
       "hora_fin": "15:30",
+      "dia": "JUEVES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "Grupo 1"
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif.",
+      "aula": "AULA 1",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "JUEVES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "Grupo 1"
+    },
+    {
+      "asignatura": "Ampl. Cálculo Dif.",
+      "aula": "AULA 1",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
       "dia": "JUEVES",
       "modalidad": "practicas_laboratorio",
       "grupo": "Grupo 1"
@@ -542,83 +362,11 @@
       "grupo": "Grupo 1"
     },
     {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "JUEVES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
       "asignatura": "Ampl. Cálculo Dif.",
       "aula": "AULA 1",
       "hora_inicio": "15:30",
       "hora_fin": "16:30",
       "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "JUEVES",
       "modalidad": "practicas_laboratorio",
       "grupo": "Grupo 1"
     },
@@ -634,197 +382,26 @@
     {
       "asignatura": "Cálculo de Probabilidades",
       "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "JUEVES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MARTES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "JUEVES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Ampl. Cálculo Dif.",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "Grupo 1"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "JUEVES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 3"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "JUEVES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 3"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "JUEVES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 3"
-    },
-    {
-      "asignatura": "Cálculo Numérico II",
-      "aula": "LSC 1",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
       "hora_inicio": "14:30",
       "hora_fin": "15:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 1",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 1",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
       "dia": "LUNES",
       "modalidad": "teoria",
       "grupo": null
@@ -837,6 +414,51 @@
       "dia": "MARTES",
       "modalidad": "teoria",
       "grupo": null
+    },
+    {
+      "asignatura": "Teoría de Galois",
+      "aula": "AULA 14",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "MARTES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría de Galois",
+      "aula": "AULA 14",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
+      "dia": "MARTES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 1"
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 1"
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 1"
     },
     {
       "asignatura": "Espacios de Hilbert",
@@ -845,42 +467,6 @@
       "hora_fin": "15:30",
       "dia": "MIÉRCOLES",
       "modalidad": "practicas_aula",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": "PL 3"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 14",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
       "grupo": null
     },
     {
@@ -890,7 +476,52 @@
       "hora_fin": "16:30",
       "dia": "MIÉRCOLES",
       "modalidad": "practicas_aula",
-      "grupo": "PL 1"
+      "grupo": null
+    },
+    {
+      "asignatura": "Espacios de Hilbert",
+      "aula": "AULA 14",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "practicas_aula",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "JUEVES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 3"
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "dia": "JUEVES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 3"
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "13:30",
+      "hora_fin": "14:30",
+      "dia": "JUEVES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 3"
+    },
+    {
+      "asignatura": "Teoría de Galois",
+      "aula": "AULA 14",
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
     },
     {
       "asignatura": "Teoría de Galois",
@@ -899,7 +530,52 @@
       "hora_fin": "16:30",
       "dia": "JUEVES",
       "modalidad": "teoria",
-      "grupo": "PL 3"
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría de Galois",
+      "aula": "AULA 14",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "VIERNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 2"
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "VIERNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 2"
+    },
+    {
+      "asignatura": "Cálculo Numérico II",
+      "aula": "LSC 1",
+      "hora_inicio": "12:30",
+      "hora_fin": "13:30",
+      "dia": "VIERNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": "PL 2"
+    },
+    {
+      "asignatura": "Cálculo de Probabilidades",
+      "aula": "AULA 14",
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
+      "dia": "VIERNES",
+      "modalidad": "teoria",
+      "grupo": null
     },
     {
       "asignatura": "Cálculo de Probabilidades",
@@ -907,44 +583,8 @@
       "hora_inicio": "15:30",
       "hora_fin": "16:30",
       "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "LUNES",
       "modalidad": "teoria",
       "grupo": null
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Espacios de Hilbert",
-      "aula": "AULA 14",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_aula",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": "PL 3"
     },
     {
       "asignatura": "Cálculo de Probabilidades",
@@ -952,104 +592,32 @@
       "hora_inicio": "16:30",
       "hora_fin": "17:30",
       "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "LUNES",
       "modalidad": "teoria",
       "grupo": null
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Espacios de Hilbert",
-      "aula": "AULA 14",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_aula",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": "PL 3"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 14",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 1",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Espacios de Hilbert",
-      "aula": "AULA 14",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "practicas_aula",
-      "grupo": "PL 1"
-    },
-    {
-      "asignatura": "Teoría de Galois",
-      "aula": "AULA 14",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": "PL 3"
-    },
-    {
-      "asignatura": "Cálculo de Probabilidades",
-      "aula": "AULA 14",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL 2"
     },
     {
       "asignatura": "Ampliación de Análisis",
       "aula": "AULA 7",
       "hora_inicio": "08:30",
       "hora_fin": "09:30",
+      "dia": "LUNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Ampliación de Análisis",
+      "aula": "AULA 7",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "LUNES",
+      "modalidad": "practicas_laboratorio",
+      "grupo": null
+    },
+    {
+      "asignatura": "Ampliación de Análisis",
+      "aula": "AULA 7",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
       "dia": "LUNES",
       "modalidad": "practicas_laboratorio",
       "grupo": null
@@ -1064,6 +632,24 @@
       "grupo": null
     },
     {
+      "asignatura": "Teoría Cualitativa de EDO",
+      "aula": "AULA 9",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "MARTES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría Cualitativa de EDO",
+      "aula": "AULA 9",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MARTES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
       "asignatura": "V.Diferenciables",
       "aula": "AULA 9",
       "hora_inicio": "08:30",
@@ -1073,6 +659,24 @@
       "grupo": null
     },
     {
+      "asignatura": "V.Diferenciables",
+      "aula": "AULA 9",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "V.Diferenciables",
+      "aula": "AULA 9",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
       "asignatura": "Teoría Cualitativa de EDO",
       "aula": "AULA 9",
       "hora_inicio": "08:30",
@@ -1082,6 +686,24 @@
       "grupo": null
     },
     {
+      "asignatura": "Teoría Cualitativa de EDO",
+      "aula": "AULA 9",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Teoría Cualitativa de EDO",
+      "aula": "AULA 9",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "JUEVES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
       "asignatura": "V.Diferenciables",
       "aula": "AULA 9",
       "hora_inicio": "08:30",
@@ -1091,83 +713,11 @@
       "grupo": null
     },
     {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "09:30",
-      "hora_fin": "10:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
       "asignatura": "V.Diferenciables",
       "aula": "AULA 9",
       "hora_inicio": "09:30",
       "hora_fin": "10:30",
       "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "JUEVES",
       "modalidad": "teoria",
       "grupo": null
     },
@@ -1181,17 +731,44 @@
       "grupo": null
     },
     {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
+      "asignatura": "Modelos de cálculo",
+      "aula": "AULA 13",
+      "hora_inicio": "14:30",
+      "hora_fin": "15:30",
       "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
+      "modalidad": "teoria",
       "grupo": null
     },
     {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
+      "asignatura": "Modelos de cálculo",
+      "aula": "AULA 13",
+      "hora_inicio": "15:30",
+      "hora_fin": "16:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Modelos de cálculo",
+      "aula": "AULA 13",
+      "hora_inicio": "16:30",
+      "hora_fin": "17:30",
+      "dia": "LUNES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Introducción a los sistemas inteligentes",
+      "aula": "AULA 14",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MARTES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Introducción a los sistemas inteligentes",
+      "aula": "AULA 14",
       "hora_inicio": "11:30",
       "hora_fin": "12:30",
       "dia": "MARTES",
@@ -1199,44 +776,8 @@
       "grupo": null
     },
     {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
+      "asignatura": "Introducción a los sistemas inteligentes",
+      "aula": "AULA 14",
       "hora_inicio": "12:30",
       "hora_fin": "13:30",
       "dia": "MARTES",
@@ -1244,299 +785,29 @@
       "grupo": null
     },
     {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
+      "asignatura": "Introducción a los sistemas inteligentes",
+      "aula": "AULA 14",
+      "hora_inicio": "10:30",
+      "hora_fin": "11:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Introducción a los sistemas inteligentes",
+      "aula": "AULA 14",
+      "hora_inicio": "11:30",
+      "hora_fin": "12:30",
+      "dia": "MIÉRCOLES",
+      "modalidad": "teoria",
+      "grupo": null
+    },
+    {
+      "asignatura": "Introducción a los sistemas inteligentes",
+      "aula": "AULA 14",
       "hora_inicio": "12:30",
       "hora_fin": "13:30",
       "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "VIERNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Ampliación de Análisis",
-      "aula": "AULA 7",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "LUNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Teoría Cualitativa de EDO",
-      "aula": "AULA 9",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "JUEVES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "V.Diferenciables",
-      "aula": "AULA 9",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "VIERNES",
       "modalidad": "teoria",
       "grupo": null
     },
@@ -1560,48 +831,12 @@
     },
     {
       "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "10:30",
-      "hora_fin": "11:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
       "aula": "AULA 13",
       "hora_inicio": "10:30",
       "hora_fin": "11:30",
       "dia": "VIERNES",
       "modalidad": "practicas_laboratorio",
       "grupo": "PL2"
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "11:30",
-      "hora_fin": "12:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
     },
     {
       "asignatura": "Introducción a los sistemas inteligentes",
@@ -1614,48 +849,12 @@
     },
     {
       "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "12:30",
-      "hora_fin": "13:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
       "aula": "AULA 13",
       "hora_inicio": "12:30",
       "hora_fin": "13:30",
       "dia": "VIERNES",
       "modalidad": "practicas_laboratorio",
       "grupo": "PL1"
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "13:30",
-      "hora_fin": "14:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
     },
     {
       "asignatura": "Introducción a los sistemas inteligentes",
@@ -1667,181 +866,10 @@
       "grupo": "PL1"
     },
     {
-      "asignatura": "Modelos de cálculo",
-      "aula": "AULA 13",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "14:30",
-      "hora_fin": "15:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
       "asignatura": "Introducción a los sistemas inteligentes",
       "aula": "AULA 13",
       "hora_inicio": "14:30",
       "hora_fin": "15:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL1"
-    },
-    {
-      "asignatura": "Modelos de cálculo",
-      "aula": "AULA 13",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 13",
-      "hora_inicio": "15:30",
-      "hora_fin": "16:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL1"
-    },
-    {
-      "asignatura": "Modelos de cálculo",
-      "aula": "AULA 13",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 13",
-      "hora_inicio": "16:30",
-      "hora_fin": "17:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL1"
-    },
-    {
-      "asignatura": "Modelos de cálculo",
-      "aula": "AULA 13",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 13",
-      "hora_inicio": "17:30",
-      "hora_fin": "18:30",
-      "dia": "VIERNES",
-      "modalidad": "practicas_laboratorio",
-      "grupo": "PL1"
-    },
-    {
-      "asignatura": "Modelos de cálculo",
-      "aula": "AULA 13",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "LUNES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MARTES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 14",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
-      "dia": "MIÉRCOLES",
-      "modalidad": "teoria",
-      "grupo": null
-    },
-    {
-      "asignatura": "Introducción a los sistemas inteligentes",
-      "aula": "AULA 13",
-      "hora_inicio": "18:30",
-      "hora_fin": "19:30",
       "dia": "VIERNES",
       "modalidad": "practicas_laboratorio",
       "grupo": "PL1"
@@ -3160,7 +2188,7 @@
     "quality": "poor",
     "confidence": 0.6477611940298507,
     "status": "low_quality",
-    "processing_time_seconds": 4.083202362060547,
+    "processing_time_seconds": 4.122602939605713,
     "page_count": 6,
     "file_size_mb": 0.12401199340820312,
     "has_embedded_text": true,
@@ -3173,14 +2201,12 @@
   "parse_metadata": {
     "parser_name": "ScheduleParser",
     "parser_version": "Unknown version",
-    "parse_timestamp": "2025-10-10T10:31:52Z",
-    "parse_duration": 0.003477811813354492,
+    "parse_timestamp": "2025-10-10T11:37:26Z",
+    "parse_duration": 0.0024826526641845703,
     "warnings": [
-      "Solape en LUNES entre sesiones 55 y 91 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')",
-      "Solape en LUNES entre sesiones 60 y 96 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')",
-      "Solape en LUNES entre sesiones 65 y 101 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')",
-      "Solape en LUNES entre sesiones 70 y 106 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')",
-      "Solape en LUNES entre sesiones 75 y 111 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')"
+      "Solape en LUNES entre sesiones 27 y 42 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')",
+      "Solape en LUNES entre sesiones 28 y 43 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')",
+      "Solape en LUNES entre sesiones 29 y 44 para payload=('cálculo de probabilidades', '', 'aula 1', 'teoria')"
     ],
     "errors": []
   }

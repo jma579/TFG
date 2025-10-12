@@ -144,70 +144,57 @@ class ScheduleParser:
          - inferencia de campos por token,
          - creación de sesiones por franja horaria.
         """
-        header_days = getattr(clean_table, "header_days", None)
-        time_axis = getattr(clean_table, "time_axis", None)
-        cells = getattr(clean_table, "cells", None)
-
-        if not isinstance(header_days, list) or len(header_days) != len(DAYS_CANONICAL):
-            raise ParserError("header_days ausente o no tiene los 5 días esperados (L->V).")
-
-        if not isinstance(time_axis, list) or len(time_axis) < 2:
-            raise ParserError("time_axis ausente o con menos de 2 marcas (no se pueden formar intervalos).")
-
-        if not isinstance(cells, list) or len(cells) != len(time_axis):
-            raise ParserError("cells ausente o su número de filas no coincide con time_axis.")
+        header_days = clean_table.header_days
+        time_axis = clean_table.time_axis
+        cells = clean_table.cells
 
         n_cols = len(header_days)
         n_rows = len(time_axis)
 
-        # Inicializar estado por columna (día)
-        last_values = [
-            {"asignatura": None, "aula": None, "grupo": None, "modalidad": None}
-            for _ in range(n_cols)
-        ]
-
         sesiones: List[Session] = []
 
-        for row_idx in range(n_rows):
-            for col_idx in range(n_cols):
+        for col_idx in range(n_cols):
+            last_entry = {"asignatura": None, "aula": None, "grupo": None, "modalidad": None}
+            empty_streak = 0
+            for row_idx in range(n_rows - 1):  # -1 porque la última marca es solo hora_fin
                 cell_text = cells[row_idx][col_idx]
                 tokens = self._tokenize_cell(cell_text)
                 entries = self._infer_fields(tokens) if tokens else []
 
-                # Si hay entrada, actualiza el estado; si no, hereda el anterior
                 if entries:
-                    # Tomamos solo la primera entrada (en horarios académicos raramente hay más de una por celda)
                     entry = entries[0]
-                    for key in ["asignatura", "aula", "grupo", "modalidad"]:
-                        if entry.get(key):
-                            last_values[col_idx][key] = entry[key]
-                # Si no hay entrada, se hereda el valor anterior (ya está en last_values)
+                    # Normalización Física Básica Ex
+                    if "física básica ex" in (entry.get("asignatura") or "").lower():
+                        if "laboratorio" in (entry.get("asignatura") or "").lower():
+                            entry["asignatura"] = "Física Básica Ex"
+                            entry["aula"] = "LABORATORIO (*)"
+                            entry["modalidad"] = "practicas_laboratorio"
+                        else:
+                            entry["asignatura"] = "Física Básica Ex"
+                    last_entry = entry
+                    empty_streak = 0
+                elif last_entry["asignatura"] is not None and empty_streak < 2:
+                    # Heredar mientras no haya más de 2 vacías seguidas
+                    empty_streak += 1
+                else:
+                    # Si hay más de 2 vacías seguidas, cortar la herencia
+                    last_entry = {"asignatura": None, "aula": None, "grupo": None, "modalidad": None}
+                    empty_streak = 0
 
-                # Solo creamos sesión si hay asignatura o aula (evita sesiones vacías)
-                asignatura = last_values[col_idx]["asignatura"]
-                aula = last_values[col_idx]["aula"]
-                grupo = last_values[col_idx]["grupo"]
-                modalidad = last_values[col_idx]["modalidad"] or "teoria"
-
-                if asignatura or aula:
+                # Crear sesión solo si hay asignatura/aula
+                if last_entry["asignatura"] or last_entry["aula"]:
                     hora_inicio = time_axis[row_idx]
-                    # hora_fin: siguiente marca, o None si es la última (no debería ocurrir)
-                    if row_idx + 1 < n_rows:
-                        hora_fin = time_axis[row_idx + 1]
-                    else:
-                        continue  # no se puede formar sesión sin hora_fin
-
+                    hora_fin = time_axis[row_idx + 1]
                     dia_str = header_days[col_idx]
-
                     sesiones.append(
                         Session(
-                            asignatura=asignatura,
-                            aula=aula,
+                            asignatura=last_entry["asignatura"],
+                            aula=last_entry["aula"],
                             hora_inicio=hora_inicio,
                             hora_fin=hora_fin,
                             dia=dia_str,
-                            modalidad=modalidad,
-                            grupo=grupo,
+                            modalidad=last_entry["modalidad"] or "teoria",
+                            grupo=last_entry["grupo"],
                         )
                     )
 
