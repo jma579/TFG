@@ -1,0 +1,10 @@
+LUNES	MARTES	MIÉRCOLES	JUEVES	VIERNES
+08:30	Álgebra Lineal AULA 1		Álgebra Lineal AULA 1	Cálculo Diferencial AULA 1	Álgebra Lineal AULA 1 Introducción al lenguaje matemático AULA 1
+09:30	Introducción al lenguaje matemático AULA 1		Introducción al lenguaje matemático AULA 1		
+10:30	Cálculo Diferencial AULA 1		Cálculo Diferencial AULA 1		Física Básica II AULA 4
+11:30	Física Básica II AULA 4		Física Básica I AULA 4		
+12:30					
+13:30					
+14:30					
+15:30					
+19:30					

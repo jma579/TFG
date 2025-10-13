@@ -1,0 +1,99 @@
+Titulación: MATEMÁTICAS
+Día	Hora inicio	Hora fin	Asignatura	Grupo	Aula	Modalidad
+LUNES	08:30	09:30	Álgebra Lineal	None	AULA 1	teoria
+LUNES	09:30	10:30	Introducción al lenguaje matemático	None	AULA 1	teoria
+LUNES	10:30	11:30	Cálculo Diferencial	Grupo 1	AULA 1	teoria
+LUNES	11:30	12:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+LUNES	12:30	13:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+LUNES	13:30	14:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+MARTES	08:30	09:30	Introducción al lenguaje matemático	None	AULA 1	teoria
+MARTES	09:30	10:30	Álgebra Lineal	None	AULA 1	teoria
+MARTES	10:30	11:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+MARTES	11:30	12:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+MARTES	12:30	13:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+MIÉRCOLES	08:30	09:30	Álgebra Lineal	None	AULA 1	teoria
+MIÉRCOLES	09:30	10:30	Introducción al lenguaje matemático	None	AULA 1	teoria
+MIÉRCOLES	10:30	11:30	Cálculo Diferencial	None	AULA 1	teoria
+MIÉRCOLES	11:30	12:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+MIÉRCOLES	12:30	13:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+MIÉRCOLES	13:30	14:30	Física Básica Ex	None	LABORATORIO (*)	practicas_laboratorio
+JUEVES	08:30	09:30	Cálculo Diferencial	None	AULA 1	teoria
+JUEVES	09:30	10:30	Cálculo Diferencial	None	AULA 1	teoria
+JUEVES	10:30	11:30	Física Básica Ex	None	AULA 1	teoria
+JUEVES	11:30	12:30	Física Básica Ex	None	AULA 1	teoria
+JUEVES	12:30	13:30	Física Básica Ex	None	AULA 1	teoria
+VIERNES	08:30	09:30	Álgebra Lineal	None	AULA 1	teoria
+VIERNES	09:30	10:30	Introducción al lenguaje matemático	None	AULA 1	teoria
+VIERNES	10:30	11:30	Física Básica Ex	None	AULA 1	teoria
+VIERNES	11:30	12:30	Física Básica Ex	None	AULA 1	teoria
+VIERNES	12:30	13:30	Física Básica Ex	None	AULA 1	teoria
+LUNES	14:30	15:30	Cálculo de Probabilidades	None	AULA 1	teoria
+LUNES	15:30	16:30	Cálculo de Probabilidades	None	AULA 1	teoria
+LUNES	16:30	17:30	Cálculo de Probabilidades	None	AULA 1	teoria
+MARTES	14:30	15:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+MARTES	15:30	16:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+MARTES	16:30	17:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+MIÉRCOLES	14:30	15:30	Cálculo de Probabilidades	None	AULA 1	teoria
+MIÉRCOLES	15:30	16:30	Cálculo de Probabilidades	None	AULA 1	teoria
+MIÉRCOLES	16:30	17:30	Cálculo de Probabilidades	None	AULA 1	teoria
+JUEVES	14:30	15:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+JUEVES	15:30	16:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+JUEVES	16:30	17:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+VIERNES	14:30	15:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+VIERNES	15:30	16:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+VIERNES	16:30	17:30	Ampl. Cálculo Dif.	Grupo 1	AULA 1	practicas_laboratorio
+LUNES	14:30	15:30	Cálculo de Probabilidades	None	AULA 1	teoria
+LUNES	15:30	16:30	Cálculo de Probabilidades	None	AULA 1	teoria
+LUNES	16:30	17:30	Cálculo de Probabilidades	None	AULA 1	teoria
+MARTES	14:30	15:30	Teoría de Galois	None	AULA 14	teoria
+MARTES	15:30	16:30	Teoría de Galois	None	AULA 14	teoria
+MARTES	16:30	17:30	Teoría de Galois	None	AULA 14	teoria
+MIÉRCOLES	10:30	11:30	Cálculo Numérico II	PL 1	LSC 1	practicas_laboratorio
+MIÉRCOLES	11:30	12:30	Cálculo Numérico II	PL 1	LSC 1	practicas_laboratorio
+MIÉRCOLES	12:30	13:30	Cálculo Numérico II	PL 1	LSC 1	practicas_laboratorio
+MIÉRCOLES	14:30	15:30	Espacios de Hilbert	None	AULA 14	practicas_aula
+MIÉRCOLES	15:30	16:30	Espacios de Hilbert	None	AULA 14	practicas_aula
+MIÉRCOLES	16:30	17:30	Espacios de Hilbert	None	AULA 14	practicas_aula
+JUEVES	11:30	12:30	Cálculo Numérico II	PL 3	LSC 1	practicas_laboratorio
+JUEVES	12:30	13:30	Cálculo Numérico II	PL 3	LSC 1	practicas_laboratorio
+JUEVES	13:30	14:30	Cálculo Numérico II	PL 3	LSC 1	practicas_laboratorio
+JUEVES	14:30	15:30	Teoría de Galois	None	AULA 14	teoria
+JUEVES	15:30	16:30	Teoría de Galois	None	AULA 14	teoria
+JUEVES	16:30	17:30	Teoría de Galois	None	AULA 14	teoria
+VIERNES	10:30	11:30	Cálculo Numérico II	PL 2	LSC 1	practicas_laboratorio
+VIERNES	11:30	12:30	Cálculo Numérico II	PL 2	LSC 1	practicas_laboratorio
+VIERNES	12:30	13:30	Cálculo Numérico II	PL 2	LSC 1	practicas_laboratorio
+VIERNES	14:30	15:30	Cálculo de Probabilidades	None	AULA 14	teoria
+VIERNES	15:30	16:30	Cálculo de Probabilidades	None	AULA 14	teoria
+VIERNES	16:30	17:30	Cálculo de Probabilidades	None	AULA 14	teoria
+LUNES	08:30	09:30	Ampliación de Análisis	None	AULA 7	practicas_laboratorio
+LUNES	09:30	10:30	Ampliación de Análisis	None	AULA 7	practicas_laboratorio
+LUNES	10:30	11:30	Ampliación de Análisis	None	AULA 7	practicas_laboratorio
+MARTES	08:30	09:30	Teoría Cualitativa de EDO	None	AULA 9	teoria
+MARTES	09:30	10:30	Teoría Cualitativa de EDO	None	AULA 9	teoria
+MARTES	10:30	11:30	Teoría Cualitativa de EDO	None	AULA 9	teoria
+MIÉRCOLES	08:30	09:30	V.Diferenciables	None	AULA 9	teoria
+MIÉRCOLES	09:30	10:30	V.Diferenciables	None	AULA 9	teoria
+MIÉRCOLES	10:30	11:30	V.Diferenciables	None	AULA 9	teoria
+JUEVES	08:30	09:30	Teoría Cualitativa de EDO	None	AULA 9	teoria
+JUEVES	09:30	10:30	Teoría Cualitativa de EDO	None	AULA 9	teoria
+JUEVES	10:30	11:30	Teoría Cualitativa de EDO	None	AULA 9	teoria
+VIERNES	08:30	09:30	V.Diferenciables	None	AULA 9	teoria
+VIERNES	09:30	10:30	V.Diferenciables	None	AULA 9	teoria
+VIERNES	10:30	11:30	V.Diferenciables	None	AULA 9	teoria
+LUNES	14:30	15:30	Modelos de cálculo	None	AULA 13	teoria
+LUNES	15:30	16:30	Modelos de cálculo	None	AULA 13	teoria
+LUNES	16:30	17:30	Modelos de cálculo	None	AULA 13	teoria
+MARTES	10:30	11:30	Introducción a los sistemas inteligentes	None	AULA 14	teoria
+MARTES	11:30	12:30	Introducción a los sistemas inteligentes	None	AULA 14	teoria
+MARTES	12:30	13:30	Introducción a los sistemas inteligentes	None	AULA 14	teoria
+MIÉRCOLES	10:30	11:30	Introducción a los sistemas inteligentes	None	AULA 14	teoria
+MIÉRCOLES	11:30	12:30	Introducción a los sistemas inteligentes	None	AULA 14	teoria
+MIÉRCOLES	12:30	13:30	Introducción a los sistemas inteligentes	None	AULA 14	teoria
+VIERNES	08:30	09:30	Introducción a los sistemas inteligentes	PL3	AULA 13	practicas_laboratorio
+VIERNES	09:30	10:30	Introducción a los sistemas inteligentes	PL3	AULA 13	practicas_laboratorio
+VIERNES	10:30	11:30	Introducción a los sistemas inteligentes	PL2	AULA 13	practicas_laboratorio
+VIERNES	11:30	12:30	Introducción a los sistemas inteligentes	PL2	AULA 13	practicas_laboratorio
+VIERNES	12:30	13:30	Introducción a los sistemas inteligentes	PL1	AULA 13	practicas_laboratorio
+VIERNES	13:30	14:30	Introducción a los sistemas inteligentes	PL1	AULA 13	practicas_laboratorio
+VIERNES	14:30	15:30	Introducción a los sistemas inteligentes	PL1	AULA 13	practicas_laboratorio
