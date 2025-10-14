@@ -1,1 +1,0 @@
-# Módulo ingesta / OCR / trazabilidad
