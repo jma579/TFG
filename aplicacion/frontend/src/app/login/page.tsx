@@ -11,7 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const view = (sp.get('view') ?? 'signin') as 'signin' | 'accounts';
 
-  const goToApp = () => router.push('/uploads/fichas');
+  const goToApp = () => router.push('/app');
 
   return (
     <div className="min-h-dvh grid md:grid-cols-2">
