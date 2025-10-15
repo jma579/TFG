@@ -1,11 +1,24 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import type { Metadata } from 'next';
+import { MarketingHeader } from '@/components/marketing/header';
+import { MarketingHero } from '@/components/marketing/hero';
+import { MarketingFeatures } from '@/components/marketing/features';
+import { MarketingFooter } from '@/components/marketing/footer';
 
-export default function Page() {
+export const metadata: Metadata = {
+  title: 'Detector de Conflictos — Inicio',
+  description:
+    'Sube fichas y horarios, confirma la extracción y resuelve conflictos de forma interactiva.',
+};
+
+export default function HomePage() {
   return (
-    <main className="min-h-dvh p-8 flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Bienvenido</h1>
-      <Button asChild><Link href="/uploads/fichas">Ir a la app</Link></Button>
-    </main>
+    <>
+      <MarketingHeader />
+      <main>
+        <MarketingHero />
+        <MarketingFeatures />
+      </main>
+      <MarketingFooter />
+    </>
   );
 }
