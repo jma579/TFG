@@ -1,8 +1,12 @@
-// usa este mismo contenido cambiando el H1 según la ruta
-export default function Page() {
+import { columns } from '@/components/conflicts/columns';
+import { DataTable } from '@/components/conflicts/data-table';
+import { conflictsMock } from '@/components/conflicts/data';
+
+export default function ConflictosPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold">[NOMBRE DE LA PÁGINA]</h1>
+    <div className="mx-auto max-w-6xl space-y-4">
+      <DataTable columns={columns} data={conflictsMock} />
     </div>
   );
 }
+
