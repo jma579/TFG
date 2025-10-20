@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from backend.db.session import get_db
+
 from backend.modules.catalogo.services.programa_service import programa_service
 from backend.modules.catalogo.schemas.programa import (
     ProgramaCreate,
@@ -24,7 +25,16 @@ from backend.modules.catalogo.schemas.programa import (
     ProgramaOut,
     ProgramaList
 )
-from backend.constants.enums import TipoPrograma
+
+from backend.modules.catalogo.services.asignatura_service import asignatura_service
+from backend.modules.catalogo.schemas.asignatura import (
+    AsignaturaCreate,
+    AsignaturaUpdate,
+    AsignaturaOut,
+    AsignaturaList
+)
+
+from backend.constants.enums import TipoPrograma, Periodo, ModalidadAsignatura, Idioma 
 
 
 # ============================================================
@@ -80,8 +90,8 @@ def listar_programas(
     ),
     tipo: Optional[TipoPrograma] = Query(
         default=None,
-        description="Filtrar por tipo de programa (GRADO, MASTER, DOCTORADO, DOBLE_GRADO)",
-        example="GRADO"
+        description="Filtrar por tipo de programa",
+        example="grado"  # Valor en minúsculas como está definido en el enum
     ),
     db: Session = Depends(get_db)
 ):
@@ -380,3 +390,259 @@ def eliminar_programa(
     Para reactivar un programa, usar PUT con `{"activo": true}`.
     """
     return programa_service.delete_programa(db, programa_id)
+
+
+
+# ============================================================
+#  ENDPOINTS DE ASIGNATURA
+# ============================================================
+
+@router.get(
+    "/asignaturas",
+    response_model=AsignaturaList,
+    summary="Listar asignaturas",
+    description="Obtener listado de asignaturas con filtros opcionales y paginación"
+)
+def listar_asignaturas(
+    skip: int = Query(0, ge=0, description="Número de registros a saltar"),
+    limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros a devolver"),
+    periodo: Optional[Periodo] = Query(None, example="cuatrimestral_1", description="Filtrar por periodo de impartición"),
+    modalidad: Optional[ModalidadAsignatura] = Query(None, example="presencial", description="Filtrar por modalidad"),
+    idioma: Optional[Idioma] = Query(None, example="español", description="Filtrar por idioma"),
+    activo: Optional[bool] = Query(None, description="Filtrar por estado (true=activo, false=inactivo)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Listar asignaturas con filtros opcionales.
+    
+    **Filtros disponibles:**
+    - `periodo`: anual, cuatrimestral_1, cuatrimestral_2
+    - `modalidad`: presencial, online, semipresencial
+    - `idioma`: español, inglés, catalán
+    - `activo`: true (activas), false (inactivas), null (todas)
+    
+    **Paginación:**
+    - `skip`: Número de registros a saltar (default: 0)
+    - `limit`: Número máximo de registros (default: 100, max: 1000)
+    
+    **Ejemplo de uso:**
+    ```
+    GET /asignaturas?periodo=cuatrimestral_1&modalidad=presencial&limit=20
+    ```
+    """
+    return asignatura_service.get_asignaturas(
+        db=db,
+        skip=skip,
+        limit=limit,
+        periodo=periodo,
+        modalidad=modalidad,
+        idioma=idioma,
+        activo=activo
+    )
+
+
+@router.get(
+    "/asignaturas/codigo/{codigo_plan}",
+    response_model=AsignaturaOut,
+    summary="Obtener asignatura por código",
+    description="Obtener una asignatura buscando por su código de plan de estudios",
+    responses={
+        404: {"description": "Asignatura con ese código no encontrada"}
+    }
+)
+def obtener_asignatura_por_codigo(
+    codigo_plan: str = Path(..., min_length=1, max_length=6, description="Código de plan de la asignatura"),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener asignatura por código de plan.
+    
+    **Parámetros:**
+    - `codigo_plan`: Código único de la asignatura (1-6 caracteres)
+    
+    **Respuestas:**
+    - `200`: Asignatura encontrada
+    - `404`: No existe asignatura con ese código
+    - `422`: Código inválido (longitud incorrecta)
+    
+    **Ejemplo de uso:**
+    ```
+    GET /asignaturas/codigo/MAT101
+    ```
+    
+    **Nota:** El código se normaliza automáticamente (uppercase, strip).
+    """
+    return asignatura_service.get_asignatura_by_codigo(db, codigo_plan)
+
+
+@router.get(
+    "/asignaturas/{asignatura_id}",
+    response_model=AsignaturaOut,
+    summary="Obtener asignatura por ID",
+    description="Obtener los detalles de una asignatura específica por su ID",
+    responses={
+        404: {"description": "Asignatura no encontrada"}
+    }
+)
+def obtener_asignatura(
+    asignatura_id: int = Path(..., ge=1, description="ID de la asignatura"),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener asignatura por ID.
+    
+    **Parámetros:**
+    - `asignatura_id`: ID único de la asignatura (debe ser > 0)
+    
+    **Respuestas:**
+    - `200`: Asignatura encontrada
+    - `404`: Asignatura no existe
+    - `422`: ID inválido (no es un entero positivo)
+    
+    **Ejemplo de uso:**
+    ```
+    GET /asignaturas/1
+    ```
+    """
+    return asignatura_service.get_asignatura(db, asignatura_id)
+
+
+@router.post(
+    "/asignaturas",
+    response_model=AsignaturaOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear asignatura",
+    description="Crear una nueva asignatura en el sistema",
+    responses={
+        201: {"description": "Asignatura creada exitosamente"},
+        409: {"description": "Ya existe una asignatura con ese código o nombre"},
+        422: {"description": "Datos de entrada inválidos"}
+    }
+)
+def crear_asignatura(
+    asignatura: AsignaturaCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Crear nueva asignatura.
+    
+    **Validaciones:**
+    - Código de plan único (no puede existir otra asignatura con el mismo código)
+    - Nombre único (no puede existir otra asignatura con el mismo nombre)
+    - ECTS entre 1 y 12 (si se proporciona)
+    - Código: 1-6 caracteres (se normaliza a mayúsculas)
+    - Nombre: 1-250 caracteres (se normaliza: strip + collapse spaces)
+    
+    **Respuestas:**
+    - `201`: Asignatura creada correctamente
+    - `409`: Código o nombre duplicado
+    - `422`: Datos inválidos (validación de Pydantic)
+    
+    **Ejemplo de body:**
+    ```json
+    {
+        "codigo_plan": "MAT101",
+        "nombre": "Matemáticas I",
+        "periodo": "cuatrimestral_1",
+        "ects": 6,
+        "modalidad": "presencial",
+        "idioma": "español",
+        "english_friendly": false,
+        "activo": true
+    }
+    ```
+    """
+    return asignatura_service.create_asignatura(db, asignatura)
+
+
+@router.put(
+    "/asignaturas/{asignatura_id}",
+    response_model=AsignaturaOut,
+    summary="Actualizar asignatura",
+    description="Actualizar una asignatura existente (actualización parcial)",
+    responses={
+        200: {"description": "Asignatura actualizada exitosamente"},
+        404: {"description": "Asignatura no encontrada"},
+        409: {"description": "El nuevo código o nombre ya existe"},
+        422: {"description": "Datos de entrada inválidos"}
+    }
+)
+def actualizar_asignatura(
+    asignatura_id: int = Path(..., ge=1, description="ID de la asignatura a actualizar"),
+    asignatura: AsignaturaUpdate = ...,
+    db: Session = Depends(get_db)
+):
+    """
+    Actualizar asignatura existente.
+    
+    **Actualización parcial:** Solo se actualizan los campos proporcionados.
+    
+    **Validaciones:**
+    - La asignatura debe existir
+    - Si se cambia el código: debe ser único (excluyendo la asignatura actual)
+    - Si se cambia el nombre: debe ser único (excluyendo la asignatura actual)
+    - ECTS entre 1 y 12 (si se proporciona)
+    
+    **Respuestas:**
+    - `200`: Asignatura actualizada correctamente
+    - `404`: Asignatura no existe
+    - `409`: Nuevo código/nombre ya existe en otra asignatura
+    - `422`: Datos inválidos
+    
+    **Ejemplo de body (actualizar solo ECTS):**
+    ```json
+    {
+        "ects": 9
+    }
+    ```
+    
+    **Ejemplo de body (actualizar múltiples campos):**
+    ```json
+    {
+        "nombre": "Matemáticas Avanzadas I",
+        "ects": 9,
+        "modalidad": "semipresencial"
+    }
+    ```
+    """
+    return asignatura_service.update_asignatura(db, asignatura_id, asignatura)
+
+
+@router.delete(
+    "/asignaturas/{asignatura_id}",
+    summary="Eliminar asignatura",
+    description="Desactivar una asignatura (soft delete)",
+    responses={
+        200: {"description": "Asignatura desactivada exitosamente"},
+        404: {"description": "Asignatura no encontrada"}
+    }
+)
+def eliminar_asignatura(
+    asignatura_id: int = Path(..., ge=1, description="ID de la asignatura a eliminar"),
+    db: Session = Depends(get_db)
+):
+    """
+    Eliminar asignatura (soft delete).
+    
+    **Comportamiento:**
+    - NO elimina físicamente el registro de la base de datos
+    - Marca la asignatura como inactiva (activo = false)
+    - La asignatura seguirá existiendo pero no aparecerá en listados por defecto
+    
+    **Validaciones:**
+    - La asignatura debe existir
+    
+    **Respuestas:**
+    - `200`: Asignatura desactivada correctamente
+    - `404`: Asignatura no existe
+    
+    **Ejemplo de respuesta:**
+    ```json
+    {
+        "message": "Asignatura 'MAT101 - Matemáticas I' desactivada correctamente"
+    }
+    ```
+    
+    **Nota:** Para recuperar asignaturas inactivas, usar `GET /asignaturas?activo=false`
+    """
+    return asignatura_service.delete_asignatura(db, asignatura_id)
