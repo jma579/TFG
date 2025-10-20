@@ -19,8 +19,10 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy import text
 
-from config.settings import get_settings
-from db.session import engine, create_tables
+from backend.config.settings import get_settings
+from backend.db.session import engine, create_tables
+
+from backend.modules.catalogo.api.routers import router as catalogo_router
 
 # Obtener configuración
 settings = get_settings()
@@ -121,8 +123,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "error": True,
-            "message": exc.detail,
+            "detail": exc.detail,
             "status_code": exc.status_code,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -135,9 +136,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
-            "error": True,
-            "message": "Error de validación en los datos enviados",
-            "details": exc.errors(),
+            "detail": exc.errors(),
             "status_code": 422,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -155,8 +154,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "error": True,
-            "message": detail,
+            "detail": detail,
             "status_code": 500,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -235,9 +233,8 @@ async def root() -> Dict[str, Any]:
 # NOTA: Los siguientes routers se incluirán en fases posteriores:
 # Usar el prefijo configurado en settings: settings.api_v0_prefix
 
-# Fase 2: Modelos de Datos
-# from catalogo.router import router as catalogo_router
-# app.include_router(catalogo_router, prefix=f"{settings.api_v0_prefix}/catalogo", tags=["Catálogo"])
+# Fase 3: Módulos de Dominio - Catálogo
+app.include_router(catalogo_router, prefix=f"{settings.api_v0_prefix}/catalogo", tags=["Catálogo"])
 
 # from recursos.router import router as recursos_router  
 # app.include_router(recursos_router, prefix=f"{settings.api_v0_prefix}/recursos", tags=["Recursos"])

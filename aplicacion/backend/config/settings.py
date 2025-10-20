@@ -8,7 +8,7 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 # Import constants
-from constants.defaults import (
+from backend.constants.defaults import (
     DEFAULT_API_TITLE, DEFAULT_API_DESCRIPTION, DEFAULT_API_VERSION, DEFAULT_API_PREFIX,
     DEFAULT_HOST, DEFAULT_PORT, DEFAULT_CORS_ORIGINS, DEFAULT_CORS_METHODS, 
     DEFAULT_CORS_HEADERS, DEFAULT_LOG_LEVEL, DEFAULT_DATABASE_URL,
