@@ -23,6 +23,7 @@ from backend.config.settings import get_settings
 from backend.db.session import engine, create_tables
 
 from backend.modules.catalogo.api.routers import router as catalogo_router
+from backend.modules.recursos.api.routers import router as recursos_router
 
 # Obtener configuración
 settings = get_settings()
@@ -233,8 +234,9 @@ async def root() -> Dict[str, Any]:
 # NOTA: Los siguientes routers se incluirán en fases posteriores:
 # Usar el prefijo configurado en settings: settings.api_v0_prefix
 
-# Fase 3: Módulos de Dominio - Catálogo
+# Fase 3: Módulos de Dominio
 app.include_router(catalogo_router, prefix=f"{settings.api_v0_prefix}/catalogo", tags=["Catálogo"])
+app.include_router(recursos_router, prefix=f"{settings.api_v0_prefix}/recursos", tags=["Recursos"])
 
 # from recursos.router import router as recursos_router  
 # app.include_router(recursos_router, prefix=f"{settings.api_v0_prefix}/recursos", tags=["Recursos"])
