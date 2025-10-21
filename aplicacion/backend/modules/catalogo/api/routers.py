@@ -34,6 +34,14 @@ from backend.modules.catalogo.schemas.asignatura import (
     AsignaturaList
 )
 
+from backend.modules.catalogo.services.mencion_service import mencion_service
+from backend.modules.catalogo.schemas.mencion import (
+    MencionCreate,
+    MencionUpdate,
+    MencionOut,
+    MencionList
+) 
+
 from backend.constants.enums import TipoPrograma, Periodo, ModalidadAsignatura, Idioma 
 
 
@@ -646,3 +654,223 @@ def eliminar_asignatura(
     **Nota:** Para recuperar asignaturas inactivas, usar `GET /asignaturas?activo=false`
     """
     return asignatura_service.delete_asignatura(db, asignatura_id)
+
+
+
+
+# ============================================================
+#  ENDPOINTS DE MENCION
+# ============================================================
+
+@router.get(
+    "/menciones",
+    response_model=MencionList,
+    summary="Listar menciones",
+    description="Obtener listado de menciones con filtros opcionales y paginación"
+)
+def listar_menciones(
+    skip: int = Query(0, ge=0, description="Número de registros a saltar"),
+    limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros a devolver"),
+    programa_id: Optional[int] = Query(None, ge=1, description="Filtrar por programa", example=1),
+    activo: Optional[bool] = Query(None, description="Filtrar por estado (true=activo, false=inactivo)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Listar menciones con filtros opcionales.
+    
+    **Filtros disponibles:**
+    - `programa_id`: ID del programa (para listar menciones de un programa específico)
+    - `activo`: true (activas), false (inactivas), null (todas)
+    
+    **Paginación:**
+    - `skip`: Número de registros a saltar (default: 0)
+    - `limit`: Número máximo de registros (default: 100, max: 1000)
+    
+    **Ordenación:**
+    - Por `programa_id` ASC, luego por `nombre` ASC
+    
+    **Ejemplo de uso:**
+    ```
+    GET /menciones?programa_id=1&activo=true&limit=20
+    ```
+    """
+    return mencion_service.get_menciones(
+        db=db,
+        skip=skip,
+        limit=limit,
+        programa_id=programa_id,
+        activo=activo
+    )
+
+
+@router.get(
+    "/menciones/{mencion_id}",
+    response_model=MencionOut,
+    summary="Obtener mención por ID",
+    description="Obtener los detalles de una mención específica por su ID",
+    responses={
+        404: {"description": "Mención no encontrada"}
+    }
+)
+def obtener_mencion(
+    mencion_id: int = Path(..., ge=1, description="ID de la mención"),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener mención por ID.
+    
+    **Parámetros:**
+    - `mencion_id`: ID único de la mención (debe ser >= 1)
+    
+    **Respuestas:**
+    - `200`: Mención encontrada
+    - `404`: Mención no existe
+    - `422`: ID inválido (no es un entero positivo)
+    
+    **Ejemplo de uso:**
+    ```
+    GET /menciones/1
+    ```
+    """
+    return mencion_service.get_mencion(db, mencion_id)
+
+
+@router.post(
+    "/menciones",
+    response_model=MencionOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear mención",
+    description="Crear una nueva mención asociada a un programa",
+    responses={
+        201: {"description": "Mención creada exitosamente"},
+        404: {"description": "Programa no encontrado"},
+        409: {"description": "Ya existe una mención con ese nombre en el programa"},
+        422: {"description": "Datos de entrada inválidos"}
+    }
+)
+def crear_mencion(
+    mencion: MencionCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Crear nueva mención.
+    
+    **Validaciones:**
+    - El programa debe existir (404 si no existe)
+    - Nombre único dentro del programa (no puede existir otra mención con el mismo nombre en el mismo programa)
+    - Nombre: 1-200 caracteres (se normaliza: strip + collapse spaces)
+    
+    **Constraint de unicidad:**
+    - `(programa_id, nombre)`: Puede haber menciones con el mismo nombre en diferentes programas,
+      pero no dentro del mismo programa
+    
+    **Respuestas:**
+    - `201`: Mención creada correctamente
+    - `404`: Programa no encontrado
+    - `409`: Ya existe mención con ese nombre en el programa
+    - `422`: Datos inválidos (validación de Pydantic)
+    
+    **Ejemplo de body:**
+    ```json
+    {
+        "programa_id": 1,
+        "nombre": "Ingeniería del Software",
+        "activo": true
+    }
+    ```
+    """
+    return mencion_service.create_mencion(db, mencion)
+
+
+@router.put(
+    "/menciones/{mencion_id}",
+    response_model=MencionOut,
+    summary="Actualizar mención",
+    description="Actualizar una mención existente (actualización parcial)",
+    responses={
+        200: {"description": "Mención actualizada exitosamente"},
+        404: {"description": "Mención o programa no encontrado"},
+        409: {"description": "El nuevo nombre ya existe en el programa"},
+        422: {"description": "Datos de entrada inválidos"}
+    }
+)
+def actualizar_mencion(
+    mencion_id: int = Path(..., ge=1, description="ID de la mención a actualizar"),
+    mencion: MencionUpdate = ...,
+    db: Session = Depends(get_db)
+):
+    """
+    Actualizar mención existente.
+    
+    **Actualización parcial:** Solo se actualizan los campos proporcionados.
+    
+    **Validaciones:**
+    - La mención debe existir (404)
+    - Si se cambia el programa: el programa debe existir (404)
+    - Si se cambia programa o nombre: la combinación debe ser única (409)
+    
+    **Respuestas:**
+    - `200`: Mención actualizada correctamente
+    - `404`: Mención o programa no existe
+    - `409`: Ya existe mención con ese nombre en el programa
+    - `422`: Datos inválidos
+    
+    **Ejemplo de body (actualizar solo nombre):**
+    ```json
+    {
+        "nombre": "Ingeniería del Software Avanzada"
+    }
+    ```
+    
+    **Ejemplo de body (cambiar de programa):**
+    ```json
+    {
+        "programa_id": 2,
+        "nombre": "Computación"
+    }
+    ```
+    
+    **Nota:** Al cambiar de programa, se valida que no exista otra mención
+    con el mismo nombre en el nuevo programa.
+    """
+    return mencion_service.update_mencion(db, mencion_id, mencion)
+
+
+@router.delete(
+    "/menciones/{mencion_id}",
+    summary="Eliminar mención",
+    description="Desactivar una mención (soft delete)",
+    responses={
+        200: {"description": "Mención desactivada exitosamente"},
+        404: {"description": "Mención no encontrada"}
+    }
+)
+def eliminar_mencion(
+    mencion_id: int = Path(..., ge=1, description="ID de la mención a eliminar"),
+    db: Session = Depends(get_db)
+):
+    """
+    Eliminar mención (soft delete).
+    
+    **Comportamiento:**
+    - NO elimina físicamente el registro de la base de datos
+    - Marca la mención como inactiva (activo = false)
+    - La mención seguirá existiendo pero no aparecerá en listados por defecto
+    
+    **Validaciones:**
+    - La mención debe existir (404)
+    
+    **Respuestas:**
+    - `200`: Mención desactivada correctamente
+    - `404`: Mención no existe
+    
+    **Ejemplo de respuesta:**
+    ```json
+    {
+        "message": "Mención 'Ingeniería del Software' desactivada correctamente"
+    }
+    ```
+    
+    **Nota:** Para recuperar menciones inactivas, usar `GET /menciones?activo=false`
+    """
+    return mencion_service.delete_mencion(db, mencion_id)
