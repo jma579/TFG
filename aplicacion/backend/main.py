@@ -134,11 +134,41 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Handler para errores de validación de Pydantic."""
+    """
+    Handler para errores de validación de Pydantic con serialización segura.
+    
+    Convierte todos los errores a tipos serializables a JSON,
+    manejando correctamente objetos ValueError en ctx['error'].
+    """
+    # Serializar errores de forma segura
+    serializable_errors = []
+    for error in exc.errors():
+        serialized_error = {
+            "type": error.get("type"),
+            "loc": error.get("loc"),
+            "msg": error.get("msg"),
+            "input": str(error.get("input")) if error.get("input") is not None else None,
+        }
+        
+        # Serializar el contexto si existe
+        if "ctx" in error and error["ctx"]:
+            serialized_ctx = {}
+            for key, value in error["ctx"].items():
+                # Si es un ValueError u otro objeto no serializable, convertir a string
+                if isinstance(value, Exception):
+                    serialized_ctx[key] = str(value)
+                elif isinstance(value, (str, int, float, bool, type(None))):
+                    serialized_ctx[key] = value
+                else:
+                    serialized_ctx[key] = str(value)
+            serialized_error["ctx"] = serialized_ctx
+        
+        serializable_errors.append(serialized_error)
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
-            "detail": exc.errors(),
+            "detail": serializable_errors,
             "status_code": 422,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }

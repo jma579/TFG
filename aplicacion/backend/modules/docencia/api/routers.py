@@ -3,7 +3,7 @@ Endpoints REST API para el módulo de Docencia.
 
 Define los endpoints para gestionar:
 - GrupoDocente: Grupos de docencia (teoría, práctica, laboratorio, etc.)
-- Sesion: Sesiones de clase programadas (PENDIENTE)
+- Sesion: Sesiones de clase programadas
 
 Responsabilidades:
 - Definir rutas HTTP (GET, POST, PUT, DELETE)
@@ -21,8 +21,14 @@ from backend.db.session import get_db
 from backend.modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate, GrupoDocenteOut, GrupoDocenteList
 )
+from backend.modules.docencia.schemas.sesion import (
+    SesionCreate, SesionUpdate, SesionOut, SesionList
+)
 from backend.modules.docencia.services.grupo_docente_service import grupo_docente_service
-from backend.constants.enums import TipoGrupoDocente
+from backend.modules.docencia.services.sesion_service import sesion_service
+from backend.constants.enums import (
+    TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana
+)
 
 
 # ============================================================
@@ -537,4 +543,490 @@ def eliminar_grupo_docente(
         HTTPException 409: Si tiene sesiones asociadas
     """
     grupo_docente_service.delete(db, id)
+    return None
+
+
+# ============================================================
+#  ENDPOINTS DE SESION
+# ============================================================
+
+@router.get(
+    "/sesiones",
+    response_model=SesionList,
+    summary="Listar sesiones",
+    description="""
+    Listar sesiones con filtros opcionales y paginación.
+    
+    **Filtros disponibles:**
+    - `grupo_docente_id`: Filtrar por grupo docente específico
+    - `aula_id`: Filtrar por aula específica
+    - `modalidad`: Filtrar por modalidad (presencial, online, hibrida)
+    - `tipo_recurrencia`: Filtrar por tipo (semanal, quincenal, mensual, puntual)
+    - `dia_semana`: Filtrar por día de la semana (solo para recurrentes)
+    
+    **Paginación:**
+    - `skip`: Número de registros a saltar (default: 0)
+    - `limit`: Número máximo de registros (default: 100, max: 1000)
+    
+    **Ejemplo:**
+    ```
+    GET /sesiones?grupo_docente_id=1&modalidad=presencial&skip=0&limit=20
+    ```
+    
+    **Respuesta:**
+    ```json
+    {
+        "total": 15,
+        "items": [
+            {
+                "id": 1,
+                "grupo_docente_id": 1,
+                "aula_id": 10,
+                "modalidad": "presencial",
+                "tipo_recurrencia": "semanal",
+                "dia_semana": "lunes",
+                "hora_inicio": "09:00:00",
+                "hora_fin": "11:00:00",
+                "profesores": [...]
+            }
+        ],
+        "page": 1,
+        "size": 20
+    }
+    ```
+    """,
+    tags=["Sesiones"]
+)
+def listar_sesiones(
+    skip: int = Query(
+        0,
+        ge=0,
+        description="Número de registros a saltar (offset para paginación)",
+        examples=[0, 20, 40]
+    ),
+    limit: int = Query(
+        100,
+        ge=1,
+        le=1000,
+        description="Número máximo de registros a retornar",
+        examples=[10, 20, 50, 100]
+    ),
+    grupo_docente_id: Optional[int] = Query(
+        None,
+        gt=0,
+        description="Filtrar por grupo docente específico",
+        examples=[1, 42, 123]
+    ),
+    aula_id: Optional[int] = Query(
+        None,
+        gt=0,
+        description="Filtrar por aula específica",
+        examples=[1, 10, 200]
+    ),
+    modalidad: Optional[ModalidadSesion] = Query(
+        None,
+        description="Filtrar por modalidad",
+        examples=["presencial", "online", "hibrida"]
+    ),
+    tipo_recurrencia: Optional[TipoRecurrencia] = Query(
+        None,
+        description="Filtrar por tipo de recurrencia",
+        examples=["semanal", "quincenal", "mensual", "puntual"]
+    ),
+    dia_semana: Optional[DiaSemana] = Query(
+        None,
+        description="Filtrar por día de la semana (solo recurrentes)",
+        examples=["lunes", "martes", "miercoles"]
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Listar sesiones con filtros y paginación.
+    
+    Returns:
+        SesionList con total, items, page y size
+    """
+    # Obtener sesiones del service
+    items, total = sesion_service.get_multi(
+        db=db,
+        skip=skip,
+        limit=limit,
+        grupo_docente_id=grupo_docente_id,
+        aula_id=aula_id,
+        modalidad=modalidad,
+        tipo_recurrencia=tipo_recurrencia,
+        dia_semana=dia_semana
+    )
+    
+    # Calcular número de página actual
+    page = (skip // limit) + 1 if limit > 0 else 1
+    
+    # Retornar schema de lista paginada
+    return SesionList(
+        total=total,
+        items=items,
+        page=page,
+        size=limit
+    )
+
+
+@router.get(
+    "/sesiones/{id}",
+    response_model=SesionOut,
+    summary="Obtener sesión por ID",
+    description="""
+    Obtener una sesión específica por su ID (incluye profesores asignados).
+    
+    **Errores:**
+    - `404 Not Found`: Si la sesión no existe
+    
+    **Ejemplo:**
+    ```
+    GET /sesiones/1
+    ```
+    
+    **Respuesta:**
+    ```json
+    {
+        "id": 1,
+        "grupo_docente_id": 42,
+        "aula_id": 10,
+        "modalidad": "presencial",
+        "tipo_recurrencia": "semanal",
+        "dia_semana": "lunes",
+        "hora_inicio": "09:00:00",
+        "hora_fin": "11:00:00",
+        "inicio": null,
+        "fin": null,
+        "profesores": [
+            {
+                "profesor_id": 5,
+                "rol_en_sesion": "Docente",
+                "nombre": "Juan",
+                "apellidos": "García López"
+            }
+        ]
+    }
+    ```
+    """,
+    responses={
+        200: {"description": "Sesión encontrada"},
+        404: {
+            "description": "Sesión no encontrada",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Sesión con id 999 no encontrada"}
+                }
+            }
+        }
+    },
+    tags=["Sesiones"]
+)
+def obtener_sesion(
+    id: int = Path(
+        ...,
+        ge=1,
+        description="ID único de la sesión",
+        examples=[1, 42, 123]
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener una sesión por su ID.
+    
+    Args:
+        id: ID de la sesión
+        
+    Returns:
+        SesionOut con los datos de la sesión (incluye profesores)
+        
+    Raises:
+        HTTPException 404: Si la sesión no existe
+    """
+    return sesion_service.get_by_id(db, id)
+
+
+@router.post(
+    "/sesiones",
+    response_model=SesionOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear nueva sesión",
+    description="""
+    Crear una nueva sesión con profesores asignados.
+    
+    **Campos obligatorios:**
+    - `grupo_docente_id`: ID del grupo docente (debe existir)
+    - `aula_id`: ID del aula (debe existir)
+    - `modalidad`: Modalidad (PRESENCIAL, ONLINE, HIBRIDA)
+    - `tipo_recurrencia`: Tipo (SEMANAL, QUINCENAL, MENSUAL, PUNTUAL)
+    
+    **Si tipo_recurrencia es SEMANAL/QUINCENAL/MENSUAL:**
+    - `dia_semana`: LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO
+    - `hora_inicio`: Hora de inicio (HH:MM:SS)
+    - `hora_fin`: Hora de fin (HH:MM:SS)
+    - `inicio` y `fin` deben ser null
+    
+    **Si tipo_recurrencia es PUNTUAL:**
+    - `inicio`: Fecha y hora de inicio (YYYY-MM-DDTHH:MM:SS)
+    - `fin`: Fecha y hora de fin (YYYY-MM-DDTHH:MM:SS)
+    - `dia_semana`, `hora_inicio` y `hora_fin` deben ser null
+    
+    **Profesores (opcional):**
+    - Lista de profesores con `profesor_id` y `rol_en_sesion` opcional
+    
+    **Validaciones:**
+    - grupo_docente_id debe existir (404)
+    - aula_id debe existir (404)
+    - Todos los profesor_id deben existir (404)
+    - Campos de horario correctos según tipo_recurrencia (422)
+    - hora_inicio < hora_fin (422)
+    - inicio < fin (422)
+    
+    **TODO (Fase 3.5):**
+    - Detectar conflictos de horarios (aula, profesor, grupo)
+    - Retornar 409 si hay conflictos
+    
+    **Ejemplos:**
+    
+    1. **Sesión semanal:**
+    ```json
+    {
+        "grupo_docente_id": 1,
+        "aula_id": 10,
+        "modalidad": "presencial",
+        "tipo_recurrencia": "semanal",
+        "dia_semana": "lunes",
+        "hora_inicio": "09:00:00",
+        "hora_fin": "11:00:00",
+        "profesores": [
+            {"profesor_id": 5, "rol_en_sesion": "Docente"}
+        ]
+    }
+    ```
+    
+    2. **Sesión puntual:**
+    ```json
+    {
+        "grupo_docente_id": 1,
+        "aula_id": 10,
+        "modalidad": "online",
+        "tipo_recurrencia": "puntual",
+        "inicio": "2025-10-25T09:00:00",
+        "fin": "2025-10-25T11:00:00",
+        "profesores": []
+    }
+    ```
+    """,
+    responses={
+        201: {"description": "Sesión creada exitosamente"},
+        404: {"description": "Grupo, aula o profesor no encontrado"},
+        409: {"description": "Conflicto de horarios (TODO: Fase 3.5)"},
+        422: {"description": "Datos de entrada inválidos"}
+    },
+    tags=["Sesiones"]
+)
+def crear_sesion(
+    sesion: SesionCreate = Body(
+        ...,
+        examples=[
+            {
+                "grupo_docente_id": 1,
+                "aula_id": 10,
+                "modalidad": "presencial",
+                "tipo_recurrencia": "semanal",
+                "dia_semana": "lunes",
+                "hora_inicio": "09:00:00",
+                "hora_fin": "11:00:00",
+                "profesores": [
+                    {"profesor_id": 5, "rol_en_sesion": "Docente"}
+                ]
+            }
+        ]
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Crear una nueva sesión.
+    
+    Args:
+        sesion: Datos de la sesión a crear (incluye profesores)
+        
+    Returns:
+        SesionOut con la sesión creada (incluye ID y profesores)
+        
+    Raises:
+        HTTPException 404: Si grupo, aula o algún profesor no existe
+        HTTPException 409: Si hay conflictos de horarios (TODO: Fase 3.5)
+        HTTPException 422: Si los datos son inválidos
+    """
+    return sesion_service.create(db, sesion)
+
+
+@router.put(
+    "/sesiones/{id}",
+    response_model=SesionOut,
+    summary="Actualizar sesión",
+    description="""
+    Actualizar una sesión existente (actualización parcial).
+    
+    **Comportamiento:**
+    - Solo se actualizan los campos proporcionados
+    - Campo no incluido: no se modifica
+    - Campo con valor: se actualiza
+    - Profesores: si se proporciona la lista, se reemplaza completamente
+    
+    **IMPORTANTE:**
+    - Si se cambia `tipo_recurrencia`, los campos de horario correspondientes
+      deben proporcionarse completos
+    - Ejemplo: cambiar de SEMANAL a PUNTUAL requiere `inicio` y `fin`
+    
+    **Validaciones:**
+    - Sesión debe existir (404)
+    - Si se actualiza grupo_docente_id, validar que existe (404)
+    - Si se actualiza aula_id, validar que existe (404)
+    - Si se actualizan profesores, validar que todos existen (404)
+    - Validar horarios según tipo_recurrencia (422)
+    
+    **TODO (Fase 3.5):**
+    - Detectar conflictos si cambian horarios o recursos
+    - Actualizar conflictos persistidos
+    
+    **Ejemplos:**
+    
+    1. **Cambiar solo el aula:**
+    ```json
+    {"aula_id": 20}
+    ```
+    
+    2. **Cambiar horario:**
+    ```json
+    {
+        "hora_inicio": "10:00:00",
+        "hora_fin": "12:00:00"
+    }
+    ```
+    
+    3. **Reemplazar profesores:**
+    ```json
+    {
+        "profesores": [
+            {"profesor_id": 10, "rol_en_sesion": "Docente"},
+            {"profesor_id": 15, "rol_en_sesion": "Ayudante"}
+        ]
+    }
+    ```
+    
+    4. **Cambiar de semanal a puntual:**
+    ```json
+    {
+        "tipo_recurrencia": "puntual",
+        "inicio": "2025-10-25T09:00:00",
+        "fin": "2025-10-25T11:00:00"
+    }
+    ```
+    """,
+    responses={
+        200: {"description": "Sesión actualizada exitosamente"},
+        404: {"description": "Sesión, grupo, aula o profesor no encontrado"},
+        409: {"description": "Conflicto de horarios (TODO: Fase 3.5)"},
+        422: {"description": "Datos de entrada inválidos"}
+    },
+    tags=["Sesiones"]
+)
+def actualizar_sesion(
+    id: int = Path(
+        ...,
+        ge=1,
+        description="ID de la sesión a actualizar",
+        examples=[1, 42, 123]
+    ),
+    sesion: SesionUpdate = Body(
+        ...,
+        examples=[
+            {"aula_id": 20},
+            {
+                "hora_inicio": "10:00:00",
+                "hora_fin": "12:00:00"
+            }
+        ]
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Actualizar una sesión existente.
+    
+    Args:
+        id: ID de la sesión a actualizar
+        sesion: Datos a actualizar (solo campos proporcionados)
+        
+    Returns:
+        SesionOut con los datos actualizados
+        
+    Raises:
+        HTTPException 404: Si la sesión, grupo, aula o profesor no existen
+        HTTPException 409: Si hay conflictos de horarios (TODO: Fase 3.5)
+        HTTPException 422: Si los datos son inválidos
+    """
+    return sesion_service.update(db, id, sesion)
+
+
+@router.delete(
+    "/sesiones/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Eliminar sesión (DELETE físico)",
+    description="""
+    Eliminar una sesión (DELETE físico de la base de datos).
+    
+    **IMPORTANTE:** NO es soft delete. El registro se elimina permanentemente.
+    
+    **Por qué DELETE físico:**
+    - Esta entidad NO tiene campo 'activo'
+    - Eliminación física permite limpiar horarios obsoletos
+    
+    **Cascadas:**
+    - Las asignaciones profesor-sesion se eliminan automáticamente (CASCADE)
+    
+    **TODO (Fase 3.5):**
+    - Eliminar conflictos asociados a esta sesión
+    
+    **Errores:**
+    - `404 Not Found`: Si la sesión no existe
+    
+    **Ejemplo:**
+    ```
+    DELETE /sesiones/1
+    ```
+    
+    **Respuesta:**
+    - Status: `204 No Content`
+    - Body: Vacío
+    """,
+    responses={
+        204: {"description": "Sesión eliminada exitosamente"},
+        404: {"description": "Sesión no encontrada"}
+    },
+    tags=["Sesiones"]
+)
+def eliminar_sesion(
+    id: int = Path(
+        ...,
+        ge=1,
+        description="ID de la sesión a eliminar",
+        examples=[1, 42, 123]
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Eliminar una sesión (DELETE físico).
+    
+    Args:
+        id: ID de la sesión a eliminar
+        
+    Returns:
+        None (status 204 No Content)
+        
+    Raises:
+        HTTPException 404: Si la sesión no existe
+    """
+    sesion_service.delete(db, id)
     return None
