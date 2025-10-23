@@ -160,17 +160,60 @@ NOISE_PATTERNS = [
 # =============================================================================
 
 CLEANTEXT_CONFIG = {
-    'fix_unicode': True,           # Corregir caracteres Unicode malformados
-    'to_ascii': False,               # NO convertir a ASCII (preservar acentos españoles)
-    'lower': False,           # NO convertir a minúsculas (preservar códigos)
-    'no_line_breaks': False,      # Preservar saltos de línea
-    'no_phone_numbers': True,     # Remover números de teléfono
-    'no_numbers': False,          # PRESERVAR números (importantes para códigos/horarios)
-    'no_digits': False,           # PRESERVAR dígitos
-    'no_currency_symbols': True,  # Remover símbolos de moneda
-    'no_punct': False,           # PRESERVAR puntuación básica
-    'lang': 'es',                # Idioma español
+    'clean_all': False,        # ❌ NO ejecutar todas las operaciones destructivas
+    'extra_spaces': True,      # ✅ Normalizar espacios múltiples a uno solo
+    'stemming': False,         # ❌ NO reducir palabras a raíz (preservar, preservación)
+    'stopwords': False,        # ❌ NO eliminar stopwords (el, la, de son importantes)
+    'lowercase': False,        # ❌ NO convertir a minúsculas (preservar CÓDIGOS, TÍTULOS)
+    'numbers': False,          # ❌ NO eliminar números (G652, 2024, Aula 3.01)
+    'punct': False,            # ❌ NO eliminar puntuación (: - / ( ) [ ])
+    'stp_lang': 'spanish'      # ✅ Idioma español para stopwords (aunque desactivado)
 }
+
+# Regex para eliminar patrones de ruido con cleantext
+# Este regex se pasa al parámetro 'reg' de clean()
+CLEANTEXT_NOISE_REGEX = (
+    r'('
+    r'http[s]?://\S+|'                                          # URLs completas
+    r'www\.\S+|'                                                # URLs sin protocolo
+    r'\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}|'  # Teléfonos internacionales
+    r'\b\d{9,}\b'                                               # 9+ dígitos consecutivos (teléfonos)
+    r')'
+)
+
+# Reemplazo para el regex de ruido (vacío = eliminar)
+CLEANTEXT_NOISE_REPLACE = ''
+
+# =============================================================================
+# PATRONES REGEX PARA POST-PROCESAMIENTO MANUAL
+# (Elementos no soportados por cleantext 1.1.4)
+# =============================================================================
+
+# Símbolos monetarios a eliminar
+CURRENCY_SYMBOLS_PATTERN = r'[€$£¥₹¢]'
+
+# Patrón de emojis y símbolos decorativos no académicos
+EMOJI_PATTERN = (
+    "["
+    "\U0001F600-\U0001F64F"  # Emoticones
+    "\U0001F300-\U0001F5FF"  # Símbolos & pictogramas
+    "\U0001F680-\U0001F6FF"  # Transporte & símbolos de mapa
+    "\U0001F1E0-\U0001F1FF"  # Banderas (iOS)
+    "\U00002702-\U000027B0"  # Dingbats
+    "\U000024C2-\U0001F251"  # Caracteres encerrados
+    "]+"
+)
+
+# Patrón para normalizar saltos de línea excesivos
+EXCESSIVE_LINEBREAKS_PATTERN = r'\n{3,}'
+EXCESSIVE_LINEBREAKS_REPLACE = '\n\n'  # Máximo 2 saltos consecutivos
+
+# Patrón para emails NO académicos (preservar @univ, @.es, @.edu)
+NON_ACADEMIC_EMAIL_PATTERN = (
+    r'\b[a-zA-Z0-9._%+-]+@'
+    r'(?!.*(?:univ|\.es|\.edu))'  # Negative lookahead: excluir académicos
+    r'[a-zA-Z0-9.-]+\.[a-z]{2,}\b'
+)
 
 
 # =============================================================================

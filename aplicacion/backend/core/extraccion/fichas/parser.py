@@ -137,7 +137,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         parser_metadata = ParsingMetadata(
             parser_name=self.name,
             parser_version=self.config.get("version"),
-            parse_timestamp=datetime.now().isoformat() + 'Z',
+            parse_timestamp=datetime.now(),
             parse_duration=time.time() - start_time,
             warnings=warnings,
             errors=errors,
@@ -168,7 +168,11 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
             raise ParserError(f"Errores de validación: {errores}")
 
         # Retorno del objeto tipado
-        return ficha
+        return self.to_normalized(
+            parsed=ficha,
+            extraction_metadata=extraction_metadata,
+            parsing_metadata=parser_metadata
+        )
 
 
     # Extractores principales
@@ -374,38 +378,79 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
             errores.append("ECTS no válido.")
         return (len(errores) == 0, errores)
 
-    def to_normalized(self, parsed: SubjectSheet) -> Dict[str, Any]:
+    def to_normalized(
+        self,
+        parsed: SubjectSheet,
+        extraction_metadata: Optional[ExtractionMetadata] = None,
+        parsing_metadata: Optional[ParsingMetadata] = None
+    ) -> Dict[str, Any]:
         """
         Convierte el objeto SubjectSheet a un dict alineado con los modelos de BD.
         """
-        return {
-            "subject": {
-                "codigo_plan": parsed.codigo_plan,
-                "nombre": parsed.nombre,
-                "titulaciones": [
-                    {
-                        "titulacion": t.titulacion,
-                        "tipo_asignatura": t.tipo_asignatura,
-                        "curso": t.curso,
-                    }
-                    for t in (parsed.titulaciones or [])
-                ],
-                "periodo": parsed.periodo,
-                "num_periodo": parsed.num_periodo,  
-                "ects": parsed.ects,
-                "modalidad": parsed.modalidad,
-                "idioma": parsed.idioma,
-                "english_friendly": parsed.english_friendly,
-            },
-            "teaching_staff": [
+        result = {
+            "codigo_plan": parsed.codigo_plan,
+            "nombre": parsed.nombre,
+            "titulaciones": [
                 {
-                    "nombre": t.nombre,
-                    "apellidos": t.apellidos,
+                    "titulacion": t.titulacion,
+                    "tipo_asignatura": t.tipo_asignatura,
+                    "curso": t.curso
                 }
-                for t in (parsed.profesores or [])
+                for t in parsed.titulaciones
             ],
-            "_meta": {
-                "source": "ficha",
-                "chars": len(parsed.raw_text or ""),
-            },
+            "periodo": parsed.periodo,
+            "num_periodo": parsed.num_periodo,
+            "ects": parsed.ects,
+            "profesores": [  
+                {
+                    "nombre": p.nombre,
+                    "apellidos": p.apellidos
+                }
+                for p in parsed.profesores
+            ],
+            "modalidad": parsed.modalidad,
+            "idioma": parsed.idioma,
+            "english_friendly": parsed.english_friendly,
         }
+        
+        # Agregar centro si existe
+        if parsed.centro:
+            result["centro"] = parsed.centro
+        
+        # Agregar departamento si existe
+        if parsed.departamento:
+            result["departamento"] = parsed.departamento
+        
+        # Agregar raw_text si existe
+        if parsed.raw_text:
+            result["raw_text"] = parsed.raw_text
+        
+        # Agregar parsing_metadata si se proporcionó
+        if parsing_metadata:
+            result["parsing_metadata"] = {
+                "parser_name": parsing_metadata.parser_name,
+                "parser_version": parsing_metadata.parser_version,
+                "parse_timestamp": parsing_metadata.parse_timestamp.isoformat() + "Z" if parsing_metadata.parse_timestamp else None,
+                "parse_duration": parsing_metadata.parse_duration,
+                "warnings": parsing_metadata.warnings or [],
+                "errors": parsing_metadata.errors or []
+            }
+        
+        # Agregar extraction_metadata si se proporcionó
+        if extraction_metadata:
+            result["extraction_metadata"] = {
+                "quality": extraction_metadata.quality,
+                "confidence": extraction_metadata.confidence,
+                "status": extraction_metadata.status,
+                "processing_time_seconds": extraction_metadata.processing_time_seconds,
+                "page_count": extraction_metadata.page_count,
+                "file_size_mb": extraction_metadata.file_size_mb,
+                "has_embedded_text": extraction_metadata.has_embedded_text,
+                "char_count": extraction_metadata.char_count,
+                "word_count": extraction_metadata.word_count,
+                "errors": extraction_metadata.errors or [],
+                "warnings": extraction_metadata.warnings or [],
+                "pages_with_text": extraction_metadata.pages_with_text
+            }
+        
+        return result

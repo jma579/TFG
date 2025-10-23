@@ -94,9 +94,14 @@ class Profesor(Base):
     nombre = Column(String(120), nullable=False)
     apellidos = Column(String(200), nullable=False)
     email = Column(String(200), unique=True)
-    telefono = Column(String(20))
+    telefono = Column(String(20), unique=True)
     departamento = Column(String(200))
     activo = Column(Boolean, default=True, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("nombre", "apellidos", name="uq_profesor_nombre_apellidos"),
+        Index("ix_profesor_nombre_apellidos", "nombre", "apellidos"),  # Índice para búsquedas
+    )
 
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="profesor", passive_deletes=True)
     profesores_sesiones = relationship("ProfesorSesion", back_populates="profesor", passive_deletes=True)

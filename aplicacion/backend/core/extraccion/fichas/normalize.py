@@ -75,20 +75,20 @@ class DataNormalizer:
         Example:
             >>> normalizer = DataNormalizer()
             >>> ficha = SubjectSheet(codigo_plan="g264", nombre="  CÁLCULO I  ", ...)
-            >>> normalized = normalizer.normalize_ficha_without_db(ficha)
+            >>> normalized = normalizer.normalize_ficha(ficha)
             >>> normalized.asignatura.codigo_plan  # "G264"
             >>> normalized.asignatura.nombre       # "Cálculo I"
             >>> normalized.asignatura.is_duplicate # False
         """
         # 1. Normalizar asignatura (sin detección de duplicados)
-        asignatura = self._normalize_asignatura_without_db(ficha)
+        asignatura = self._normalize_asignatura(ficha)
         
         # 2. Normalizar titulaciones (sin búsqueda de IDs)
-        titulaciones = self._normalize_titulaciones_without_db(ficha.titulaciones)
+        titulaciones = self._normalize_titulaciones(ficha.titulaciones)
         
         # 3. Normalizar profesores (sin detección de duplicados)
-        profesores = self._normalize_profesores_without_db(ficha.profesores)
-        
+        profesores = self._normalize_profesores(ficha.profesores)
+
         return NormalizedFichaData(
             asignatura=asignatura,
             titulaciones=titulaciones,
@@ -108,7 +108,7 @@ class DataNormalizer:
         nombre = self._normalize_nombre(ficha.nombre)
         
         # Mapear periodo a enum
-        periodo = self._map_periodo(ficha.periodo)
+        periodo = self._map_periodo(ficha.periodo, ficha.num_periodo)
         
         # Mapear modalidad a enum
         modalidad = self._map_modalidad(ficha.modalidad)
@@ -124,8 +124,6 @@ class DataNormalizer:
             modalidad=modalidad,
             idioma=idioma,
             english_friendly=ficha.english_friendly or False,
-            is_duplicate=False,  # ← No detectado (sin BD)
-            existing_id=None     # ← No buscado (sin BD)
         )
     
     def _normalize_titulaciones(
@@ -150,7 +148,6 @@ class DataNormalizer:
                     programa_nombre=programa_nombre,
                     tipo_asignatura=tipo_asignatura,
                     curso=curso,
-                    programa_id=None  # ← No buscado (sin BD)
                 )
             )
         
@@ -165,16 +162,13 @@ class DataNormalizer:
         
         for prof in profesores:
             # Normalizar nombre y apellidos
-            nombre = self._normalize_nombre_persona(prof.nombre)
-            apellidos = self._normalize_nombre_persona(prof.apellidos)
-            
+            nombre = self._normalize_nombre(prof.nombre)
+            apellidos = self._normalize_nombre(prof.apellidos)
+
             normalized_list.append(
                 NormalizedProfesorData(
                     nombre=nombre,
                     apellidos=apellidos,
-                    departamento=None,  # No viene en fichas
-                    is_duplicate=False,  # ← No detectado (sin BD)
-                    existing_id=None     # ← No buscado (sin BD)
                 )
             )
         
@@ -183,6 +177,20 @@ class DataNormalizer:
     # ============================================================
     #  MÉTODOS AUXILIARES (Transformaciones)
     # ============================================================
+
+    def _normalize_codigo(self, codigo: str) -> str:
+        """
+        Normalizar código de asignatura.
+        
+        Transformaciones:
+        - Strip espacios
+        - Uppercase (G652, M123, etc.)
+        
+        Example:
+            "g652  " → "G652"
+            "  m123" → "M123"
+        """
+        return codigo.strip().upper()
     
     def _normalize_nombre(self, nombre: str) -> str:
         """
@@ -305,7 +313,7 @@ class DataNormalizer:
                 f"No se pudo parsear curso: '{curso_str}' "
                 f"(esperado: '1', 'Primero', '1º', etc.)"
             )
-
+        
 
 # ============================================================
 #  SINGLETON

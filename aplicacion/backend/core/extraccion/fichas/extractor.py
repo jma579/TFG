@@ -52,7 +52,9 @@ from core.extraccion.fichas.constants import (
     BONUS_ACADEMIC_EXCELLENCE, BONUS_SOLID_STRUCTURE,
     THRESHOLD_STRUCTURE_EXCELLENCE, THRESHOLD_HIGH_NOISE_LEVEL,
     THRESHOLD_SIGNIFICANT_CORRUPTION, THRESHOLD_MULTIPLE_SUBJECT_CODES,
-    MINIMUM_VIABLE_SCORE,
+    MINIMUM_VIABLE_SCORE, CLEANTEXT_NOISE_REGEX,CLEANTEXT_NOISE_REPLACE,
+    CURRENCY_SYMBOLS_PATTERN, EMOJI_PATTERN, EXCESSIVE_LINEBREAKS_PATTERN,
+    EXCESSIVE_LINEBREAKS_REPLACE, NON_ACADEMIC_EMAIL_PATTERN
 )
 
 
@@ -461,9 +463,9 @@ class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructur
         has_embedded_text = len(text_content.strip()) >= MIN_CHARACTERS_FOR_USEFUL_TEXT
         
         metadata_dict = {
-            'quality': quality.value,
+            'quality': quality,
             'confidence': confidence,
-            'status': ProcessingStatus.COMPLETED.value,
+            'status': ProcessingStatus.COMPLETED,
             'processing_time_seconds': processing_time,
             'page_count': extraction_result.get('page_count', 0),
             'file_size_mb': Path(pdf_path).stat().st_size / (1024 * 1024),
@@ -905,7 +907,36 @@ class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructur
         """
         if not text:
             return ""
-        return clean(text, **CLEANTEXT_CONFIG, normalize_whitespace=True, strip_lines=True, no_emoji=True)
+        
+        try:
+            # Limpieza inicial con clean-text
+            text = clean(
+                text,
+                **CLEANTEXT_CONFIG,                # Configuración desde constants
+                reg=CLEANTEXT_NOISE_REGEX,         # Eliminar URLs y teléfonos
+                reg_replace=CLEANTEXT_NOISE_REPLACE
+            )
+        except Exception as e:
+            # Fallback: si cleantext falla, continuar con el texto original
+            self.logger.warning(f"cleantext falló, usando texto sin limpiar: {e}")
+        
+        # POST-PROCESAMIENTO MANUAL
+        text = re.sub(CURRENCY_SYMBOLS_PATTERN, '', text)
+        text = re.sub(EMOJI_PATTERN, '', text, flags=re.UNICODE)
+    
+        text = re.sub(NON_ACADEMIC_EMAIL_PATTERN, '', text, flags=re.IGNORECASE)
+
+        # Normalizar saltos de línea excesivos (máximo 2 consecutivos)
+        text = re.sub(
+            EXCESSIVE_LINEBREAKS_PATTERN,
+            EXCESSIVE_LINEBREAKS_REPLACE,
+            text
+        )
+        
+        # Limpieza final: espacios al inicio/final del documento
+        text = text.strip()
+        
+        return text
 
 
 # =============================================================================

@@ -111,8 +111,6 @@ class NormalizedAsignaturaData(BaseModel):
     modalidad: ModalidadAsignatura
     idioma: Idioma
     english_friendly: bool
-    is_duplicate: bool = False
-    existing_id: Optional[int] = None
 
     class Config:
         validate_assignment = True
@@ -132,7 +130,6 @@ class NormalizedTitulacionData(BaseModel):
     programa_nombre: str = Field(..., max_length=200)
     tipo_asignatura: TipoAsignatura
     curso: int = Field(..., ge=1, le=6)
-    programa_id: Optional[int] = None
 
     class Config:
         validate_assignment = True
@@ -152,9 +149,6 @@ class NormalizedProfesorData(BaseModel):
     """
     nombre: str = Field(..., max_length=120)
     apellidos: str = Field(..., max_length=200)
-    departamento: Optional[str] = Field(None, max_length=200)
-    is_duplicate: bool = False
-    existing_id: Optional[int] = None
 
     class Config:
         validate_assignment = True
