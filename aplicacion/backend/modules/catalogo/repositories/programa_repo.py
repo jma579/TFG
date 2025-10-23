@@ -48,6 +48,41 @@ class ProgramaRepository:
         """
         return db.query(Programa).filter(Programa.id == programa_id).first()
     
+
+    # ============================================================
+    #  QUERY ESPECIALIZADA: Buscar por nombre
+    # ============================================================
+    
+    def get_by_nombre(self, db: Session, nombre: str) -> Optional[Programa]:
+        """
+        Buscar programa por nombre exacto.
+        
+        Args:
+            db: Sesión de SQLAlchemy
+            nombre: Nombre del programa (case-insensitive)
+            
+        Returns:
+            Objeto Programa si existe, None si no se encuentra
+            
+        Note:
+            Si existen múltiples programas con el mismo nombre pero distinto tipo,
+            retorna el primero encontrado. Para buscar por nombre+tipo usar
+            get_by_nombre_tipo().
+            
+        SQL generado:
+            SELECT * FROM programas 
+            WHERE LOWER(nombre) = LOWER('grado en matemáticas')
+            LIMIT 1;
+            
+        Ejemplo:
+            programa = repo.get_by_nombre(db, "Grado en Matemáticas")
+            if programa:
+                print(f"Encontrado: {programa.id}")
+        """
+        return db.query(Programa).filter(
+            Programa.nombre.ilike(nombre)  # Case-insensitive
+        ).first()
+    
     
     # ============================================================
     #  GET MULTI (con filtros y paginación)

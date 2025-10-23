@@ -93,7 +93,54 @@ class ProfesorRepository:
             Profesor.apellidos,
             Profesor.nombre
         ).all()
-    
+
+
+    def get_by_nombre_apellidos(
+        self,
+        db: Session,
+        nombre: str,
+        apellidos: str
+    ) -> Optional[Profesor]:
+        """
+        Buscar profesor por nombre y apellidos exactos.
+        
+        Args:
+            db: Sesión de base de datos
+            nombre: Nombre del profesor
+            apellidos: Apellidos del profesor
+            
+        Returns:
+            Profesor si existe, None si no existe
+            
+        Note:
+            - Búsqueda case-insensitive (no distingue mayúsculas/minúsculas)
+            - Normaliza espacios extra (trim)
+            - Útil para detectar duplicados al extraer fichas
+            
+        Example:
+            >>> # Buscar con capitalización diferente
+            >>> profesor = profesor_repository.get_by_nombre_apellidos(
+            ...     db, 
+            ...     nombre="juan", 
+            ...     apellidos="PÉREZ GARCÍA"
+            ... )
+            >>> # Encontrará "Juan Pérez García" si existe
+            >>> if profesor:
+            ...     print(f"Profesor encontrado: ID {profesor.id}")
+        """
+        from sqlalchemy import func
+        
+        # Normalizar búsqueda (minúsculas, sin espacios extra)
+        nombre_norm = nombre.strip().lower()
+        apellidos_norm = apellidos.strip().lower()
+        
+        return db.query(Profesor)\
+            .filter(
+                func.lower(func.trim(Profesor.nombre)) == nombre_norm,
+                func.lower(func.trim(Profesor.apellidos)) == apellidos_norm
+            )\
+            .first()
+
     
     def get_multi(
         self,

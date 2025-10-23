@@ -108,6 +108,12 @@ class DiaSemana(str, Enum):
     SABADO = "sabado"
     DOMINGO = "domingo"
 
+class TipoAsignatura(str, Enum):
+    """Tipos de asignaturas."""
+    OBLIGATORIA = "obligatoria"
+    OPTATIVA = "optativa"
+    BASICA = "basica"
+
 
 # ============================
 # Restricciones

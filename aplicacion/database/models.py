@@ -13,7 +13,7 @@ from backend.constants.enums import (
     TipoPrograma, Periodo, ModalidadAsignatura, Idioma, TipoAula,
     ModalidadSesion, TipoGrupoDocente, TipoRecurrencia, DiaSemana,
     TipoRestriccion, DurezaRestriccion, SeveridadConflicto,
-    TipoConflicto, EstadoConflicto
+    TipoConflicto, EstadoConflicto, TipoAsignatura
 )
 
 Base = declarative_base()
@@ -225,7 +225,7 @@ class ProgramaAsignatura(Base):
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
     curso = Column(Integer)  # p.ej. 1..4
-    obligatoria = Column(Boolean, default=False, nullable=False)
+    tipo_asignatura = Column(Enum(TipoAsignatura))
 
     __table_args__ = (
         UniqueConstraint("programa_id", "asignatura_id", name="uq_programa_asignatura"),
