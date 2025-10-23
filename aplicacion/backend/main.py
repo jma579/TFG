@@ -19,8 +19,12 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy import text
 
-from config.settings import get_settings
-from db.session import engine, create_tables
+from backend.config.settings import get_settings
+from backend.db.session import engine, create_tables
+
+from backend.modules.catalogo.api.routers import router as catalogo_router
+from backend.modules.recursos.api.routers import router as recursos_router
+from backend.modules.docencia.api.routers import router as docencia_router
 
 # Obtener configuración
 settings = get_settings()
@@ -121,8 +125,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "error": True,
-            "message": exc.detail,
+            "detail": exc.detail,
             "status_code": exc.status_code,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -131,13 +134,41 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Handler para errores de validación de Pydantic."""
+    """
+    Handler para errores de validación de Pydantic con serialización segura.
+    
+    Convierte todos los errores a tipos serializables a JSON,
+    manejando correctamente objetos ValueError en ctx['error'].
+    """
+    # Serializar errores de forma segura
+    serializable_errors = []
+    for error in exc.errors():
+        serialized_error = {
+            "type": error.get("type"),
+            "loc": error.get("loc"),
+            "msg": error.get("msg"),
+            "input": str(error.get("input")) if error.get("input") is not None else None,
+        }
+        
+        # Serializar el contexto si existe
+        if "ctx" in error and error["ctx"]:
+            serialized_ctx = {}
+            for key, value in error["ctx"].items():
+                # Si es un ValueError u otro objeto no serializable, convertir a string
+                if isinstance(value, Exception):
+                    serialized_ctx[key] = str(value)
+                elif isinstance(value, (str, int, float, bool, type(None))):
+                    serialized_ctx[key] = value
+                else:
+                    serialized_ctx[key] = str(value)
+            serialized_error["ctx"] = serialized_ctx
+        
+        serializable_errors.append(serialized_error)
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
-            "error": True,
-            "message": "Error de validación en los datos enviados",
-            "details": exc.errors(),
+            "detail": serializable_errors,
             "status_code": 422,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -155,8 +186,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "error": True,
-            "message": detail,
+            "detail": detail,
             "status_code": 500,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -235,9 +265,10 @@ async def root() -> Dict[str, Any]:
 # NOTA: Los siguientes routers se incluirán en fases posteriores:
 # Usar el prefijo configurado en settings: settings.api_v0_prefix
 
-# Fase 2: Modelos de Datos
-# from catalogo.router import router as catalogo_router
-# app.include_router(catalogo_router, prefix=f"{settings.api_v0_prefix}/catalogo", tags=["Catálogo"])
+# Fase 3: Módulos de Dominio
+app.include_router(catalogo_router, prefix=f"{settings.api_v0_prefix}/catalogo", tags=["Catálogo"])
+app.include_router(recursos_router, prefix=f"{settings.api_v0_prefix}/recursos", tags=["Recursos"])
+app.include_router(docencia_router, prefix=f"{settings.api_v0_prefix}/docencia", tags=["Docencia"])
 
 # from recursos.router import router as recursos_router  
 # app.include_router(recursos_router, prefix=f"{settings.api_v0_prefix}/recursos", tags=["Recursos"])
