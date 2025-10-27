@@ -1,0 +1,37 @@
+{
+  "asignatura": {
+    "codigo_plan": "G651",
+    "nombre": "Estructuras De Datos",
+    "periodo": "primer_cuatrimestre",
+    "ects": 6,
+    "modalidad": "presencial",
+    "idioma": "español",
+    "english_friendly": true
+  },
+  "titulaciones": [
+    {
+      "programa_nombre": "Grado En Ingeniería Informática",
+      "tipo_asignatura": "obligatoria",
+      "curso": 2
+    },
+    {
+      "programa_nombre": "Grado En Matemáticas",
+      "tipo_asignatura": "optativa",
+      "curso": 4
+    }
+  ],
+  "profesores": [
+    {
+      "nombre": "Mario",
+      "apellidos": "Aldea Rivas"
+    },
+    {
+      "nombre": "Jose Carlos",
+      "apellidos": "Palencia Gutierrez"
+    },
+    {
+      "nombre": "Juan Ramon",
+      "apellidos": "Santana Martinez"
+    }
+  ]
+}

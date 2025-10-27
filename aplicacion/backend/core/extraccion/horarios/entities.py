@@ -20,13 +20,7 @@ from core.extraccion.common.entities import ExtractionMetadata, ParsingMetadata
 ModalidadLiteral = Literal["teoria", "prácticas de laboratorio", "prácticas de aula"]
 PageNumber = int
 
-# -----------------------------------------------------------------------------
-# Estructura de avisos con severidad
-# -----------------------------------------------------------------------------
-@dataclass
-class Warning:
-    message: str
-    severity: Literal["severe", "moderate", "minor"]
+
 
 
 # -----------------------------------------------------------------------------

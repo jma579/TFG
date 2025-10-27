@@ -5,7 +5,7 @@ Entidades específicas para el sistema de extracción y parsing de PDFs académi
 from __future__ import annotations
 from dataclasses import dataclass, field, asdict
 from enum import Enum
-from typing import Optional, Tuple, Dict, Any, List
+from typing import Optional, Tuple, Dict, Any, List, Literal
 
 __all__ = [
     "ExtractionQuality", "ProcessingStatus", "ErrorType",
@@ -32,6 +32,14 @@ class ErrorType(str, Enum):
     PROCESSING_TIMEOUT = "processing_timeout"
     NO_EMBEDDED_TEXT = "no_embedded_text"
     UNKNOWN_ERROR = "unknown_error"
+
+# -----------------------------------------------------------------------------
+# Estructura de avisos con severidad
+# -----------------------------------------------------------------------------
+@dataclass
+class Warning:
+    message: str
+    severity: Literal["severe", "moderate", "minor"]
 
 # Metadatos emitidos por pdf_extractor
 @dataclass()

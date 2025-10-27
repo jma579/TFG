@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 import time
 
-from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata
+from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata, Warning
 
 from core.extraccion.fichas.constants import (
     BASE_PARSER_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_TITULACION, PATTERN_ECTS, PATTERN_PERIODO,
@@ -14,7 +14,7 @@ from core.extraccion.fichas.constants import (
 )
 from core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
 
-class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura de Warning
+class FichaParser:  
     """
     Parser especializado para fichas académicas universitarias.
     
@@ -43,7 +43,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         if config:
             cfg.update(config)
         self.config = cfg
-        self.name = self.__class__.__name__ # TODO: Si ya se asigna en la clase padre revisar
+        self.name = self.__class__.__name__
 
 
     def parse_text(self, text: str, extraction_metadata: Optional[ExtractionMetadata] = None) -> SubjectSheet:
@@ -59,7 +59,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         """
         # Valores iniciales del parsing
         start_time = time.time()
-        warnings: List[str] = []
+        warnings: List[Warning] = []
         errors: List[str] = []
 
         # Preprocesamiento del texto
@@ -78,7 +78,10 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         try:
             titulaciones = self._extract_titulaciones(text)
             if not titulaciones:
-                warnings.append("No se encontraron titulaciones asociadas.")
+                warnings.append(Warning(
+                    message="No se encontraron titulaciones asociadas.",
+                    severity="moderate"
+                ))
         except Exception as e:
             titulaciones = []
             errors.append(f"Error extrayendo titulaciones: {e}")
@@ -90,7 +93,10 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         try:
             periodo = self._extract_periodo(text)
             if not periodo or periodo == "N.A.":
-                warnings.append("No se pudo extraer el periodo de impartición.")
+                warnings.append(Warning(
+                    message="No se pudo extraer el periodo de impartición.",
+                    severity="moderate"
+                ))
         except Exception as e:
             periodo = "N.A."
             errors.append(f"Error extrayendo periodo: {e}")
@@ -102,7 +108,10 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         try:
             modalidad = self._extract_modalidad(text)
             if not modalidad or modalidad == "N.A.":
-                warnings.append("No se pudo extraer la modalidad de impartición.")
+                warnings.append(Warning(
+                    message="No se pudo extraer la modalidad de impartición.",
+                    severity="minor"
+                ))
         except Exception as e:
             modalidad = "N.A."
             errors.append(f"Error extrayendo modalidad: {e}")
@@ -114,21 +123,30 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         try:
             profesores = self._extract_profesorado(text)
             if not profesores:
-                warnings.append("No se extrajo ningún profesor.")
+                warnings.append(Warning(
+                    message="No se extrajo ningún profesor.",
+                    severity="moderate"
+                ))
         except Exception as e:
             profesores = []
             errors.append(f"Error extrayendo profesorado: {e}")
         try:
             centro = self._extract_centro(text)
             if not centro:
-                warnings.append("No se pudo extraer el centro responsable.")
+                warnings.append(Warning(
+                    message="No se pudo extraer el centro responsable.",
+                    severity="minor"
+                ))
         except Exception as e:
             centro = None
             errors.append(f"Error extrayendo centro: {e}")
         try:
             departamento = self._extract_departamento(text)
             if not departamento:
-                warnings.append("No se pudo extraer el departamento responsable.")
+                warnings.append(Warning(
+                    message="No se pudo extraer el departamento responsable.",
+                    severity="minor"
+                ))
         except Exception as e:
             departamento = None
             errors.append(f"Error extrayendo departamento: {e}")
@@ -432,7 +450,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
                 "parser_version": parsing_metadata.parser_version,
                 "parse_timestamp": parsing_metadata.parse_timestamp.isoformat() + "Z" if parsing_metadata.parse_timestamp else None,
                 "parse_duration": parsing_metadata.parse_duration,
-                "warnings": parsing_metadata.warnings or [],
+                "warnings": [w.__dict__ for w in parsing_metadata.warnings] if parsing_metadata.warnings else [],
                 "errors": parsing_metadata.errors or []
             }
         
@@ -449,7 +467,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
                 "char_count": extraction_metadata.char_count,
                 "word_count": extraction_metadata.word_count,
                 "errors": extraction_metadata.errors or [],
-                "warnings": extraction_metadata.warnings or [],
+                "warnings": [w.__dict__ for w in extraction_metadata.warnings] if extraction_metadata.warnings else [],
                 "pages_with_text": extraction_metadata.pages_with_text
             }
         

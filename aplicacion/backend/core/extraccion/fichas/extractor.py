@@ -33,7 +33,7 @@ from cleantext import clean
 # === Imports actualizados ===
 from core.extraccion.common.entities import (
     ExtractionQuality, ProcessingStatus, ErrorType,
-    ExtractionMetadata
+    ExtractionMetadata, Warning
 )
 from core.extraccion.fichas.entities import (
     ExtractionResult
@@ -64,7 +64,7 @@ from core.extraccion.fichas.constants import (
 # CLASE PRINCIPAL FICHA EXTRACTOR
 # =============================================================================
 
-class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructura de Warning
+class FichaExtractor:  
     """
     Extractor de texto nativo de PDFs académicos españoles.
     
@@ -286,7 +286,10 @@ class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructur
                         else:
                             page_texts.append("")
                             consecutive_empty_pages += 1
-                            result['warnings'].append(f"Página {page_num + 1}: Poco o ningún texto extraído")
+                            result['warnings'].append(Warning(
+                                message=f"Página {page_num + 1}: Poco o ningún texto extraído",
+                                severity="minor"
+                            ))
                             # Detener si hay demasiadas páginas vacías consecutivas
                             if consecutive_empty_pages >= stop_after_n_empty_pages:
                                 self.logger.debug(f"Deteniendo extracción tras {consecutive_empty_pages} páginas vacías")
@@ -295,7 +298,10 @@ class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructur
                         page_texts.append("")
                         consecutive_empty_pages += 1
                         error_msg = f"Página {page_num + 1}: Error de extracción - {str(e)}"
-                        result['warnings'].append(error_msg)
+                        result['warnings'].append(Warning(
+                            message=error_msg,
+                            severity="severe"
+                        ))
                         self.logger.warning(error_msg)
                 
                 # Combinar y limpiar texto una sola vez
@@ -307,7 +313,10 @@ class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructur
                     final_text = self._text_cleaner(combined_text)
                 else:
                     final_text = ""
-                    result['warnings'].append("Ninguna página contiene texto extraíble")
+                    result['warnings'].append(Warning(
+                        message="Ninguna página contiene texto extraíble",
+                        severity="severe"
+                    ))
                 
                 # Construir resultado final
                 result['text'] = final_text
@@ -521,7 +530,13 @@ class FichaExtractor:  #TODO: Modificar los warnings de acuerdo con la estructur
             has_embedded_text=False,
             char_count=0,
             word_count=0,
-            errors=[str(error)]
+            errors=[str(error)],
+            warnings=[
+                Warning(
+                    message=f"Error de extracción: {str(error)}",
+                    severity="severe"
+                )
+            ]
         )
         
         return ExtractionResult(
