@@ -13,7 +13,7 @@ from backend.constants.enums import (
     TipoPrograma, Periodo, ModalidadAsignatura, Idioma, TipoAula,
     ModalidadSesion, TipoGrupoDocente, TipoRecurrencia, DiaSemana,
     TipoRestriccion, DurezaRestriccion, SeveridadConflicto,
-    TipoConflicto, EstadoConflicto
+    TipoConflicto, EstadoConflicto, TipoAsignatura
 )
 
 Base = declarative_base()
@@ -94,9 +94,14 @@ class Profesor(Base):
     nombre = Column(String(120), nullable=False)
     apellidos = Column(String(200), nullable=False)
     email = Column(String(200), unique=True)
-    telefono = Column(String(20))
+    telefono = Column(String(20), unique=True)
     departamento = Column(String(200))
     activo = Column(Boolean, default=True, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("nombre", "apellidos", name="uq_profesor_nombre_apellidos"),
+        Index("ix_profesor_nombre_apellidos", "nombre", "apellidos"),  # Índice para búsquedas
+    )
 
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="profesor", passive_deletes=True)
     profesores_sesiones = relationship("ProfesorSesion", back_populates="profesor", passive_deletes=True)
@@ -225,7 +230,7 @@ class ProgramaAsignatura(Base):
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
     curso = Column(Integer)  # p.ej. 1..4
-    obligatoria = Column(Boolean, default=False, nullable=False)
+    tipo_asignatura = Column(Enum(TipoAsignatura))
 
     __table_args__ = (
         UniqueConstraint("programa_id", "asignatura_id", name="uq_programa_asignatura"),
