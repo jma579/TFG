@@ -1,6 +1,39 @@
 import re
 
 # --- Config por defecto (tuning, editable en runtime) ---
+DEFAULT_EXCEL_EXTRACTOR_CONFIG = {
+    # === Detección de bloques ===
+    "min_rows_for_block": 5,              # Mínimo de filas para considerar un bloque válido
+    "min_cols_for_block": 6,              # Mínimo de columnas (1 hora + 5 días)
+    "max_empty_rows_between_blocks": 3,   # Máximo de filas vacías para separar bloques
+    
+    # === Detección de cabecera ===
+    "max_header_scan_rows": 300,          # Máximo de filas a escanear buscando cabecera
+    "min_days_in_header": 5,              # Mínimo de días detectados para validar cabecera
+    "header_case_sensitive": False,       # Si la búsqueda de días es case-sensitive
+    
+    # === Ventana horaria ===
+    "time_window_start": "08:00",         # Inicio de la ventana horaria
+    "time_window_end": "20:30",           # Fin de la ventana horaria
+    "time_slot_minutes": 30,              # Resolución del eje temporal (30 min)
+    "strict_time_window": True,           # Si rechazar franjas fuera de ventana
+    
+    # === Merged cells y duración ===
+    "detect_merged_cells": True,          # Si detectar celdas combinadas para spans
+    "min_session_duration_minutes": 30,   # Duración mínima de una sesión
+    "max_session_duration_minutes": 180,  # Duración máxima de una sesión (3h)
+    
+    # === Calidad y validación ===
+    "min_cell_coverage": 0.3,             # Mínimo ratio de celdas útiles para aceptar bloque
+    "min_quality_score": 0.5,             # Score mínimo para considerar extracción válida
+    "allow_partial_blocks": True,         # Si permitir bloques con días incompletos
+    
+    # === Logging y debug ===
+    "log_level": "INFO",                  # Nivel de logging (DEBUG, INFO, WARNING, ERROR)
+    "log_block_details": False,           # Si loguear detalles de cada bloque encontrado
+    "save_debug_info": False,             # Si guardar info de debug (bloques, coordenadas)
+}
+
 DEFAULT_EXTRACTOR_CONFIG = {
     "prefer_lattice": True,
     "lattice_opts": {"flavor": "lattice"},

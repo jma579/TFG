@@ -32,28 +32,28 @@ class RawTable:
     Representación cruda de una tabla extraída por Camelot.
     Es un eco para trazabilidad: lo que Camelot entregó (limpieza mínima de espacios).
     """
+    data: List[List[str]]  # matriz filas x columnas, sin interpretar
     page: PageNumber
-    grid: List[List[str]]  # matriz filas x columnas, sin interpretar
 
 @dataclass
 class CleanTable:
     """
     Tabla limpia y normalizada, alineada para el parser.
-    - header_days: días canónicos (L->V)
+    - days: días canónicos (L->V)
     - time_axis: marcas de tiempo HH:MM dentro de la ventana objetivo
-    - cells: matriz [len(time_axis)] x [len(header_days)], strings normalizados
+    - cells: matriz [len(time_axis)] x [len(days)], strings normalizados
     """
-    page: PageNumber
-    header_days: List[str]
     time_axis: List[str]
+    days: List[str]
     cells: List[List[str]]
+    page: PageNumber
 
 @dataclass
 class ExtractionResult:
     """
     Resultado completo del flujo extractor: agregado de tablas + trazabilidad.
     """
-    titulacion: str
+    #titulacion: str
     clean_tables: List[CleanTable]  # lo que consume el parser (limpio)
     raw_tables: List[RawTable]      # lo que llegó del extractor (crudo)
     extraccion_metadata: ExtractionMetadata
