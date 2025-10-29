@@ -6,7 +6,7 @@ Usadas tanto por el extractor (Camelot) como por el parser.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Tuple
 
 # -----------------------------------------------------------------------------
 # Tipos/metadatos compartidos (referencia suave a /common/entities.py)
@@ -21,6 +21,7 @@ ModalidadLiteral = Literal["teoria", "prácticas de laboratorio", "prácticas de
 PageNumber = int
 
 
+SourceLiteral = Literal["pdf", "excel"]
 
 
 # -----------------------------------------------------------------------------
@@ -29,24 +30,63 @@ PageNumber = int
 @dataclass
 class RawTable:
     """
-    Representación cruda de una tabla extraída por Camelot.
-    Es un eco para trazabilidad: lo que Camelot entregó (limpieza mínima de espacios).
+    Eco de la tabla original del bloque (6 columnas: HORA + L..V) para trazabilidad.
+    Es formato neutral (sirve tanto para Excel como para PDF).
     """
-    data: List[List[str]]  # matriz filas x columnas, sin interpretar
-    page: PageNumber
+    data: List[List[str]]                      # matriz con cabecera y filas crudas
+    source: SourceLiteral                      # "excel" | "pdf"
+
+    # Trazabilidad (uno u otro según origen)
+    sheet: Optional[str] = None                # Excel
+    page: Optional[int] = None                 # PDF
+
+    # Info del bloque detectado (útil para depurar)
+    lane_index: Optional[int] = None
+    block_id: Optional[str] = None
+    header_row: Optional[int] = None
+    data_start_row: Optional[int] = None
+    data_end_row: Optional[int] = None
+    time_col: Optional[int] = None
+    day_cols: Optional[List[int]] = None
+
+    # Precalculos para la fase clean
+    row_hour_ranges: Optional[List[Optional[Tuple[str, str]]]] = None
+    merge_span_matrix: Optional[List[List[int]]] = None
+
+    # Contexto
+    titulacion: Optional[str] = None
+    curso: Optional[str] = None
+    mencion: Optional[str] = None
+
+    # Cualquier cosa adicional del extractor
+    extra: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class CleanTable:
     """
-    Tabla limpia y normalizada, alineada para el parser.
-    - days: días canónicos (L->V)
-    - time_axis: marcas de tiempo HH:MM dentro de la ventana objetivo
-    - cells: matriz [len(time_axis)] x [len(days)], strings normalizados
+    Tabla normalizada para el parser:
+    - days = ["LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES"]
+    - time_axis = nodos HH:MM cada 30' desde 08:00 a 20:30
+    - cells = matriz de intervalos (len(time_axis)-1) × 5 con texto crudo
     """
     time_axis: List[str]
     days: List[str]
     cells: List[List[str]]
-    page: PageNumber
+
+    source: SourceLiteral                      # "excel" | "pdf"
+    sheet: Optional[str] = None
+    page: Optional[int] = None
+
+    lane_index: Optional[int] = None
+    block_id: Optional[str] = None
+
+    # Enriquecimiento contextual (si lo tienes en el bloque)
+    titulacion: Optional[str] = None
+    curso: Optional[str] = None
+    mencion: Optional[str] = None
+
+    # Marcadores de continuidad por intervalo (2=inicio,1=normal,0=continuación)
+    row_spans: Optional[List[int]] = None
 
 @dataclass
 class ExtractionResult:

@@ -109,6 +109,12 @@ QUALITY_EXCELLENT_PAGE_RATIO = 0.9
 QUALITY_EXCELLENT_CELL_COVERAGE = 0.9
 QUALITY_EXCELLENT_CONFIDENCE = 0.9
 
+LOW_COHERENCE_WARNING_THRESHOLD = 0.30
+
+# === Calidad (Excel/PDF): constantes mínimas nuevas para tuning fino ===
+QUALITY_CELL_MIN_CHARS = 5              # longitud mínima para considerar la celda "legible"
+QUALITY_LONG_SESSION_MIN_STREAK = 4     # 4 slots (30') = 2h, para detectar sesiones largas
+
 
 #--- Constantes del parser (invariantes) ---
 
