@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "quality": "unusable",
+    "confidence": 0.0,
+    "status": "failed",
+    "processing_time_seconds": 5.504383325576782,
+    "page_count": 2,
+    "file_size_mb": 0.29559803009033203,
+    "has_embedded_text": false,
+    "char_count": 0,
+    "word_count": 0,
+    "errors": [
+      "No se encontraron bloques de horarios válidos en el Excel. Verifique que el archivo contenga tablas con días de la semana y horas."
+    ],
+    "warnings": [
+      {
+        "message": "Error de extracción: No se encontraron bloques de horarios válidos en el Excel. Verifique que el archivo contenga tablas con días de la semana y horas.",
+        "severity": "severe"
+      }
+    ],
+    "pages_with_text": 0
+  },
+  "result": {
+    "clean_tables": [],
+    "raw_tables": [],
+    "extraccion_metadata": {
+      "quality": "unusable",
+      "confidence": 0.0,
+      "status": "failed",
+      "processing_time_seconds": 5.504383325576782,
+      "page_count": 2,
+      "file_size_mb": 0.29559803009033203,
+      "has_embedded_text": false,
+      "char_count": 0,
+      "word_count": 0,
+      "errors": [
+        "No se encontraron bloques de horarios válidos en el Excel. Verifique que el archivo contenga tablas con días de la semana y horas."
+      ],
+      "warnings": [
+        {
+          "message": "Error de extracción: No se encontraron bloques de horarios válidos en el Excel. Verifique que el archivo contenga tablas con días de la semana y horas.",
+          "severity": "severe"
+        }
+      ],
+      "pages_with_text": 0
+    }
+  }
+}

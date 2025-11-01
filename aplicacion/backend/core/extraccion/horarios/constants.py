@@ -5,10 +5,10 @@ DEFAULT_EXCEL_EXTRACTOR_CONFIG = {
     # === Detección de bloques ===
     "min_rows_for_block": 5,              # Mínimo de filas para considerar un bloque válido
     "min_cols_for_block": 6,              # Mínimo de columnas (1 hora + 5 días)
-    "max_empty_rows_between_blocks": 3,   # Máximo de filas vacías para separar bloques
+    "max_empty_rows_between_blocks": 20,  # Máximo de filas vacías para separar bloques
     
     # === Detección de cabecera ===
-    "max_header_scan_rows": 300,          # Máximo de filas a escanear buscando cabecera
+    "max_header_scan_rows": 1200,          # Máximo de filas a escanear buscando cabecera
     "min_days_in_header": 5,              # Mínimo de días detectados para validar cabecera
     "header_case_sensitive": False,       # Si la búsqueda de días es case-sensitive
     
@@ -60,6 +60,13 @@ DAY_ALIASES = {"LUNES":"LUNES",
                "JUEVES":"JUEVES",
                "VIERNES":"VIERNES"}
 HEADER_DAYS_ORDER = {"LUNES":0,"MARTES":1,"MIÉRCOLES":2,"JUEVES":3,"VIERNES":4}
+# Permitir que la cabecera de días tenga salto constante 1 o 2 columnas
+ALLOWED_HEADER_DAY_STEPS = (1, 2)
+# Aceptar huecos entre días del header (ventana deslizante)
+HEADER_MAX_DAY_GAP = 30          # cuántas columnas como máximo buscamos el siguiente día
+HOUR_LOOKBACK_MAX = 10            # cuántas columnas mirar hacia la izquierda para la columna de horas
+TIME_COL_VALIDATION_ROWS = 16    # filas por debajo del header para validar la col de horas
+TIME_COL_MIN_MATCHES = 3         # mínimo de coincidencias "tipo hora" en esas filas
 
 EXPECTED_DAYS_COUNT = 5
 TIME_FORMAT = "%H:%M"

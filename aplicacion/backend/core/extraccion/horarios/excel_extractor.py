@@ -3,11 +3,12 @@ import logging
 import time
 import re
 import unicodedata
+import datetime as _dt
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 from core.extraccion.horarios.entities import RawTable, CleanTable, ExtractionResult
-from core.extraccion.common.entities import ExtractionMetadata, ExtractionQuality, ProcessingStatus
+from core.extraccion.common.entities import ExtractionMetadata, ExtractionQuality, ProcessingStatus, Warning
 
 from core.extraccion.horarios.constants import (
     DEFAULT_EXCEL_EXTRACTOR_CONFIG, DAY_ALIASES, DAYS_CANONICAL,
@@ -18,7 +19,8 @@ from core.extraccion.horarios.constants import (
     QUALITY_GOOD_CELL_COVERAGE, QUALITY_ACCEPTABLE_CELL_COVERAGE, QUALITY_POOR_CELL_COVERAGE,
     CONFIDENCE_CELL_COVERAGE, CONFIDENCE_NO_TEXT_PENALTY,
     QUALITY_CELL_MIN_CHARS, QUALITY_LONG_SESSION_MIN_STREAK,
-    LOW_COHERENCE_WARNING_THRESHOLD
+    LOW_COHERENCE_WARNING_THRESHOLD, HEADER_MAX_DAY_GAP, HOUR_LOOKBACK_MAX,
+    TIME_COL_VALIDATION_ROWS, TIME_COL_MIN_MATCHES
 )
 
 from core.extraccion.common.constants import (
@@ -35,7 +37,7 @@ from core.extraccion.common.constants import (
 )
 
 class ExcelScheduleExtractor:
-    def __init__(self, config: Optional[Dict[str, Any]]):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
 
         # 1. Configurar logging con nivel personalizable
         self.logger = logging.getLogger(__name__)
@@ -46,8 +48,16 @@ class ExcelScheduleExtractor:
             self.config.update(config)
 
         # 3. Configurar nivel de logging si se especifica
-        if 'log_level' in self.config:
-            self.logger.setLevel(getattr(logging, self.config['log_level'].upper(), logging.INFO))
+        log_level = getattr(logging, self.config.get('log_level', 'INFO').upper(), logging.INFO)
+        self.logger.setLevel(log_level)
+        if not self.logger.handlers:
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(log_level)
+            formatter = logging.Formatter(
+                '%(levelname)s [%(name)s] %(message)s'
+            )
+            console_handler.setFormatter(formatter)
+            self.logger.addHandler(console_handler)
         
         # 4. Inicializar estadísticas
         self.stats = {
@@ -730,6 +740,13 @@ class ExcelScheduleExtractor:
         # 3) Warnings (en base a métricas reales y constantes)
         warnings = []
 
+        long_sessions = int(self.stats.get("long_sessions", self.stats.get("sessions_with_spans", 0)))
+        if long_sessions == 0 and page_count > 0:
+            warnings.append(Warning(
+                message="No se detectaron celdas combinadas; las sesiones largas podrían no estar identificadas.",
+                severity="minor"
+            ))
+
         # Calidad baja
         if quality == ExtractionQuality.POOR:
             warnings.append(Warning(
@@ -935,34 +952,46 @@ class ExcelScheduleExtractor:
         )
 
 
-    def _find_blocks_in_sheet(self, sheet, sheet_name: str) -> List[Dict[str, Any]]:
+    def _find_blocks_in_sheet(self, sheet, sheet_name: str) -> list[dict]:
         blocks = []
-
-        max_scan_rows = self.config['max_header_scan_rows']  # ahora sí se usa
-        min_days = self.config['min_days_in_header']
-
-        row_idx = 1
         max_row = sheet.max_row
-
+        row_idx = 1
+        processed_headers = set()  # ← Evita procesar la misma cabecera dos veces
+        
         while row_idx <= max_row:
+            if row_idx in processed_headers:
+                row_idx += 1
+                continue
+                
             row_cells = [cell.value for cell in sheet[row_idx]]
-
-            # Detección EXACTA de días (no substring)
-            days_found = self._row_days_exact(row_cells)
-
-            if len(days_found) >= min_days:
+            groups = self._find_day_groups_in_row(row_cells)
+            
+            if not groups:
+                row_idx += 1
+                continue
+            
+            # Procesar TODOS los grupos encontrados en esta fila
+            extracted_blocks = []
+            for days_found in groups:
+                if len(days_found) < 5:
+                    continue
                 block = self._extract_block_info(sheet, sheet_name, row_idx, days_found, max_row)
                 if block:
                     blocks.append(block)
-                    row_idx = block['data_end_row'] + 1
-                    continue  # sigue con la siguiente zona
-            # Tope blando de escaneo superior (evita recorrer miles de filas en hojas problemáticas
-            if row_idx >= max_scan_rows and not blocks:
-                # seguimos escaneando, pero si quieres hacerlo estricto, podrías break
-                pass
-
-            row_idx += 1
-
+                    extracted_blocks.append(block)
+            
+            # Marcar esta fila como procesada
+            processed_headers.add(row_idx)
+            
+            # Avanzar SOLO si no se extrajo ningún bloque válido
+            if not extracted_blocks:
+                row_idx += 1
+            else:
+                # Saltar al final del bloque MÁS LARGO extraído
+                # (para buscar la SIGUIENTE cabecera de bloque)
+                max_end = max(b["data_end_row"] for b in extracted_blocks)
+                row_idx = max_end + 1
+        
         return blocks
 
     def _extract_block_info(self, sheet, sheet_name: str, header_row: int, days_found: Dict[str, int], max_row: int) -> Optional[Dict[str, Any]]:
@@ -971,27 +1000,44 @@ class ExcelScheduleExtractor:
         Requiere 5 días canónicos en orden y contiguos.
         Valida que la columna inmediatamente a la izquierda es de 'hora'.
         """
+        self.logger.debug(f"[{sheet_name}!R{header_row}] Procesando grupo con días: {days_found}")
 
         # 1) Orden canon L->V y exigir 5 días
         ordered = []
         for d in DAYS_CANONICAL:
             col = days_found.get(d)
             if not col:
-                self.logger.debug(f"[{sheet_name}!{header_row}] Falta día en cabecera: {d}")
+                self.logger.debug(f"[{sheet_name}!R{header_row}] ❌ RECHAZADO: Falta día '{d}' en cabecera")
                 return None
             ordered.append((d, col))
 
         # 2) Contigüidad estricta de columnas (L..V consecutivos)
         ordered_cols = [c for _, c in ordered]
         diffs = [ordered_cols[i+1] - ordered_cols[i] for i in range(len(ordered_cols)-1)]
-        if any(x != 1 for x in diffs):
-            self.logger.debug(f"[{sheet_name}!{header_row}] Días no contiguos: {ordered_cols}")
+        if any(d <= 0 or d > HEADER_MAX_DAY_GAP for d in diffs):
+            self.logger.debug(
+                f"[{sheet_name}!R{header_row}] ❌ RECHAZADO: Gaps inválidos entre días. "
+                f"Columnas={ordered_cols}, Diffs={diffs}, Max permitido={HEADER_MAX_DAY_GAP}"
+            )
             return None
 
         lunes_col = ordered_cols[0]
-        time_col = lunes_col - 1
-        if time_col < 1:
-            self.logger.debug(f"[{sheet_name}!{header_row}] No hay columna de hora a la izquierda de LUNES")
+        # busquemos la columna de hora a la izquierda con lookback
+        candidate_hour_cols = [lunes_col - k for k in range(1, HOUR_LOOKBACK_MAX + 1) if (lunes_col - k) >= 1]
+        self.logger.debug(f"[{sheet_name}!R{header_row}] Buscando columna de hora. Candidatos: {candidate_hour_cols}")
+        
+        time_col = None
+        for hc in candidate_hour_cols:
+            if self._col_looks_like_time(sheet, hc, header_row + 1):
+                time_col = hc
+                self.logger.debug(f"[{sheet_name}!R{header_row}] ✅ Columna de hora detectada: col {hc}")
+                break
+        
+        if time_col is None:
+            self.logger.debug(
+                f"[{sheet_name}!R{header_row}] ❌ RECHAZADO: No se encontró columna de hora válida. "
+                f"Probados: {candidate_hour_cols}"
+            )
             return None
 
         # 3) Validar ancho mínimo del bloque
@@ -999,27 +1045,53 @@ class ExcelScheduleExtractor:
         max_col = ordered_cols[-1]
         min_cols = self.config.get('min_cols_for_block', 6)
         if (max_col - min_col + 1) < min_cols:
-            self.logger.debug(f"[{sheet_name}!{header_row}] Bloque demasiado estrecho: {min_col}-{max_col}")
+            self.logger.debug(
+                f"[{sheet_name}!R{header_row}] ❌ RECHAZADO: Bloque demasiado estrecho. "
+                f"Ancho={max_col - min_col + 1}, Mínimo requerido={min_cols}"
+            )
             return None
 
         # 4) Validar que la columna 'hora' realmente lo parece
         if not self._col_looks_like_time(sheet, time_col, header_row + 1):
-            self.logger.debug(f"[{sheet_name}!{header_row}] La columna de hora no parece válida (col {time_col})")
+            self.logger.debug(f"[{sheet_name}!R{header_row}] ❌ RECHAZADO: Columna {time_col} no parece de hora")
             return None
 
         # 5) Rango vertical del bloque
         data_start_row = header_row + 1
+        # Saltar primera fila si está vacía (común en horarios con celdas combinadas)
+        first_row_cells = [sheet.cell(data_start_row, c).value for c in range(min_col, max_col + 1)]
+        first_row_empty = all(
+            cell is None or str(cell).strip() in ('', '-', '—')
+            for cell in first_row_cells
+        )
+        if first_row_empty:
+            data_start_row += 1
+            self.logger.debug(f"[{sheet_name}!R{header_row}] Primera fila vacía, iniciando datos en fila {data_start_row}")
+        
         data_end_row = self._find_block_end(sheet, data_start_row, max_row, min_col, max_col)
+    
 
         # 6) Mínimo de filas
         min_rows = self.config['min_rows_for_block']
-        if (data_end_row - data_start_row + 1) < min_rows:
-            self.logger.debug(f"[{sheet_name}!{header_row}] Bloque con pocas filas: {(data_end_row - data_start_row + 1)}")
+        num_rows = data_end_row - data_start_row + 1
+        if num_rows < min_rows:
+            self.logger.debug(
+                f"[{sheet_name}!R{header_row}] ❌ RECHAZADO: Pocas filas de datos. "
+                f"Encontradas={num_rows}, Mínimo requerido={min_rows}"
+            )
             return None
 
-        # 7) Construir map day_cols en orden canónico (por si downstream lo agradece)
+        # 7) Construir map day_cols en orden canónico
         day_cols_map = {d: c for d, c in ordered}
+        
+        self.logger.info(
+            f"[{sheet_name}!R{header_row}] ✅ BLOQUE VÁLIDO: "
+            f"Cols {min_col}-{max_col}, Filas {data_start_row}-{data_end_row}, "
+            f"Time_col={time_col}"
+        )
 
+        titulacion_info = self._extract_titulacion_from_header(sheet, header_row)
+    
         return {
             'sheet_name': sheet_name,
             'sheet': sheet,
@@ -1030,55 +1102,109 @@ class ExcelScheduleExtractor:
             'day_cols': day_cols_map,
             'min_col': min_col,
             'max_col': max_col,
+            'titulacion': titulacion_info.get('titulacion'), 
+            'curso': titulacion_info.get('curso'),           
+            'mencion': titulacion_info.get('mencion'),      
+        }
+
+    def _extract_titulacion_from_header(self, sheet, header_row: int) -> dict:
+        """
+        Busca en las 3 filas anteriores a la cabecera:
+        - Titulación: "GRADO EN MATEMÁTICAS"
+        - Curso: "PRIMER CURSO", "SEGUNDO CURSO", ...
+        - Mención: "MENCIÓN EN ...", opcional
+        """
+        titulacion = None
+        curso = None
+        mencion = None
+        
+        for row in range(max(1, header_row - 3), header_row):
+            merged_text = " ".join(
+                str(cell.value or "") 
+                for cell in sheet[row] 
+                if cell.value
+            ).strip().upper()
+            
+            # Detectar grado/titulación
+            if "GRADO EN" in merged_text:
+                titulacion = merged_text
+            
+            # Detectar curso (PRIMER, SEGUNDO, TERCER, CUARTO)
+            import re
+            curso_match = re.search(r"(PRIMER|SEGUNDO|TERCER|CUARTO)\s+CURSO", merged_text)
+            if curso_match:
+                curso = curso_match.group(0)
+            
+            # Detectar mención
+            mencion_match = re.search(r"MENCI[OÓ]N\s+EN\s+(.+?)(?:\s|$)", merged_text)
+            if mencion_match:
+                mencion = f"MENCIÓN EN {mencion_match.group(1).strip()}"
+        
+        return {
+            'titulacion': titulacion,
+            'curso': curso,
+            'mencion': mencion
         }
 
     def _find_block_end(self, sheet, start_row: int, max_row: int, min_col: int, max_col: int) -> int:
         """
         Encuentra la última fila del bloque.
-        
-        Criterios de fin:
-        - Se encuentra otra cabecera de días
-        - Hay N filas vacías consecutivas
-        - Se alcanza el final de la hoja
-        
-        Args:
-            sheet: Worksheet
-            start_row: Primera fila de datos del bloque
-            max_row: Última fila de la hoja
-            min_col: Columna mínima del bloque
-            max_col: Columna máxima del bloque
-            
-        Returns:
-            Número de la última fila del bloque
         """
         max_empty_rows = self.config['max_empty_rows_between_blocks']
         empty_row_count = 0
         last_valid_row = start_row
         
         for row_idx in range(start_row, max_row + 1):
-            # Leer celdas del rango del bloque
             row_cells = [
                 sheet.cell(row_idx, col).value 
                 for col in range(min_col, max_col + 1)
             ]
             
-            # Verificar si es una nueva cabecera
+            # Verificar si es una nueva cabecera (solo en rango del bloque)
             days_in_row = self._row_days_exact(row_cells)
+            if len(days_in_row) < self.config['min_days_in_header']:
+                days_in_row = self._row_days_loose(row_cells)
+            
             if len(days_in_row) >= self.config['min_days_in_header']:
-                # Nueva cabecera encontrada, fin del bloque actual
+                self.logger.debug(
+                    f"Nueva cabecera detectada en fila {row_idx}, "
+                    f"finalizando bloque en fila {last_valid_row}"
+                )
                 return last_valid_row
             
-            # Verificar si la fila está vacía
-            if all(cell is None or str(cell).strip() == '' for cell in row_cells):
-                empty_row_count += 1
-                if empty_row_count >= max_empty_rows:
-                    # Demasiadas filas vacías, fin del bloque
-                    return last_valid_row
-            else:
-                # Fila con contenido
+            # ✅ MEJORADO: Considerar fila válida si tiene contenido significativo
+            has_content = any(
+                cell is not None 
+                and str(cell).strip() not in ('', '-', '—')
+                and len(str(cell).strip()) > 0  # ← Asegurar que no es solo espacios
+                for cell in row_cells
+            )
+            
+            # ✅ NUEVO: También verificar si la celda tiene formato (color de fondo)
+            # Esto ayuda con celdas combinadas que parecen vacías
+            has_formatting = False
+            try:
+                for col in range(min_col, max_col + 1):
+                    cell = sheet.cell(row_idx, col)
+                    if cell.fill and cell.fill.start_color and cell.fill.start_color.rgb != 'FFFFFFFF':
+                        has_formatting = True
+                        break
+            except:
+                pass
+            
+            if has_content or has_formatting:
                 empty_row_count = 0
                 last_valid_row = row_idx
+            else:
+                empty_row_count += 1
+                if empty_row_count >= max_empty_rows:
+                    self.logger.debug(
+                        f"{max_empty_rows} filas vacías consecutivas, "
+                        f"finalizando bloque en fila {last_valid_row}"
+                    )
+                    return last_valid_row
         
+        self.logger.debug(f"Fin de hoja alcanzado, bloque termina en fila {last_valid_row}")
         return last_valid_row
 
     def _extract_time_range_from_text(self, s: str | None) -> tuple[str, str] | None:
@@ -1135,8 +1261,8 @@ class ExcelScheduleExtractor:
 
     def _row_days_exact(self, row_cells: list[str]) -> dict:
         """
-        Devuelve {canonical_day: col_idx} solo si el contenido de la celda
-        es exactamente un día (por alias), no por substring suelto.
+        Devuelve {canonical_day: col_idx} si la celda es EXACTAMENTE un día (por alias).
+        Conserva la PRIMERA aparición de cada día en la fila.
         """
         found = {}
         for col_idx, v in enumerate(row_cells, start=1):
@@ -1145,45 +1271,124 @@ class ExcelScheduleExtractor:
             cell = self._norm(str(v))
             for alias, canonical in DAY_ALIASES.items():
                 if self._norm(alias) == cell:
-                    found[canonical] = col_idx
+                    if canonical not in found:          # <<< evita pisar la primera
+                        found[canonical] = col_idx
                     break
         return found
+    
+    def _row_day_positions(self, row_cells: list[str]) -> dict[str, list[int]]:
+        """ Devuelve TODAS las columnas donde aparece cada día en la fila (coincidencia laxa). """
+        positions = {d: [] for d in DAYS_CANONICAL}
+        for col_idx, v in enumerate(row_cells, start=1):
+            if v is None:
+                continue
+            txt = str(v)
+            for d in DAYS_CANONICAL:
+                if self._day_token_match(txt, d):
+                    positions[d].append(col_idx)
+                    break
+        return positions
 
-    def _col_looks_like_time(self, sheet, col: int, start_row: int, samples: int = 3) -> bool:
+    def _find_day_groups_in_row(self, row_cells: list[str]) -> list[dict[str, int]]:
         """
-        Comprueba si una columna parece de hora (match en 2 de 3 filas siguientes).
-        Acepta formas: texto '10:00' o '10:30 - 11:30', datetime/time reales de Excel
-        o números con formato de hora (cell.is_date).
+        Encuentra todas las tandas L-M-X-J-V NO SOLAPADAS en la fila.
         """
-        import re, datetime as _dt
+        pos = self._row_day_positions(row_cells)
+        groups = []
+        used_cols = set()  # Evitar reutilizar columnas
+        
+        for col_lunes in sorted(pos["LUNES"]):
+            if col_lunes in used_cols:  # ← Ya usado en otro grupo
+                continue
+                
+            seq = {"LUNES": col_lunes}
+            cur = col_lunes
+            ok = True
+            
+            for d in DAYS_CANONICAL[1:]:  # MARTES...VIERNES
+                candidates = [
+                    c for c in pos[d] 
+                    if c > cur 
+                    and (c - cur) <= HEADER_MAX_DAY_GAP
+                    and c not in used_cols  # No reutilizar
+                ]
+                if not candidates:
+                    ok = False
+                    break
+                nxt = min(candidates)
+                seq[d] = nxt
+                cur = nxt
+            
+            if ok:
+                groups.append(seq)
+                # Marcar columnas usadas
+                for col in seq.values():
+                    used_cols.add(col)
+        
+        return groups
+
+    def _day_token_match(self, cell_text: str, canonical_day: str) -> bool:
+        """
+        Coincidencia laxa: la celda empieza por el día canónico (LUNES, MARTES, …)
+        y después hay fin de palabra o un separador no alfanumérico.
+        Soporta sufijos como '(G1)', notas, saltos de línea normalizados, etc.
+        """
+        s = self._norm(cell_text or "")
+        d = self._norm(canonical_day or "")
+        if not s or not d:
+            return False
+        if s == d:
+            return True
+        import re
+        return re.match(rf"^{re.escape(d)}(\b|[^A-Z0-9ÁÉÍÓÚÜÑ])", s) is not None
+
+    def _row_days_loose(self, row_cells: list[str]) -> dict[str, int]:
+        """
+        Devuelve {día_canónico: primera_col} usando coincidencia laxa (_day_token_match).
+        Conserva la PRIMERA aparición de cada día en la fila.
+        """
+        found = {}
+        for col_idx, v in enumerate(row_cells, start=1):
+            if v is None:
+                continue
+            txt = str(v)
+            for d in DAYS_CANONICAL:
+                if d not in found and self._day_token_match(txt, d):
+                    found[d] = col_idx
+                    break
+        return found
+    
+    def _col_looks_like_time(self, sheet, col: int, start_row: int,
+                         rows: int | None = None, min_hits: int | None = None) -> bool:
+        """
+        ¿La columna parece de hora? Busca 'min_hits' coincidencias en 'rows' filas
+        por debajo del header. Acepta '10:00', '10.30', '10:00-11:00', fechas Excel, etc.
+        """
+
+        rows = rows or TIME_COL_VALIDATION_ROWS
+        min_hits = min_hits or TIME_COL_MIN_MATCHES
+
         rx = re.compile(r"(?i)\b([01]?\d|2[0-3])[:\.h]?[0-5]\d(?:\s*[-–—]\s*([01]?\d|2[0-3])[:\.h]?[0-5]\d)?\b")
-        ok = 0
+        hits = 0
         r = start_row
-        # Probamos un pequeño tramo por debajo del header
-        while r <= sheet.max_row and (r - start_row) < 6 and ok < 2 and (r - start_row) < samples + 3:
+        checked = 0
+        while r <= sheet.max_row and checked < rows:
             cell = sheet.cell(r, col)
             val = cell.value
-            # 1) Si es fecha/hora nativa de openpyxl
+            # 1) datetime/time nativo
             if isinstance(val, (_dt.time, _dt.datetime)):
-                ok += 1
-                r += 1
-                continue
-            # 2) Si es numérico pero la celda está formateada como fecha/hora
-            #    (openpyxl marca is_date cuando el number_format es de fecha/hora)
-            try:
-                if getattr(cell, "is_date", False):
-                    ok += 1
-                    r += 1
-                    continue
-            except Exception:
-                pass
-            # 3) Texto con horas o rangos
-            if isinstance(val, str):
-                s = val.strip()
-                if s and rx.search(s):
-                    ok += 1
+                hits += 1
+            # 2) número con formato de fecha/hora
+            elif getattr(cell, "is_date", False):
+                hits += 1
+            # 3) texto con patrón de hora o rango
+            elif isinstance(val, str) and val.strip() and rx.search(val.strip()):
+                hits += 1
+            if hits >= min_hits:
+                return True
             r += 1
-        return ok >= 2
+            checked += 1
+        return False
 
     def _normalize_spaces(self, text: str) -> str:
         """
