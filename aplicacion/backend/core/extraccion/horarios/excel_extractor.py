@@ -956,7 +956,7 @@ class ExcelScheduleExtractor:
         blocks = []
         max_row = sheet.max_row
         row_idx = 1
-        processed_headers = set()  # ← Evita procesar la misma cabecera dos veces
+        processed_headers = set()  # Evita procesar la misma cabecera dos veces
         
         while row_idx <= max_row:
             if row_idx in processed_headers:
@@ -982,15 +982,9 @@ class ExcelScheduleExtractor:
             
             # Marcar esta fila como procesada
             processed_headers.add(row_idx)
-            
-            # Avanzar SOLO si no se extrajo ningún bloque válido
-            if not extracted_blocks:
-                row_idx += 1
-            else:
-                # Saltar al final del bloque MÁS LARGO extraído
-                # (para buscar la SIGUIENTE cabecera de bloque)
-                max_end = max(b["data_end_row"] for b in extracted_blocks)
-                row_idx = max_end + 1
+
+            row_idx += 1
+
         
         return blocks
 
@@ -1042,7 +1036,7 @@ class ExcelScheduleExtractor:
 
         # 3) Validar ancho mínimo del bloque
         min_col = time_col
-        max_col = ordered_cols[-1]
+        max_col = ordered_cols[-1] + 2
         min_cols = self.config.get('min_cols_for_block', 6)
         if (max_col - min_col + 1) < min_cols:
             self.logger.debug(
@@ -1148,7 +1142,10 @@ class ExcelScheduleExtractor:
 
     def _find_block_end(self, sheet, start_row: int, max_row: int, min_col: int, max_col: int) -> int:
         """
-        Encuentra la última fila del bloque.
+        Encuentra la última fila del bloque, detectando:
+        1. Nueva cabecera (LUNES-VIERNES)
+        2. Título de mención (e.g. "MENCIÓN EN ECONOMÍA")
+        3. 15+ filas vacías consecutivas
         """
         max_empty_rows = self.config['max_empty_rows_between_blocks']
         empty_row_count = 0
@@ -1160,7 +1157,7 @@ class ExcelScheduleExtractor:
                 for col in range(min_col, max_col + 1)
             ]
             
-            # Verificar si es una nueva cabecera (solo en rango del bloque)
+            # 1. Verificar si es nueva cabecera
             days_in_row = self._row_days_exact(row_cells)
             if len(days_in_row) < self.config['min_days_in_header']:
                 days_in_row = self._row_days_loose(row_cells)
@@ -1172,16 +1169,24 @@ class ExcelScheduleExtractor:
                 )
                 return last_valid_row
             
-            # ✅ MEJORADO: Considerar fila válida si tiene contenido significativo
+            # Detectar título de mención como separador
+            merged_text = " ".join(str(c or "") for c in row_cells).strip().upper()
+            if self._is_mencion_title(merged_text):
+                self.logger.debug(
+                    f"Título de mención detectado en fila {row_idx}, "
+                    f"finalizando bloque en fila {last_valid_row}"
+                )
+                return last_valid_row
+            
+            # 2. Verificar contenido
             has_content = any(
                 cell is not None 
                 and str(cell).strip() not in ('', '-', '—')
-                and len(str(cell).strip()) > 0  # ← Asegurar que no es solo espacios
+                and len(str(cell).strip()) > 0
                 for cell in row_cells
             )
             
-            # ✅ NUEVO: También verificar si la celda tiene formato (color de fondo)
-            # Esto ayuda con celdas combinadas que parecen vacías
+            # 3. Verificar formato (celdas combinadas con color)
             has_formatting = False
             try:
                 for col in range(min_col, max_col + 1):
@@ -1341,6 +1346,28 @@ class ExcelScheduleExtractor:
             return True
         import re
         return re.match(rf"^{re.escape(d)}(\b|[^A-Z0-9ÁÉÍÓÚÜÑ])", s) is not None
+
+    def _is_mencion_title(self, text: str) -> bool:
+        """
+        Detecta si una fila contiene un título de mención.
+        Ejemplos: "MENCIÓN EN ECONOMÍA Y FINANZAS", "CUARTO CURSO MENCIÓN EN COMPUTADORES"
+        """
+        if not text:
+            return False
+        
+        # Patrones de títulos de mención
+        patterns = [
+            r"MENCI[OÓ]N\s+EN\s+[A-ZÁÉÍÓÚÜÑ\s]+",  # "MENCIÓN EN X"
+            r"CUARTO\s+CURSO\s+MENCI[OÓ]N",         # "CUARTO CURSO MENCIÓN"
+            r"TERCER\s+CURSO\s+MENCI[OÓ]N",         # "TERCER CURSO MENCIÓN"
+            r"MENCION\s+[A-ZÁÉÍÓÚÜÑ\s]+",          # "MENCION X" (sin tilde)
+        ]
+        
+        for pattern in patterns:
+            if re.search(pattern, text):
+                return True
+        
+        return False
 
     def _row_days_loose(self, row_cells: list[str]) -> dict[str, int]:
         """
