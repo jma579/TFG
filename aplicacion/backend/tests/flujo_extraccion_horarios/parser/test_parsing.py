@@ -41,7 +41,7 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
 
 # Configuración del parser
 PARSER_CONFIG = {
-    'gemini_temperature': 0.1,  # Menor temperatura para respuestas más consistentes
+    'log_level': 'DEBUG',
     'strict_validation': True
 }
 

@@ -1,0 +1,875 @@
+{
+  "titulo": "GRADO EN FÍSICA PRIMER CUATRIMESTRE",
+  "plan": "GRADO EN FÍSICA",
+  "periodo": "PRIMER CUATRIMESTRE",
+  "horarios": [
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 0,
+      "sesiones": [
+        {
+          "asignatura": "Álgebra Lineal",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Diferencial",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Diferencial",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Diferencial",
+          "aula": "4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica I",
+          "aula": "4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 1,
+      "sesiones": [
+        {
+          "asignatura": "Electromagnetismo I",
+          "aula": "4",
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica Clásica yrelatividad",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica Clásica y relatividad",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Met. Mat I:Ecuaciones Dif.",
+          "aula": "4",
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Met. Mat I: Ecuaciones",
+          "aula": "4",
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Herramientas",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Computacionales",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo I",
+          "aula": "4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Herramientas",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Computacionales",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Termodinámica",
+          "aula": "4",
+          "dia": "JUEVES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "LUNES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": null,
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 2,
+      "sesiones": [
+        {
+          "asignatura": "Métodos Numéricos",
+          "aula": "7",
+          "dia": "MARTES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Métodos Numéricos",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Métodos Numéricos",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "2",
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "7",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y",
+          "aula": "7",
+          "dia": "JUEVES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas y",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de",
+          "aula": "2",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas y Sólidos",
+          "aula": "2",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas",
+          "aula": "2",
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "2",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo",
+          "aula": "2",
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo y Óptica",
+          "aula": "2",
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo y Óptica",
+          "aula": "2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "2",
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo y",
+          "aula": "2",
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "2",
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "2",
+          "dia": "MARTES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "2",
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "2",
+          "dia": "VIERNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "II",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "PL",
+          "grupo": "1"
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": "MENCIÓN EN FÍSICA FUNDAMENTAL",
+      "pagina": 3,
+      "sesiones": [
+        {
+          "asignatura": "Advanced",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Experimen",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Experimental",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Fisica de Techniques materiales",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Techniques",
+          "aula": "5",
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "6",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "PL Computatio",
+          "aula": "n",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Fisica demateriales",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Computation",
+          "aula": "8",
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "de",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "5",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Fisica de  materiales",
+          "aula": "5",
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "Relatividad",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica cuántica",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica cuántica",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "ánica",
+          "aula": "Mec",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física de partículas",
+          "aula": "8",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Astrofísica",
+          "aula": "8",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física de partículas elementales",
+          "aula": "8",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Física de partículas",
+          "aula": "8",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Fotónica",
+          "aula": "8",
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad General",
+          "aula": "8",
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Fotónica",
+          "aula": "8",
+          "dia": "VIERNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Astrofísica",
+          "aula": "8",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "8",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "8",
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad General",
+          "aula": "8",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "8",
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "PL Advanced Computation  LSC 2",
+          "aula": "PL2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "Fotónica  Grupo",
+          "aula": "8",
+          "dia": "JUEVES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "8",
+          "dia": "VIERNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": null,
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 4,
+      "sesiones": [
+        {
+          "asignatura": "Radiofísica",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "12:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "12",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "F. tierra",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "12",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "F. tierra",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "F. tierra",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "12",
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": null,
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "12",
+          "dia": "VIERNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": null,
+          "grupo": null
+        }
+      ]
+    }
+  ]
+}
