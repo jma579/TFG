@@ -95,12 +95,89 @@ TABLE_QUALITY_WEIGHTS = {
     'content_density': 0.4     # 40% - Densidad de contenido en celdas
 }
 
+
+#===================================#
+# CONSTANTES DEL PARSER DE HORARIOS #
+#===================================#
+
+# Patrones para identificación de aulas
+PATRONES_AULAS = {
+    'aulas': [
+        r'AULA\s+\d+',
+        r'Aula\s+\d+'
+    ],
+    'laboratorios': [
+        r'LAB\s+\d+',
+        r'LAB'
+    ],
+    'seminarios': [
+        r'Seminario\s+de\s+informática',
+        r'Seminario\s+de\s+física',
+        r'Seminario\s+de\s+matemáticas'
+    ],
+    'otros': [
+        r'LSC\s*\d+'
+    ]
+}
+
+# Compilar todos los patrones de aulas en un solo regex (para eficiencia)
+_all_aula_patterns = []
+for categoria in PATRONES_AULAS.values():
+    _all_aula_patterns.extend(categoria)
+PATRON_AULA_COMBINADO = re.compile('|'.join(f'({p})' for p in _all_aula_patterns), re.IGNORECASE)
+
+# Patrones para grupos de prácticas
+PATRON_GRUPO_PL = re.compile(r'PL\s*(\d+)', re.IGNORECASE)
+PATRON_GRUPO_PA = re.compile(r'PA\s*(\d+)', re.IGNORECASE)
+PATRON_GRUPO_GENERICO = re.compile(r'Grupo\s+(\d+)', re.IGNORECASE)
+
+# Patrones para parsing de título
+PATRON_PERIODO = re.compile(r'(PRIMER|SEGUNDO)\s+CUATRIMESTRE', re.IGNORECASE)
+PATRON_NORMALIZAR_ESPACIOS = re.compile(r'\s{2,}')
+CARACTERES_STRIP_TITULO = ' -——'
+
+# Patrón para limpieza de texto (añadir espacio antes de mayúscula precedida de minúscula)
+PATRON_MAYUSCULA_SIN_ESPACIO = re.compile(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])')
+
+# Tipos de sesión
+TIPO_TEORIA = 'TEORÍA'
+TIPO_PRACTICA = 'PRÁCTICA'
+TIPO_PRACTICA_AULA = 'PRÁCTICA_AULA'
+
+# Duraciones (en minutos)
+DURACION_MINIMA_SESION = 60      # 1 hora
+DURACION_MAXIMA_SESION = 180     # 3 horas
+DURACION_DEFAULT_ULTIMA_SESION = 120  # 2 horas (cuando no hay sesión siguiente)
+GRID_STEP_MINUTES = 60           # Salto típico entre franjas horarias
+
 # Configuración base del parser de horarios
 DEFAULT_PARSER_CONFIG = {
     'version': '0.1.0',
-    'max_session_duration_minutes': 120,
-    'min_session_duration_minutes': 60,
-    'normalize_whitespace': True,
-}
 
+    # Logging y validación
+    'log_level': 'INFO',
+    'strict_validation': True,
+
+    # Normalización general
+    'normalize_whitespace': True,
+    'unknown_subject_label': 'DESCONOCIDO',
+
+    # Inferencias y suposiciones
+    'infer_teoria_when_no_group': True,  # Si no hay marca de grupo (PL/PA) se asume TEORÍA
+
+    # Rejilla temporal y duraciones (usar constantes globales)
+    'grid_step_minutes': GRID_STEP_MINUTES,
+    'fallback_session_duration_minutes': DURACION_DEFAULT_ULTIMA_SESION,
+    'min_session_duration_minutes': DURACION_MINIMA_SESION,
+    'max_session_duration_minutes': DURACION_MAXIMA_SESION,
+
+    # Heurísticas de postprocesado
+    'postprocess_merge_short_fragments': True,          # unir fragmentos muy cortos
+    'postprocess_max_fragment_len': 5,
+    'postprocess_inherit_aula_same_slot': True,         # heredar aula en misma franja
+    'postprocess_merge_consecutive_same_subject': True, # fusionar sesiones contiguas
+
+    # Formato de salida
+    'time_format': '%H:%M',
+}
 

@@ -1,0 +1,992 @@
+{
+  "titulo": "GRADO EN INGENIERÍA INFORMÁTICA PRIMER CUATRIMESTRE",
+  "plan": "GRADO EN INGENIERÍA INFORMÁTICA",
+  "periodo": "PRIMER CUATRIMESTRE",
+  "horarios": [
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 0,
+      "sesiones": [
+        {
+          "asignatura": "ODS",
+          "aula": "AULA 8",
+          "dia": "LUNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Algebra Lineal y Discreta",
+          "aula": "AULA 2",
+          "dia": "MARTES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Fundamentos Físicos",
+          "aula": "AULA 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sistemas Digitales",
+          "aula": "LSC 1",
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "Sist. Digitales",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 2",
+          "dia": "MARTES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Intro al software",
+          "aula": "AULA 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Fundamentos",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sist. Digitales",
+          "aula": "AULA 7",
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Fund. Físicos Grupo",
+          "aula": "AULA 13",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PL",
+          "grupo": "3"
+        },
+        {
+          "asignatura": "Físicos LSC 1, 2 o 3 PL2 PL3",
+          "aula": "AULA 13",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 8",
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 7",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sistemas Digitales O SEM.INF",
+          "aula": "LSC 1",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "PL",
+          "grupo": "4"
+        },
+        {
+          "asignatura": "ODS",
+          "aula": "AULA 8",
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Algebra Lineal y Discreta",
+          "aula": "AULA 14",
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Fund. Físicos Grupo",
+          "aula": "AULA 13",
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Fund. Físicos Grupo PL4 o LSC 1 PL1",
+          "aula": "AULA 13",
+          "dia": "MARTES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "PL",
+          "grupo": "3"
+        },
+        {
+          "asignatura": "al Intro al software",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "al Intro al Introsoftware",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 5",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "/ 7 AULA",
+          "aula": "AULA 14",
+          "dia": "JUEVES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "PA",
+          "grupo": "1"
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 1,
+      "sesiones": [
+        {
+          "asignatura": "Estructura de Computadores",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "LATC",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "PL",
+          "grupo": "3"
+        },
+        {
+          "asignatura": "Computadores",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "LATC",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "PL",
+          "grupo": "4"
+        },
+        {
+          "asignatura": "Estructura Estructura de Datos Computadores",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Computadores",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Computadores",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructurade Datos",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "PA2 AULA 2",
+          "aula": "AULA 9",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "PA",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Interacción persona-computador",
+          "aula": "AULA 2",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "AULA",
+          "aula": "AULA 9",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "PA",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Estructuras de",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Int.persona-comp. y PL2",
+          "aula": "AULA 7",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Matemática Discreta",
+          "aula": "AULA 2",
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Interacción persona-comp.",
+          "aula": "AULA 7",
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Matemática Discreta",
+          "aula": "AULA 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructuras de",
+          "aula": "AULA 2",
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructuras Estructurade Datos Computadores",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructurade Estructuras de Datos",
+          "aula": "AULA 7",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Econ. y ADE",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Econ. y ADE",
+          "aula": "AULA 2",
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Computadores",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "PL",
+          "grupo": "5"
+        },
+        {
+          "asignatura": "LATC",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "PL1 L ATC",
+          "aula": "AULA 2",
+          "dia": "LUNES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "ores",
+          "aula": "AULA 2",
+          "dia": "MARTES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 14",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 14",
+          "dia": "JUEVES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 2,
+      "sesiones": [
+        {
+          "asignatura": "LUN",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "ES",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "M",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "ARTES M",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "IÉRCOLES",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Int.p",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "ersona-comp.",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "mación",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PA",
+          "grupo": "RA"
+        },
+        {
+          "asignatura": "lela, concurrente P",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "rograma",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "ción",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PA",
+          "grupo": "RALELA"
+        },
+        {
+          "asignatura": "y PL2",
+          "aula": "AULA 14",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "cción person",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Intr a-computador",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "oducció inte",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "n a los sistemas Introducción a ligentes",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "los sistemas inteligentes",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ingeniería de",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "software I Intr. a",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "redes de",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "computadoras Intr. a redes",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "de computadoras",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Inte",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "racción",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "persona-comp.",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": ". , co tiempo r",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "PA",
+          "grupo": "RALELA"
+        },
+        {
+          "asignatura": "ncurrente y de eal",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Prog. , co",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "PA",
+          "grupo": "RALELA"
+        },
+        {
+          "asignatura": "ncurrente y de tiempo real",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "PL",
+          "grupo": "2"
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": "MENCIÓN EN COMPUTADORES",
+      "pagina": 3,
+      "sesiones": [
+        {
+          "asignatura": "Diseño y administración de",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "redes",
+          "aula": "AULA 15",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Bases de animationand datosvideogames avanzadas Portátiles",
+          "aula": "AULA 15",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sistemas embebidos",
+          "aula": "AULA 15",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Bases de animationand datosvideogames avanzadas Portátiles",
+          "aula": "AULA 15",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sistemas embebidos AULA",
+          "aula": "LSC4",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Multiprocesadores ATC",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "LABORATORIO",
+          "grupo": null
+        },
+        {
+          "asignatura": "Multiprocesadores",
+          "aula": "AULA 15",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sistemas operativosavanzados",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "UNICAN-LABS",
+          "aula": "AULA 15",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Diseño y administración LSC DICOM - AULA",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sistemas operativosavanzados",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "UNICAN-LABS",
+          "aula": "AULA 15",
+          "dia": "LUNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Diseño yadministración de",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "redes",
+          "aula": "AULA 15",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": "MENCIÓN EN COMPUTACIÓN",
+      "pagina": 4,
+      "sesiones": [
+        {
+          "asignatura": "Modelos de cálculo",
+          "aula": "AULA 13",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Bases de animationdatos andavanzadas videogames Portátiles",
+          "aula": "AULA 15",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Representación delconocimiento",
+          "aula": "AULA 13",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Sist. Bases de animation informacio datos and n avanzadas videogames empresa Portátiles",
+          "aula": "AULA 15",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Representación delconocimiento",
+          "aula": "AULA 13",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Gráficos porcomputador y realidadvirtual",
+          "aula": "AULA 13",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Diseño de algoritmos",
+          "aula": "AULA 13",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Modelos de cálculo",
+          "aula": "AULA 13",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "por computador yvirtual",
+          "aula": "AULA 13",
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Diseño de algoritmos",
+          "aula": "AULA 13",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    }
+  ]
+}

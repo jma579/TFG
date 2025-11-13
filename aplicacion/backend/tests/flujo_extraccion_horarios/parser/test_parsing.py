@@ -5,15 +5,11 @@ Flujo:
 1. Extraer tablas del PDF usando HorarioExtractor
 2. Parsear tablas extraídas usando HorarioParser
 3. Mostrar resultados de ambas fases
-4. Guardar resultados:
-   - <nombre>.json: Salida directa del parser (ParsingResult normalizado)
+4. Guardar resultados JSON normalizado
 
 Uso:
-    python test_horarios_parsing.py <ruta_pdf>
-    python test_horarios_parsing.py  # Usa PDF por defecto
-
-Ejemplo:
-    python test_horarios_parsing.py "D:/TFG/Horarios/GRADO/horario_fisica.pdf"
+    python test_parsing.py <ruta_pdf>
+    python test_parsing.py  # Usa PDF por defecto
 """
 
 import sys
@@ -33,13 +29,9 @@ from core.extraccion.common.entities import ParserError
 #  CONFIGURACIÓN
 # ============================================================
 
-# PDF por defecto
 DEFAULT_PDF = r"D:\TFG\Horarios\Grado\1C_GRADO FISICA_v6.pdf"
-
-# Directorio de salida
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
 
-# Configuración del parser
 PARSER_CONFIG = {
     'log_level': 'DEBUG',
     'strict_validation': True
@@ -50,17 +42,14 @@ PARSER_CONFIG = {
 # ============================================================
 
 def print_separator(char="=", length=80):
-    """Imprimir separador visual."""
     print(char * length)
 
 def print_header(title):
-    """Imprimir encabezado."""
     print_separator()
     print(f" {title}")
     print_separator()
 
 def print_step(step, total, message):
-    """Imprimir paso del proceso."""
     print(f"\n{'─' * 80}")
     print(f"[{step}/{total}] {message}")
     print(f"{'─' * 80}")
@@ -75,7 +64,6 @@ def print_error(message):
     print(f"❌ {message}")
 
 def save_json(data: dict, filepath: str):
-    """Guardar datos en formato JSON."""
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -121,22 +109,38 @@ def test_flujo_completo(pdf_path: str):
     
     try:
         parser = HorarioParser(config=PARSER_CONFIG)
+        # parse() devuelve directamente el dict normalizado
         parsing_result = parser.parse(extraction_result)
         
         print_success("Parsing completado")
-        print(f"   Horarios procesados: {len(parsing_result.horarios)}")
+        print(f"   Plan: {parsing_result.get('plan', 'N/A')}")
+        print(f"   Periodo: {parsing_result.get('periodo', 'N/A')}")
+        print(f"   Horarios procesados: {len(parsing_result.get('horarios', []))}")
+        
+        # Contar sesiones totales
+        total_sesiones = sum(len(h.get('sesiones', [])) for h in parsing_result.get('horarios', []))
+        print(f"   Sesiones totales: {total_sesiones}")
         
         # Mostrar warnings si existen
-        if parsing_result.parsing_metadata.warnings:
-            print(f"\n⚠️  Warnings ({len(parsing_result.parsing_metadata.warnings)}):")
-            for warning in parsing_result.parsing_metadata.warnings:
-                print(f"    - {warning.message} ({warning.severity})")
+        parsing_meta = parsing_result.get('parsing_metadata', {})
+        warnings = parsing_meta.get('warnings', [])
+        if warnings:
+            print(f"\n⚠️  Warnings ({len(warnings)}):")
+            for warning in warnings[:5]:  # Mostrar máximo 5
+                msg = warning.get('message', str(warning))
+                severity = warning.get('severity', 'unknown')
+                print(f"    - [{severity}] {msg}")
+            if len(warnings) > 5:
+                print(f"    ... y {len(warnings) - 5} más")
         
         # Mostrar errors si existen
-        if parsing_result.parsing_metadata.errors:
-            print(f"\n❌ Errores de parsing ({len(parsing_result.parsing_metadata.errors)}):")
-            for error in parsing_result.parsing_metadata.errors:
+        errors = parsing_meta.get('errors', [])
+        if errors:
+            print(f"\n❌ Errores de parsing ({len(errors)}):")
+            for error in errors[:5]:  # Mostrar máximo 5
                 print(f"    - {error}")
+            if len(errors) > 5:
+                print(f"    ... y {len(errors) - 5} más")
         
     except ParserError as e:
         print_error(f"Error de parsing: {e}")
@@ -152,15 +156,13 @@ def test_flujo_completo(pdf_path: str):
     # =========================================================================
     print_step(3, 3, "Guardando resultados")
     
-    # Asegurar que existe el directorio de salida
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    # Nombre base del archivo
     filename = Path(pdf_path).stem
     json_path = os.path.join(OUTPUT_DIR, f"{filename}.json")
     
-    # Guardar JSON
-    save_json(parsing_result.raw_json, json_path)
+    # Guardar el dict normalizado directamente
+    save_json(parsing_result, json_path)
     
     print_success("Resultados guardados:")
     print(f"   📋 JSON: {json_path}")
@@ -174,7 +176,6 @@ def test_flujo_completo(pdf_path: str):
 if __name__ == "__main__":
     print("\n")
     
-    # Determinar PDF a procesar
     if len(sys.argv) >= 2:
         pdf_path = sys.argv[1]
         print(f"ℹ️  Usando PDF del argumento: {pdf_path}")
@@ -185,10 +186,8 @@ if __name__ == "__main__":
     
     print()
     
-    # Ejecutar test completo
     success = test_flujo_completo(pdf_path)
     
     print()
     
-    # Exit code
     sys.exit(0 if success else 1)

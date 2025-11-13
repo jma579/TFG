@@ -1,0 +1,829 @@
+{
+  "titulo": "GRADO EN MATEMÁTICAS PRIMER CUATRIMESTRE",
+  "plan": "GRADO EN MATEMÁTICAS",
+  "periodo": "PRIMER CUATRIMESTRE",
+  "horarios": [
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 0,
+      "sesiones": [
+        {
+          "asignatura": "PRIM",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "ER C",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "UATRIMESTRE",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "CURSO",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "LUNES",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "MAR",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "TES",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "MIÉ",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "RCOLES",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "ebra Line",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "al len",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introducción guaje matem",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "al ático",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálcul",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 1,
+      "sesiones": [
+        {
+          "asignatura": "Amp",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "l. Ampl.",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampl",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": ". Ampl.",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Dif. Cálculo Dif.",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Dif. Cálculo Dif.",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Grupo Cálculo de AULA",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "1",
+          "aula": "AULA 8",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "1",
+          "aula": "AULA 8",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "AULA",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": "DE"
+        },
+        {
+          "asignatura": "1 Ampl 1 Cálculo",
+          "aula": "AULA 8",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "Topología",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Topología",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 1",
+          "dia": "VIERNES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 2,
+      "sesiones": [
+        {
+          "asignatura": "Cálculo Numérico",
+          "aula": "LSC 1",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PL",
+          "grupo": "1"
+        },
+        {
+          "asignatura": "Cálculo Numérico II",
+          "aula": "LSC 1",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "PL",
+          "grupo": "2"
+        },
+        {
+          "asignatura": "Cálculo LSC",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "PL",
+          "grupo": "3"
+        },
+        {
+          "asignatura": "II",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo de Probabilidades",
+          "aula": "AULA 1",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría de",
+          "aula": "AULA 14",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Espacios de",
+          "aula": "AULA 14",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría de AULA",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo de Probabilidades",
+          "aula": "AULA 14",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Numérico",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "II",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Espacios de",
+          "aula": "AULA 14",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría global",
+          "aula": "AULA 14",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "AULA Teoría global",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría global desuperficies",
+          "aula": "AULA 14",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 14",
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "AULA",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "18:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": "MENCIÓN EN MATEMÁTICA PURA Y APLICADA",
+      "pagina": 3,
+      "sesiones": [
+        {
+          "asignatura": "Ampliación de",
+          "aula": "AULA 7",
+          "dia": "LUNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría Cualitativa EDO",
+          "aula": "AULA 9",
+          "dia": "MARTES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "V.Diferenciables",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría Cualitativa EDO",
+          "aula": "AULA 9",
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "V.Diferenciables",
+          "aula": "AULA 9",
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Top.Algebraica",
+          "aula": "AULA 9",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampliación de",
+          "aula": "AULA 7",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Top.Algebraica",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Adv. Statistics",
+          "aula": "AULA 3",
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Adv. Statistics",
+          "aula": "AULA 3",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": "AULA 9",
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 9",
+          "dia": "MARTES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Probability",
+          "aula": "AULA 3",
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Probability",
+          "aula": "AULA 3",
+          "dia": "VIERNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Economía y",
+          "aula": "AULA 9",
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Economía y",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 4,
+      "sesiones": [
+        {
+          "asignatura": "Introdu",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "cción a los",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "sistemas",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "inteligentes",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "AU",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "13:30",
+          "tipo": "PL",
+          "grupo": "3"
+        },
+        {
+          "asignatura": "Introducción a los Introducción a los",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "stemas inteligentes sistemas inteligentes",
+          "aula": null,
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "AULA 14",
+          "aula": "AULA 14",
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introdu",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "cción a los",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "DESCONOCIDO",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "PL",
+          "grupo": "2"
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": "MENCIÓN EN ECONOMIA Y FINANZAS",
+      "pagina": 5,
+      "sesiones": [
+        {
+          "asignatura": "de Inversiones 3º D GADE A7 (F. C. Económicas",
+          "aula": null,
+          "dia": "MARTES",
+          "hora_inicio": "16:00",
+          "hora_fin": "17:00",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "de Inversiones 3º D GADEy A7 (F. C. Económicas",
+          "aula": null,
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "16:00",
+          "hora_fin": "17:00",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "decisión enoperaciones 3º D GADEy A7 (F. C. Económicas",
+          "aula": null,
+          "dia": "JUEVES",
+          "hora_inicio": "16:00",
+          "hora_fin": "17:00",
+          "tipo": "TEORIA",
+          "grupo": null
+        },
+        {
+          "asignatura": "decisión en operaciones 3º D GADE A7 (F. C. Económicas y",
+          "aula": null,
+          "dia": "VIERNES",
+          "hora_inicio": "16:00",
+          "hora_fin": "17:00",
+          "tipo": "TEORIA",
+          "grupo": null
+        }
+      ]
+    }
+  ]
+}

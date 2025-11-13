@@ -57,4 +57,3 @@ class ParsingResult:
     horarios: List[Horario]
     extraction_metadata: ExtractionMetadata
     parsing_metadata: ParsingMetadata
-    raw_json: dict
