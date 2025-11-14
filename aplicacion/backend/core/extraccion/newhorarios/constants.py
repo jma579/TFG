@@ -181,3 +181,17 @@ DEFAULT_PARSER_CONFIG = {
     'time_format': '%H:%M',
 }
 
+# =============================================================================
+# CONSTANTES PARA FUSIÓN DE CELDAS (EXTRACTOR)
+# =============================================================================
+
+# Longitud mínima de texto para considerar como asignatura válida
+MIN_SUBJECT_LENGTH = 5
+
+# Longitud máxima para considerar como "solo aula" o "solo grupo"
+MAX_ROOM_LENGTH = 20
+MAX_GROUP_LENGTH = 10
+
+# Porcentaje mínimo de coincidencia con patrón de aula
+MIN_ROOM_PATTERN_COVERAGE = 0.7  # 70% del texto debe ser el aula
+

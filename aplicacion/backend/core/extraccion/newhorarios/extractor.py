@@ -531,6 +531,9 @@ class HorarioExtractor:
         if not self._validate_times(time_rows):
             return None
 
+        # 6.5) Fusionar asignaturas con aulas/grupos en celdas consecutivas
+        celdas = self._merge_subject_and_room_cells(celdas)
+
         # 7) Metadata tolerante
         curso, mencion = self._extract_table_metadata(page, table)
 
@@ -825,6 +828,79 @@ class HorarioExtractor:
 
         return new_times, new_rows
 
+    def _merge_subject_and_room_cells(self, celdas: List[List[Optional[str]]]) -> List[List[Optional[str]]]:
+        """
+        Post-procesa celdas para fusionar asignaturas con sus aulas/grupos.
+        
+        Estrategia:
+        1. Iterar por columna (día) para mantener contexto vertical
+        2. Para cada celda con contenido SIN aula:
+           - Buscar en fila N+1 si tiene solo aula → fusionar
+           - Buscar en fila N+2 si tiene solo grupo → fusionar también
+        3. Vaciar celdas fusionadas para evitar duplicados
+        
+        Args:
+            celdas: Matriz de celdas [fila][columna]
+        
+        Returns:
+            Matriz de celdas con fusiones aplicadas
+        """
+        from core.extraccion.newhorarios.constants import MIN_SUBJECT_LENGTH
+        
+        if not celdas:
+            return celdas
+        
+        num_rows = len(celdas)
+        num_cols = len(celdas[0]) if celdas else 0
+        
+        # Procesar por COLUMNA (día) para mantener contexto temporal
+        for col in range(num_cols):
+            row = 0
+            while row < num_rows - 1:  # -1 porque miramos row+1
+                current_cell = celdas[row][col]
+                
+                # Saltar si celda vacía o ya procesada
+                if not current_cell:
+                    row += 1
+                    continue
+                
+                # Si la celda actual YA tiene aula, no fusionar
+                if self._has_room(current_cell):
+                    row += 1
+                    continue
+                
+                # Verificar si es una asignatura (texto largo sin aula)
+                if len(current_cell.strip()) < MIN_SUBJECT_LENGTH:
+                    row += 1
+                    continue
+                
+                # Buscar aula en fila siguiente
+                next_cell = celdas[row + 1][col] if row + 1 < num_rows else None
+                
+                if next_cell and self._is_only_room(next_cell):
+                    # FUSIÓN ENCONTRADA
+                    merged_text = f"{current_cell}\n{next_cell}"
+                    
+                    # Buscar grupo en fila N+2 si existe
+                    if row + 2 < num_rows:
+                        third_cell = celdas[row + 2][col]
+                        if third_cell and self._is_only_group(third_cell):
+                            merged_text += f"\n{third_cell}"
+                            celdas[row + 2][col] = None  # Vaciar fila N+2
+                    
+                    # Aplicar fusión
+                    celdas[row][col] = merged_text
+                    celdas[row + 1][col] = None  # Vaciar fila N+1
+                    
+                    self.logger.debug(
+                        f"Fusión aplicada en col={col}, row={row}: "
+                        f"'{current_cell[:30]}...' + '{next_cell}'"
+                    )
+                
+                row += 1
+        
+        return celdas
+
     def _compact_time_hits(self, time_hits):
         """
         Une 'time_hits' consecutivos con la misma hora.
@@ -913,6 +989,88 @@ class HorarioExtractor:
         s = re.sub(r'(?<!\S)' + PATRON_HORA + r'(?!\S)', '', text, flags=re.IGNORECASE)
         s = re.sub(r'\s{2,}', ' ', s).strip()
         return s or None
+
+    def _is_only_room(self, text: str) -> bool:
+        """
+        Detecta si una celda contiene SOLO un aula.
+        
+        Criterios:
+        1. Coincide con PATRON_AULA_COMBINADO
+        2. NO contiene texto adicional significativo
+        3. Longitud razonable (< MAX_ROOM_LENGTH)
+        
+        Returns:
+            True si la celda contiene solo un aula, False en caso contrario
+        """
+        from core.extraccion.newhorarios.constants import (
+            PATRON_AULA_COMBINADO, MAX_ROOM_LENGTH, MIN_ROOM_PATTERN_COVERAGE
+        )
+        
+        if not text:
+            return False
+        
+        clean = text.strip()
+        
+        # Verificar longitud razonable
+        if len(clean) > MAX_ROOM_LENGTH:
+            return False
+        
+        # Verificar patrón de aula
+        match = PATRON_AULA_COMBINADO.search(clean)
+        
+        # Si hay coincidencia, verificar que sea la mayor parte del texto
+        if match:
+            matched_text = match.group(0)
+            # El aula debe ser al menos MIN_ROOM_PATTERN_COVERAGE del texto
+            return len(matched_text) / len(clean) >= MIN_ROOM_PATTERN_COVERAGE
+        
+        return False
+    
+    def _is_only_group(self, text: str) -> bool:
+        """
+        Detecta si una celda contiene SOLO un grupo (PL1, PA2, etc).
+        
+        Criterios:
+        1. Coincide con patrones de grupo
+        2. Texto corto (< MAX_GROUP_LENGTH)
+        3. NO contiene aula ni asignatura
+        
+        Returns:
+            True si la celda contiene solo un grupo, False en caso contrario
+        """
+        from core.extraccion.newhorarios.constants import (
+            PATRON_GRUPO_PL, PATRON_GRUPO_PA, PATRON_GRUPO_GENERICO, MAX_GROUP_LENGTH
+        )
+        
+        if not text:
+            return False
+        
+        clean = text.strip()
+        
+        # Verificar longitud
+        if len(clean) > MAX_GROUP_LENGTH:
+            return False
+        
+        # Verificar patrones de grupo
+        if (PATRON_GRUPO_PL.search(clean) or 
+            PATRON_GRUPO_PA.search(clean) or
+            PATRON_GRUPO_GENERICO.search(clean)):
+            return True
+        
+        return False
+    
+    def _has_room(self, text: str) -> bool:
+        """
+        Detecta si el texto YA contiene un aula.
+        
+        Returns:
+            True si el texto contiene un aula, False en caso contrario
+        """
+        from core.extraccion.newhorarios.constants import PATRON_AULA_COMBINADO
+        
+        if not text:
+            return False
+        return PATRON_AULA_COMBINADO.search(text) is not None
 
     def _clean_mencion(self, txt: str) -> Optional[str]:
         if not txt:

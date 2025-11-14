@@ -11,7 +11,7 @@
       "sesiones": [
         {
           "asignatura": "Álgebra Lineal",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 4",
           "dia": "MIÉRCOLES",
           "hora_inicio": "09:30",
           "hora_fin": "11:30",
@@ -20,7 +20,7 @@
         },
         {
           "asignatura": "Cálculo Diferencial",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 4",
           "dia": "VIERNES",
           "hora_inicio": "09:30",
           "hora_fin": "11:30",
@@ -29,36 +29,9 @@
         },
         {
           "asignatura": "Cálculo Diferencial",
-          "aula": "DESCONOCIDA",
-          "dia": "LUNES",
-          "hora_inicio": "10:30",
-          "hora_fin": "12:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "Álgebra Lineal",
-          "aula": "AULA 4",
-          "dia": "MIÉRCOLES",
-          "hora_inicio": "10:30",
-          "hora_fin": "11:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "Cálculo Diferencial",
-          "aula": "AULA 4",
-          "dia": "VIERNES",
-          "hora_inicio": "10:30",
-          "hora_fin": "11:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "Cálculo Diferencial",
           "aula": "AULA 4",
           "dia": "LUNES",
-          "hora_inicio": "11:30",
+          "hora_inicio": "10:30",
           "hora_fin": "12:30",
           "tipo": "TEORÍA",
           "grupo": null
@@ -74,7 +47,7 @@
         },
         {
           "asignatura": "Álgebra Lineal",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 4",
           "dia": "VIERNES",
           "hora_inicio": "11:30",
           "hora_fin": "13:30",
@@ -83,28 +56,10 @@
         },
         {
           "asignatura": "Álgebra Lineal",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 4",
           "dia": "LUNES",
           "hora_inicio": "12:30",
           "hora_fin": "14:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "Álgebra Lineal",
-          "aula": "AULA 4",
-          "dia": "VIERNES",
-          "hora_inicio": "12:30",
-          "hora_fin": "14:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "Álgebra Lineal",
-          "aula": "AULA 4",
-          "dia": "LUNES",
-          "hora_inicio": "13:30",
-          "hora_fin": "15:30",
           "tipo": "TEORÍA",
           "grupo": null
         },
@@ -736,7 +691,7 @@
       "sesiones": [
         {
           "asignatura": "Radiofísica",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 12",
           "dia": "MIÉRCOLES",
           "hora_inicio": "10:30",
           "hora_fin": "13:30",
@@ -744,17 +699,8 @@
           "grupo": null
         },
         {
-          "asignatura": "Radiofísica",
-          "aula": "AULA 12",
-          "dia": "MIÉRCOLES",
-          "hora_inicio": "12:30",
-          "hora_fin": "15:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
           "asignatura": "F. tierra",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 12",
           "dia": "LUNES",
           "hora_inicio": "13:30",
           "hora_fin": "16:30",
@@ -764,15 +710,6 @@
         {
           "asignatura": "F. tierra",
           "aula": "AULA 12",
-          "dia": "LUNES",
-          "hora_inicio": "15:30",
-          "hora_fin": "17:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "F. tierra",
-          "aula": "DESCONOCIDA",
           "dia": "MARTES",
           "hora_inicio": "17:30",
           "hora_fin": "19:30",
@@ -781,28 +718,10 @@
         },
         {
           "asignatura": "F. tierra",
-          "aula": "DESCONOCIDA",
+          "aula": "AULA 12",
           "dia": "VIERNES",
           "hora_inicio": "17:30",
           "hora_fin": "19:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "F. tierra",
-          "aula": "AULA 12",
-          "dia": "MARTES",
-          "hora_inicio": "18:30",
-          "hora_fin": "20:30",
-          "tipo": "TEORÍA",
-          "grupo": null
-        },
-        {
-          "asignatura": "F. tierra",
-          "aula": "AULA 12",
-          "dia": "VIERNES",
-          "hora_inicio": "18:30",
-          "hora_fin": "20:30",
           "tipo": "TEORÍA",
           "grupo": null
         }
@@ -812,16 +731,16 @@
   "parsing_metadata": {
     "parser_name": "HorarioParser",
     "parser_version": "0.1.0",
-    "parse_timestamp": "2025-11-13T19:31:18.767947Z",
-    "parse_duration": 0.011464595794677734,
+    "parse_timestamp": "2025-11-14T13:40:26.520351Z",
+    "parse_duration": 0.007714509963989258,
     "warnings": [],
     "errors": []
   },
   "extraction_metadata": {
     "quality": "good",
-    "confidence": 0.7356581196581196,
+    "confidence": 0.7152136752136752,
     "status": "completed",
-    "processing_time_seconds": 1.427046537399292,
+    "processing_time_seconds": 1.174379825592041,
     "page_count": 5,
     "file_size_mb": 0.12938213348388672,
     "has_embedded_text": true,
