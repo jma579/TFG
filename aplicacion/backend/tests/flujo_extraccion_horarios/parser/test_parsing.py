@@ -29,7 +29,7 @@ from core.extraccion.common.entities import ParserError
 #  CONFIGURACIÓN
 # ============================================================
 
-DEFAULT_PDF = r"D:\TFG\Horarios\Grado\1C_GRADO FISICA_v6.pdf"
+DEFAULT_PDF = r"D:\TFG\Horarios\Grado\1C_INGENIERIA INFORMATICA_v6.pdf"
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
 
 PARSER_CONFIG = {

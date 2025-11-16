@@ -17,7 +17,8 @@ from core.extraccion.newhorarios.constants import (
 	PATRON_GRUPO_PL, PATRON_GRUPO_PA, PATRON_GRUPO_GENERICO,
 	TIPO_PRACTICA_AULA, TIPO_PRACTICA, PATRON_AULA_COMBINADO,
 	TIPO_TEORIA, DURACION_MAXIMA_SESION, DURACION_DEFAULT_ULTIMA_SESION,
-	DURACION_MINIMA_SESION, PATRON_PERIODO
+	DURACION_MINIMA_SESION, PATRON_PERIODO,
+	PATRON_PREPOSICION_PEGADA_Y, PATRON_PREPOSICION_PEGADA_GENERAL,
 )
 from core.extraccion.newhorarios.entities import (
 	Horario,
@@ -413,6 +414,9 @@ class HorarioParser:
 		"""
 		Limpia y normaliza texto extraído de celdas.
 		
+		MEJORAS v2:
+		- Maneja preposiciones pegadas ("yrelatividad" → "y relatividad")
+		- Maneja palabras compuestas ("demateriales" → "de materiales")
 		- Añade espacios antes de mayúsculas precedidas de minúsculas
 		- Normaliza múltiples espacios a uno solo
 		- Elimina espacios al inicio/final
@@ -426,14 +430,21 @@ class HorarioParser:
 		Examples:
 			"MecánicaClásica yrelatividad" → "Mecánica Clásica y relatividad"
 			"Física  Básica   I" → "Física Básica I"
+			"Estructurade Moléculas" → "Estructura de Moléculas"
 		"""
 		if not texto:
 			return ""
 		
-		# Añadir espacio antes de mayúscula precedida de minúscula
+		# 1. Preposiciones pegadas - caso "y": "yrelatividad" → "y relatividad"
+		texto = PATRON_PREPOSICION_PEGADA_Y.sub(r'\1 \2 \3', texto)
+		
+		# 2. Preposiciones pegadas - general: "demateriales" → "de materiales"
+		texto = PATRON_PREPOSICION_PEGADA_GENERAL.sub(r'\1 \2 \3', texto)
+		
+		# 3. Añadir espacio antes de mayúscula precedida de minúscula
 		texto = PATRON_MAYUSCULA_SIN_ESPACIO.sub(r'\1 \2', texto)
 		
-		# Normalizar múltiples espacios
+		# 4. Normalizar múltiples espacios
 		texto = PATRON_NORMALIZAR_ESPACIOS.sub(' ', texto)
 		
 		return texto.strip()
@@ -500,6 +511,9 @@ class HorarioParser:
 		"""
 		Parsea el contenido de una celda y extrae sus componentes.
 		
+		MEJORAS v2:
+		- Filtra fragmentos muy cortos que son metadata/cabeceras
+		
 		Estructura esperada (por líneas):
 			Línea 1: Asignatura
 			Línea 2: Aula (opcional)
@@ -510,15 +524,6 @@ class HorarioParser:
 			
 		Returns:
 			Diccionario con claves: 'asignatura', 'aula', 'tipo', 'grupo'
-			
-		Examples:
-			"Cálculo Diferencial\\nAULA 4" → 
-				{'asignatura': 'Cálculo Diferencial', 'aula': 'AULA 4', 
-				'tipo': 'TEORÍA', 'grupo': None}
-			
-			"Física Básica I\\nLAB\\nPL1" →
-				{'asignatura': 'Física Básica I', 'aula': 'LAB',
-				'tipo': 'PRÁCTICA', 'grupo': 'PL1'}
 		"""
 		if not contenido or not contenido.strip():
 			return {
@@ -544,6 +549,15 @@ class HorarioParser:
 		aula = None
 		grupo = None
 		tipo = None
+		
+		# Lista de términos a filtrar (metadata/cabeceras)
+		TERMINOS_INVALIDOS = {
+			'LUNES', 'MARTES', 'MIÉRCOLES', 'MIERCOLES', 'JUEVES', 'VIERNES',
+			'LUN', 'MAR', 'MIE', 'MIÉ', 'JUE', 'VIE',
+			'CURSO', 'PRIMER', 'SEGUNDO', 'TERCER', 'CUARTO', 'QUINTO',
+			'PRIM', 'SEG', 'ER', 'UATRIMESTRE', 'CUATRIMESTRE',
+			'GRADO', 'DOBLE'
+		}
 		
 		# Procesar cada línea
 		for linea in lineas:
@@ -572,9 +586,19 @@ class HorarioParser:
 				aula = match_aula.group(0).strip()
 				continue
 			
-			# 3. Si no es grupo ni aula, asumimos que es asignatura
-			# (tomamos la primera línea que no sea grupo/aula)
+			# 3. Si no es grupo ni aula, verificar si es asignatura válida
 			if not asignatura:
+				# ✅ FILTRO: Descartar fragmentos muy cortos que son metadata
+				linea_upper = linea.upper().strip()
+				
+				# Descartar si es término inválido
+				if linea_upper in TERMINOS_INVALIDOS:
+					continue
+				
+				# Descartar si es muy corto (< 4 chars) Y no parece asignatura
+				if len(linea) < 4 and not linea[0].isupper():
+					continue
+				
 				asignatura = linea
 		
 		# Si no se detectó tipo, asumimos TEORÍA
@@ -783,26 +807,19 @@ class HorarioParser:
 			hora_inicio.hour * 60 - hora_inicio.minute
 		)
 		
+		# ✅ CORRECCIÓN: Warning SIN parámetro 'context'
 		if duracion_minutos < DURACION_MINIMA_SESION:
 			self.warnings.append(Warning(
-				message=f"Sesión con duración menor a {DURACION_MINIMA_SESION} min: {duracion_minutos} min",
-				context={
-					'asignatura': asignatura,
-					'dia': dia,
-					'hora_inicio': str(hora_inicio),
-					'hora_fin': str(hora_fin)
-				}
+				message=f"Sesión con duración menor a {DURACION_MINIMA_SESION} min: {duracion_minutos} min - "
+						f"Asignatura: {asignatura}, Día: {dia}, {hora_inicio}-{hora_fin}",
+				severity='low'
 			))
 		
 		if duracion_minutos > DURACION_MAXIMA_SESION:
 			self.warnings.append(Warning(
-				message=f"Sesión con duración mayor a {DURACION_MAXIMA_SESION} min: {duracion_minutos} min",
-				context={
-					'asignatura': asignatura,
-					'dia': dia,
-					'hora_inicio': str(hora_inicio),
-					'hora_fin': str(hora_fin)
-				}
+				message=f"Sesión con duración mayor a {DURACION_MAXIMA_SESION} min: {duracion_minutos} min - "
+						f"Asignatura: {asignatura}, Día: {dia}, {hora_inicio}-{hora_fin}",
+				severity='medium'
 			))
 		
 		# Crear sesión

@@ -460,7 +460,9 @@ class HorarioExtractor:
         Procesa una tabla detectada por pdfplumber (ruta 'por líneas'):
         - Detecta cabeceras de días, filas de horas y celdas.
         - Limpieza: horas sueltas, notas, asteriscos, fusiones entre columnas.
+        - MEJORA: Corrige nombres multilínea y texto pegado.
         - Compacta filas duplicadas por hora y valida orden temporal.
+        - Fusiona asignaturas con aulas/grupos en celdas consecutivas.
         - Metadata tolerante (no lanza al faltar curso).
         """
         data = table.extract()
@@ -504,7 +506,9 @@ class HorarioExtractor:
             row_vals: List[Optional[str]] = []
             for c in cols:
                 raw = (c or "").strip()
-                clean = self._strip_spurious_hour(raw) if raw else None
+                # NUEVA LIMPIEZA: Corregir nombres multilínea ANTES de otras limpiezas
+                clean = self._fix_multiline_names(raw) if raw else None
+                clean = self._strip_spurious_hour(clean) if clean else None
                 clean = self._remove_inline_hours(clean) if clean else None
                 clean = self._strip_inline_asterisk_notes(clean) if clean else None
                 row_vals.append(clean)
@@ -519,11 +523,10 @@ class HorarioExtractor:
         for i in range(len(celdas)):
             for j in range(len(celdas[i])):
                 celdas[i][j] = self._demote_footnote(celdas[i][j])
-        # si ya tienes _clear_header_labels_early_rows, úsalo; si no, mantén el antiguo
-        if hasattr(self, "_clear_header_labels_early_rows"):
-            self._clear_header_labels_early_rows(day_columns, celdas, upto_rows=2)
-        else:
-            self._clear_header_labels_in_first_row(day_columns, celdas)
+        
+        # ✅ CORRECCIÓN: Eliminar condicional y usar directamente la función con valor aumentado
+        self._clear_header_labels_early_rows(day_columns, celdas, upto_rows=5)  # Aumentado de 2 a 5
+        
         celdas = self._blank_footnote_rows(celdas)
 
         # 6) Compactar por hora y validar orden temporal
@@ -827,16 +830,69 @@ class HorarioExtractor:
                 new_rows[-1] = merged
 
         return new_times, new_rows
+    
+    def _fix_multiline_names(self, text: str) -> Optional[str]:
+        """
+        Corrige nombres de asignaturas fragmentados en múltiples líneas.
+        
+        CORRECCIÓN v2:
+        - NO procesa "en" para evitar fragmentar "Diferencial", "General", etc.
+        
+        Casos a corregir:
+        1. "Estructura de\nMoléculas y Sólidos" → "Estructura de Moléculas y Sólidos"
+        2. "Mecánica Clásica\ny relatividad" → "Mecánica Clásica y relatividad"
+        3. "MecánicaClásica yrelatividad" → "Mecánica Clásica y relatividad"
+        4. "Física\nAtómica y Molecular" → "Física Atómica y Molecular"
+        
+        Args:
+            text: Texto potencialmente fragmentado
+            
+        Returns:
+            Texto corregido o None si está vacío
+        """
+        if not text:
+            return None
+        
+        # 1. Unir líneas que son continuación de nombre
+        # Patrón: minúscula + \n + Mayúscula (ej: "Clásica\nY")
+        text = re.sub(r'([a-záéíóúñ])\n([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+        
+        # 2. Caso específico: preposiciones al final de línea
+        # "Estructura de\nMoléculas" → "Estructura de Moléculas"
+        # IMPORTANTE: NO incluir "en" para evitar "Difer-en-cial"
+        text = re.sub(r'\b(de|y|con|para)\s*\n', r'\1 ', text, flags=re.IGNORECASE)
+        
+        # 3. Caso específico: preposiciones al inicio de línea
+        # "Física\ny Molecular" → "Física y Molecular"
+        text = re.sub(r'\n\s*(de|y|con|para)\b', r' \1', text, flags=re.IGNORECASE)
+        
+        # 4. Unir palabras pegadas (sin espacio)
+        # "MecánicaClásica" → "Mecánica Clásica"
+        text = re.sub(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+        
+        # 5. Preposiciones pegadas: "yrelatividad" → "y relatividad"
+        text = re.sub(r'([a-záéíóúñ])([yY])([A-ZÁÉÍÓÚÑ])', r'\1 \2 \3', text)
+        text = re.sub(r'([a-záéíóúñ])(de|con|para)([A-ZÁÉÍÓÚÑ])', r'\1 \2 \3', text, flags=re.IGNORECASE)
+        
+        # 6. Normalizar múltiples espacios
+        text = re.sub(r'\s{2,}', ' ', text)
+        
+        return text.strip() or None
 
     def _merge_subject_and_room_cells(self, celdas: List[List[Optional[str]]]) -> List[List[Optional[str]]]:
         """
         Post-procesa celdas para fusionar asignaturas con sus aulas/grupos.
         
+        MEJORAS v2:
+        - Condiciones de fusión menos restrictivas
+        - Mejor detección de fragmentos inválidos
+        - Logging detallado para debugging
+        
         Estrategia:
         1. Iterar por columna (día) para mantener contexto vertical
         2. Para cada celda con contenido SIN aula:
-           - Buscar en fila N+1 si tiene solo aula → fusionar
-           - Buscar en fila N+2 si tiene solo grupo → fusionar también
+        - Buscar en fila N+1 si tiene solo aula → fusionar
+        - Buscar en fila N+2 si tiene solo grupo → fusionar también
         3. Vaciar celdas fusionadas para evitar duplicados
         
         Args:
@@ -845,7 +901,7 @@ class HorarioExtractor:
         Returns:
             Matriz de celdas con fusiones aplicadas
         """
-        from core.extraccion.newhorarios.constants import MIN_SUBJECT_LENGTH
+        from core.extraccion.newhorarios.constants import MIN_FRAGMENT_LENGTH
         
         if not celdas:
             return celdas
@@ -853,51 +909,65 @@ class HorarioExtractor:
         num_rows = len(celdas)
         num_cols = len(celdas[0]) if celdas else 0
         
+        fusiones_aplicadas = 0
+        
         # Procesar por COLUMNA (día) para mantener contexto temporal
         for col in range(num_cols):
             row = 0
             while row < num_rows - 1:  # -1 porque miramos row+1
                 current_cell = celdas[row][col]
                 
-                # Saltar si celda vacía o ya procesada
-                if not current_cell:
+                # Saltar si celda vacía
+                if not current_cell or not current_cell.strip():
                     row += 1
                     continue
                 
-                # Si la celda actual YA tiene aula, no fusionar
-                if self._has_room(current_cell):
+                # Saltar si es un fragmento muy corto sin sentido ("de", "y", "en")
+                if len(current_cell.strip()) < MIN_FRAGMENT_LENGTH:
                     row += 1
                     continue
                 
-                # Verificar si es una asignatura (texto largo sin aula)
-                if len(current_cell.strip()) < MIN_SUBJECT_LENGTH:
+                # Saltar si la celda ES solo aula o solo grupo (no hay nada que fusionar)
+                if self._is_only_room(current_cell) or self._is_only_group(current_cell):
                     row += 1
                     continue
                 
-                # Buscar aula en fila siguiente
-                next_cell = celdas[row + 1][col] if row + 1 < num_rows else None
+                # Si la celda actual YA tiene aula, verificar si necesita fusión adicional
+                current_has_room = self._has_room(current_cell)
                 
-                if next_cell and self._is_only_room(next_cell):
-                    # FUSIÓN ENCONTRADA
-                    merged_text = f"{current_cell}\n{next_cell}"
+                # Buscar aula en fila siguiente (solo si no tiene aula aún)
+                if not current_has_room:
+                    next_cell = celdas[row + 1][col] if row + 1 < num_rows else None
                     
-                    # Buscar grupo en fila N+2 si existe
-                    if row + 2 < num_rows:
-                        third_cell = celdas[row + 2][col]
-                        if third_cell and self._is_only_group(third_cell):
-                            merged_text += f"\n{third_cell}"
-                            celdas[row + 2][col] = None  # Vaciar fila N+2
-                    
-                    # Aplicar fusión
-                    celdas[row][col] = merged_text
-                    celdas[row + 1][col] = None  # Vaciar fila N+1
-                    
-                    self.logger.debug(
-                        f"Fusión aplicada en col={col}, row={row}: "
-                        f"'{current_cell[:30]}...' + '{next_cell}'"
-                    )
+                    if next_cell and self._is_only_room(next_cell):
+                        # FUSIÓN ENCONTRADA
+                        merged_text = f"{current_cell}\n{next_cell}"
+                        
+                        # Buscar grupo en fila N+2 si existe
+                        if row + 2 < num_rows:
+                            third_cell = celdas[row + 2][col]
+                            if third_cell and self._is_only_group(third_cell):
+                                merged_text += f"\n{third_cell}"
+                                celdas[row + 2][col] = None  # Vaciar fila N+2
+                                self.logger.debug(
+                                    f"Fusión TRIPLE aplicada en col={col}, row={row}: "
+                                    f"'{current_cell[:20]}...' + '{next_cell}' + '{third_cell}'"
+                                )
+                        
+                        # Aplicar fusión
+                        celdas[row][col] = merged_text
+                        celdas[row + 1][col] = None  # Vaciar fila N+1
+                        fusiones_aplicadas += 1
+                        
+                        self.logger.debug(
+                            f"Fusión aplicada en col={col}, row={row}: "
+                            f"'{current_cell[:30]}...' + '{next_cell}'"
+                        )
                 
                 row += 1
+        
+        if fusiones_aplicadas > 0:
+            self.logger.info(f"Total de fusiones aplicadas: {fusiones_aplicadas}")
         
         return celdas
 
@@ -994,6 +1064,10 @@ class HorarioExtractor:
         """
         Detecta si una celda contiene SOLO un aula.
         
+        MEJORAS v2:
+        - Mayor tolerancia en cobertura (60%)
+        - Manejo de casos como "AULA 4 bis"
+        
         Criterios:
         1. Coincide con PATRON_AULA_COMBINADO
         2. NO contiene texto adicional significativo
@@ -1021,11 +1095,19 @@ class HorarioExtractor:
         # Si hay coincidencia, verificar que sea la mayor parte del texto
         if match:
             matched_text = match.group(0)
-            # El aula debe ser al menos MIN_ROOM_PATTERN_COVERAGE del texto
-            return len(matched_text) / len(clean) >= MIN_ROOM_PATTERN_COVERAGE
+            coverage = len(matched_text) / len(clean)
+            
+            # Logging para debugging
+            if coverage < MIN_ROOM_PATTERN_COVERAGE:
+                self.logger.debug(
+                    f"Aula rechazada por baja cobertura ({coverage:.0%}): '{clean}'"
+                )
+            
+            return coverage >= MIN_ROOM_PATTERN_COVERAGE
         
         return False
-    
+
+
     def _is_only_group(self, text: str) -> bool:
         """
         Detecta si una celda contiene SOLO un grupo (PL1, PA2, etc).
@@ -1055,10 +1137,13 @@ class HorarioExtractor:
         if (PATRON_GRUPO_PL.search(clean) or 
             PATRON_GRUPO_PA.search(clean) or
             PATRON_GRUPO_GENERICO.search(clean)):
-            return True
+            # Verificar que NO tenga aula mezclada
+            if not self._has_room(clean):
+                return True
         
         return False
-    
+
+
     def _has_room(self, text: str) -> bool:
         """
         Detecta si el texto YA contiene un aula.

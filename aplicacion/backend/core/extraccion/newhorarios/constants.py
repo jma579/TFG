@@ -116,7 +116,8 @@ PATRONES_AULAS = {
         r'Seminario\s+de\s+matemáticas'
     ],
     'otros': [
-        r'LSC\s*\d+'
+        r'LSC\s*\d+',
+        r'ATC'
     ]
 }
 
@@ -138,6 +139,10 @@ CARACTERES_STRIP_TITULO = ' -——'
 
 # Patrón para limpieza de texto (añadir espacio antes de mayúscula precedida de minúscula)
 PATRON_MAYUSCULA_SIN_ESPACIO = re.compile(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])')
+
+# Patrón para preposiciones pegadas
+PATRON_PREPOSICION_PEGADA_Y = re.compile(r'([a-záéíóúñ])([yY])([A-ZÁÉÍÓÚÑ])')
+PATRON_PREPOSICION_PEGADA_GENERAL = re.compile(r'([a-záéíóúñ])(de|en|con|para)([A-ZÁÉÍÓÚÑ])', re.IGNORECASE)
 
 # Tipos de sesión
 TIPO_TEORIA = 'TEORÍA'
@@ -185,13 +190,12 @@ DEFAULT_PARSER_CONFIG = {
 # CONSTANTES PARA FUSIÓN DE CELDAS (EXTRACTOR)
 # =============================================================================
 
-# Longitud mínima de texto para considerar como asignatura válida
-MIN_SUBJECT_LENGTH = 5
+# Longitud mínima para considerar texto válido (no fragmentos como "de", "y")
+MIN_FRAGMENT_LENGTH = 3
 
 # Longitud máxima para considerar como "solo aula" o "solo grupo"
-MAX_ROOM_LENGTH = 20
-MAX_GROUP_LENGTH = 10
+MAX_ROOM_LENGTH = 25  # Aumentado para "AULA 4 bis", etc.
+MAX_GROUP_LENGTH = 15
 
-# Porcentaje mínimo de coincidencia con patrón de aula
-MIN_ROOM_PATTERN_COVERAGE = 0.7  # 70% del texto debe ser el aula
-
+# Porcentaje mínimo de coincidencia con patrón de aula (bajado para mayor tolerancia)
+MIN_ROOM_PATTERN_COVERAGE = 0.6  # 60% del texto debe ser el aula
