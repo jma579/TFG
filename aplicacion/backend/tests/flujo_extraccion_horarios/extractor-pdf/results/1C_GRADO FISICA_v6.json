@@ -1,0 +1,509 @@
+{
+  "metadata": {
+    "source_file": "1C_GRADO FISICA_v6.pdf",
+    "extraction_date": "2025-11-07T17:13:52.812518",
+    "titulo": "GRADO EN FÍSICA PRIMER CUATRIMESTRE",
+    "status": "completed",
+    "quality": "good",
+    "processing_time": 1.030102014541626,
+    "warnings": []
+  },
+  "tablas": [
+    {
+      "curso": "1º",
+      "mencion": null,
+      "pagina": 0,
+      "dias": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "horas": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30"
+      ],
+      "celdas": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          "Álgebra Lineal",
+          null,
+          "Cálculo Diferencial"
+        ],
+        [
+          "Cálculo Diferencial",
+          null,
+          "AULA 4",
+          null,
+          "AULA 4"
+        ],
+        [
+          "AULA 4",
+          null,
+          "Cálculo Diferencial\nAULA 4",
+          null,
+          "Álgebra Lineal"
+        ],
+        [
+          "Álgebra Lineal",
+          null,
+          null,
+          null,
+          "AULA 4"
+        ],
+        [
+          "AULA 4",
+          null,
+          "Física Básica I\nAULA 4",
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "curso": "1º",
+      "mencion": null,
+      "pagina": 1,
+      "dias": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "horas": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:00",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "celdas": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          "Electromagnetismo I\nAULA 4",
+          null,
+          null,
+          null
+        ],
+        [
+          "Mecánica Clásica yrelatividad",
+          null,
+          "Mecánica Clásica y relatividad",
+          "AULA 4",
+          null
+        ],
+        [
+          null,
+          "Met. Mat I:Ecuaciones Dif.\nAULA 4",
+          null,
+          "Met. Mat I: Ecuaciones\nAULA 4",
+          null
+        ],
+        [
+          "Herramientas\nComputacionales",
+          null,
+          "Electromagnetismo I\nAULA 4",
+          null,
+          null
+        ],
+        [
+          null,
+          "Herramientas\nComputacionales",
+          null,
+          "Termodinámica\nAULA 4",
+          null
+        ],
+        [
+          "AULA 4",
+          null,
+          "AULA 4",
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "curso": "1º",
+      "mencion": null,
+      "pagina": 2,
+      "dias": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "horas": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "celdas": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          "Métodos Numéricos\nAULA 7",
+          "Métodos Numéricos",
+          "Métodos Numéricos",
+          "Física Estadística\nAULA 2"
+        ],
+        [
+          "Física Estadística",
+          "Física Atómica y Molecular",
+          "AULA 7",
+          "AULA 7\nFísica Atómica y",
+          "Estructura de Moléculas y"
+        ],
+        [
+          "AULA 2\nEstructura de",
+          "AULA 2\nEstructura de Moléculas y Sólidos",
+          "Física Atómica y Molecular",
+          "AULA 2\nEstructura de Moléculas",
+          "AULA 2\nFísica Atómica y Molecular"
+        ],
+        [
+          "AULA 2\nElectromagnetismo",
+          "AULA 2\nElectromagnetismo y Óptica",
+          "AULA 2\nElectromagnetismo y Óptica",
+          "AULA 2\nFísica Estadística",
+          "AULA 2\nElectromagnetismo y"
+        ],
+        [
+          "Aula 2",
+          "Aula 2",
+          "Aula 2",
+          "AULA 2",
+          "Aula 2"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "II PL1",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "curso": "1º",
+      "mencion": "MENCIÓN EN FÍSICA FUNDAMENTAL",
+      "pagina": 3,
+      "dias": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "horas": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "11:30",
+        "12:30",
+        "13:30",
+        "14:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30",
+        "19:30"
+      ],
+      "celdas": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "Advanced\nExperimen"
+        ],
+        [
+          null,
+          "Advanced Experimental",
+          "Fisica de Techniques materiales",
+          null,
+          "Techniques\nPL 2\nAULA 5"
+        ],
+        [
+          null,
+          "AULA 6",
+          "PL Computatio PL1 AULA n\nPL1",
+          null,
+          "Fisica demateriales"
+        ],
+        [
+          "Advanced\nComputation\nAULA 8",
+          "de\n5",
+          null,
+          null,
+          "Fisica de PL2 materiales\nAULA 5"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "Relatividad",
+          "Mecánica",
+          null,
+          "Mecánica cuántica",
+          "Mecánica cuántica"
+        ],
+        [
+          "AULA Mecánica",
+          "AULA 8\nFísica de partículas",
+          "Astrofísica\nAULA 8",
+          "AULA 8\nFísica de partículas elementales",
+          "AULA 8\nFísica de partículas"
+        ],
+        [
+          "AULA",
+          "AULA 8\nFotónica",
+          null,
+          "AULA 8\nRelatividad General",
+          "AULA 8\nFotónica"
+        ],
+        [
+          "Astrofísica\nAULA 8",
+          "AULA 8",
+          null,
+          "AULA 8",
+          "AULA 8\nRelatividad General"
+        ],
+        [
+          null,
+          "AULA 8",
+          "PL Advanced Computation\nAULA PL2\nLSC 2",
+          "Fotónica\nAULA 8 Grupo",
+          "AULA 8"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "curso": "1º",
+      "mencion": null,
+      "pagina": 4,
+      "dias": [
+        "LUNES",
+        "MARTES",
+        "MIÉRCOLES",
+        "JUEVES",
+        "VIERNES"
+      ],
+      "horas": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "12:30",
+        "13:30",
+        "15:30",
+        "16:30",
+        "17:30",
+        "18:30"
+      ],
+      "celdas": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          "Radiofísica",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          "AULA 12",
+          null,
+          null
+        ],
+        [
+          "F. tierra",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AULA 12",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          "F. tierra",
+          null,
+          null,
+          "F. tierra"
+        ],
+        [
+          null,
+          "AULA 12",
+          null,
+          null,
+          "AULA 12"
+        ]
+      ]
+    }
+  ]
+}

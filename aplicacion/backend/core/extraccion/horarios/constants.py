@@ -1,126 +1,266 @@
 import re
 
-# --- Config por defecto (tuning, editable en runtime) ---
+##########################################
+## CONSTANTES DEL EXTRACTOR DE HORARIOS ##
+##########################################
+
+# Constantes para detección de estructura
+TABLA_CONFIG = {
+    'min_columnas': 5,  # L-V
+    'min_filas': 6,    # Mínimo de franjas horarias
+    'tolerancia_alineacion': 5.0  # Pixels/puntos de tolerancia para alineación
+}
+
+# Patrones de identificación
+PATRONES = {
+    'titulo': r'(?:DOBLE )?GRADO\s+EN\s+.+?(?:PRIMER|SEGUNDO)\s+CUATRIMESTRE',  # DOTALL/IGNORECASE en búsqueda
+    'curso': r'\b[1-5]º\s*(?:CURSO)?\b',
+    'mencion': r'MENCI[ÓO]N\s+EN\s+[A-ZÁÉÍÓÚÑ\s]+',
+    'hora': r'\b(?:[01]?\d|2[0-3])[:.]?[0-5]\d\b'
+}
+# Hora: admite 08:30, 8:30, 0830, 08.30
+PATRON_HORA = r'\b(?:[01]?\d|2[0-3])[:.]?[0-5]\d\b'
+RX_HORA = re.compile(PATRON_HORA, re.IGNORECASE)
+
+# Curso: 1º, 2º, ..., 5º (opcional "CURSO"); tolera espacio antes del "º"
+PATRON_CURSO = r'\b[1-5]\s*º\s*(?:CURSO)?\b'
+RX_CURSO = re.compile(PATRON_CURSO, re.IGNORECASE)
+
+# Mención: "MENCIÓN EN <TEXTO>"
+PATRON_MENCION = r'MENCI[ÓO]N\s+EN\s+[A-ZÁÉÍÓÚÑ\s]+'
+RX_MENCION = re.compile(PATRON_MENCION, re.IGNORECASE)
+
+# Etiquetas esperadas
+DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
+HORAS_VALIDAS = [f"{h:02d}:{m:02d}" for h in range(8,20) for m in (0,30)]
+
+# Configuración por defecto del extractor
 DEFAULT_EXTRACTOR_CONFIG = {
-    "prefer_lattice": True,
-    "lattice_opts": {"flavor": "lattice"},
-    "stream_opts": {"flavor": "stream"},
-    "table_areas_by_page": {},   # {1: ["x1,y1,x2,y2"], ...}
-    "columns_by_page": {},       # {1: ["x_hora, x_lunes, x_martes, x_miércoles, x_jueves, x_viernes"], ...}
-    "max_header_scan_rows": 5,
-    "window_strict": True,
+    'max_file_size_mb': 15,
+    'min_tablas_por_pagina': 1,
+    'max_tablas_por_pagina': 2,
+    'log_level': 'INFO',
+    'tabla_config': TABLA_CONFIG
 }
 
+# Configuración de detección de tablas para pdfplumber
+PDFPLUMBER_TABLE_SETTINGS_TEXT = {
+    "vertical_strategy": "text",
+    "horizontal_strategy": "text",
+    "intersection_y_tolerance": 3,
+    "intersection_x_tolerance": 3,
+    "edge_min_length": 3,
+    "min_words_vertical": 3,
+    "min_words_horizontal": 2,
+    "snap_tolerance": 3,
+    "explicit_vertical_lines": [],
+    "explicit_horizontal_lines": []
+}
+PDFPLUMBER_TABLE_SETTINGS_LINES = {
+    "vertical_strategy": "lines",
+    "horizontal_strategy": "lines",
+    "intersection_x_tolerance": 5,
+    "intersection_y_tolerance": 5,
+    "snap_tolerance": 3,
+    "min_words_vertical": 0,
+    "min_words_horizontal": 0,
+}
+
+# Mapeo de días y sus abreviaturas
+DAYS_MAP = {
+    'LUN': 'LUNES',
+    'MAR': 'MARTES', 
+    'MIE': 'MIÉRCOLES',
+    'MIÉ': 'MIÉRCOLES',
+    'JUE': 'JUEVES',
+    'VIE': 'VIERNES'
+}
+
+# Validación temporal
+TIME_CONFIG = {
+    'min_hour': 0,
+    'max_hour': 23,
+    'min_minute': 0,
+    'max_minute': 59,
+    'min_franjas': 6,  # era 8
+}
+
+# Caracteres válidos para parsing de tiempo
+VALID_TIME_CHARS = set('0123456789.:')
+
+# Pesos para evaluación de calidad de tablas
+TABLE_QUALITY_WEIGHTS = {
+    'days_structure': 0.3,     # 30% - Estructura de días completa
+    'time_structure': 0.3,     # 30% - Estructura de horas correcta
+    'content_density': 0.4     # 40% - Densidad de contenido en celdas
+}
+
+
+#===================================#
+# CONSTANTES DEL PARSER DE HORARIOS #
+#===================================#
+
+# Patrones para identificación de aulas
+PATRONES_AULAS = {
+    'aulas': [
+        r'AULA\s+\d+',
+        r'Aula\s+\d+'
+    ],
+    'laboratorios': [
+        r'LAB\s+\d+',
+        r'LAB'
+    ],
+    'seminarios': [
+        r'Seminario\s+de\s+informática',
+        r'Seminario\s+de\s+física',
+        r'Seminario\s+de\s+matemáticas'
+    ],
+    'otros': [
+        r'LSC\s*\d+',
+        r'ATC'
+    ]
+}
+
+# Compilar todos los patrones de aulas en un solo regex (para eficiencia)
+_all_aula_patterns = []
+for categoria in PATRONES_AULAS.values():
+    _all_aula_patterns.extend(categoria)
+PATRON_AULA_COMBINADO = re.compile('|'.join(f'({p})' for p in _all_aula_patterns), re.IGNORECASE)
+
+# Patrones para grupos de prácticas
+PATRON_GRUPO_PL = re.compile(r'PL\s*(\d+)', re.IGNORECASE)
+PATRON_GRUPO_PA = re.compile(r'PA\s*(\d+)', re.IGNORECASE)
+PATRON_GRUPO_GENERICO = re.compile(r'Grupo\s+(\d+)', re.IGNORECASE)
+
+# Patrones para parsing de título
+PATRON_PERIODO = re.compile(r'(PRIMER|SEGUNDO)\s+CUATRIMESTRE', re.IGNORECASE)
+PATRON_NORMALIZAR_ESPACIOS = re.compile(r'\s{2,}')
+CARACTERES_STRIP_TITULO = ' -——'
+
+# Patrón para limpieza de texto (añadir espacio antes de mayúscula precedida de minúscula)
+PATRON_MAYUSCULA_SIN_ESPACIO = re.compile(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])')
+
+# Patrón para preposiciones pegadas
+PATRON_PREPOSICION_PEGADA_Y = re.compile(r'([a-záéíóúñ])([yY])([A-ZÁÉÍÓÚÑ])')
+PATRON_PREPOSICION_PEGADA_GENERAL = re.compile(r'([a-záéíóúñ])(de|en|con|para)([A-ZÁÉÍÓÚÑ])', re.IGNORECASE)
+
+# Tipos de sesión
+TIPO_TEORIA = 'TEORÍA'
+TIPO_PRACTICA = 'PRÁCTICA'
+TIPO_PRACTICA_AULA = 'PRÁCTICA_AULA'
+
+# Duraciones (en minutos)
+DURACION_MINIMA_SESION = 60      # 1 hora
+DURACION_MAXIMA_SESION = 180     # 3 horas
+DURACION_DEFAULT_ULTIMA_SESION = 120  # 2 horas (cuando no hay sesión siguiente)
+GRID_STEP_MINUTES = 60           # Salto típico entre franjas horarias
+
+# Configuración base del parser de horarios
 DEFAULT_PARSER_CONFIG = {
-    "version": "0.1.0",
+    'version': '0.1.0',
+
+    # Logging y validación
+    'log_level': 'INFO',
+    'strict_validation': True,
+
+    # Normalización general
+    'normalize_whitespace': True,
+    'unknown_subject_label': 'DESCONOCIDO',
+
+    # Inferencias y suposiciones
+    'infer_teoria_when_no_group': True,  # Si no hay marca de grupo (PL/PA) se asume TEORÍA
+
+    # Rejilla temporal y duraciones (usar constantes globales)
+    'grid_step_minutes': GRID_STEP_MINUTES,
+    'fallback_session_duration_minutes': DURACION_DEFAULT_ULTIMA_SESION,
+    'min_session_duration_minutes': DURACION_MINIMA_SESION,
+    'max_session_duration_minutes': DURACION_MAXIMA_SESION,
+
+    # Heurísticas de postprocesado
+    'postprocess_merge_short_fragments': True,          # unir fragmentos muy cortos
+    'postprocess_max_fragment_len': 5,
+    'postprocess_inherit_aula_same_slot': True,         # heredar aula en misma franja
+    'postprocess_merge_consecutive_same_subject': True, # fusionar sesiones contiguas
+
+    # Formato de salida
+    'time_format': '%H:%M',
 }
 
+# =============================================================================
+# CONSTANTES PARA FUSIÓN DE CELDAS (EXTRACTOR)
+# =============================================================================
 
-# --- Constantes del extractor (invariantes) ---
-TIME_WINDOW = ("08:00", "20:30")
-TIME_WINDOW_START, TIME_WINDOW_END = TIME_WINDOW
-DAYS_CANONICAL = ["LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES"]
-DAY_ALIASES = {"LUNES":"LUNES",
-               "MARTES":"MARTES",
-               "MIERCOLES":"MIÉRCOLES",
-               "MIÉRCOLES":"MIÉRCOLES",
-               "JUEVES":"JUEVES",
-               "VIERNES":"VIERNES"}
-HEADER_DAYS_ORDER = {"LUNES":0,"MARTES":1,"MIÉRCOLES":2,"JUEVES":3,"VIERNES":4}
+# Longitud mínima para considerar texto válido (no fragmentos como "de", "y")
+MIN_FRAGMENT_LENGTH = 3
 
-EXPECTED_DAYS_COUNT = 5
-TIME_FORMAT = "%H:%M"
-TIME_SLOT_MINUTES = 60
-HEADER_MIN_DAY_HITS = 3
-CELL_EMPTY_TOKENS = {"", "-", "—"}
-NORMALIZE_LINE_SEPS = ("\r\n","\r","\n")
+# Longitud máxima para considerar como "solo aula" o "solo grupo"
+MAX_ROOM_LENGTH = 25  # Aumentado para "AULA 4 bis", etc.
+MAX_GROUP_LENGTH = 15
 
-# Patrones regex para detectar la titulacion en el PDF
-TITULACION_PATTERNS = [
-    re.compile(r"Titulaci[oó]n\s*:\s*(.+)", re.IGNORECASE),
-    re.compile(r"Doble\s+Grado\s+en\s+([A-Za-zÁÉÍÓÚÜáéíóúüñÑ\s]+)", re.IGNORECASE),
-    re.compile(r"Máster(?:\s+Universitario)?\s+en\s+([A-Za-zÁÉÍÓÚÜáéíóúüñÑ\s]+)", re.IGNORECASE),
-    re.compile(r"GRADO\s+EN\s+([A-ZÁÉÍÓÚÜÑ ]+)", re.IGNORECASE),
-    re.compile(r"GRADO:?\s*([A-ZÁÉÍÓÚÜÑ ]+)", re.IGNORECASE),
-]
-
-BLACKLIST_TOKENS = ("HORARIO", "CURSO", "AULA")
-TIME_LIKE_REGEX = r"(?:\b[01]?\d|2[0-3])[:h\.]?[0-5]\d\b|\b\d{3,4}\b"
-
-# Penalizaciones para confianza
-CONFIDENCE_ERR_MAX = 0.6
-CONFIDENCE_ERR_STEP = 0.3
-CONFIDENCE_SEVERE_MAX = 0.40
-CONFIDENCE_SEVERE_STEP = 0.08
-CONFIDENCE_MODERATE_MAX = 0.25
-CONFIDENCE_MODERATE_STEP = 0.04
-CONFIDENCE_MINOR_MAX = 0.15
-CONFIDENCE_MINOR_STEP = 0.02
-CONFIDENCE_CELL_COVERAGE = 0.4
-CONFIDENCE_PAGE_COVERAGE = 0.3
-CONFIDENCE_NO_TEXT_PENALTY = 0.05
-
-# Umbrales de calidad
-QUALITY_UNUSABLE_CELL_COVERAGE = 0.1
-QUALITY_UNUSABLE_PAGE_RATIO = 0.2
-QUALITY_POOR_PAGE_RATIO = 0.4
-QUALITY_POOR_CELL_COVERAGE = 0.4
-QUALITY_POOR_SEVERE_PER_PAGE = 2
-QUALITY_ACCEPTABLE_PAGE_RATIO = 0.5
-QUALITY_ACCEPTABLE_CELL_COVERAGE = 0.6
-QUALITY_ACCEPTABLE_SEVERE_PER_PAGE = 1  # <= page_count
-QUALITY_GOOD_PAGE_RATIO = 0.75
-QUALITY_GOOD_CELL_COVERAGE = 0.75
-QUALITY_GOOD_CONFIDENCE = 0.75
-QUALITY_EXCELLENT_PAGE_RATIO = 0.9
-QUALITY_EXCELLENT_CELL_COVERAGE = 0.9
-QUALITY_EXCELLENT_CONFIDENCE = 0.9
+# Porcentaje mínimo de coincidencia con patrón de aula (bajado para mayor tolerancia)
+MIN_ROOM_PATTERN_COVERAGE = 0.6  # 60% del texto debe ser el aula
 
 
-#--- Constantes del parser (invariantes) ---
+# =============================================================================
+# CONSTANTES PARA NORMALIZACIÓN DE HORARIOS
+# =============================================================================
 
-# Normalizacion / splitting
-TOKEN_SPLIT_REGEX = r"[\n,;]+|\s+—\s+|\s+-\s+"
-RE_WHITESPACE_NORM = r"[ \t]+"
-RE_DASHES = r"[–—-]+"
-UNKNOWN_TOKENS = {"", "-", "—"}
+from constants.enums import Periodo, DiaSemana
 
-# Grupos
-RE_GRUPO_PL = r"\bPL\s?\d+\b"
-RE_GRUPO_PA = r"\bPA\s?\d+\b"
-RE_GRUPO_GENERIC = r"\bGrupo\s?\d+\b"
-
-# Aulas
-RE_AULA = r"\b(?:AULA\s?\d+)\b"
-RE_AULA_LAB = r"\bLAB\b"
-RE_AULA_LSC = r"\bLSC\s?\d+\b"
-RE_AULA_SEMINARIO = r"\bSEMINARIO(?:\s+[A-ZÁÉÍÓÚÜÑa-záéíóúüñ]+)?\b"
-RE_AULA_ABBREV = r"\b(?:AULA|LAB|LSC)\b"
-
-# Modalidad (keywords y mapeo canon)
-MODALIDAD_KEYWORDS = {
-    "practicas_laboratorio": {"PL", "LAB", "LSC", "LABORATORIO"},
-    "practicas_aula": {"PA", "PRÁCT.", "PRÁCTICAS", "PRACT."},
-    "teoria": {"TEOR", "TEORÍA", "CLASE", "LECCIÓN"}
-}
-MODALIDAD_CANON_MAP = {
-    "lab": "practicas_laboratorio",
-    "pl": "practicas_laboratorio", 
-    "pa":"practicas_aula", 
+# Mapeo de strings de periodo a enum Periodo
+PERIODO_MAP = {
+    'primer cuatrimestre': Periodo.PRIMER_CUATRIMESTRE,
+    'segundo cuatrimestre': Periodo.SEGUNDO_CUATRIMESTRE,
+    'primer semestre': Periodo.PRIMER_SEMESTRE,
+    'segundo semestre': Periodo.SEGUNDO_SEMESTRE,
+    'anual': Periodo.ANUAL,
 }
 
-# Orden de prioridad de modalidades (de más específica a más general)
-# Se usa para resolver casos donde una misma celda activa varias categorías.
-MODALIDAD_PRIORITY = [
-    "practicas_laboratorio",  # máxima prioridad: laboratorio, LSC, PL
-    "practicas_aula",         # segunda: prácticas en aula o PA
-    "teoria",                 # por defecto, si no hay ninguna otra señal
-]
+# Mapeo de días de la semana a enum DiaSemana
+DIA_SEMANA_MAP = {
+    'lunes': DiaSemana.LUNES,
+    'martes': DiaSemana.MARTES,
+    'miércoles': DiaSemana.MIERCOLES,
+    'miercoles': DiaSemana.MIERCOLES,
+    'jueves': DiaSemana.JUEVES,
+    'viernes': DiaSemana.VIERNES,
+    'sábado': DiaSemana.SABADO,
+    'sabado': DiaSemana.SABADO,
+    'domingo': DiaSemana.DOMINGO,
+}
 
-# Ambigüedades / avisos
-AMBIGUOUS_TOKENS = {"GRUPO", "G.", "P.", "PL", "PA"} 
-AULA_PREFIXES = {"AULA", "LAB", "LSC", "SEMINARIO"} 
+# Palabras clave para inferir tipo de aula
+AULA_KEYWORDS = {
+    'laboratorio': ['lab', 'laboratorio'],
+    'informatica': ['lsc', 'informática', 'informatica'],
+    'seminario': ['semin', 'seminario'],
+    'teorica': ['aula'],
+}
 
-# Asignatura
-RE_PUNCT_TRIM = r"^[\s,;:-]+|[\s,;:-]+$"
-RE_MULTI_SPACE = r"\s{2,}"
+# Patrones para normalización de nombres
+PATRON_NUMERO_ROMANO = {
+    r'\bIi\b': 'II',
+    r'\bIii\b': 'III',
+    r'\bIv\b': 'IV',
+    r'\bVi\b': 'VI',
+    r'\bVii\b': 'VII',
+    r'\bViii\b': 'VIII',
+}
+
+# Mapeo de cursos texto a número
+CURSO_MAP = {
+    'primero': 1, '1º': 1, '1': 1, 'primer': 1,
+    'segundo': 2, '2º': 2, '2': 2,
+    'tercero': 3, '3º': 3, '3': 3, 'tercer': 3,
+    'cuarto': 4, '4º': 4, '4': 4,
+    'quinto': 5, '5º': 5, '5': 5,
+    'sexto': 6, '6º': 6, '6': 6,
+}
+
+# Grupos por defecto cuando no se especifica
+GRUPO_DEFAULT_TEORIA = 'T1'
+GRUPO_DEFAULT_PRACTICA = 'PL1'
+
+# Validaciones de curso
+CURSO_MIN = 1
+CURSO_MAX = 6

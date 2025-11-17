@@ -1,533 +1,834 @@
+
+"""Parser para transformar las tablas de horarios en sesiones estructuradas."""
+
 from __future__ import annotations
+
+from datetime import datetime, time as dt_time, timedelta
 from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
-import time
 import re
+import time
+import logging
 
-# Entidades comunes y de horarios
-from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata
+from core.extraccion.common.entities import ParserError, ParsingMetadata, Warning
+
+from core.extraccion.horarios.constants import (
+    DEFAULT_PARSER_CONFIG, 
+	RX_HORA, PATRON_MAYUSCULA_SIN_ESPACIO, PATRON_NORMALIZAR_ESPACIOS,
+	PATRON_GRUPO_PL, PATRON_GRUPO_PA, PATRON_GRUPO_GENERICO,
+	TIPO_PRACTICA_AULA, TIPO_PRACTICA, PATRON_AULA_COMBINADO,
+	TIPO_TEORIA, DURACION_MAXIMA_SESION, DURACION_DEFAULT_ULTIMA_SESION,
+	DURACION_MINIMA_SESION, PATRON_PERIODO,
+	PATRON_PREPOSICION_PEGADA_Y, PATRON_PREPOSICION_PEGADA_GENERAL,
+)
 from core.extraccion.horarios.entities import (
-    ExtractionResult, CleanTable, RawTable,
-    Session, Schedule, Warning
+	Horario,
+	HorarioExtractionResult,
+	ParsingResult,
+	Sesion,
+	TablaHorario,
 )
 
-# Constantes del parser (se declararán en horarios/constants.py)
-from core.extraccion.horarios.constants import (  # nombres, no implementadas aún
-    DEFAULT_PARSER_CONFIG, TIME_WINDOW_START, TIME_WINDOW_END,
-    DAYS_CANONICAL, DAY_ALIASES, HEADER_DAYS_ORDER,
-    TOKEN_SPLIT_REGEX, RE_WHITESPACE_NORM, RE_DASHES,
-    RE_GRUPO_PL, RE_GRUPO_PA, RE_GRUPO_GENERIC,
-    RE_AULA, RE_AULA_SEMINARIO, RE_AULA_ABBREV,
-    RE_AULA_LAB, RE_AULA_LSC,
-    RE_PUNCT_TRIM, RE_MULTI_SPACE,
-    MODALIDAD_KEYWORDS, MODALIDAD_CANON_MAP, MODALIDAD_PRIORITY,
-    AMBIGUOUS_TOKENS, UNKNOWN_TOKENS,
-)
 
-ParserRuns = List[Dict[str, Any]]  # cada run: {dia_idx, row_idx, asignatura, aula?, modalidad, grupo?}
+class HorarioParser:
+	"""Parser especializado para convertir tablas de horarios en sesiones."""
 
-class ScheduleParser:
-    """
-    Parser de horarios académicos basado en salida 'clean_tables' del extractor (Camelot).
-    Responsabilidades:
-      - Tokenización de celdas y normalización.
-      - Inferencia de {asignatura, aula, modalidad, grupo}.
-      - Generación de runs por franja y merge de bloques contiguos por día.
-      - Validación y metadatos de parseo.
-    """
+	def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+		cfg = DEFAULT_PARSER_CONFIG.copy()
+		if config:
+			cfg.update(config)
+		self.config = cfg
+		self.name = self.__class__.__name__
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config = DEFAULT_PARSER_CONFIG.copy()
-        if config:
-            self.config.update(config)
-        self.name = self.__class__.__name__
+		# Logger
+		self.logger = logging.getLogger(__name__)
+		if 'log_level' in self.config:
+			try:
+				self.logger.setLevel(getattr(logging, str(self.config['log_level']).upper(), logging.INFO))
+			except Exception:
+				self.logger.setLevel(logging.INFO)
 
-    # -------- API pública
-    def parse(self, extraction_result: ExtractionResult) -> Schedule:
-        """
-        Punto de entrada del parser.
-        Args:
-            extraction_result: Objeto con titulacion, tablas limpias/crudas y metadatos de extracción.
-        Returns:
-            Schedule: sesiones consolidadas + trazabilidad + metadatos.
-        Raises:
-            ParserError: ante fallos no recuperables de parsing.
-        """
-        t0 = time.time()
-        self.warnings: List[Warning] = []
-        self.errors: List[str] = []
+	# ------------------------------------------------------------------
+	# API pública
+	# ------------------------------------------------------------------
+	def parse(self, extraction_result: HorarioExtractionResult) -> ParsingResult:
+		"""Parsea el resultado de extracción y construye sesiones estructuradas."""
 
-        # --- Comprobación entrada mínima
-        if extraction_result is None:
-            raise ParserError("ExtractionResult es None.")
-        titulacion = getattr(extraction_result, "titulacion", None)
-        clean_tables = getattr(extraction_result, "clean_tables", None)
-        raw_tables = getattr(extraction_result, "raw_tables", None)
-        extraccion_md = getattr(extraction_result, "extraccion_metadata", None)
+		# Valores iniciales del parsing
+		start_time = time.time()
+		self.warnings: List[Warning] = []
+		self.errors: List[str] = []
 
-        if not titulacion or not isinstance(titulacion, str):
-            self.errors.append("Campo 'titulacion' ausente o inválido.")
-        if not isinstance(clean_tables, list) or not clean_tables:
-            raise ParserError("Campo 'clean_tables' ausente o inválido.")
-        if not isinstance(raw_tables, list) or not raw_tables:
-            self._warn("Campo 'raw_tables' ausente o vacío.", "moderate")
-            raw_tables = []
-        if extraccion_md is None:
-            self.errors.append("Campo 'extraccion_metadata' ausente o inválido.")
+		self.logger.info(f"Iniciando parseo: titulo='{extraction_result.titulo}' tablas={len(extraction_result.tablas)}")
+
+		if not extraction_result.tablas:
+			raise ParserError("No se encontraron tablas de horario para parsear.")
+
+		# Parseo del título
+		try: 
+			plan, periodo = self._parse_title(extraction_result.titulo)
+			if plan is None:
+				self.errors.append("No se pudo determinar el plan a partir del título.")
+				self.logger.error("No se pudo determinar el plan a partir del título.")
+			if periodo is None:
+				self.errors.append("No se pudo determinar el periodo a partir del título.")
+				self.logger.error("No se pudo determinar el periodo a partir del título.")
+		except Exception as exc:
+			self.logger.error(f"Error al parsear el título: {exc}")
+			self.errors.append(f"Error al parsear el título: {exc}")
 
 
-        # --- Parse por páginas (robusto: continúa aunque una página falle)
-        all_sessions: List[Session] = []
-        pages_ok = 0
-        for idx, clean_table in enumerate(clean_tables):
-            try:
-                page_sessions = self._parse_page(clean_table)
-                if not isinstance(page_sessions, list):
-                    raise ParserError("La página no devolvió una lista de sesiones.")
-                all_sessions.extend(page_sessions)
-                pages_ok += 1
-            except ParserError as e:
-                self.errors.append(f"Página {idx+1}: {e}")
-            except Exception as e:
-                self.errors.append(f"Página {idx+1}: error inesperado: {type(e).__name__}: {e}")
+		horarios: List[Horario] = []
+		for tabla in extraction_result.tablas:
+			self.logger.debug(f"Parseando tabla: curso={tabla.curso} pagina={tabla.pagina} filas={len(tabla.celdas) if tabla.celdas else 0} cols={len(tabla.day_columns) if tabla.day_columns else 0}")
+			try:
+				horario = self._parse_tabla(tabla=tabla, periodo=periodo)
+				if not horario.sesiones:
+					self.errors.append(f"La tabla en la página {tabla.pagina} no generó sesiones válidas.")
+					self.logger.error(f"La tabla en la página {tabla.pagina} no generó sesiones válidas.")
+				else:
+					horarios.append(horario)
+			except ParserError as exc:
+				msg = str(exc)
+				self.errors.append(msg)
+				self.logger.error(f"Error parseando tabla: {msg}")
 
-        # --- Validación de coherencias básicas en sesiones (solo warnings)
-        try:
-            self.warnings.extend(self._validate_sesiones(all_sessions))
-        except Exception as e:
-            self.errors.append(f"Fallo al validar sesiones: {type(e).__name__}: {e}")
+		if not horarios:
+			raise ParserError("El parser no generó horarios válidos.")
 
-        # --- Regla de validación mínima del resultado (similar a fichas: abortar si falta lo esencial)
-        valid_result = True
-        validation_errs: List[str] = []
-        if pages_ok == 0:
-            validation_errs.append("No se pudo parsear ninguna página del horario.")
-            valid_result = False
-        if len(all_sessions) == 0:
-            validation_errs.append("No se generó ninguna sesión a partir de las tablas.")
-            valid_result = False
-
-        # --- Si la validación mínima falla, comportarse como en fichas: lanzar ParserError
-        if not valid_result:
-            raise ParserError(f"Errores de validación: {validation_errs}")
-
-        # --- Metadatos de parseo (alineados con parser de fichas)
-        parse_ts = datetime.now().isoformat(timespec="seconds") + "Z"
-        parse_duration = max(0.0, time.time() - t0)
-        parse_metadata = ParsingMetadata(
+		# Construcción de los metadatos de parsing
+		parser_metadata = ParsingMetadata(
             parser_name=self.name,
-            parser_version=getattr(self, "version", "Unknown version"),
-            parse_timestamp=parse_ts,
-            parse_duration=parse_duration,
+            parser_version=self.config.get("version"),
+            parse_timestamp=datetime.now(),
+            parse_duration=time.time() - start_time,
             warnings=self.warnings,
             errors=self.errors,
         )
 
-        # --- Construcción del resultado
-        schedule = Schedule(
-            titulacion=titulacion,
-            sesiones=all_sessions,
-            raw_tables=raw_tables,
-            clean_tables=clean_tables,
-            extraccion_metadata=extraccion_md,
-            parse_metadata=parse_metadata,
-        )
+		resultado = ParsingResult(
+			titulo=plan,
+			horarios=horarios,
+			extraction_metadata=extraction_result.metadata,
+			parsing_metadata=parser_metadata,
+		)
+		
+		self.logger.info(
+			f"Parseo finalizado: tablas_procesadas={len(horarios)} sesiones_totales={sum(len(h.sesiones) for h in horarios)} "
+			f"warnings={len(self.warnings)} errors={len(self.errors)} duracion_s={parser_metadata.parse_duration:.2f}")
 
-        return schedule
+		return self._to_normalize(
+			parsed=resultado,
+			extraction_metadata=extraction_result.metadata,
+			parser_metadata=parser_metadata,
+		)
 
-    # -------- Parsing por página
-    def _parse_page(self, clean_table: CleanTable) -> List[Session]:
+	# ------------------------------------------------------------------
+	# Helpers principales
+	# ------------------------------------------------------------------
+	def _parse_title(self, titulo: str) -> Tuple[Optional[str], Optional[str]]:
+		"""
+        Extrae plan (titulación) y periodo a partir del título bruto del documento.
+        Ejemplos:
+            "DOBLE GRADO EN FÍSICA Y MATEMÁTICAS PRIMER CUATRIMESTRE"
+            "GRADO EN INGENIERÍA INFORMÁTICA SEGUNDO CUATRIMESTRE"
+        Retorna (plan, periodo). Si no se detecta periodo, devuelve (plan, None).
         """
-        Convierte una CleanTable en sesiones (lista de Session), aplicando:
-         - propagación de valores por columna (día),
-         - tokenización de celdas,
-         - inferencia de campos por token,
-         - creación de sesiones por franja horaria.
-        """
-        header_days = clean_table.header_days
-        time_axis = clean_table.time_axis
-        cells = clean_table.cells
+		if not titulo:
+			self.logger.error("Título vacío proporcionado al parser.")
+			raise ParserError("Título vacío")
 
-        n_cols = len(header_days)
-        n_rows = len(time_axis)
+		titulo = titulo.strip()
 
-        sesiones: List[Session] = []
+        # Patrón de periodo (solo PRIMER / SEGUNDO CUATRIMESTRE por ahora)
+		m_periodo = PATRON_PERIODO.search(titulo)
 
-        for col_idx in range(n_cols):
-            last_entry = {"asignatura": None, "aula": None, "grupo": None, "modalidad": None}
-            empty_streak = 0
-            for row_idx in range(n_rows - 1):  # -1 porque la última marca es solo hora_fin
-                cell_text = cells[row_idx][col_idx]
-                tokens = self._tokenize_cell(cell_text)
-                entries = self._infer_fields(tokens) if tokens else []
+		if not m_periodo:
+            # No se pudo identificar periodo
+			self.logger.error("_parse_title: No se pudo determinar el periodo a partir del título.")
+			plan = titulo.strip() or None
+			return plan, None
 
-                if entries:
-                    entry = entries[0]
-                    # Normalización Física Básica Ex
-                    if "física básica ex" in (entry.get("asignatura") or "").lower():
-                        if "laboratorio" in (entry.get("asignatura") or "").lower():
-                            entry["asignatura"] = "Física Básica Ex"
-                            entry["aula"] = "LABORATORIO (*)"
-                            entry["modalidad"] = "practicas_laboratorio"
-                        else:
-                            entry["asignatura"] = "Física Básica Ex"
-                    last_entry = entry
-                    empty_streak = 0
-                elif last_entry["asignatura"] is not None and empty_streak < 2:
-                    # Heredar mientras no haya más de 2 vacías seguidas
-                    empty_streak += 1
-                else:
-                    # Si hay más de 2 vacías seguidas, cortar la herencia
-                    last_entry = {"asignatura": None, "aula": None, "grupo": None, "modalidad": None}
-                    empty_streak = 0
+        # Cortar directamente sobre el original para preservar acentos/formato
+		start, end = m_periodo.span()
+		periodo = titulo[start:end].strip()
+		plan = titulo[:start].strip()
 
-                # Crear sesión solo si hay asignatura/aula
-                if last_entry["asignatura"] or last_entry["aula"]:
-                    hora_inicio = time_axis[row_idx]
-                    hora_fin = time_axis[row_idx + 1]
-                    dia_str = header_days[col_idx]
-                    sesiones.append(
-                        Session(
-                            asignatura=last_entry["asignatura"],
-                            aula=last_entry["aula"],
-                            hora_inicio=hora_inicio,
-                            hora_fin=hora_fin,
-                            dia=dia_str,
-                            modalidad=last_entry["modalidad"] or "teoria",
-                            grupo=last_entry["grupo"],
-                        )
-                    )
+        # Normalización ligera
+		plan = PATRON_NORMALIZAR_ESPACIOS.sub(" ", plan).strip(" -–—") or None 
+		periodo = PATRON_NORMALIZAR_ESPACIOS.sub(" ", periodo) or None 
 
-        # Deduplicar sesiones exactas
-        keyset = set()
-        uniq: List[Session] = []
-        for s in sesiones:
-            k = (
-                s.dia,
-                s.hora_inicio,
-                s.hora_fin,
-                (s.asignatura or "").strip().lower(),
-                (s.aula or "").strip().lower(),
-                (s.grupo or "").strip().lower(),
-                s.modalidad or "teoria",
-            )
-            if k in keyset:
-                continue
-            keyset.add(k)
-            uniq.append(s)
+		if plan is None:
+			self.logger.error("_parse_title: No se pudo determinar el plan a partir del título.")
 
-        return uniq
-
-    # -------- Tokenización e inferencia
-    def _tokenize_cell(self, text: str) -> List[str]:
-        """
-        Separa una celda en tokens significativos, normaliza espacios/acentos y filtra tokens vacíos.
-        """
-        if not isinstance(text, str):
-            return []
-
-        s = text.strip()
-        if not s:
-            return []
-
-        # Normalizaciones suaves (no removemos acentos)
-        s = re.sub(RE_DASHES, "-", s)                          # unificar guiones
-        s = re.sub(RE_WHITESPACE_NORM, " ", s)                 # espacios en blanco homogéneos
-
-        # Split primario en separadores fuertes
-        parts = re.split(TOKEN_SPLIT_REGEX, s)
-
-        tokens: List[str] = []
-        for p in parts:
-            if not p:
-                continue
-            # Limpieza de bordes y espacios internos
-            t = re.sub(RE_PUNCT_TRIM, "", p).strip()
-            t = re.sub(RE_MULTI_SPACE, " ", t)
-            if not t:
-                continue
-            # Filtrado de tokens desconocidos
-            if t in UNKNOWN_TOKENS:
-                continue
-            tokens.append(t)
-
-        return tokens
-
-    def _infer_fields(self, tokens: List[str]) -> List[Dict[str, Optional[str]]]:
-        """
-        Dada una lista de tokens, infiere los campos: asignatura, aula, grupo, modalidad.
-        Devuelve una lista de dicts (uno por posible entrada, normalmente solo uno).
-        """
-        import re
-
-        # Unir tokens para análisis global
-        text = " ".join(tokens).strip()
-        result = {
-            "asignatura": None,
-            "aula": None,
-            "grupo": None,
-            "modalidad": None,
-        }
-
-        # Buscar grupo
-        grupo_match = re.search(RE_GRUPO_PL, text)
-        if not grupo_match:
-            grupo_match = re.search(RE_GRUPO_PA, text)
-        if not grupo_match:
-            grupo_match = re.search(RE_GRUPO_GENERIC, text)
-        if grupo_match:
-            result["grupo"] = grupo_match.group(0)
-            text = text.replace(result["grupo"], "").strip()
-
-        # Buscar aula
-        aula_match = re.search(RE_AULA, text)
-        if not aula_match:
-            aula_match = re.search(RE_AULA_LSC, text)
-        if not aula_match:
-            aula_match = re.search(RE_AULA_SEMINARIO, text)
-        if not aula_match:
-            aula_match = re.search(RE_AULA_ABBREV, text)
-        if aula_match:
-            result["aula"] = aula_match.group(0)
-            text = text.replace(result["aula"], "").strip()
-        else:
-            # Si no hay patrón claro, buscar última palabra tipo "AULA X"
-            m = re.search(r"(AULA\s*\d+)$", text)
-            if m:
-                result["aula"] = m.group(1)
-                text = text.replace(result["aula"], "").strip()
-
-        # Inferir modalidad por keywords
-        modalidad = None
-        for key, keywords in MODALIDAD_KEYWORDS.items():
-            for kw in keywords:
-                if kw in text.upper():
-                    modalidad = key
-                    break
-            if modalidad:
-                break
-        if not modalidad and result["grupo"]:
-            if "PL" in result["grupo"]:
-                modalidad = "practicas_laboratorio"
-            elif "PA" in result["grupo"]:
-                modalidad = "practicas_aula"
-        result["modalidad"] = modalidad
-
-        # El resto es la asignatura (si queda algo)
-        asignatura = text.strip(" -–—;:,")
-        if asignatura:
-            result["asignatura"] = asignatura
-        else:
-            result["asignatura"] = None
-
-        return [result]
-
-    # -------- Merge de runs por día
-    def _merge_runs_por_dia(self, runs: ParserRuns, time_axis: List[str]) -> List[Session]:
-        """
-        Une bloques contiguos (misma asignatura/aula/modalidad/grupo y mismo día)
-        para formar sesiones con hora_inicio y hora_fin correctas.
-        - Etiqueta cada sesión con el día canónico (str, p.ej. "LUNES").
-        - Descarta bloques fuera de ventana.
-        - Deduplica sesiones idénticas al final.
-        """
-        if not runs:
-            return []
-
-        # Utilidades de tiempo
-        def _to_minutes(hhmm: str) -> int:
-            h, m = hhmm.split(":")
-            return int(h) * 60 + int(m)
-
-        lo = _to_minutes(TIME_WINDOW_START)
-        hi = _to_minutes(TIME_WINDOW_END)
-
-        def _in_window(hhmm: str) -> bool:
-            t = _to_minutes(hhmm)
-            return lo <= t <= hi
-
-        def _same_payload(a: Dict[str, Any], b: Dict[str, Any]) -> bool:
-            return (
-                (a.get("asignatura") or "").strip() == (b.get("asignatura") or "").strip()
-                and (a.get("aula") or "").strip() == (b.get("aula") or "").strip()
-                and (a.get("grupo") or "").strip() == (b.get("grupo") or "").strip()
-                and (a.get("modalidad") or "teoria") == (b.get("modalidad") or "teoria")
-                and a.get("dia_idx") == b.get("dia_idx")
-            )
-
-        # 1) Agrupar runs por día (usamos dia_idx interno solo para mapear a string canónico)
-        by_day: Dict[int, List[Dict[str, Any]]] = {}
-        for r in runs:
-            by_day.setdefault(r["dia_idx"], []).append(r)
-
-        sesiones: List[Session] = []
-
-        # 2) Consolidar por día
-        for dia_idx, day_runs in by_day.items():
-            if not day_runs:
-                continue
-
-            day_runs.sort(key=lambda x: x["row_idx"])
-            dia_str = DAYS_CANONICAL[dia_idx] if 0 <= dia_idx < len(DAYS_CANONICAL) else "DESCONOCIDO"
-
-            current: Optional[Dict[str, Any]] = None
-            start_r: Optional[int] = None
-            end_r: Optional[int] = None
-
-            def _flush():
-                nonlocal current, start_r, end_r
-                if current is None or start_r is None or end_r is None:
-                    return
-
-                if end_r + 1 >= len(time_axis):
-                    self._warn(f"Sin marca de fin para bloque (día {dia_str}, filas {start_r}-{end_r}).", "minor")
-                    current = None; start_r = None; end_r = None
-                    return
-
-                hora_inicio = time_axis[start_r]
-                hora_fin = time_axis[end_r + 1]
-
-                if hora_fin <= hora_inicio:
-                    self._warn(f"Duración no positiva (día {dia_str} {hora_inicio}-{hora_fin}).", "minor")
-                    current = None; start_r = None; end_r = None
-                    return
-
-                if not (_in_window(hora_inicio) and _in_window(hora_fin)):
-                    # fuera de ventana objetivo → no añadimos
-                    current = None; start_r = None; end_r = None
-                    return
-
-                sesiones.append(
-                    Session(
-                        asignatura=(current.get("asignatura") or "").strip() or None,
-                        aula=(current.get("aula") or "").strip() or None,
-                        hora_inicio=hora_inicio,
-                        hora_fin=hora_fin,
-                        dia=dia_str,  # <- obligatorio
-                        modalidad=current.get("modalidad") or "teoria",
-                        grupo=(current.get("grupo") or "").strip() or None,
-                    )
-                )
-
-                current = None; start_r = None; end_r = None
-
-            for r in day_runs:
-                if current is None:
-                    current = r; start_r = r["row_idx"]; end_r = r["row_idx"]
-                    continue
-
-                if r["row_idx"] == end_r + 1 and _same_payload(r, current):
-                    end_r = r["row_idx"]
-                else:
-                    _flush()
-                    current = r; start_r = r["row_idx"]; end_r = r["row_idx"]
-
-            _flush()
-
-        # 3) Deduplicar sesiones exactas (incluyendo el día como string)
-        keyset = set()
-        uniq: List[Session] = []
-        for s in sesiones:
-            k = (
-                s.dia,
-                s.hora_inicio,
-                s.hora_fin,
-                (s.asignatura or "").strip().lower(),
-                (s.aula or "").strip().lower(),
-                (s.grupo or "").strip().lower(),
-                s.modalidad or "teoria",
-            )
-            if k in keyset:
-                continue
-            keyset.add(k)
-            uniq.append(s)
-
-        return uniq
+		self.logger.debug(f"_parse_title: titulo='{titulo}' -> plan='{plan}' periodo='{periodo}'")
+		return plan, periodo
 
 
-    # -------- Metadatos y validación
-    def _validate_sesiones(self, sesiones: List[Session]) -> List[str]:
-        """
-        Reglas de coherencia (solo warnings):
-        - HH:MM válidas; fin > inicio
-        - ventana horaria respetada
-        - sin solapes por día (string) para misma (asignatura, grupo, aula, modalidad)
-        - modalidades en el canon
-        """
-        warnings: List[str] = []
-        canon_modalidades = {"teoria", "practicas_laboratorio", "practicas_aula"}
+	def _parse_tabla(self, tabla: TablaHorario, periodo: str) -> Horario:
+		"""
+		Parsea una tabla individual de horario y construye sus sesiones.
+		
+		Args:
+			tabla: Tabla extraída con estructura día/hora/celdas
+			periodo: Periodo académico (ej: "PRIMER CUATRIMESTRE")
+		
+		Returns:
+			Horario con todas las sesiones parseadas
+			
+		Raises:
+			ParserError: Si la tabla no tiene estructura válida
+		"""
+		self.logger.debug(
+			f"Iniciando parseo de tabla: curso={tabla.curso} "
+			f"mencion={tabla.mencion} pagina={tabla.pagina} "
+			f"filas={len(tabla.celdas)} cols={len(tabla.day_columns)}"
+		)
+		
+		# Validación previa de estructura
+		if not tabla.day_columns:
+			raise ParserError(f"Tabla en página {tabla.pagina} no tiene columnas de días")
+		
+		if not tabla.time_rows:
+			raise ParserError(f"Tabla en página {tabla.pagina} no tiene filas de horas")
+		
+		if not tabla.celdas:
+			raise ParserError(f"Tabla en página {tabla.pagina} no tiene celdas de contenido")
+		
+		# Validar dimensiones consistentes
+		num_dias = len(tabla.day_columns)
+		num_horas = len(tabla.time_rows)
+		
+		if len(tabla.celdas) != num_horas:
+			self.warnings.append(Warning(
+				message=f"Inconsistencia: {len(tabla.celdas)} filas de celdas vs {num_horas} horas",
+				context={'pagina': tabla.pagina, 'curso': tabla.curso}
+			))
+		
+		sesiones: List[Sesion] = []
+		
+		# Iterar sobre la matriz: fila (hora) x columna (día)
+		for idx_fila, fila_celdas in enumerate(tabla.celdas):
+			if idx_fila >= len(tabla.time_rows):
+				self.warnings.append(Warning(
+					message=f"Fila {idx_fila} excede time_rows disponibles, saltando, 'pagina': {tabla.pagina}, 'curso': {tabla.curso}",
+					severity='medium',
+				))
+				self.logger.warning(f"Fila {idx_fila} excede time_rows disponibles, saltando")
+				continue
+			
+			hora_inicio_str = tabla.time_rows[idx_fila]
+			
+			# Validar que tenemos suficientes columnas
+			if len(fila_celdas) != num_dias:
+				self.warnings.append(Warning(
+					message=f"Fila {idx_fila} tiene {len(fila_celdas)} celdas, esperadas {num_dias}, {'hora': hora_inicio_str, 'pagina': tabla.pagina}",
+					severity='medium',
+				))
+			
+			for idx_col, contenido_celda in enumerate(fila_celdas):
+				if idx_col >= len(tabla.day_columns):
+					self.logger.warning(f"Columna {idx_col} excede day_columns disponibles, saltando")
+					self.warnings.append(Warning(
+						message=f"Columna {idx_col} excede day_columns disponibles, saltando, 'pagina': {tabla.pagina}, 'curso': {tabla.curso}",
+						severity='medium',
+					))
+					continue
+				
+				dia = tabla.day_columns[idx_col]
+				
+				# Ignorar celdas vacías/null
+				if not contenido_celda or not contenido_celda.strip():
+					continue
+				
+				try:
+					# 1. Parsear contenido de la celda
+					info_celda = self._parse_celda(contenido_celda)
+					
+					# 2. Manejar herencia de asignatura si es necesario
+					if not info_celda['asignatura'] and info_celda['aula']:
+						# Buscar asignatura en celdas anteriores de la misma columna
+						asignatura_heredada = self._buscar_asignatura_previa(
+							tabla.celdas, idx_fila, idx_col
+						)
+						if asignatura_heredada:
+							info_celda['asignatura'] = asignatura_heredada
+							self.logger.debug(
+								f"Heredada asignatura '{asignatura_heredada}' "
+								f"en [{idx_fila}, {idx_col}]"
+							)
+					
+					# 3. Validar que tenemos asignatura
+					if not info_celda['asignatura']:
+						self.logger.warning(
+							f"Celda [{idx_fila}, {idx_col}] sin asignatura identificable: "
+							f"'{contenido_celda}'"
+						)
+						continue
+					
+					# 4. Inferir hora de fin
+					hora_inicio = self._parse_time(hora_inicio_str)
+					hora_fin = self._inferir_hora_fin(
+						hora_inicio=hora_inicio,
+						time_rows=tabla.time_rows,
+						fila_actual=idx_fila,
+						celdas=tabla.celdas,
+						columna_actual=idx_col
+					)
+					
+					# 5. Crear sesión
+					sesion = self._crear_sesion(
+						asignatura=info_celda['asignatura'],
+						aula=info_celda['aula'],
+						dia=dia,
+						hora_inicio=hora_inicio,
+						hora_fin=hora_fin,
+						tipo=info_celda['tipo'],
+						grupo=info_celda['grupo']
+					)
+					
+					sesiones.append(sesion)
+					
+					self.logger.debug(
+						f"Sesión creada: {sesion.asignatura} | {dia} "
+						f"{sesion.hora_inicio}-{sesion.hora_fin} | {sesion.aula}"
+					)
+					
+				except Exception as exc:
+					msg = (
+						f"Error parseando celda [{idx_fila}, {idx_col}] "
+						f"('{contenido_celda}'): {exc}"
+					)
+					self.logger.error(msg)
+					self.warnings.append(Warning(
+						message=msg,
+						context={
+							'fila': idx_fila,
+							'columna': idx_col,
+							'dia': dia,
+							'hora': hora_inicio_str,
+							'contenido': contenido_celda
+						}
+					))
+					continue
+		
+		# Construir objeto Horario
+		horario = Horario(
+			curso=tabla.curso,
+			periodo=periodo,
+			sesiones=sesiones,
+			mencion=tabla.mencion,
+			pagina=tabla.pagina
+		)
+		
+		self.logger.info(
+			f"Tabla parseada: curso={tabla.curso} pagina={tabla.pagina} "
+			f"sesiones_generadas={len(sesiones)}"
+		)
+		
+		return horario
+		
+	def _to_normalize(self, parsed: ParsingResult, extraction_metadata: Any, parser_metadata: ParsingMetadata) -> Dict[str, Any]:
+		"""
+		Convierte el objeto ParsingResult a un dict alineado con los modelos/JSON
+		esperados por el flujo de horarios.
+			"""
+		def _fmt_time(t) -> Optional[str]:
+			# Acepta datetime.time, cadenas "HH:MM" o None
+			if t is None:
+				return None
+			if isinstance(t, dt_time):
+				return t.strftime("%H:%M")
+			if isinstance(t, str):
+				m = RX_HORA.search(t)
+				if m:
+					return m.group(0).replace(".", ":")
+				return t
+			# Fallback: convertir a cadena
+			return str(t)
+	
+		def _serialize_sesion(s: Sesion) -> Dict[str, Any]:
+			return {
+				"asignatura": s.asignatura,
+				"aula": s.aula,
+				"dia": s.dia,
+				"hora_inicio": _fmt_time(s.hora_inicio),
+				"hora_fin": _fmt_time(s.hora_fin),
+				"tipo": s.tipo,
+				"grupo": s.grupo,
+			}
+	
+		def _serialize_horario(h: Horario) -> Dict[str, Any]:
+			return {
+				"curso": h.curso,
+				"periodo": h.periodo,
+				"mencion": h.mencion,
+				"pagina": h.pagina,
+				"sesiones": [ _serialize_sesion(s) for s in (h.sesiones or []) ],
+			}
+	
+		# Periodo global: toma el primero no vacío presente en los horarios
+		periodo_global: Optional[str] = None
+		for h in parsed.horarios:
+			if getattr(h, "periodo", None):
+				periodo_global = h.periodo
+				break
+	
+		result: Dict[str, Any] = {
+			"titulo": parsed.titulo,
+			"plan": parsed.titulo,   # 'plan' y 'titulo' significan lo mismo en este flujo
+			"periodo": periodo_global,
+			"horarios": [ _serialize_horario(h) for h in (parsed.horarios or []) ],
+		}
+	
+		# Metadatos de parsing (similar al flujo de fichas)
+		if parser_metadata:
+			result["parsing_metadata"] = {
+				"parser_name": parser_metadata.parser_name,
+				"parser_version": parser_metadata.parser_version,
+				"parse_timestamp": parser_metadata.parse_timestamp.isoformat() + "Z" if parser_metadata.parse_timestamp else None,
+				"parse_duration": parser_metadata.parse_duration,
+				"warnings": [w.__dict__ for w in (parser_metadata.warnings or [])],
+				"errors": parser_metadata.errors or [],
+			}
+	
+		# Metadatos de extracción (propagación simple)
+		if extraction_metadata:
+			result["extraction_metadata"] = {
+				"quality": extraction_metadata.quality,
+				"confidence": extraction_metadata.confidence,
+				"status": extraction_metadata.status,
+				"processing_time_seconds": extraction_metadata.processing_time_seconds,
+				"page_count": extraction_metadata.page_count,
+				"file_size_mb": extraction_metadata.file_size_mb,
+				"has_embedded_text": extraction_metadata.has_embedded_text,
+				"char_count": extraction_metadata.char_count,
+				"word_count": extraction_metadata.word_count,
+				"errors": extraction_metadata.errors or [],
+				"warnings": [w.__dict__ for w in (extraction_metadata.warnings or [])],
+				"pages_with_text": getattr(extraction_metadata, "pages_with_text", None),
+			}
+	
+		return result
 
-        def _to_minutes(hhmm: str) -> int:
-            h, m = map(int, hhmm.split(":"))
-            return h * 60 + m
-
-        lo = _to_minutes(TIME_WINDOW_START)
-        hi = _to_minutes(TIME_WINDOW_END)
-
-        # 1) Horas y ventana
-        for idx, s in enumerate(sesiones):
-            if not isinstance(s.hora_inicio, str) or not re.fullmatch(r"\d{2}:\d{2}", s.hora_inicio):
-                warnings.append(f"Sesión {idx}: hora_inicio inválida: {s.hora_inicio!r}")
-                continue
-            if not isinstance(s.hora_fin, str) or not re.fullmatch(r"\d{2}:\d{2}", s.hora_fin):
-                warnings.append(f"Sesión {idx}: hora_fin inválida: {s.hora_fin!r}")
-                continue
-
-            a, b = _to_minutes(s.hora_inicio), _to_minutes(s.hora_fin)
-            if b <= a:
-                warnings.append(f"Sesión {idx} ({s.dia}): hora_fin <= hora_inicio ({s.hora_inicio}-{s.hora_fin})")
-            if not (lo <= a <= hi and lo <= b <= hi):
-                warnings.append(f"Sesión {idx} ({s.dia}): fuera de ventana [{TIME_WINDOW_START}-{TIME_WINDOW_END}]")
-
-        # 2) Solapes por día (string) y payload (intersección real)
-        # Clave: (dia, asignatura, grupo, aula, modalidad)
-        by_key: Dict[tuple, List[tuple]] = {}
-        for idx, s in enumerate(sesiones):
-            key = (
-                s.dia,
-                (s.asignatura or "").strip().lower(),
-                (s.grupo or "").strip().lower(),
-                (s.aula or "").strip().lower(),
-                (s.modalidad or "teoria"),
-            )
-            interval = (_to_minutes(s.hora_inicio), _to_minutes(s.hora_fin))
-            by_key.setdefault(key, []).append((idx, interval))
-
-        for key, items in by_key.items():
-            items.sort(key=lambda x: x[1][0])  # orden por inicio
-            for i in range(1, len(items)):
-                idx_i, (ai, bi) = items[i]
-                idx_p, (ap, bp) = items[i-1]
-                if ai < bp:  # solape real
-                    warnings.append(
-                        f"Solape en {key[0]} entre sesiones {idx_p} y {idx_i} para payload={key[1:]}"
-                    )
-
-        # 3) Modalidades
-        for idx, s in enumerate(sesiones):
-            if (s.modalidad or "teoria") not in canon_modalidades:
-                warnings.append(f"Sesión {idx} ({s.dia}): modalidad fuera de canon: {s.modalidad!r}")
-
-        return warnings
-
-    
-    # ------- Helpers de warnings
-    def _warn(self, msg: str, severity: str) -> None:
-        # Warning es tu dataclass; ajusta el import si procede
-        try:
-            self.warnings.append(Warning(msg, severity))
-        except AttributeError:
-            self.warnings = [Warning(msg, severity)]
+	def _limpiar_texto(self, texto: str) -> str:
+		"""
+		Limpia y normaliza texto extraído de celdas.
+		
+		MEJORAS v2:
+		- Maneja preposiciones pegadas ("yrelatividad" → "y relatividad")
+		- Maneja palabras compuestas ("demateriales" → "de materiales")
+		- Añade espacios antes de mayúsculas precedidas de minúsculas
+		- Normaliza múltiples espacios a uno solo
+		- Elimina espacios al inicio/final
+		
+		Args:
+			texto: Texto a limpiar
+			
+		Returns:
+			Texto limpio y normalizado
+			
+		Examples:
+			"MecánicaClásica yrelatividad" → "Mecánica Clásica y relatividad"
+			"Física  Básica   I" → "Física Básica I"
+			"Estructurade Moléculas" → "Estructura de Moléculas"
+		"""
+		if not texto:
+			return ""
+		
+		# 1. Preposiciones pegadas - caso "y": "yrelatividad" → "y relatividad"
+		texto = PATRON_PREPOSICION_PEGADA_Y.sub(r'\1 \2 \3', texto)
+		
+		# 2. Preposiciones pegadas - general: "demateriales" → "de materiales"
+		texto = PATRON_PREPOSICION_PEGADA_GENERAL.sub(r'\1 \2 \3', texto)
+		
+		# 3. Añadir espacio antes de mayúscula precedida de minúscula
+		texto = PATRON_MAYUSCULA_SIN_ESPACIO.sub(r'\1 \2', texto)
+		
+		# 4. Normalizar múltiples espacios
+		texto = PATRON_NORMALIZAR_ESPACIOS.sub(' ', texto)
+		
+		return texto.strip()
 
 
-# -----------------------------------------------------------------------------
-schedule_parser = None
+	def _parse_time(self, hora_str: str) -> dt_time:
+		"""
+		Convierte una cadena de hora en objeto datetime.time.
+		
+		Args:
+			hora_str: Hora en formato "HH:MM", "HH.MM" o "HHMM"
+			
+		Returns:
+			Objeto datetime.time
+			
+		Raises:
+			ValueError: Si el formato no es válido
+			
+		Examples:
+			"08:30" → time(8, 30)
+			"14.45" → time(14, 45)
+			"0930" → time(9, 30)
+		"""
+		if not hora_str:
+			raise ValueError("Hora vacía proporcionada")
+		
+		# Usar regex para extraer hora
+		match = RX_HORA.search(hora_str)
+		if not match:
+			raise ValueError(f"Formato de hora inválido: '{hora_str}'")
+		
+		hora_limpia = match.group(0).replace('.', ':')
+		
+		try:
+			# Parsear con formato HH:MM
+			if ':' in hora_limpia:
+				partes = hora_limpia.split(':')
+				horas = int(partes[0])
+				minutos = int(partes[1])
+			else:
+				# Formato HHMM
+				if len(hora_limpia) == 4:
+					horas = int(hora_limpia[:2])
+					minutos = int(hora_limpia[2:])
+				elif len(hora_limpia) == 3:
+					horas = int(hora_limpia[0])
+					minutos = int(hora_limpia[1:])
+				else:
+					raise ValueError(f"Formato no reconocido: '{hora_limpia}'")
+			
+			# Validar rangos
+			if not (0 <= horas <= 23):
+				raise ValueError(f"Hora fuera de rango: {horas}")
+			if not (0 <= minutos <= 59):
+				raise ValueError(f"Minutos fuera de rango: {minutos}")
+			
+			return dt_time(hour=horas, minute=minutos)
+			
+		except (ValueError, IndexError) as e:
+			raise ValueError(f"Error parseando hora '{hora_str}': {e}")
 
-def get_schedule_parser(config: Optional[Dict[str, Any]] = None) -> ScheduleParser:
-    """
-    Factory singleton para ScheduleParser.
-    """
-    global schedule_parser
-    if schedule_parser is None:
-        schedule_parser = ScheduleParser(config)
-    return schedule_parser
+
+	def _parse_celda(self, contenido: str) -> Dict[str, Optional[str]]:
+		"""
+		Parsea el contenido de una celda y extrae sus componentes.
+		
+		MEJORAS v2:
+		- Filtra fragmentos muy cortos que son metadata/cabeceras
+		
+		Estructura esperada (por líneas):
+			Línea 1: Asignatura
+			Línea 2: Aula (opcional)
+			Línea 3: Grupo (opcional, solo en prácticas)
+		
+		Args:
+			contenido: Contenido de la celda (puede tener múltiples líneas)
+			
+		Returns:
+			Diccionario con claves: 'asignatura', 'aula', 'tipo', 'grupo'
+		"""
+		if not contenido or not contenido.strip():
+			return {
+				'asignatura': None,
+				'aula': None,
+				'tipo': None,
+				'grupo': None
+			}
+		
+		# Limpiar y dividir en líneas
+		contenido_limpio = self._limpiar_texto(contenido)
+		lineas = [linea.strip() for linea in contenido_limpio.split('\n') if linea.strip()]
+		
+		if not lineas:
+			return {
+				'asignatura': None,
+				'aula': None,
+				'tipo': None,
+				'grupo': None
+			}
+		
+		asignatura = None
+		aula = None
+		grupo = None
+		tipo = None
+		
+		# Lista de términos a filtrar (metadata/cabeceras)
+		TERMINOS_INVALIDOS = {
+			'LUNES', 'MARTES', 'MIÉRCOLES', 'MIERCOLES', 'JUEVES', 'VIERNES',
+			'LUN', 'MAR', 'MIE', 'MIÉ', 'JUE', 'VIE',
+			'CURSO', 'PRIMER', 'SEGUNDO', 'TERCER', 'CUARTO', 'QUINTO',
+			'PRIM', 'SEG', 'ER', 'UATRIMESTRE', 'CUATRIMESTRE',
+			'GRADO', 'DOBLE'
+		}
+		
+		# Procesar cada línea
+		for linea in lineas:
+			# 1. Intentar detectar grupo (PL, PA, Grupo)
+			match_pl = PATRON_GRUPO_PL.search(linea)
+			match_pa = PATRON_GRUPO_PA.search(linea)
+			match_generico = PATRON_GRUPO_GENERICO.search(linea)
+			
+			if match_pa:
+				grupo = f"PA{match_pa.group(1)}"
+				tipo = TIPO_PRACTICA_AULA
+				continue
+			elif match_pl:
+				grupo = f"PL{match_pl.group(1)}"
+				tipo = TIPO_PRACTICA
+				continue
+			elif match_generico:
+				# "Grupo X" → convertir a "PLX"
+				grupo = f"PL{match_generico.group(1)}"
+				tipo = TIPO_PRACTICA
+				continue
+			
+			# 2. Intentar detectar aula
+			match_aula = PATRON_AULA_COMBINADO.search(linea)
+			if match_aula:
+				aula = match_aula.group(0).strip()
+				continue
+			
+			# 3. Si no es grupo ni aula, verificar si es asignatura válida
+			if not asignatura:
+				# ✅ FILTRO: Descartar fragmentos muy cortos que son metadata
+				linea_upper = linea.upper().strip()
+				
+				# Descartar si es término inválido
+				if linea_upper in TERMINOS_INVALIDOS:
+					continue
+				
+				# Descartar si es muy corto (< 4 chars) Y no parece asignatura
+				if len(linea) < 4 and not linea[0].isupper():
+					continue
+				
+				asignatura = linea
+		
+		# Si no se detectó tipo, asumimos TEORÍA
+		if tipo is None:
+			tipo = TIPO_TEORIA if self.config.get('infer_teoria_when_no_group', True) else None
+		
+		# Si tenemos asignatura pero no aula, marcar como desconocida
+		if asignatura and not aula:
+			aula = 'DESCONOCIDA'
+		
+		return {
+			'asignatura': asignatura,
+			'aula': aula,
+			'tipo': tipo,
+			'grupo': grupo
+		}
+
+
+	def _buscar_asignatura_previa(
+		self, 
+		celdas: List[List[Optional[str]]], 
+		fila_actual: int, 
+		columna: int
+	) -> Optional[str]:
+		"""
+		Busca la asignatura en celdas anteriores de la misma columna.
+		
+		Útil cuando una celda solo contiene "AULA X" y necesitamos heredar
+		el nombre de la asignatura de una celda superior.
+		
+		Args:
+			celdas: Matriz completa de celdas
+			fila_actual: Índice de la fila actual
+			columna: Índice de la columna a buscar
+			
+		Returns:
+			Nombre de la asignatura encontrada o None
+			
+		Examples:
+			Si en fila 2, col 1 está "Física Básica I"
+			y en fila 3, col 1 está solo "AULA 4"
+			→ retorna "Física Básica I"
+		"""
+		# Buscar hacia atrás en la misma columna
+		for idx_fila in range(fila_actual - 1, -1, -1):
+			if idx_fila >= len(celdas):
+				continue
+			
+			fila = celdas[idx_fila]
+			if columna >= len(fila):
+				continue
+			
+			contenido = fila[columna]
+			if not contenido or not contenido.strip():
+				continue
+			
+			# Parsear la celda anterior
+			info_celda = self._parse_celda(contenido)
+			
+			# Si encontramos una asignatura, retornarla
+			if info_celda['asignatura']:
+				return info_celda['asignatura']
+		
+		return None
+
+
+	def _inferir_hora_fin(
+		self,
+		hora_inicio: dt_time,
+		time_rows: List[str],
+		fila_actual: int,
+		celdas: List[List[Optional[str]]],
+		columna_actual: int
+	) -> dt_time:
+		"""
+		Infiere la hora de finalización de una sesión.
+		
+		Lógica:
+		1. Buscar hacia adelante en la misma columna
+		2. Si encuentra otra asignatura diferente → hora_fin = hora_inicio de esa sesión
+		3. Si solo encuentra aulas (continuación) → seguir buscando
+		4. Si no hay más sesiones → hora_fin = hora_inicio + DURACION_DEFAULT_ULTIMA_SESION
+		5. Máximo permitido: DURACION_MAXIMA_SESION (3 horas)
+		
+		Args:
+			hora_inicio: Hora de inicio de la sesión actual
+			time_rows: Lista de horas disponibles
+			fila_actual: Índice de fila actual
+			celdas: Matriz completa de celdas
+			columna_actual: Índice de columna actual
+			
+		Returns:
+			Hora de finalización calculada
+		"""
+		asignatura_actual = None
+		
+		# Obtener asignatura actual
+		if fila_actual < len(celdas) and columna_actual < len(celdas[fila_actual]):
+			contenido_actual = celdas[fila_actual][columna_actual]
+			if contenido_actual:
+				info_actual = self._parse_celda(contenido_actual)
+				asignatura_actual = info_actual['asignatura']
+		
+		# Buscar hacia adelante en la misma columna
+		for idx_fila in range(fila_actual + 1, len(time_rows)):
+			# Verificar que no excedemos duración máxima
+			if idx_fila >= len(time_rows):
+				break
+			
+			hora_siguiente_str = time_rows[idx_fila]
+			hora_siguiente = self._parse_time(hora_siguiente_str)
+			
+			# Calcular duración hasta esta franja
+			duracion_minutos = (
+				hora_siguiente.hour * 60 + hora_siguiente.minute -
+				hora_inicio.hour * 60 - hora_inicio.minute
+			)
+			
+			# Si excede el máximo, cortar aquí
+			if duracion_minutos > DURACION_MAXIMA_SESION:
+				# Usar la hora máxima permitida
+				hora_maxima = (
+					datetime.combine(datetime.today(), hora_inicio) + 
+					timedelta(minutes=DURACION_MAXIMA_SESION)
+				).time()
+				return hora_maxima
+			
+			# Verificar si hay contenido en esta celda
+			if idx_fila >= len(celdas):
+				continue
+			
+			fila = celdas[idx_fila]
+			if columna_actual >= len(fila):
+				continue
+			
+			contenido = fila[columna_actual]
+			
+			# Si la celda está vacía, seguir buscando
+			if not contenido or not contenido.strip():
+				continue
+			
+			# Parsear la celda siguiente
+			info_siguiente = self._parse_celda(contenido)
+			
+			# Si tiene asignatura diferente, termina aquí la sesión actual
+			if info_siguiente['asignatura'] and info_siguiente['asignatura'] != asignatura_actual:
+				return hora_siguiente
+			
+			# Si solo tiene aula (continuación), seguir buscando
+			if not info_siguiente['asignatura'] and info_siguiente['aula']:
+				continue
+		
+		# No se encontró siguiente sesión → usar duración por defecto
+		duracion_default = timedelta(minutes=DURACION_DEFAULT_ULTIMA_SESION)
+		hora_fin = (datetime.combine(datetime.today(), hora_inicio) + duracion_default).time()
+		
+		return hora_fin
+
+
+	def _crear_sesion(
+		self,
+		asignatura: str,
+		aula: str,
+		dia: str,
+		hora_inicio: dt_time,
+		hora_fin: dt_time,
+		tipo: Optional[str],
+		grupo: Optional[str]
+	) -> Sesion:
+		"""
+		Crea un objeto Sesion con validaciones.
+		
+		Args:
+			asignatura: Nombre de la asignatura
+			aula: Aula donde se imparte
+			dia: Día de la semana
+			hora_inicio: Hora de inicio
+			hora_fin: Hora de finalización
+			tipo: Tipo de sesión (TEORÍA/PRÁCTICA/PRÁCTICA_AULA)
+			grupo: Grupo de prácticas (opcional)
+			
+		Returns:
+			Objeto Sesion construido
+			
+		Raises:
+			ValueError: Si los datos son inválidos
+		"""
+		# Validaciones básicas
+		if not asignatura:
+			raise ValueError("Asignatura es obligatoria")
+		
+		if not aula:
+			raise ValueError("Aula es obligatoria")
+		
+		if not dia:
+			raise ValueError("Día es obligatorio")
+		
+		if hora_inicio >= hora_fin:
+			raise ValueError(
+				f"Hora inicio ({hora_inicio}) debe ser anterior a hora fin ({hora_fin})"
+			)
+		
+		# Validar duración
+		duracion_minutos = (
+			hora_fin.hour * 60 + hora_fin.minute -
+			hora_inicio.hour * 60 - hora_inicio.minute
+		)
+		
+		# ✅ CORRECCIÓN: Warning SIN parámetro 'context'
+		if duracion_minutos < DURACION_MINIMA_SESION:
+			self.warnings.append(Warning(
+				message=f"Sesión con duración menor a {DURACION_MINIMA_SESION} min: {duracion_minutos} min - "
+						f"Asignatura: {asignatura}, Día: {dia}, {hora_inicio}-{hora_fin}",
+				severity='low'
+			))
+		
+		if duracion_minutos > DURACION_MAXIMA_SESION:
+			self.warnings.append(Warning(
+				message=f"Sesión con duración mayor a {DURACION_MAXIMA_SESION} min: {duracion_minutos} min - "
+						f"Asignatura: {asignatura}, Día: {dia}, {hora_inicio}-{hora_fin}",
+				severity='medium'
+			))
+		
+		# Crear sesión
+		return Sesion(
+			asignatura=asignatura,
+			aula=aula,
+			dia=dia,
+			hora_inicio=hora_inicio,
+			hora_fin=hora_fin,
+			tipo=tipo,
+			grupo=grupo
+		)

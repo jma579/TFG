@@ -1,893 +1,1365 @@
-from __future__ import annotations
-import re
-import os
-import camelot
-from PyPDF2 import PdfReader
-import time
-from typing import Any, Dict, List, Optional
+"""
+PDF Text Extraction Module — HORARIOS
+
+FINALIDAD:
+- Convertir documentos PDF de horarios académicos en estructuras de datos procesables
+- Extraer tablas de horarios y su información asociada
+- Detectar días, horas y bloques de sesiones
+- Base del pipeline de extracción de HORARIOS
+
+ESTRATEGIA:
+- Extracción de tablas con PyMuPDF/pdfplumber
+- Detección de estructura tabular (días/horas)
+- Identificación de bloques de texto
+- Manejo de metadatos y calidad
+"""
+
+# Python stdlib
+from typing import Dict, Any, Optional, List, Tuple
 import logging
-import warnings as _w
-
-from .constants import (
-    DEFAULT_EXTRACTOR_CONFIG, TITULACION_PATTERNS, DAYS_CANONICAL, DAY_ALIASES,
-    TIME_WINDOW, CONFIDENCE_ERR_MAX, CONFIDENCE_ERR_STEP,
-    CONFIDENCE_SEVERE_MAX, CONFIDENCE_SEVERE_STEP,
-    CONFIDENCE_MODERATE_MAX, CONFIDENCE_MODERATE_STEP,
-    CONFIDENCE_MINOR_MAX, CONFIDENCE_MINOR_STEP,
-    CONFIDENCE_CELL_COVERAGE, CONFIDENCE_PAGE_COVERAGE,
-    CONFIDENCE_NO_TEXT_PENALTY, BLACKLIST_TOKENS, TIME_LIKE_REGEX,
-    QUALITY_UNUSABLE_CELL_COVERAGE, QUALITY_UNUSABLE_PAGE_RATIO,
-    QUALITY_POOR_PAGE_RATIO, QUALITY_POOR_CELL_COVERAGE, QUALITY_POOR_SEVERE_PER_PAGE,
-    QUALITY_ACCEPTABLE_PAGE_RATIO, QUALITY_ACCEPTABLE_CELL_COVERAGE, QUALITY_ACCEPTABLE_SEVERE_PER_PAGE,
-    QUALITY_GOOD_PAGE_RATIO, QUALITY_GOOD_CELL_COVERAGE, QUALITY_GOOD_CONFIDENCE,
-    QUALITY_EXCELLENT_PAGE_RATIO, QUALITY_EXCELLENT_CELL_COVERAGE, QUALITY_EXCELLENT_CONFIDENCE,
-)
-
-from .entities import (
-    CleanTable, ExtractionResult, RawTable, Warning
-) 
+from pathlib import Path
+import time
+import fitz  # PyMuPDF
+import pdfplumber
+import re
 
 from core.extraccion.common.entities import (
-    ExtractionMetadata, ExtractionQuality, ProcessingStatus 
+    ExtractionQuality, ProcessingStatus, ErrorType,
+    ExtractionMetadata, Warning
+)
+from core.extraccion.horarios.entities import (
+    HorarioExtractionResult, TablaHorario
+)
+from core.extraccion.horarios.constants import (
+    DEFAULT_EXTRACTOR_CONFIG, PDFPLUMBER_TABLE_SETTINGS_TEXT,
+    DIAS_SEMANA, DAYS_MAP, TIME_CONFIG, VALID_TIME_CHARS,
+    PATRONES, TABLE_QUALITY_WEIGHTS, PDFPLUMBER_TABLE_SETTINGS_LINES,
+    RX_HORA, RX_CURSO, RX_MENCION, PATRON_HORA
+)
+from core.extraccion.common.constants import (
+    THRESHOLD_EXCELLENT, THRESHOLD_GOOD, 
+    THRESHOLD_ACCEPTABLE, THRESHOLD_POOR
 )
 
-class ScheduleExtractor:
+
+class HorarioExtractor:
     """
-    Flujo del extractor:
-      - Fase 1: contar páginas y detectar 'titulacion'
-      - Fase 2: extraer tablas por página (lattice → stream fallback)
-      - Fase 3: normalizar y construir RawTable
-      - Fase 4: detectar cabecera de días + construir time_axis
-      - Fase 5: alinear a CleanTable (cells con forma [T x 5])
-      - Fase 6: chequear calidad + metadatos
-      - Fase 7: ensamblar ExtractionResult
+    Extractor de horarios académicos desde PDFs.
+    
+    Esta clase implementa la extracción y procesamiento de horarios académicos
+    desde documentos PDF, utilizando una combinación de PyMuPDF y pdfplumber
+    para una detección robusta de tablas y contenido.
+    
+    ARQUITECTURA:
+    1. Inicialización:
+       - Configuración y logging
+       - Validación de entradas
+       - Preparación de estadísticas
+       
+    2. Extracción:
+       - Detección de tablas mediante pdfplumber
+       - Identificación de estructura tabular
+       - Extracción de metadatos del documento
+       
+    3. Procesamiento:
+       - Normalización de días y horas
+       - Validación de estructura temporal
+       - Extracción de curso y mención
+       
+    4. Evaluación:
+       - Assessment de calidad
+       - Cálculo de confianza
+       - Generación de warnings
+       
+    La clase mantiene estadísticas de uso y proporciona logging detallado
+    para facilitar el diagnóstico y monitorización del proceso de extracción.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    
+    def __init__(self, config: Optional[Dict] = None):
         """
-        Inicializa el extractor mapeando únicamente los parámetros de configuración
-        a atributos de instancia. No realiza validaciones ni lógica pesada.
-
-        Parámetros esperados en DEFAULT_EXTRACTOR_CONFIG / config:
-          - prefer_lattice: bool
-          - lattice_opts: dict
-          - stream_opts: dict
-          - table_areas_by_page: dict[int, list[str]]
-          - columns_by_page: dict[int, list[str]]
-          - max_header_scan_rows: int
-          - window_strict: bool
-
-        Las constantes de dominio (TIME_WINDOW, DAYS_CANONICAL, etc.) se importarán
-        cuando sean necesarias dentro de los métodos del extractor, no aquí.
+        Inicializar extractor con configuración.
+        
+        Args:
+            config: Diccionario de configuración personalizada
         """
-        cfg = DEFAULT_EXTRACTOR_CONFIG.copy()
+        # 1. Configurar logging
+        self.logger = logging.getLogger(__name__)
+        
+        # 2. Aplicar configuración
+        self.config = DEFAULT_EXTRACTOR_CONFIG.copy()
         if config:
-            cfg.update(config)
-
-        # Mapear 1:1 a atributos de instancia
-        self.prefer_lattice = cfg.get("prefer_lattice", True)
-        self.lattice_opts = cfg.get("lattice_opts", {})
-        self.stream_opts = cfg.get("stream_opts", {})
-        self.table_areas_by_page = cfg.get("table_areas_by_page", {})
-        self.columns_by_page = cfg.get("columns_by_page", {})
-        self.max_header_scan_rows = cfg.get("max_header_scan_rows", 5)
-        self.window_strict = cfg.get("window_strict", True)
-
-        self.config = cfg
-        self.name = self.__class__.__name__
-
-
-
-    # ------------------------- API pública -------------------------
-
-    def extract(self, pdf_path: str) -> ExtractionResult:
-        """
-        Ejecuta el flujo completo y devuelve un ExtractionResult con:
-          - titulacion: str
-          - raw_tables: List[RawTable]
-          - clean_tables: List[CleanTable]
-          - extraccion_metadata: ExtractionReport (o dict equivalente)
-        """
-        _w.filterwarnings("ignore", category=UserWarning, module="camelot.utils")
+            self.config.update(config)
         
-        # Inicializacion de contenedores y metadatos
-        start_time = time.time()
-        titulacion = ""
-        raw_tables: List[RawTable] = []
-        clean_tables: List[CleanTable] = []
-        warnings: List[Warning] = []
-        errors: List[str] = []
-        page_count = 0
-
-        try:
-            # Fase 1: Contar páginas y detectar titulacion
-            page_count = self._count_pages(pdf_path)
-            titulacion = self._read_titulacion(pdf_path)
-            pdf_metrics = self._compute_pdf_metrics(pdf_path)
-
-            # Fase 2–6: procesar página a página
-            for page_no in range(1, page_count + 1):
-                try:
-                    # 2) Camelot: lattice → stream (fallback)
-                    tables = self._run_camelot(
-                        pdf_path, page_no,
-                        "lattice" if self.prefer_lattice else "stream"
-                    )
-                    if not tables and self.prefer_lattice:
-                        tables = self._run_camelot(pdf_path, page_no, "stream")
-
-                    if not tables:
-                        warnings.append(Warning(f"No se detectó tabla válida en la página {page_no}", "severe"))
-                        continue
-
-                    # Volcar SIEMPRE todas las tablas crudas a raw_tables
-                    for t in tables:
-                        raw_tables.append(RawTable(page=page_no, grid=self._to_raw_grid(t)))
-
-                    best_table = self._choose_best_table(tables)
-                    if not best_table:
-                        warnings.append(Warning(f"No se pudo seleccionar tabla principal en la página {page_no}", "severe"))
-                        continue
-
-                    # 3) Normalizar y construir RawTable
-                    grid = self._to_raw_grid(best_table)
-
-                    # 4) Detectar cabecera + time axis
-                    header_row_idx = self._detect_header_row(grid)
-                    if header_row_idx is None:
-                        warnings.append(Warning(f"No se detectó cabecera de días en la página {page_no}", "severe"))
-                        continue
-
-                    header_row = grid[header_row_idx]
-                    header_days = self._build_header_days(header_row)
-
-                    # acceso seguro a la primera columna (horas)
-                    time_col = [(row[0] if (row and len(row) > 0) else "")
-                                for row in grid[header_row_idx + 1:]]
-                    time_axis = self._build_time_axis(time_col)
-                    if not time_axis:
-                        warnings.append(Warning(f"Eje temporal vacío o fuera de ventana en la página {page_no}", "severe"))
-                        continue
-
-                    # 5) Alinear a CleanTable [T x 5]
-                    day_col_indices = self._find_day_columns(header_row)
-                    if len(day_col_indices) < 3:
-                        warnings.append(Warning(f"Cabecera de días insuficiente (cols={len(day_col_indices)}) en la página {page_no}", "severe"))
-                        continue
-
-                    cells = self._align_cells(grid, header_row_idx, day_col_indices, time_axis)
-
-                    # 6) Chequeos de forma
-                    table_warnings = self._validate_clean_table(header_days, time_axis, cells)
-                    warnings.extend(table_warnings)
-
-                    clean_tables.append(
-                        CleanTable(
-                            page=page_no,
-                            header_days=header_days,
-                            time_axis=time_axis,
-                            cells=cells
-                        )
-                    )
-
-                except Exception as e:
-                    # Error aislado de página: seguir con la siguiente
-                    errors.append(f"page_{page_no}: {e!r}")
-                    continue
-
-                del tables  # liberar memoria
-
-            # Fase 7: Chequear calidad global + metadatos
-            quality, confidence, status = self._compute_quality_and_confidence(
-                errors, warnings, clean_tables, page_count, pdf_metrics
-            )
-
-            # Fase 8: Ensamblar resultado + metadatos
-            processing_time = time.time() - start_time
-            metadata = ExtractionMetadata(
-                quality=quality,
-                confidence=confidence,
-                status=status,
-                processing_time_seconds=processing_time,
-                page_count=page_count,
-                file_size_mb=pdf_metrics.get("file_size_mb"),
-                has_embedded_text=pdf_metrics.get("has_embedded_text"),
-                char_count=pdf_metrics.get("char_count"),
-                word_count=pdf_metrics.get("word_count"),
-                pages_with_text=pdf_metrics.get("pages_with_text") or None,
-                errors=errors,
-                warnings=warnings,
-            )
-            return ExtractionResult(
-                titulacion=titulacion,
-                raw_tables=raw_tables,
-                clean_tables=clean_tables,
-                extraccion_metadata=metadata
-            )
-
-        except Exception as e:
-            # Error global no recuperable: devolvemos lo acumulado
-            processing_time = time.time() - start_time
-            errors.append(str(e))
-            # Intenta obtener métricas básicas si es posible
-            try:
-                pdf_metrics = self._compute_pdf_metrics(pdf_path)
-            except Exception:
-                pdf_metrics = {
-                    "file_size_mb": None,
-                    "has_embedded_text": None,
-                    "char_count": None,
-                    "word_count": None,
-                    "pages_with_text": None,
-                }
-            metadata = ExtractionMetadata(
-                quality=ExtractionQuality.UNUSABLE,
-                confidence=0.0,
-                status=ProcessingStatus.FAILED,
-                processing_time_seconds=processing_time,
-                page_count=page_count,
-                file_size_mb=pdf_metrics.get("file_size_mb"),
-                has_embedded_text=pdf_metrics.get("has_embedded_text"),
-                char_count=pdf_metrics.get("char_count"),
-                word_count=pdf_metrics.get("word_count"),
-                pages_with_text=pdf_metrics.get("pages_with_text"),
-                errors=errors,
-                warnings=warnings,
-            )
-            return ExtractionResult(
-                titulacion=titulacion,
-                raw_tables=raw_tables,
-                clean_tables=clean_tables,
-                extraccion_metadata=metadata
-            )
-
-    # ------------------------- Etapas internas (por implementar) -------------------------
-
-    # Fase 1
-    def _count_pages(self, pdf_path: str) -> int:
-        """
-        Devuelve el número de páginas del PDF.
-        """
-        reader = PdfReader(pdf_path)  # puede lanzar si el archivo está corrupto/inaccesible
-        if getattr(reader, "is_encrypted", False):
-            raise ValueError(f"El PDF está encriptado y no puede procesarse: {pdf_path}")
-
-        return len(reader.pages)
-
-    def _read_titulacion(self, pdf_path: str) -> str:
-        """
-        Intenta extraer una cadena identificativa de la titulación.
-        """
-        reader = PdfReader(pdf_path)
-        # Si está encriptado, reportamos error
-        if getattr(reader, "is_encrypted", False):
-            raise ValueError(f"El PDF está encriptado y no puede procesarse: {pdf_path}")
-
-        max_pages = min(2, len(reader.pages))
-        time_like = re.compile(TIME_LIKE_REGEX)
-        days_upper = set(d.upper() for d in DAYS_CANONICAL)
-
-        # 1) Patrones directos
-        for i in range(max_pages):
-            try:
-                text = reader.pages[i].extract_text() or ""
-            except Exception:
-                continue
-
-            text_flat = " ".join(text.split())
-            for rx in TITULACION_PATTERNS:
-                m = rx.search(text) or rx.search(text_flat)
-                if m:
-                    val = m.group(1) if m.lastindex else m.group(0)
-                    return val.strip(" :-\t")
-
-        # 2) Fallback: línea “mayúscula e informativa” más larga
-        candidatas = []
-        for i in range(max_pages):
-            try:
-                text = reader.pages[i].extract_text() or ""
-            except Exception:
-                continue
-
-            # líneas originales + una versión aplanada para capturar títulos partidos por saltos
-            lines = [ln for ln in (text.replace("\r", "\n").split("\n")) if ln.strip()]
-            lines.append(" ".join(text.split()))
-
-            for ln in lines:
-                u = " ".join(ln.split()).upper()
-                if len(u) < 12:
-                    continue
-                if any(tok in u for tok in BLACKLIST_TOKENS):
-                    continue
-                if u in days_upper or any(dw in u for dw in days_upper):
-                    continue
-                if time_like.search(u):
-                    continue
-                if ("GRADO" in u) or ("DOBLE" in u) or ("MÁSTER" in u) or ("MASTER" in u):
-                    candidatas.append(u)
-
-        if candidatas:
-            # Escoge la más larga; devuélvela “title-cased” como salida legible
-            return max(candidatas, key=len).title()
-
-        return ""
-
-    def _compute_pdf_metrics(self, pdf_path: str) -> dict:
-        """
-        Calcula métricas básicas del PDF:
-        - file_size_mb
-        - has_embedded_text
-        - char_count
-        - word_count
-        - pages_with_text
-        """
-        file_size_mb = os.path.getsize(pdf_path) / (1024 * 1024)
-        char_count = 0
-        word_count = 0
-        pages_with_text = 0
-        has_embedded_text = False
-    
-        with open(pdf_path, "rb") as f:
-            reader = PdfReader(f)
-            for page in reader.pages:
-                try:
-                    text = page.extract_text() or ""
-                except Exception:
-                    text = ""
-                if text.strip():
-                    pages_with_text += 1
-                    char_count += len(text)
-                    word_count += len(text.split())
-                    has_embedded_text = True  # Basta con que una página tenga texto
-        return {
-            "file_size_mb": file_size_mb,
-            "has_embedded_text": has_embedded_text,
-            "char_count": char_count,
-            "word_count": word_count,
-            "pages_with_text": pages_with_text,
+        # 3. Configurar nivel de logging
+        if 'log_level' in self.config:
+            self.logger.setLevel(getattr(logging, self.config['log_level'].upper(), logging.INFO))
+        
+        # 4. Inicializar estadísticas
+        self.stats = {
+            'extractions_total': 0,
+            'tables_detected': 0,
+            'failures': 0,
+            'avg_processing_time': 0.0
         }
-    
+        
+        self.logger.info("HorarioExtractor inicializado correctamente")
 
-    # Fase 2
-    def _run_camelot(self, pdf_path: str, page_no: int, flavor: str):
+
+    def extract(self, pdf_path: str) -> HorarioExtractionResult:
         """
-        Ejecuta camelot.read_pdf en una página concreta con el flavor indicado.
-        - flavor: "lattice" | "stream"
-        - Usa opciones de self.lattice_opts / self.stream_opts sin mutarlas.
-        - Inyecta pages=str(page_no) y, si existen, table_areas (ambos sabores) y columns (solo stream).
-        - Devuelve TableList o [] si no hay tablas o si ocurre un error.
+        MÉTODO PRINCIPAL: Extraer tablas de horarios del PDF.
+        
+        Args:
+            pdf_path: Ruta al archivo PDF
+            
+        Returns:
+            HorarioExtractionResult con las tablas extraídas y metadatos
         """
-        # Validaciones ligeras
-        if flavor not in ("lattice", "stream"):
-            # Mantenemos el contrato de devolver [] (no lanzar) para integrarse con extract()
-            return []
-        if not isinstance(page_no, int) or page_no < 1:
-            return []
-
-        # Copiamos opts base y limpiamos posibles claves conflictivas
-        base_opts = self.lattice_opts if flavor == "lattice" else self.stream_opts
-        opts = dict(base_opts or {})
-        # Forzamos flavor y pages (por si venían en opts)
-        opts.pop("flavor", None)
-        opts.pop("pages", None)
-        opts["flavor"] = flavor
-        opts["pages"] = str(page_no)
-
-        # Geometría por página
-        table_areas = self.table_areas_by_page.get(page_no)
-        if table_areas:
-            opts["table_areas"] = table_areas
-
-        # Columns solo tiene sentido en stream
-        if flavor == "stream":
-            columns = self.columns_by_page.get(page_no)
-            if columns:
-                opts["columns"] = columns
-        else:
-            # Por higiene, aseguramos no pasar columns en lattice
-            opts.pop("columns", None)
-
-        # Llamada a Camelot
+        start_time = time.time()
+        self.stats['extractions_total'] += 1
+        
         try:
-            tables = camelot.read_pdf(pdf_path, **opts)
-            # TableList puede ser truthy/falsy; devolvemos [] si está vacío o None
-            return tables if tables and len(tables) > 0 else []
-        except Exception:
-            # No log aquí por mantenerlo minimalista; el caller ya añade errores/alerts por página
-            return []
+            # 1. Validación inicial con PyMuPDF
+            self._validate_pdf_input(pdf_path)
+            
+            # 2. Extracción de tablas con pdfplumber
+            tablas = self._extract_tables(pdf_path)
+            
+            # 3. Procesamiento de metadatos y evaluación
+            titulo = self._extract_title(pdf_path)
+            quality, confidence = self._assess_extraction_quality(tablas)
+            
+            # 4. Construcción del resultado
+            processing_time = time.time() - start_time
+            self._update_processing_time(processing_time)
+            
+            if not tablas:
+                # marca fallo “lógico”
+                metadata = self._build_success_metadata(quality, confidence, processing_time, pdf_path, len(tablas))
+                metadata.status = ProcessingStatus.FAILED
+                return HorarioExtractionResult(titulo=titulo, tablas=[], metadata=metadata)
+            
+            metadata = self._build_success_metadata(
+                quality, confidence, processing_time, pdf_path, len(tablas)
+            )
+            
+            return HorarioExtractionResult(
+                titulo=titulo,
+                tablas=tablas,
+                metadata=metadata
+            )
+        
+        except Exception as e:
+            return self._handle_extraction_error(e, pdf_path, start_time)
 
-    def _choose_best_table(self, tables) -> Optional[Any]: # TODO: Mirar si se pueden declarar algunas constantes
+
+    # Funciones auxiliares base (similar a FichaExtractor)
+    def _validate_pdf_input(self, pdf_path: str) -> None:
         """
-        Selecciona la mejor tabla de Camelot:
-        1) Filtra tablas viables: tienen .df, ≥6 columnas (hora+5 días) y ≥3 filas.
-        2) Puntuación: más 'day hits' en la primera fila (≥3 deseable), luego más columnas y más filas.
-        3) Devuelve la candidata con mayor puntuación o None si no hay viables.
+        Validar archivo PDF de entrada.
+        
+        Args:
+            pdf_path: Ruta al archivo PDF a validar
+            
+        Raises:
+            ValueError: Si el archivo no existe o no es válido
+            RuntimeError: Si el archivo está corrupto o es demasiado grande
         """
-        if not tables or len(tables) == 0:
+        # Convertir string a Path
+        path = Path(pdf_path)
+        
+        # 1. Verificar existencia
+        if not path.exists():
+            self.stats['failures'] += 1
+            raise ValueError(f"No se encontró el archivo: {pdf_path}")
+        
+        # 2. Verificar extensión
+        if path.suffix.lower() != '.pdf':
+            self.stats['failures'] += 1
+            raise ValueError(f"El archivo debe ser PDF: {pdf_path}")
+        
+        # 3. Verificar tamaño
+        file_size_mb = path.stat().st_size / (1024 * 1024)
+        if file_size_mb > self.config['max_file_size_mb']:
+            self.stats['failures'] += 1
+            raise RuntimeError(
+                f"PDF demasiado grande ({file_size_mb:.1f}MB). "
+                f"Máximo permitido: {self.config['max_file_size_mb']}MB"
+            )
+
+        # 4. Verificar que se puede abrir (no está corrupto)
+        try:
+            doc = fitz.open(pdf_path)
+            doc.close()
+        except Exception as e:
+            self.stats['failures'] += 1
+            raise RuntimeError(f"Error al abrir el PDF: {str(e)}")
+        
+        self.logger.debug(f"Validación exitosa de {pdf_path}")
+
+    def _extract_tables(self, pdf_path: str) -> List[TablaHorario]:
+        """Extracción principal de tablas usando pdfplumber."""
+        tablas: List[TablaHorario] = []
+        with pdfplumber.open(pdf_path) as pdf:
+            total_pages = len(pdf.pages)
+            self.logger.info(f"Procesando {total_pages} páginas")
+
+            for page_num, page in enumerate(pdf.pages):
+                page_tablas: List[TablaHorario] = []
+
+                # 1) Intento con 'lines'
+                try:
+                    found = page.find_tables(PDFPLUMBER_TABLE_SETTINGS_LINES)
+                    for tb in found:
+                        t = self._process_table_from_tableobj(tb, page, page_num)
+                        if t: page_tablas.append(t)
+                except Exception as e:
+                    self.logger.debug(f"find_tables(lines) falló en p{page_num}: {e}")
+
+                # 2) Si nada útil, intento con 'text'
+                if not page_tablas:
+                    try:
+                        found = page.find_tables(PDFPLUMBER_TABLE_SETTINGS_TEXT)
+                        for tb in found:
+                            t = self._process_table_from_tableobj(tb, page, page_num)
+                            if t: page_tablas.append(t)
+                    except Exception as e:
+                        self.logger.debug(f"find_tables(text) falló en p{page_num}: {e}")
+
+                # 3) Fallback geométrico por palabras (sin tablas)
+                if not page_tablas:
+                    try:
+                        t = self._process_page_by_words(page, page_num)
+                        if t: page_tablas.append(t)
+                    except Exception as e:
+                        self.logger.warning(f"Fallback por palabras falló en p{page_num}: {e}")
+
+                tablas.extend(page_tablas)
+
+        return tablas
+
+    def _extract_title(self, pdf_path: str) -> str:
+        rx = re.compile(PATRONES['titulo'], flags=re.IGNORECASE | re.DOTALL)
+        # 1) Intento pdfplumber (página 1)
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                txt = pdf.pages[0].extract_text() or ""
+                txt = " ".join(txt.split())
+                m = rx.search(txt)
+                if m:
+                    return m.group(0).strip()
+                # mirar primeras líneas por si hay separadores
+                for line in (txt.splitlines()[:6] if txt else []):
+                    if "GRADO" in line.upper() and ("PRIMER" in line.upper() or "SEGUNDO" in line.upper()):
+                        return line.strip()
+        except Exception:
+            pass
+
+        # 2) Fallback PyMuPDF (une bloques/espacios)
+        try:
+            doc = fitz.open(pdf_path)
+            txt = ""
+            for i in range(min(2, doc.page_count)):
+                txt += doc[i].get_text("text") + "\n"
+            doc.close()
+            txt = " ".join(txt.split())
+            m = rx.search(txt)
+            if m:
+                return m.group(0).strip()
+        except Exception:
+            pass
+
+        raise ValueError("No se encontró un título válido en el documento")
+
+    def _assess_extraction_quality(self, tablas: List[TablaHorario]) -> tuple[ExtractionQuality, float]:
+        """
+        Evalúa la calidad de la extracción basándose en las tablas extraídas.
+        
+        La calidad se determina por:
+        1. Número de tablas encontradas
+        2. Completitud de las tablas (días, horas, celdas)
+        3. Coherencia de la estructura
+        
+        Args:
+            tablas: Lista de tablas extraídas
+            
+        Returns:
+            tuple[ExtractionQuality, float]: Par (calidad, confianza)
+                - calidad: Enum ExtractionQuality (EXCELLENT, GOOD, ACCEPTABLE, POOR, UNUSABLE)
+                - confianza: Float entre 0 y 1
+        """
+        if not tablas:
+            return ExtractionQuality.UNUSABLE, 0.0
+    
+        # 1. Evaluar cada tabla
+        table_scores = []
+        for tabla in tablas:
+            score = 0.0
+            
+            # Verificar días completos
+            if len(tabla.day_columns) == 5:  # L-V
+                score += TABLE_QUALITY_WEIGHTS['days_structure']
+            
+            # Verificar franjas horarias
+            if len(tabla.time_rows) >= TIME_CONFIG['min_franjas']:
+                score += TABLE_QUALITY_WEIGHTS['time_structure']
+            
+            # Verificar celdas con contenido
+            cells_with_content = sum(1 for row in tabla.celdas for cell in row if cell is not None)
+            total_cells = (len(tabla.celdas) * len(tabla.celdas[0])) if (tabla.celdas and tabla.celdas[0]) else 0
+            content_ratio = (cells_with_content / total_cells) if total_cells else 0.0
+            score += TABLE_QUALITY_WEIGHTS['content_density'] * content_ratio
+            
+            table_scores.append(score)
+        
+        # 2. Calcular puntuación global
+        avg_score = sum(table_scores) / len(table_scores)
+        
+        # 3. Determinar calidad usando umbrales compartidos
+        if avg_score >= THRESHOLD_EXCELLENT:
+            quality = ExtractionQuality.EXCELLENT
+        elif avg_score >= THRESHOLD_GOOD:
+            quality = ExtractionQuality.GOOD
+        elif avg_score >= THRESHOLD_ACCEPTABLE:
+            quality = ExtractionQuality.ACCEPTABLE
+        elif avg_score >= THRESHOLD_POOR:
+            quality = ExtractionQuality.POOR
+        else:
+            quality = ExtractionQuality.UNUSABLE
+        
+        self.logger.debug(f"Calidad evaluada: {quality.value} (confianza: {avg_score:.2f})")
+        return quality, avg_score
+
+    def _update_processing_time(self, processing_time: float) -> None:
+        """
+        Actualiza las estadísticas de tiempo de procesamiento.
+        
+        Args:
+            processing_time: Tiempo de procesamiento en segundos
+        """
+        total_extractions = self.stats['extractions_total']
+        current_avg = self.stats['avg_processing_time']
+        
+        # Actualizar media móvil
+        if total_extractions == 1:
+            self.stats['avg_processing_time'] = processing_time
+        else:
+            # Fórmula: nuevo_promedio = viejo_promedio * (n-1)/n + nuevo_valor/n
+            self.stats['avg_processing_time'] = (
+                current_avg * (total_extractions - 1) / total_extractions +
+                processing_time / total_extractions
+            )
+        
+        self.logger.debug(
+            f"Tiempo de procesamiento actualizado: {processing_time:.2f}s "
+            f"(media: {self.stats['avg_processing_time']:.2f}s)"
+        )
+
+    def _build_success_metadata(self, quality: ExtractionQuality, confidence: float,
+                              processing_time: float, pdf_path: str, 
+                              num_tablas: int) -> ExtractionMetadata:
+        """
+        Construye los metadatos para una extracción exitosa.
+        
+        Args:
+            quality: Calidad de la extracción
+            confidence: Nivel de confianza (0-1)
+            processing_time: Tiempo de procesamiento en segundos
+            pdf_path: Ruta al archivo PDF
+            num_tablas: Número de tablas extraídas
+            
+        Returns:
+            ExtractionMetadata: Metadatos de la extracción
+        """
+        warnings = []
+    
+        # Verificar calidad mínima
+        if quality in [ExtractionQuality.POOR, ExtractionQuality.UNUSABLE]:
+            warnings.append(
+                Warning(
+                    message="Calidad de extracción por debajo del umbral aceptable",
+                    severity="severe"  # Cambiado de "high" a "severe"
+                )
+            )
+        
+        # Obtener tamaño del archivo
+        file_size_mb = Path(pdf_path).stat().st_size / (1024 * 1024)
+
+        pages, chars, words, has_text = self._quick_pdf_stats(pdf_path)
+        
+        # Construir metadatos según la estructura correcta
+        return ExtractionMetadata(
+            quality=quality,
+            confidence=confidence,
+            status=ProcessingStatus.COMPLETED,
+            processing_time_seconds=processing_time,
+            page_count=pages,
+            file_size_mb=file_size_mb,
+            has_embedded_text=has_text,
+            char_count=chars,
+            word_count=words,
+            errors=[],
+            warnings=warnings,
+            pages_with_text=pages if has_text else 0,
+        )
+
+    def _handle_extraction_error(self, error: Exception, pdf_path: str, 
+                               start_time: float) -> HorarioExtractionResult:
+        """
+        Maneja los errores durante la extracción y construye un resultado de error.
+        
+        Args:
+            error: Excepción capturada
+            pdf_path: Ruta al archivo PDF
+            start_time: Tiempo de inicio del procesamiento
+            
+        Returns:
+            HorarioExtractionResult: Resultado con metadata de error
+        """
+        self.stats['failures'] += 1
+        processing_time = time.time() - start_time
+        
+        # Construir warning con severidad correcta
+        error_warning = Warning(
+            message=str(error),
+            severity="severe"  # Cambiado de "high" a "severe"
+        )
+        
+        try:
+            file_size_mb = Path(pdf_path).stat().st_size / (1024 * 1024)
+        except:
+            file_size_mb = 0.0
+        
+        # Construir metadata con la estructura correcta
+        error_metadata = ExtractionMetadata(
+            quality=ExtractionQuality.UNUSABLE,
+            confidence=0.0,
+            status=ProcessingStatus.FAILED,
+            processing_time_seconds=processing_time,
+            page_count=0,
+            file_size_mb=file_size_mb,
+            has_embedded_text=False,
+            char_count=0,
+            word_count=0,
+            errors=[str(error)],
+            warnings=[error_warning],
+            pages_with_text=0
+        )
+        
+        return HorarioExtractionResult(
+            titulo="",
+            tablas=[],
+            metadata=error_metadata
+        )
+
+
+    # FUNCIONES AUXILIARES 
+
+    def _process_table_from_tableobj(self, table, page, page_num: int) -> Optional[TablaHorario]:
+        """
+        Procesa una tabla detectada por pdfplumber (ruta 'por líneas'):
+        - Detecta cabeceras de días, filas de horas y celdas.
+        - Limpieza: horas sueltas, notas, asteriscos, fusiones entre columnas.
+        - MEJORA: Corrige nombres multilínea y texto pegado.
+        - Compacta filas duplicadas por hora y valida orden temporal.
+        - Fusiona asignaturas con aulas/grupos en celdas consecutivas.
+        - Metadata tolerante (no lanza al faltar curso).
+        """
+        data = table.extract()
+        if not data or len(data) < 2:
+            return None
+
+        # 1) Cabecera de días en primeras filas
+        header_row = None
+        for row in data[:4]:
+            cells = (row or [])[1:]  # col 0 son horas
+            norm = [self._normalize_day((c or "").strip().upper()) for c in cells]
+            got = [d for d in norm if d]
+            if len(got) >= 3:
+                header_row = [d for d in norm if d][:5]
+                break
+
+        day_columns: List[str] = header_row or []
+
+        # 2) Fallback: inferir días de palabras si la cabecera no es válida
+        if not self._validate_days(day_columns):
+            inferred = self._infer_day_columns_from_words(page, table.bbox)
+            if inferred and self._validate_days(inferred):
+                day_columns = inferred
+            else:
+                self.logger.warning(f"Tabla descartada: encabezados inválidos en página {page_num}")
+                return None
+
+        # 3) Filas de horas (col 0)
+        time_rows: List[str] = []
+        for r in data[1:]:
+            label = (r[0] or "").strip() if r and len(r) > 0 else ""
+            t = self._normalize_time(label)
+            if t:
+                time_rows.append(t)
+
+        # 4) Celdas (limpieza por celda + fusión entre columnas)
+        num_day_cols = len(day_columns)
+        celdas: List[List[Optional[str]]] = []
+        for r in data[1:]:
+            cols = (r[1:1+num_day_cols] if r and len(r) > 1 else [])
+            row_vals: List[Optional[str]] = []
+            for c in cols:
+                raw = (c or "").strip()
+                # NUEVA LIMPIEZA: Corregir nombres multilínea ANTES de otras limpiezas
+                clean = self._fix_multiline_names(raw) if raw else None
+                clean = self._strip_spurious_hour(clean) if clean else None
+                clean = self._remove_inline_hours(clean) if clean else None
+                clean = self._strip_inline_asterisk_notes(clean) if clean else None
+                row_vals.append(clean)
+            # fusión entre columnas si procede
+            row_vals = self._merge_split_across_columns(row_vals)
+            # padding a nº de días
+            while len(row_vals) < num_day_cols:
+                row_vals.append(None)
+            celdas.append(row_vals)
+
+        # 5) Quitar notas largas + etiquetas de cabecera en primeras filas + vaciar filas-nota
+        for i in range(len(celdas)):
+            for j in range(len(celdas[i])):
+                celdas[i][j] = self._demote_footnote(celdas[i][j])
+        
+        # ✅ CORRECCIÓN: Eliminar condicional y usar directamente la función con valor aumentado
+        self._clear_header_labels_early_rows(day_columns, celdas, upto_rows=5)  # Aumentado de 2 a 5
+        
+        celdas = self._blank_footnote_rows(celdas)
+
+        # 6) Compactar por hora y validar orden temporal
+        time_rows, celdas = self._compact_grid_by_time(time_rows, celdas)
+        if not self._validate_times(time_rows):
+            return None
+
+        # 6.5) Fusionar asignaturas con aulas/grupos en celdas consecutivas
+        celdas = self._merge_subject_and_room_cells(celdas)
+
+        # 7) Metadata tolerante
+        curso, mencion = self._extract_table_metadata(page, table)
+
+        return TablaHorario(
+            curso=curso,
+            day_columns=day_columns,
+            time_rows=time_rows,
+            celdas=celdas,
+            mencion=mencion,
+            pagina=page_num
+        )
+
+    def _process_page_by_words(self, page, page_num: int) -> Optional[TablaHorario]:
+        """
+        Fallback geométrico (ruta 'por palabras'):
+        - Infere días (banda superior) y horas (banda izquierda anclada al 1er día).
+        - Segmenta rejilla con bordes X/Y robustos.
+        - Extrae celdas por PALABRAS + limpieza y fusiones entre columnas.
+        """
+        words = page.extract_words(x_tolerance=2, y_tolerance=2, keep_blank_chars=False) or []
+        if not words:
+            return None
+
+        W = page.width
+        H = page.height
+
+        # 1) Cabeceras de día arriba
+        top_band = 0.35 * H
+        day_candidates: List[Tuple[str, Tuple[float, float, float, float]]] = []
+        for w in words:
+            txt = (w.get("text") or "").strip().upper()
+            day = self._normalize_day(txt)
+            if day and w.get("top", 0) < top_band:
+                day_candidates.append((day, (w["x0"], w["top"], w["x1"], w["bottom"])))
+
+        day_candidates.sort(key=lambda d: (d[1][0], d[1][1]))
+        columns: List[Tuple[str, float]] = []
+        seen = set()
+        for day, bbox in day_candidates:
+            x0 = bbox[0]
+            if any(abs(x0 - cx) < 18 for (_, cx) in columns):
+                continue
+            if day not in seen:
+                columns.append((day, x0))
+                seen.add(day)
+            if len(columns) == 5:
+                break
+
+        columns.sort(key=lambda t: t[1])
+        day_columns = [d for (d, _) in columns]
+        if not self._validate_days(day_columns):
+            return None
+
+        # 2) Horas (banda izquierda anclada al 1er día)
+        first_day_x = columns[0][1]
+        left_band = min(0.25 * W, first_day_x - 10)
+
+        time_hits: List[Tuple[str, Tuple[float, float, float, float]]] = []
+        for w in words:
+            txt = (w.get("text") or "").strip()
+            if w.get("x0", 0) < left_band and RX_HORA.fullmatch(re.sub(r"\s+", "", txt)):
+                t = self._normalize_time(txt)
+                if t:
+                    time_hits.append((t, (w["x0"], w["top"], w["x1"], w["bottom"])))
+        time_hits.sort(key=lambda t: (t[1][1], t[0]))
+        time_hits = self._compact_time_hits(time_hits)
+        time_rows = [t for (t, _) in time_hits]
+        if not self._validate_times(time_rows):
+            return None
+
+        # 3) Bordes X
+        xs = [x for (_, x) in columns]
+        x_edges = [0] + [(xs[i] + xs[i + 1]) / 2 for i in range(len(xs) - 1)] + [W]
+
+        # 4) Bordes Y (evitar cabecera en 1ª fila)
+        y_pairs = [(bb[1], bb[3]) for (_, bb) in time_hits]
+        y_pairs.sort(key=lambda z: z[0])
+
+        y_edges: List[float] = []
+        first_top, first_bottom = y_pairs[0]
+        y_edges.append(min(H, first_bottom + 2))
+        for i in range(1, len(y_pairs)):
+            prev_bottom = y_pairs[i - 1][1]
+            cur_top = y_pairs[i][0]
+            y_edges.append((prev_bottom + cur_top) / 2)
+        last_bottom = y_pairs[-1][1]
+        y_edges.append(min(H, last_bottom + 18))
+
+        # 5) Celdas por PALABRAS + limpieza + fusiones entre columnas
+        celdas: List[List[Optional[str]]] = []
+        pad_x = 6
+        pad_y = 2
+        for r in range(len(time_rows)):
+            row_vals: List[Optional[str]] = []
+            for c in range(len(day_columns)):
+                x0 = max(0, x_edges[c] + pad_x)
+                x1 = max(x0, x_edges[c + 1] - pad_x)
+                y0 = max(0, y_edges[r] + pad_y)
+                y1 = max(y0, y_edges[r + 1] - pad_y)
+                bbox = (x0, y0, x1, y1)
+                raw = self._cell_text_from_words(words, bbox)  # ya agrupa líneas con tolerancia
+                clean = self._strip_spurious_hour(raw) if raw else None
+                clean = self._remove_inline_hours(clean) if clean else None
+                clean = self._strip_inline_asterisk_notes(clean) if clean else None
+                row_vals.append(clean)
+            # fusión entre columnas si procede
+            row_vals = self._merge_split_across_columns(row_vals)
+            celdas.append(row_vals)
+
+        # 6) Quitar notas + etiquetas de cabecera en primeras filas + vaciar filas-nota
+        for i in range(len(celdas)):
+            for j in range(len(celdas[i])):
+                celdas[i][j] = self._demote_footnote(celdas[i][j])
+        if hasattr(self, "_clear_header_labels_early_rows"):
+            self._clear_header_labels_early_rows(day_columns, celdas, upto_rows=2)
+        else:
+            self._clear_header_labels_in_first_row(day_columns, celdas)
+        celdas = self._blank_footnote_rows(celdas)
+
+        # 7) Metadata (caption)
+        top_of_grid = y_edges[0]
+        cap_bbox = (0, max(0, top_of_grid - 180), W, top_of_grid)  # ventana más generosa
+        cropped = page.within_bbox(cap_bbox)
+        caption = (cropped.extract_text() or "")
+        curso_match = RX_CURSO.search(caption or "")
+        curso = curso_match.group(0).strip() if curso_match else "1º"
+        mencion = self._clean_mencion(caption) if hasattr(self, "_clean_mencion") else None
+
+        # 8) Sanity de forma (columnas == nº de días)
+        num_day_cols = len(day_columns)
+        for i in range(len(celdas)):
+            if len(celdas[i]) < num_day_cols:
+                celdas[i].extend([None] * (num_day_cols - len(celdas[i])))
+            elif len(celdas[i]) > num_day_cols:
+                celdas[i] = celdas[i][:num_day_cols]
+
+        return TablaHorario(
+            curso=curso,
+            day_columns=day_columns,
+            time_rows=time_rows,
+            celdas=celdas,
+            mencion=mencion,
+            pagina=page_num
+        )
+
+    def _first_row_with_days(self, data: list[list[str]]) -> Optional[list[str]]:
+    # Mira las 4 primeras filas por si la cabecera no está en la fila 0
+        for row in data[:4]:
+            cells = (row or [])[1:]  # salta la col 0 de horas
+            norm = []
+            for c in cells:
+                d = self._normalize_day((c or "").strip().upper())
+                norm.append(d if d else None)
+            got = [d for d in norm if d]
+            if len(got) >= 3:
+                # Devuelve las 5 primeras etiquetas válidas si existieran
+                # (rellenarás con None si hiciera falta más adelante)
+                return [d for d in norm if d][:5]
+        return None
+
+    def _normalize_day(self, day_text: str) -> Optional[str]:
+        """
+        Normaliza el texto del día de la semana.
+        
+        Args:
+            day_text: Texto del día a normalizar
+            
+        Returns:
+            Día normalizado o None si no es válido
+        """
+        # Limpiar y convertir a mayúsculas
+        day = day_text.upper().strip()
+        
+        # Buscar coincidencia exacta
+        if day in DAYS_MAP.values():
+            return day
+            
+        # Buscar por prefijo
+        for prefix, full_day in DAYS_MAP.items():
+            if day.startswith(prefix):
+                return full_day
+                
+        return None
+    
+    def _validate_days(self, days: List[str]) -> bool:
+        """
+        Acepta 5 o más columnas, verifica que las 5 primeras sean L-V en orden.
+        """
+        if len(days) < len(DIAS_SEMANA):
+            self.logger.warning(f"Número incorrecto de días: {len(days)}")
+            return False
+        # Compara solo las 5 primeras
+        for expected, found in zip(DIAS_SEMANA, days[:5]):
+            if expected != found:
+                self.logger.warning(f"Día incorrecto: esperado {expected}, encontrado {found}")
+                return False
+        return True
+    
+    def _normalize_time(self, time_text: str) -> Optional[str]:
+        """
+        Normaliza tiempos a HH:MM aceptando 1630, 16:30, 16.30, ' 16 : 30 '.
+        Valida contra TIME_CONFIG.
+        """
+        if not time_text:
+            return None
+        # Solo caracteres válidos
+        t = "".join(ch for ch in time_text.strip() if ch in VALID_TIME_CHARS)
+        if not t:
+            return None
+
+        t = t.replace(".", ":")
+        # 830 -> 8:30 ; 1630 -> 16:30
+        if ":" not in t and len(t) in (3, 4):
+            t = t[:-2] + ":" + t[-2:]
+
+        parts = t.split(":")
+        if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit():
+            return None
+
+        hh, mm = int(parts[0]), int(parts[1])
+
+        if not (TIME_CONFIG['min_hour'] <= hh <= TIME_CONFIG['max_hour']):
+            return None
+        if not (TIME_CONFIG['min_minute'] <= mm <= TIME_CONFIG['max_minute']):
+            return None
+
+        return f"{hh:02d}:{mm:02d}"
+
+    def _validate_times(self, times: List[str]) -> bool:
+        """
+        Valida la secuencia de horas:
+        - Compacta duplicados consecutivos (09:30, 09:30 -> 09:30)
+        - Exige al menos TIME_CONFIG['min_franjas'] marcas únicas
+        - Verifica orden no decreciente
+        """
+        if not times:
+            self.logger.warning("Pocas franjas horarias: 0")
+            return False
+
+        # 1) Compactar duplicados consecutivos
+        uniq: List[str] = []
+        last = None
+        for t in times:
+            if not t:
+                continue
+            if t != last:
+                uniq.append(t)
+                last = t
+
+        if len(uniq) < TIME_CONFIG['min_franjas']:
+            self.logger.warning(f"Pocas franjas horarias: {len(uniq)}")
+            return False
+
+        # 2) Orden no decreciente (permitimos igualdad si hubiera ruido residual)
+        def to_minutes(s: str) -> int:
+            h, m = s.split(":")
+            return int(h)*60 + int(m)
+
+        mins = [to_minutes(t) for t in uniq]
+        for i in range(len(mins) - 1):
+            if mins[i] > mins[i+1]:
+                self.logger.warning(f"Orden temporal incorrecto: {uniq[i]} -> {uniq[i+1]}")
+                return False
+
+        return True
+    
+    def _compact_grid_by_time(self, time_rows: List[str], celdas: List[List[Optional[str]]]) -> tuple[List[str], List[List[Optional[str]]]]:
+        """
+        Compacta filas consecutivas con la misma hora, fusionando contenido columna a columna.
+        La regla de fusión es "primero no vacío".
+        """
+        if not time_rows or not celdas:
+            return time_rows, celdas
+
+        new_times: List[str] = []
+        new_rows: List[List[Optional[str]]] = []
+
+        for idx, t in enumerate(time_rows):
+            if not new_times or t != new_times[-1]:
+                new_times.append(t)
+                new_rows.append(celdas[idx])
+            else:
+                # fusionar con la última fila
+                prev = new_rows[-1]
+                cur = celdas[idx]
+                merged = []
+                for j in range(max(len(prev), len(cur))):
+                    a = prev[j] if j < len(prev) else None
+                    b = cur[j] if j < len(cur) else None
+                    merged.append(a if (a and a.strip()) else (b if (b and b.strip()) else None))
+                new_rows[-1] = merged
+
+        return new_times, new_rows
+    
+    def _fix_multiline_names(self, text: str) -> Optional[str]:
+        """
+        Corrige nombres de asignaturas fragmentados en múltiples líneas.
+        
+        CORRECCIÓN v2:
+        - NO procesa "en" para evitar fragmentar "Diferencial", "General", etc.
+        
+        Casos a corregir:
+        1. "Estructura de\nMoléculas y Sólidos" → "Estructura de Moléculas y Sólidos"
+        2. "Mecánica Clásica\ny relatividad" → "Mecánica Clásica y relatividad"
+        3. "MecánicaClásica yrelatividad" → "Mecánica Clásica y relatividad"
+        4. "Física\nAtómica y Molecular" → "Física Atómica y Molecular"
+        
+        Args:
+            text: Texto potencialmente fragmentado
+            
+        Returns:
+            Texto corregido o None si está vacío
+        """
+        if not text:
             return None
         
-        canon_days = {d.upper() for d in DAYS_CANONICAL}
-        alias_map = {k.upper(): v.upper() for k, v in DAY_ALIASES.items()}
+        # 1. Unir líneas que son continuación de nombre
+        # Patrón: minúscula + \n + Mayúscula (ej: "Clásica\nY")
+        text = re.sub(r'([a-záéíóúñ])\n([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+        
+        # 2. Caso específico: preposiciones al final de línea
+        # "Estructura de\nMoléculas" → "Estructura de Moléculas"
+        # IMPORTANTE: NO incluir "en" para evitar "Difer-en-cial"
+        text = re.sub(r'\b(de|y|con|para)\s*\n', r'\1 ', text, flags=re.IGNORECASE)
+        
+        # 3. Caso específico: preposiciones al inicio de línea
+        # "Física\ny Molecular" → "Física y Molecular"
+        text = re.sub(r'\n\s*(de|y|con|para)\b', r' \1', text, flags=re.IGNORECASE)
+        
+        # 4. Unir palabras pegadas (sin espacio)
+        # "MecánicaClásica" → "Mecánica Clásica"
+        text = re.sub(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+        
+        # 5. Preposiciones pegadas: "yrelatividad" → "y relatividad"
+        text = re.sub(r'([a-záéíóúñ])([yY])([A-ZÁÉÍÓÚÑ])', r'\1 \2 \3', text)
+        text = re.sub(r'([a-záéíóúñ])(de|con|para)([A-ZÁÉÍÓÚÑ])', r'\1 \2 \3', text, flags=re.IGNORECASE)
+        
+        # 6. Normalizar múltiples espacios
+        text = re.sub(r'\s{2,}', ' ', text)
+        
+        return text.strip() or None
 
-        def _norm(s):
-            return " ".join(str(s or "").replace("\r", "\n").replace("\r\n", "\n").split()).upper()
-
-        def _day_hits(df):
-            if getattr(df, "shape", None) is None or df.shape[0] == 0:
-                return 0
-            header = [_norm(x) for x in list(df.iloc[0, :])]
-            hits = set()
-            for cell in header:
-                for alias, canon in alias_map.items():
-                    if alias in cell:
-                        hits.add(canon)
-            return len(hits & canon_days)
-
-        candidates = []
-        for t in tables:
-            df = getattr(t, "df", None)
-            if df is None or getattr(df, "shape", None) is None:
-                continue
-            rows, cols = df.shape
-            # Viabilidad mínima: Hora + 5 días ⇒ 6 columnas, y al menos 3 filas útiles
-            if cols < 6 or rows < 3:
-                continue
-            hits = _day_hits(df)
-            area = rows * cols
-            score = (hits, area)
-            candidates.append((score, t))
-
-        if not candidates:
-            return None
-
-        candidates.sort(key=lambda x: x[0], reverse=True)
-        return candidates[0][1]
-
-
-    # Fase 3
-    def _to_raw_grid(self, table) -> List[List[str]]:
+    def _merge_subject_and_room_cells(self, celdas: List[List[Optional[str]]]) -> List[List[Optional[str]]]:
         """
-        Convierte una tabla Camelot a grid[str] con limpieza mínima:
-        - None/NaN -> ""
-        - \r/\r\n/\n -> " " (espacio)
-        - colapsa espacios y hace strip
-        No interpreta contenido ni elimina filas/columnas.
+        Post-procesa celdas para fusionar asignaturas con sus aulas/grupos.
+        
+        MEJORAS v2:
+        - Condiciones de fusión menos restrictivas
+        - Mejor detección de fragmentos inválidos
+        - Logging detallado para debugging
+        
+        Estrategia:
+        1. Iterar por columna (día) para mantener contexto vertical
+        2. Para cada celda con contenido SIN aula:
+        - Buscar en fila N+1 si tiene solo aula → fusionar
+        - Buscar en fila N+2 si tiene solo grupo → fusionar también
+        3. Vaciar celdas fusionadas para evitar duplicados
+        
+        Args:
+            celdas: Matriz de celdas [fila][columna]
+        
+        Returns:
+            Matriz de celdas con fusiones aplicadas
         """
-        df = getattr(table, "df", None)
-        if df is None:
-            return []
-
-        # Si por alguna razón df no expone shape, devolvemos vacío
-        try:
-            rows, cols = df.shape
-        except Exception:
-            return []
-
-        def _norm_cell(val) -> str:
-            s = "" if val is None else str(val)
-            # Unificar saltos y colapsar espacios
-            s = s.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " ")
-            s = " ".join(s.split()).strip()
-            return s
-
-        grid: list[list[str]] = [
-            [_norm_cell(df.iat[r, c]) for c in range(cols)]
-            for r in range(rows)
-        ]
-        return grid
-
-
-    # Fase 4
-    def _detect_header_row(self, grid: list[list[str]]) -> int | None:
-        """
-        Localiza el índice de la fila de cabecera de días.
-        Regla: en las primeras `self.max_header_scan_rows` filas,
-        la primera que contenga ≥3 nombres de día (contando alias) es la cabecera.
-        Si no se alcanza el umbral, devuelve el índice con más hits (>0), o None si no hay ninguno.
-        """
-        if not grid:
-            return None
-
-        def _norm(s: str) -> str:
-            # aplana saltos y mayúsculas para facilitar el match por substring
-            return " ".join(str(s or "").replace("\r", "\n").replace("\r\n", "\n").split()).upper()
-
-        alias_map = {k.upper(): v.upper() for k, v in DAY_ALIASES.items()}
-        days_set = set(d.upper() for d in DAYS_CANONICAL)
-
-        scan_rows = min(self.max_header_scan_rows, len(grid))
-        best_idx = None
-        best_hits = 0
-
-        for i in range(scan_rows):
-            row = grid[i]
-            if not row:
-                continue
-
-            cells = [_norm(c) for c in row]
-
-            hits = set()
-            for cell in cells:
-                for alias, canon in alias_map.items():
-                    if alias in cell:
-                        hits.add(canon)
-
-            hit_count = len(hits & days_set)
-            if hit_count > best_hits:
-                best_hits = hit_count
-                best_idx = i
-
-            # Umbral de aceptación
-            if hit_count >= 3:
-                return i
-
-        # Si no se alcanzó el umbral, devolvemos el mejor (si hay alguno)
-        return best_idx if best_hits > 0 else None
-
-    def _build_header_days(self, header_row: list[str]) -> list[str]:
-        """
-        Devuelve la lista canónica de días en orden L→V para la CleanTable.
-        Nota: el mapeo de columnas reales se resuelve en _find_day_columns().
-        Aquí no dependemos del contenido de 'header_row' para el orden/forma del resultado.
-
-        Si mañana quisieras validar cuántos días aparecen realmente en la fila,
-        puedes usar el bloque de 'hits' que dejo preparado.
-        """
-        # --- (opcional) detección ligera de días presentes en la fila ---
-        # Esto no afecta al retorno; queda listo por si quieres emitir warnings después.
-        alias_map = {k.upper(): v.upper() for k, v in DAY_ALIASES.items()}
-        days_set = set(d.upper() for d in DAYS_CANONICAL)
-
-        def _norm(s: str) -> str:
-            return " ".join(str(s or "").replace("\r\n", "\n").replace("\r", "\n").split()).upper()
-
-        try:
-            cells = [_norm(c) for c in (header_row or [])]
-            hits = set()
-            for cell in cells:
-                for alias, canon in alias_map.items():
-                    if alias in cell:
-                        hits.add(canon)
-            _present_days = hits & days_set  # <- usable para warnings si lo necesitas
-            # (no lo usamos aquí; el validador de tabla puede revisar esta info si quieres)
-        except Exception as e:
-            logging.warning(f"Error analizando días en la cabecera: {e!r}")
-
-        # Retorno estable en orden canónico para la CleanTable
-        return list(DAYS_CANONICAL)
-
-    def _build_time_axis(self, time_col_cells: list[str]) -> list[str]: # TODO: Añadir patrones en las celdas
-        """
-        Construye la lista de marcas HH:MM a partir de la primera columna bajo la cabecera.
-        - Extrae como máximo UNA hora por fila (la primera que encuentre).
-        - Si self.window_strict es True, filtra a la ventana TIME_WINDOW.
-        - Preserva el orden de aparición (no ordena ni de-duplica).
-        - Omite filas sin marca válida.
-        """
-        # hh:mm / h:mm / hh.mm / hh h mm
-        rx_hhmm = re.compile(r"(?<!\d)([01]?\d|2[0-3])[:h\.]([0-5]\d)(?!\d)")
-        # 800 / 0830 / 930 (3-4 dígitos)
-        rx_compact = re.compile(r"\b([01]?\d|2[0-3])([0-5]\d)\b")
-
-        def _canon_hhmm(h: int, m: int) -> str:
-            return f"{h:02d}:{m:02d}"
-
-        def _all_times(text: str) -> list[str]:
-            s = " ".join((text or "").replace("\r\n","\n").replace("\r","\n").split())
-            out = [ _canon_hhmm(int(h), int(m)) for h,m in rx_hhmm.findall(s) ]
-            out += [ _canon_hhmm(int(h), int(m)) for h,m in rx_compact.findall(s) ]
-            return out
-
-        lo, hi = TIME_WINDOW
-        raw = []
-        for cell in time_col_cells:
-            for t in _all_times(cell):
-                if lo <= t <= hi:
-                    raw.append(t)
-
-        if not raw:
-            return []
-
-        # minuto dominante (00 vs 30) por mayoría
-        mins = [int(t[-2:]) for t in raw]
-        dom_min = 30 if mins.count(30) >= mins.count(0) else 0
-        filtered = [t for t in raw if int(t[-2:]) == dom_min]
-
-        # deduplicar preservando orden + monotonía suave
-        seen, axis = set(), []
-        last = None
-        for t in filtered:
-            if t in seen:
-                continue
-            if last and t < last:
-                # si hay regresión por ruido, la saltamos
-                continue
-            axis.append(t); seen.add(t); last = t
-
-        return axis
-
-
-    # Fase 5
-    def _find_day_columns(self, header_row: List[str]) -> List[int]:
-        """
-        Devuelve los índices de columna asociados a [LUNES..VIERNES], en ese orden.
-        - Busca por alias en la fila de cabecera.
-        - Si falta algún día, completa con columnas libres de izquierda a derecha (saltando col 0).
-        - Puede devolver <5 si la fila es demasiado corta.
-        """
-        if not header_row:
-            return []
-
-        def _norm(s: str) -> str:
-            return " ".join(str(s or "").replace("\r\n","\n").replace("\r","\n").split()).upper()
-
-        alias_map = {k.upper(): v.upper() for k,v in DAY_ALIASES.items()}
-        canon_days = [d.upper() for d in DAYS_CANONICAL]
-
-        # 1) recolectar días por columna (permitiendo múltiples en una misma celda)
-        col_days: dict[int, list[str]] = {}
-        for j, raw in enumerate(header_row):
-            txt = _norm(raw)
-            hits = []
-            for alias, canon in alias_map.items():
-                if alias in txt and canon not in hits:
-                    hits.append(canon)
-            if hits:
-                col_days[j] = hits
-
-        # 2) asignación primaria: primer día de cada columna
-        assigned: dict[str, int] = {}
-        used_cols = set()
-        for j in sorted(col_days.keys()):
-            if col_days[j]:
-                d = col_days[j][0]
-                if d not in assigned:
-                    assigned[d] = j
-                    used_cols.add(j)
-
-        # 3) columnas libres (saltando 0 por ser HORA)
-        free_cols = [j for j in range(1, len(header_row)) if j not in used_cols]
-
-        # 4) reasignar colisiones: días adicionales de la misma columna → siguiente libre
-        for j in sorted(col_days.keys()):
-            extras = col_days[j][1:]  # días extra en esta celda
-            for d in extras:
-                if d not in assigned and free_cols:
-                    assigned[d] = free_cols.pop(0)
-
-        # 5) construir índices en orden canónico; completar con libres si falta algo
-        indices: List[int] = []
-        for d in canon_days:
-            if d in assigned:
-                indices.append(assigned[d])
-            elif free_cols:
-                indices.append(free_cols.pop(0))
-
-        return indices
-
-    def _align_cells(
-        self,
-        grid: list[list[str]],
-        header_row_idx: int,
-        day_col_indices: list[int],
-        time_axis: list[str],
-    ) -> list[list[str]]:
-        """
-        Construye la matriz 'cells' [len(time_axis) × 5] a partir del grid:
-        - Recorre las filas desde header_row_idx+1 y empareja en orden con cada marca de time_axis.
-        - Para cada marca, toma los textos de las columnas de días indicadas.
-        - Si faltan filas para completar time_axis, rellena con "".
-        """
-        # Helper para extraer HH:MM de la columna 0 (misma lógica que _build_time_axis)
-        rx_hhmm = re.compile(r"(?<!\d)([01]?\d|2[0-3])[:h\.]([0-5]\d)(?!\d)")
-        rx_compact = re.compile(r"\b([01]?\d|2[0-3])([0-5]\d)\b")
-
-        def _parse_first(text: str) -> str | None:
-            s = " ".join((text or "").replace("\r\n", "\n").replace("\r", "\n").split())
-            m = rx_hhmm.search(s)
-            if m:
-                return f"{int(m.group(1)):02d}:{int(m.group(2)):02d}"
-            m2 = rx_compact.search(s)
-            if m2:
-                return f"{int(m2.group(1)):02d}:{int(m2.group(2)):02d}"
-            return None
-
-        out: list[list[str]] = []
-        r = header_row_idx + 1
-        t_idx = 0
-
-        while t_idx < len(time_axis):
-            # avanzar hasta encontrar una fila cuya col 0 tenga la marca esperada
-            found = False
-            while r < len(grid):
-                row = grid[r]
-                col0 = row[0] if (row and len(row) > 0) else ""
-                hhmm = _parse_first(col0)
-                if hhmm == time_axis[t_idx]:
-                    # construir la fila de cells para los 5 días
-                    row_cells: list[str] = []
-                    for c_idx in day_col_indices[:5]:
-                        val = row[c_idx] if (c_idx < len(row)) else ""
-                        row_cells.append(val)
-                    out.append(row_cells)
-                    r += 1
-                    t_idx += 1
-                    found = True
-                    break
-                else:
-                    r += 1
-            if not found:
-                # no encontramos fila para esta marca; rellenamos vacío y pasamos a la siguiente
-                out.append([""] * min(5, len(day_col_indices)))
-                t_idx += 1
-
-        # Si por alguna razón se devolvieron menos de 5 columnas, normalizamos a 5 con vacío
-        for i in range(len(out)):
-            if len(out[i]) < 5:
-                out[i] = out[i] + [""] * (5 - len(out[i]))
-
-        return out
-
-
-    # Fase 6
-    def _validate_clean_table(
-        self,
-        header_days: list[str],
-        time_axis: list[str],
-        cells: list[list[str]],
-    ) -> list[str]:
-        """
-        Chequeos de forma y consistencia. Devuelve lista de warnings (no lanza).
-        - header_days debe tener 5 elementos.
-        - time_axis no vacío y con formato HH:MM; si window_strict, dentro de TIME_WINDOW.
-        - cells debe ser rectangular [len(time_axis) × 5].
-        """
-        warnings: list[Warning] = []
-
-        # 1) header_days
-        if not isinstance(header_days, list) or len(header_days) != 5:
-            warnings.append(Warning(
-                f"header_days_expected_5_got_{len(header_days) if isinstance(header_days, list) else 'invalid'}",
-                "severe"
-            ))
-
-
-        # 2) time_axis
-        rx = re.compile(r"^(?:[01]?\d|2[0-3]):[0-5]\d$")
-        if not isinstance(time_axis, list) or len(time_axis) == 0:
-            warnings.append(Warning("time_axis_empty", "severe"))
-        else:
-            for t in time_axis:
-                if not isinstance(t, str) or not rx.match(t):
-                    warnings.append(Warning(f"time_axis_bad_token:{t!r}", "minor"))
+        from core.extraccion.horarios.constants import MIN_FRAGMENT_LENGTH
+        
+        if not celdas:
+            return celdas
+        
+        num_rows = len(celdas)
+        num_cols = len(celdas[0]) if celdas else 0
+        
+        fusiones_aplicadas = 0
+        
+        # Procesar por COLUMNA (día) para mantener contexto temporal
+        for col in range(num_cols):
+            row = 0
+            while row < num_rows - 1:  # -1 porque miramos row+1
+                current_cell = celdas[row][col]
+                
+                # Saltar si celda vacía
+                if not current_cell or not current_cell.strip():
+                    row += 1
                     continue
-                if self.window_strict:
-                    lo, hi = TIME_WINDOW
-                    if not (lo <= t <= hi):
-                        warnings.append(Warning(f"time_axis_out_of_window:{t}", "moderate"))
+                
+                # Saltar si es un fragmento muy corto sin sentido ("de", "y", "en")
+                if len(current_cell.strip()) < MIN_FRAGMENT_LENGTH:
+                    row += 1
+                    continue
+                
+                # Saltar si la celda ES solo aula o solo grupo (no hay nada que fusionar)
+                if self._is_only_room(current_cell) or self._is_only_group(current_cell):
+                    row += 1
+                    continue
+                
+                # Si la celda actual YA tiene aula, verificar si necesita fusión adicional
+                current_has_room = self._has_room(current_cell)
+                
+                # Buscar aula en fila siguiente (solo si no tiene aula aún)
+                if not current_has_room:
+                    next_cell = celdas[row + 1][col] if row + 1 < num_rows else None
+                    
+                    if next_cell and self._is_only_room(next_cell):
+                        # FUSIÓN ENCONTRADA
+                        merged_text = f"{current_cell}\n{next_cell}"
+                        
+                        # Buscar grupo en fila N+2 si existe
+                        if row + 2 < num_rows:
+                            third_cell = celdas[row + 2][col]
+                            if third_cell and self._is_only_group(third_cell):
+                                merged_text += f"\n{third_cell}"
+                                celdas[row + 2][col] = None  # Vaciar fila N+2
+                                self.logger.debug(
+                                    f"Fusión TRIPLE aplicada en col={col}, row={row}: "
+                                    f"'{current_cell[:20]}...' + '{next_cell}' + '{third_cell}'"
+                                )
+                        
+                        # Aplicar fusión
+                        celdas[row][col] = merged_text
+                        celdas[row + 1][col] = None  # Vaciar fila N+1
+                        fusiones_aplicadas += 1
+                        
+                        self.logger.debug(
+                            f"Fusión aplicada en col={col}, row={row}: "
+                            f"'{current_cell[:30]}...' + '{next_cell}'"
+                        )
+                
+                row += 1
+        
+        if fusiones_aplicadas > 0:
+            self.logger.info(f"Total de fusiones aplicadas: {fusiones_aplicadas}")
+        
+        return celdas
 
-        # 3) cells shape
-        expected_rows = len(time_axis) if isinstance(time_axis, list) else 0
-        if not isinstance(cells, list) or len(cells) != expected_rows:
-            warnings.append(Warning(
-                f"cells_row_mismatch_expected_{expected_rows}_got_{len(cells) if isinstance(cells, list) else 'invalid'}",
-                "severe"
-            ))
-        else:
-            for i, row in enumerate(cells):
-                if not isinstance(row, list) or len(row) != 5:
-                    warnings.append(Warning(
-                        f"cells_col_mismatch_row_{i}_expected_5_got_{len(row) if isinstance(row, list) else 'invalid'}",
-                        "severe"
-                    ))
-
-        return warnings
-
-
-    # Fase 7
-    def _compute_quality_and_confidence(self, errors: list[str], warnings: list[Warning],
-                                        clean_tables: list, page_count: int, pdf_metrics: dict
-                                        ) -> tuple[ExtractionQuality, float, ProcessingStatus]:
+    def _compact_time_hits(self, time_hits):
         """
-        Calcula quality, confidence y status para ExtractionMetadata.
+        Une 'time_hits' consecutivos con la misma hora.
+        Entrada: [(time, (x0, top, x1, bottom)), ...] ordenados por top.
+        Salida: misma estructura pero sin duplicados consecutivos; el bbox se une.
         """
-        # Clasificación de avisos
-        severe = [w for w in warnings if w.severity == "severe"]
-        moderate = [w for w in warnings if w.severity == "moderate"]
-        minor = [w for w in warnings if w.severity == "minor"]
-
-        # Cobertura
-        pages_with_clean = len({t.page for t in clean_tables}) if clean_tables else 0
-        pages_with_clean_ratio = pages_with_clean / page_count if page_count else 0
-
-        total_cells = sum(len(t.time_axis) * 5 for t in clean_tables)
-        filled_cells = sum(sum(1 for cell in row if cell.strip()) for t in clean_tables for row in t.cells)
-        cell_coverage = filled_cells / total_cells if total_cells else 0
-
-        # Penalizaciones
-        err_count = len(errors)
-        severe_count = len(severe)
-        moderate_count = len(moderate)
-        minor_count = len(minor)
-
-        confidence = 1.0
-        confidence -= min(CONFIDENCE_ERR_MAX, CONFIDENCE_ERR_STEP * min(2, err_count))
-        confidence -= min(CONFIDENCE_SEVERE_MAX, CONFIDENCE_SEVERE_STEP * severe_count)
-        confidence -= min(CONFIDENCE_MODERATE_MAX, CONFIDENCE_MODERATE_STEP * moderate_count)
-        confidence -= min(CONFIDENCE_MINOR_MAX, CONFIDENCE_MINOR_STEP * minor_count)
-        confidence -= CONFIDENCE_CELL_COVERAGE * (1 - cell_coverage)
-        confidence -= CONFIDENCE_PAGE_COVERAGE * (1 - pages_with_clean_ratio)
-        if not pdf_metrics.get("has_embedded_text", True):
-            confidence -= CONFIDENCE_NO_TEXT_PENALTY
-        confidence = max(0.0, min(1.0, confidence))
-
-        # Calidad
-        quality = ExtractionQuality.UNUSABLE
-        if (
-            not clean_tables
-            or cell_coverage < QUALITY_UNUSABLE_CELL_COVERAGE
-            or (err_count > 0 and pages_with_clean_ratio < QUALITY_UNUSABLE_PAGE_RATIO)
-        ):
-            quality = ExtractionQuality.UNUSABLE
-        elif (
-            pages_with_clean_ratio >= QUALITY_EXCELLENT_PAGE_RATIO
-            and cell_coverage >= QUALITY_EXCELLENT_CELL_COVERAGE
-            and err_count == 0
-            and severe_count == 0
-            and confidence >= QUALITY_EXCELLENT_CONFIDENCE
-        ):
-            quality = ExtractionQuality.EXCELLENT
-        elif (
-            pages_with_clean_ratio >= QUALITY_GOOD_PAGE_RATIO
-            and cell_coverage >= QUALITY_GOOD_CELL_COVERAGE
-            and err_count == 0
-            and severe_count <= 1
-            and confidence >= QUALITY_GOOD_CONFIDENCE
-        ):
-            quality = ExtractionQuality.GOOD
-        elif (
-            pages_with_clean_ratio >= QUALITY_ACCEPTABLE_PAGE_RATIO
-            and cell_coverage >= QUALITY_ACCEPTABLE_CELL_COVERAGE
-            and severe_count <= QUALITY_ACCEPTABLE_SEVERE_PER_PAGE * page_count
-        ):
-            quality = ExtractionQuality.ACCEPTABLE
-        elif (
-            pages_with_clean_ratio < QUALITY_POOR_PAGE_RATIO
-            or cell_coverage < QUALITY_POOR_CELL_COVERAGE
-            or severe_count >= QUALITY_POOR_SEVERE_PER_PAGE * page_count
-        ):
-            quality = ExtractionQuality.POOR
-        elif (
-            pages_with_clean_ratio < QUALITY_POOR_PAGE_RATIO
-            or cell_coverage < QUALITY_POOR_CELL_COVERAGE
-            or severe_count >= QUALITY_POOR_SEVERE_PER_PAGE * page_count
-        ):
-            quality = ExtractionQuality.POOR
-        else:
-            # Fallback coherente: si hay tablas limpias pero no llegas a ACCEPTABLE,
-            # clasifica por confianza: >=0.60 → ACCEPTABLE; si no, POOR.
-            quality = ExtractionQuality.ACCEPTABLE if confidence >= 0.60 else ExtractionQuality.POOR
-
-        # Estado
-        if quality in (ExtractionQuality.EXCELLENT, ExtractionQuality.GOOD, ExtractionQuality.ACCEPTABLE):
-            status = ProcessingStatus.COMPLETED
-        elif quality == ExtractionQuality.POOR:
-            status = ProcessingStatus.LOW_QUALITY
-        else:
-            status = ProcessingStatus.FAILED
-
-        return quality, confidence, status  
+        if not time_hits:
+            return time_hits
+        compacted = []
+        last_t, last_bb = time_hits[0]
+        for t, bb in time_hits[1:]:
+            if t == last_t:
+                # unir verticalmente
+                x0 = min(last_bb[0], bb[0]); y0 = min(last_bb[1], bb[1])
+                x1 = max(last_bb[2], bb[2]); y1 = max(last_bb[3], bb[3])
+                last_bb = (x0, y0, x1, y1)
+            else:
+                compacted.append((last_t, last_bb))
+                last_t, last_bb = t, bb
+        compacted.append((last_t, last_bb))
+        return compacted
 
 
-# INSTANCIA PARA USO GENERAL
-extractor = None
+    def _infer_day_columns_from_words(self, page, bbox) -> List[str]:
+        """
+        Busca etiquetas de día dentro del bbox de la tabla, en la banda superior de esa región,
+        y devuelve hasta 5 columnas ordenadas por X.
+        """
+        x0, y0, x1, y1 = bbox
+        H = y1 - y0
+        top_band_abs = y0 + 0.35 * H
 
-def get_schedule_extractor(config: dict = None) -> ScheduleExtractor:
-    """
-    Devuelve una instancia singleton de ScheduleExtractor.
-    Si se llama con config, se crea una nueva instancia con esa configuración.
-    """
-    global extractor
-    if extractor is None or config is not None:
-        extractor = ScheduleExtractor(config)
-    return extractor
+        region = page.within_bbox(bbox)  
+        words = region.extract_words(x_tolerance=2, y_tolerance=2, keep_blank_chars=False) or []
+
+        cand: List[tuple[str, float]] = []
+        for w in words:
+            txt = (w.get("text") or "").strip().upper()
+            day = self._normalize_day(txt)
+            # 'top' es relativo a la region, así que lo subimos a coords de página
+            if day and (w.get("top", 0) + y0) < top_band_abs:
+                cand.append((day, w["x0"]))
+
+        cand.sort(key=lambda t: t[1])
+        cols: List[tuple[str, float]] = []
+        for d, x in cand:
+            if not cols or abs(x - cols[-1][1]) > 18:
+                if d not in [dd for dd, _ in cols]:
+                    cols.append((d, x))
+            if len(cols) == 5:
+                break
+
+        return [d for d, _ in cols]
+    
+    def _strip_spurious_hour(self, text: Optional[str]) -> Optional[str]:
+        """
+        Elimina horas sueltas al inicio/fin de la celda aunque haya saltos de línea.
+        Si la celda es SOLO una hora, vacía.
+        """
+        if not text:
+            return None
+        s = text.strip()
+
+        # Si TODO es una hora (ignorando espacios/saltos), vacía
+        if RX_HORA.fullmatch(re.sub(r'\s+', '', s)):
+            return None
+
+        # Si empieza con hora (permitiendo \s), corta esa hora y devuelve el resto
+        m = re.match(r'^\s*' + PATRON_HORA + r'\s*(.*)$', s, flags=re.DOTALL | re.IGNORECASE)
+        if m:
+            rest = m.group(1).strip()
+            if rest:
+                return rest
+
+        # Si termina con hora aislada, elimínala
+        s2 = re.sub(r'(?:^|\s)' + PATRON_HORA + r'(?:\s*$)', ' ', s, flags=re.IGNORECASE).strip()
+        return s2 or None
+    
+    def _remove_inline_hours(self, text: Optional[str]) -> Optional[str]:
+        """
+        Elimina horas que queden como tokens aislados EN MEDIO del contenido (líneas sueltas).
+        """
+        if not text:
+            return None
+        # borra horas como tokens aislados (respetando letras alrededor)
+        s = re.sub(r'(?<!\S)' + PATRON_HORA + r'(?!\S)', '', text, flags=re.IGNORECASE)
+        s = re.sub(r'\s{2,}', ' ', s).strip()
+        return s or None
+
+    def _is_only_room(self, text: str) -> bool:
+        """
+        Detecta si una celda contiene SOLO un aula.
+        
+        MEJORAS v2:
+        - Mayor tolerancia en cobertura (60%)
+        - Manejo de casos como "AULA 4 bis"
+        
+        Criterios:
+        1. Coincide con PATRON_AULA_COMBINADO
+        2. NO contiene texto adicional significativo
+        3. Longitud razonable (< MAX_ROOM_LENGTH)
+        
+        Returns:
+            True si la celda contiene solo un aula, False en caso contrario
+        """
+        from core.extraccion.horarios.constants import (
+            PATRON_AULA_COMBINADO, MAX_ROOM_LENGTH, MIN_ROOM_PATTERN_COVERAGE
+        )
+        
+        if not text:
+            return False
+        
+        clean = text.strip()
+        
+        # Verificar longitud razonable
+        if len(clean) > MAX_ROOM_LENGTH:
+            return False
+        
+        # Verificar patrón de aula
+        match = PATRON_AULA_COMBINADO.search(clean)
+        
+        # Si hay coincidencia, verificar que sea la mayor parte del texto
+        if match:
+            matched_text = match.group(0)
+            coverage = len(matched_text) / len(clean)
+            
+            # Logging para debugging
+            if coverage < MIN_ROOM_PATTERN_COVERAGE:
+                self.logger.debug(
+                    f"Aula rechazada por baja cobertura ({coverage:.0%}): '{clean}'"
+                )
+            
+            return coverage >= MIN_ROOM_PATTERN_COVERAGE
+        
+        return False
+
+
+    def _is_only_group(self, text: str) -> bool:
+        """
+        Detecta si una celda contiene SOLO un grupo (PL1, PA2, etc).
+        
+        Criterios:
+        1. Coincide con patrones de grupo
+        2. Texto corto (< MAX_GROUP_LENGTH)
+        3. NO contiene aula ni asignatura
+        
+        Returns:
+            True si la celda contiene solo un grupo, False en caso contrario
+        """
+        from core.extraccion.horarios.constants import (
+            PATRON_GRUPO_PL, PATRON_GRUPO_PA, PATRON_GRUPO_GENERICO, MAX_GROUP_LENGTH
+        )
+        
+        if not text:
+            return False
+        
+        clean = text.strip()
+        
+        # Verificar longitud
+        if len(clean) > MAX_GROUP_LENGTH:
+            return False
+        
+        # Verificar patrones de grupo
+        if (PATRON_GRUPO_PL.search(clean) or 
+            PATRON_GRUPO_PA.search(clean) or
+            PATRON_GRUPO_GENERICO.search(clean)):
+            # Verificar que NO tenga aula mezclada
+            if not self._has_room(clean):
+                return True
+        
+        return False
+
+
+    def _has_room(self, text: str) -> bool:
+        """
+        Detecta si el texto YA contiene un aula.
+        
+        Returns:
+            True si el texto contiene un aula, False en caso contrario
+        """
+        from core.extraccion.horarios.constants import PATRON_AULA_COMBINADO
+        
+        if not text:
+            return False
+        return PATRON_AULA_COMBINADO.search(text) is not None
+
+    def _clean_mencion(self, txt: str) -> Optional[str]:
+        if not txt:
+            return None
+        s = " ".join(txt.split())
+        # corta a partir de la primera aparición de un día para no arrastrarlos
+        for d in ("LUNES", "MARTES", "MIÉRCOLES", "MIERCOLES", "JUEVES", "VIERNES"):
+            pos = s.upper().find(d)
+            if pos > -1:
+                s = s[:pos].strip()
+                break
+        m = RX_MENCION.search(s or "")
+        return m.group(0).strip() if m else None
+
+
+    def _extract_table_metadata(self, page, table) -> Tuple[str, Optional[str]]:
+        """
+        Lee cadena superior a la tabla para extraer curso/mención.
+        No lanza excepción: si no encuentra curso, retorna '1º' y mención None.
+        """
+        try:
+            x0, y0, x1, y1 = table.bbox
+            above_bbox = (x0, max(0, y0 - 120), x1, y0)
+            cropped = page.within_bbox(above_bbox)
+            txt = cropped.extract_text() or ""
+
+            curso_match = re.search(PATRONES['curso'], txt, flags=re.IGNORECASE)
+            curso = curso_match.group(0).strip() if curso_match else "1º"
+
+            mencion = self._clean_mencion(txt) if hasattr(self, "_clean_mencion") else None
+            self.logger.debug(f"Metadata extraída - Curso: {curso}, Mención: {mencion}")
+            return curso, mencion
+
+        except Exception as e:
+            self.logger.debug(f"Metadata fallback por error ({e}); usando curso=1º, sin mención")
+            return "1º", None
+
+        
+    def _cell_text_from_words(self, words, bbox, margin: float = 1.5) -> Optional[str]:
+        """
+        Devuelve el texto de una celda juntando PALABRAS cuyo centro cae dentro del bbox.
+        Reduce el 'sangrado' típico de extract_text() en límites de celda.
+        """
+        x0, y0, x1, y1 = bbox
+
+        def inside(w):
+            wx0, wt, wx1, wb = w["x0"], w["top"], w["x1"], w["bottom"]
+            cx = (wx0 + wx1) / 2.0
+            cy = (wt + wb) / 2.0
+            return (x0 + margin) <= cx <= (x1 - margin) and (y0 + margin) <= cy <= (y1 - margin)
+
+        items = [w for w in words if inside(w)]
+        if not items:
+            return None
+
+        items.sort(key=lambda w: (w["top"], w["x0"]))
+
+        lines = []
+        cur = []
+        last_top = None
+        for w in items:
+            ttop = w["top"]
+            if last_top is None or abs(ttop - last_top) <= 5:  # ← antes 3
+                cur.append(w["text"])
+            else:
+                lines.append(" ".join(cur))
+                cur = [w["text"]]
+            last_top = ttop
+        if cur:
+            lines.append(" ".join(cur))
+
+        text = "\n".join(lines).strip()
+        if not text:
+            return None
+
+        # Pegar tokens partidos verticalmente: "Computati\non" -> "Computati on"
+        # y casos “Laboratori\no” -> “Laboratorio”
+        text = re.sub(r'([A-Za-zÁÉÍÓÚÜáéíóúüñÑ])\n([a-záéíóúüñ])', r'\1\2', text)
+        return text or None
+
+
+    def _demote_footnote(self, s: Optional[str]) -> Optional[str]:
+        """
+        Filtra notas largas tipo 'La programación de prácticas...' que no son sesiones.
+        """
+        if not s:
+            return None
+        flat = " ".join(s.split())
+        if len(flat) > 120 and any(k in flat.lower() for k in ("prácticas", "practicas", "programación", "programacion")):
+            return None
+        return s
+
+    def _clear_header_labels_early_rows(self, day_columns: List[str],
+                                    celdas: List[List[Optional[str]]],
+                                    upto_rows: int = 2) -> None:
+        """
+        Si por sangrado se colaron etiquetas 'LUNES/MARTES/...' en las
+        primeras filas (p.ej. 08:30 y 09:30), bórralas.
+        """
+        if not celdas:
+            return
+        days_upper = set(d.upper() for d in day_columns if d)
+        limit = min(len(celdas), max(1, upto_rows))
+        for i in range(limit):
+            row = celdas[i]
+            for j, val in enumerate(row):
+                if val and val.strip().upper() in days_upper:
+                    row[j] = None
+
+    def _merge_split_across_columns(self, row: List[Optional[str]]) -> List[Optional[str]]:
+        """
+        Une palabras que han quedado partidas entre columnas adyacentes.
+        Casos típicos: ['R', 'adiofísica'] -> [None, 'Radiofísica']
+                    ['AULA', '8']      -> [None, 'AULA8']
+        """
+        if not row:
+            return row
+        for j in range(len(row) - 1):
+            a = (row[j] or "").strip()
+            b = (row[j + 1] or "").strip()
+            if not a or not b:
+                continue
+
+            # Izquierda 1 char + derecha empieza en minúscula -> pégalo a la derecha
+            if len(a) == 1 and re.match(r'^[a-záéíóúüñ]', b):
+                row[j + 1] = a + b
+                row[j] = None
+                continue
+
+            # Derecha 1 char + izquierda termina en minúscula -> pégalo a la izquierda
+            if len(b) == 1 and re.search(r'[a-záéíóúüñ]$', a):
+                row[j] = a + b
+                row[j + 1] = None
+                continue
+        return row
+
+    def _is_footnote_row(self, row: List[Optional[str]]) -> bool:
+        """
+        Considera que una fila es 'nota' si su texto agregado contiene patrones típicos
+        y es lo suficientemente larga (para no borrar celdas normales).
+        """
+        text = " ".join([c or "" for c in row])
+        flat = re.sub(r'\s+', ' ', text).lower().strip()
+        if not flat:
+            return False
+        needles = ["(*)", "prácticas", "practicas", "semanas", "programación", "programacion", "inicio del curso"]
+        return any(n in flat for n in needles) and len(flat) >= 30
+
+    def _blank_footnote_rows(self, celdas: List[List[Optional[str]]]) -> List[List[Optional[str]]]:
+        """
+        Reemplaza por None todas las celdas de filas que parezcan notas de pie.
+        (Se mantiene la franja horaria, sólo se limpian celdas de días.)
+        """
+        for i, row in enumerate(celdas):
+            if self._is_footnote_row(row):
+                celdas[i] = [None] * len(row)
+        return celdas
+    
+    def _strip_inline_asterisk_notes(self, text: Optional[str]) -> Optional[str]:
+        """
+        Elimina marcas de nota dentro de la celda del estilo '(*) ...' o asterisco final.
+        No borra el resto del contenido útil.
+        """
+        if not text:
+            return None
+        s = re.sub(r'\(\*\).*$', '', text, flags=re.IGNORECASE).strip()
+        s = re.sub(r'\s*\*\s*$', '', s).strip()
+        return s or None
+
+    def _quick_pdf_stats(self, pdf_path: str) -> tuple[int, int, int, bool]:
+        """(pages, chars, words, has_text) rápido con PyMuPDF o pdfplumber."""
+        pages = 0; chars = 0; words = 0; has_text = False
+        try:
+            doc = fitz.open(pdf_path)
+            pages = doc.page_count
+            for i in range(pages):
+                txt = doc.load_page(i).get_text("text") or ""
+                chars += len(txt)
+                words += len(txt.split())
+                if txt.strip():
+                    has_text = True
+            doc.close()
+        except Exception:
+            with pdfplumber.open(pdf_path) as pdf:
+                pages = len(pdf.pages)
+                for p in pdf.pages:
+                    txt = p.extract_text() or ""
+                    chars += len(txt)
+                    words += len(txt.split())
+                    if txt.strip():
+                        has_text = True
+        return pages, chars, words, has_text
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Obtener estadísticas de uso."""
+        return self.stats.copy()
+
+
+# Instancia global tipada
+horario_extractor: Optional[HorarioExtractor] = None
+
+def get_horario_extractor() -> HorarioExtractor:
+    """Factory function para obtener instancia global."""
+    global horario_extractor
+    if horario_extractor is None:
+        horario_extractor = HorarioExtractor()
+    return horario_extractor
