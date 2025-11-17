@@ -1,132 +1,104 @@
-"""
-Estructuras (dataclasses) del sistema de horarios.
-Usadas tanto por el extractor (Camelot) como por el parser.
-"""
-
-from __future__ import annotations
-
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Literal, Tuple
-
-# -----------------------------------------------------------------------------
-# Tipos/metadatos compartidos (referencia suave a /common/entities.py)
-# -----------------------------------------------------------------------------
+from typing import List, Optional, Dict, Any
+from datetime import time
 from core.extraccion.common.entities import ExtractionMetadata, ParsingMetadata
+from constants.enums import (
+    Periodo, DiaSemana, TipoGrupoDocente,
+    ModalidadSesion, TipoRecurrencia, TipoAula
+)
 
 
-# -----------------------------------------------------------------------------
-# Aliases y literales
-# -----------------------------------------------------------------------------
-ModalidadLiteral = Literal["teoria", "prácticas de laboratorio", "prácticas de aula"]
-PageNumber = int
+# =============================================================================
+# RESULTADO DE EXTRACCIÓN (Output del extractor)
+# =============================================================================
 
-
-SourceLiteral = Literal["pdf", "excel"]
-
-
-# -----------------------------------------------------------------------------
-# Estructuras que devuelve el EXTRACTOR
-# -----------------------------------------------------------------------------
-@dataclass
-class RawTable:
-    """
-    Eco de la tabla original del bloque (6 columnas: HORA + L..V) para trazabilidad.
-    Es formato neutral (sirve tanto para Excel como para PDF).
-    """
-    data: List[List[str]]                      # matriz con cabecera y filas crudas
-    source: SourceLiteral                      # "excel" | "pdf"
-
-    # Trazabilidad (uno u otro según origen)
-    sheet: Optional[str] = None                # Excel
-    page: Optional[int] = None                 # PDF
-
-    # Info del bloque detectado (útil para depurar)
-    lane_index: Optional[int] = None
-    block_id: Optional[str] = None
-    header_row: Optional[int] = None
-    data_start_row: Optional[int] = None
-    data_end_row: Optional[int] = None
-    time_col: Optional[int] = None
-    day_cols: Optional[List[int]] = None
-
-    # Precalculos para la fase clean
-    row_hour_ranges: Optional[List[Optional[Tuple[str, str]]]] = None
-    merge_span_matrix: Optional[List[List[int]]] = None
-
-    # Contexto
-    titulacion: Optional[str] = None
-    curso: Optional[str] = None
+@dataclass(frozen=True)
+class TablaHorario:
+    """Representa una tabla individual de horario"""
+    curso: str
+    day_columns: List[str]  
+    time_rows: List[str]   
+    celdas: List[List[Optional[str]]]  
     mencion: Optional[str] = None
+    pagina : Optional[int] = None
 
-    # Cualquier cosa adicional del extractor
-    extra: Dict[str, Any] = field(default_factory=dict)
+@dataclass(frozen=True)
+class HorarioExtractionResult:
+    """Resultado de la extracción completa del PDF"""
+    titulo: str  # Título del documento (grado/cuatrimestre)
+    tablas: List[TablaHorario]
+    metadata: ExtractionMetadata
 
-@dataclass
-class CleanTable:
-    """
-    Tabla normalizada para el parser:
-    - days = ["LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES"]
-    - time_axis = nodos HH:MM cada 30' desde 08:00 a 20:30
-    - cells = matriz de intervalos (len(time_axis)-1) × 5 con texto crudo
-    """
-    time_axis: List[str]
-    days: List[str]
-    cells: List[List[str]]
 
-    source: SourceLiteral                      # "excel" | "pdf"
-    sheet: Optional[str] = None
-    page: Optional[int] = None
-
-    lane_index: Optional[int] = None
-    block_id: Optional[str] = None
-
-    # Enriquecimiento contextual (si lo tienes en el bloque)
-    titulacion: Optional[str] = None
-    curso: Optional[str] = None
-    mencion: Optional[str] = None
-
-    # Marcadores de continuidad por intervalo (2=inicio,1=normal,0=continuación)
-    row_spans: Optional[List[int]] = None
+# =============================================================================
+# RESULTADO DE PARSEO (Output del parser)
+# =============================================================================
 
 @dataclass
-class ExtractionResult:
-    """
-    Resultado completo del flujo extractor: agregado de tablas + trazabilidad.
-    """
-    #titulacion: str
-    clean_tables: List[CleanTable]  # lo que consume el parser (limpio)
-    raw_tables: List[RawTable]      # lo que llegó del extractor (crudo)
-    extraccion_metadata: ExtractionMetadata
-
-
-# -----------------------------------------------------------------------------
-# Estructuras que produce el PARSER (salida final)
-# -----------------------------------------------------------------------------
-@dataclass
-class Session:
-    """
-    Sesión académica consolidada (una asignatura en un bloque horariodía).
-    """
+class Sesion:
+    """Representa una sesión individual de clase."""
     asignatura: str
     aula: str
-    hora_inicio: str  # "HH:MM"
-    hora_fin: str     # "HH:MM"
-    dia: str          # día canónico ("LUNES", ...)
-    modalidad: ModalidadLiteral
-    grupo: Optional[str] = None  # p. ej., "PL1", "PA2"; en teoría suele ser None
+    dia: str 
+    hora_inicio: time
+    hora_fin: time
+    tipo: Optional[str] = None 
+    grupo: Optional[str] = None 
 
 @dataclass
-class Schedule:
-    """
-    Resultado completo del flujo horarios: agregado de sesiones + trazabilidad.
-    """
-    titulacion: str
-    sesiones: List[Session]
+class Horario:
+    """Representa un horario completo (una tabla)."""
+    curso: str
+    periodo: str
+    sesiones: List[Sesion] = field(default_factory=list)
+    mencion: Optional[str] = None
+    pagina: Optional[int] = None
 
-    # Trazabilidad y depuración
-    raw_tables: List[RawTable]     # lo que llegó del extractor (crudo)
-    clean_tables: List[CleanTable] # lo que consume el parser (limpio)
+@dataclass
+class ParsingResult:
+    """Resultado del parseo de las tablas extraídas."""
+    titulo: str
+    horarios: List[Horario]
+    extraction_metadata: ExtractionMetadata
+    parsing_metadata: ParsingMetadata
 
-    # Metadatos
-    extraccion_metadata: ExtractionMetadata
-    parse_metadata: ParsingMetadata
+
+# =============================================================================
+# ENTIDADES NORMALIZADAS (Output del normalizador)
+# =============================================================================
+
+@dataclass
+class NormalizedSesionHorarioData:
+    """Sesión de horario normalizada, lista para persistir en BD.
+    
+    Esta entidad está pensada para mapearse 1:1 con una futura creación de:
+    - GrupoDocente (a partir de asignatura + tipo_grupo + grupo_codigo + curso)
+    - Aula (a partir de aula_nombre / aula_tipo)
+    - Sesion (a partir de día, horas, modalidad, tipo_recurrencia)
+    """
+    asignatura_nombre: str
+    grupo_codigo: str
+    tipo_grupo: TipoGrupoDocente
+    
+    dia_semana: DiaSemana
+    hora_inicio: time
+    hora_fin: time
+    
+    aula_nombre: str
+    aula_tipo: TipoAula
+    
+    modalidad: ModalidadSesion = ModalidadSesion.PRESENCIAL
+    tipo_recurrencia: TipoRecurrencia = TipoRecurrencia.SEMANAL
+
+
+@dataclass
+class NormalizedHorarioTablaData:
+    """Horario normalizado correspondiente a una tabla (curso/mención/página).
+    
+    Aglutina todas las sesiones normalizadas de una tabla de horario.
+    """
+    programa_nombre: str
+    curso: int
+    periodo: Periodo
+    mencion: Optional[str]
+    sesiones: List[NormalizedSesionHorarioData] = field(default_factory=list)
