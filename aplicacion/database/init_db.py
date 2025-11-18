@@ -1,19 +1,27 @@
-from sqlalchemy import create_engine
-from models import Base
-import os
-from inspect_db import inspect_database
+from database.models import Base
+from backend.db.session import engine
+from database.inspect_db import inspect_database
 
-# Obtiene el directorio actual del script
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Construye la ruta completa para la base de datos
-db_path = os.path.join(current_dir, 'dev.db')
-# Crea la conexión con la ruta absoluta
-engine = create_engine(f'sqlite:///{db_path}', echo=True)
 
-# Crea las tablas si no existen
-Base.metadata.create_all(engine)
+def init_db() -> None:
+    """
+    Inicializa la base de datos de acuerdo al modelo SQLAlchemy:
 
-print(f"Base de datos creada correctamente en: {db_path}")
+    - Crea las tablas que no existan (no borra datos).
+    - Usa el mismo engine que el backend (backend.db.session.engine).
+    """
+    Base.metadata.create_all(bind=engine)
+    print(f"Base de datos inicializada en: {engine.url}")
 
-# Generar el esquema automáticamente
-inspect_database()
+
+def main() -> None:
+    """
+    Punto de entrada del script de inicialización en desarrollo.
+    """
+    init_db()
+    # Generar el esquema de la base de datos para inspección manual
+    inspect_database()
+
+
+if __name__ == "__main__":
+    main()

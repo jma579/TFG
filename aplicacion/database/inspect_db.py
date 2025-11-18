@@ -3,7 +3,7 @@ import os
 
 # Obtener la ruta de la base de datos
 current_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.join(current_dir, 'dev.db')
+db_path = os.path.join(current_dir, 'database.db')
 
 def inspect_database():
     try:
