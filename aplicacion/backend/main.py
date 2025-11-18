@@ -62,10 +62,17 @@ async def lifespan(app: FastAPI):
         upload_path.mkdir(parents=True, exist_ok=True)
         logger.info(f"📁 Directorio de uploads verificado: {upload_path}")
         
-        # Crear tablas si no existen (solo en desarrollo)
+        # Inicializar esquema de base de datos (solo en desarrollo).
+        # create_tables() usa Base.metadata.create_all(), que es idempotente:
+        # crea tablas que no existan y nunca borra datos ni recrea tablas.
         if settings.debug:
             create_tables()
-            logger.info("✅ Tablas de base de datos verificadas/creadas")
+            logger.info("✅ Tablas de base de datos verificadas/creadas (entorno debug)")
+        else:
+            logger.info(
+                "ℹ️ Entorno no debug: se asume que la base de datos ya está "
+                "inicializada y no se ejecuta create_tables() automáticamente"
+            )
             
     except Exception as e:
         logger.error(f"❌ Error en startup: {e}")
