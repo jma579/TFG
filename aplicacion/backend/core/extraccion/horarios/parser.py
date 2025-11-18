@@ -9,9 +9,9 @@ import re
 import time
 import logging
 
-from core.extraccion.common.entities import ParserError, ParsingMetadata, Warning
+from backend.core.extraccion.common.entities import ParserError, ParsingMetadata, Warning
 
-from core.extraccion.horarios.constants import (
+from backend.core.extraccion.horarios.constants import (
     DEFAULT_PARSER_CONFIG, 
 	RX_HORA, PATRON_MAYUSCULA_SIN_ESPACIO, PATRON_NORMALIZAR_ESPACIOS,
 	PATRON_GRUPO_PL, PATRON_GRUPO_PA, PATRON_GRUPO_GENERICO,
@@ -20,7 +20,7 @@ from core.extraccion.horarios.constants import (
 	DURACION_MINIMA_SESION, PATRON_PERIODO,
 	PATRON_PREPOSICION_PEGADA_Y, PATRON_PREPOSICION_PEGADA_GENERAL,
 )
-from core.extraccion.horarios.entities import (
+from backend.core.extraccion.horarios.entities import (
 	Horario,
 	HorarioExtractionResult,
 	ParsingResult,

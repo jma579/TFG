@@ -205,7 +205,7 @@ MIN_ROOM_PATTERN_COVERAGE = 0.6  # 60% del texto debe ser el aula
 # CONSTANTES PARA NORMALIZACIÓN DE HORARIOS
 # =============================================================================
 
-from constants.enums import Periodo, DiaSemana
+from backend.constants.enums import Periodo, DiaSemana
 
 # Mapeo de strings de periodo a enum Periodo
 PERIODO_MAP = {

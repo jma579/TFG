@@ -23,14 +23,14 @@ from __future__ import annotations
 import re
 from typing import List, Optional
 
-from core.extraccion.horarios.entities import (
+from backend.core.extraccion.horarios.entities import (
     ParsingResult,
     Horario as ParsedHorario,
     Sesion as ParsedSesion,
     NormalizedHorarioTablaData,
     NormalizedSesionHorarioData,
 )
-from core.extraccion.horarios.constants import (
+from backend.core.extraccion.horarios.constants import (
     PERIODO_MAP,
     DIA_SEMANA_MAP,
     AULA_KEYWORDS,
@@ -41,7 +41,7 @@ from core.extraccion.horarios.constants import (
     CURSO_MIN,
     CURSO_MAX,
 )
-from constants.enums import (
+from backend.constants.enums import (
     DiaSemana,
     TipoGrupoDocente,
     TipoAula,
