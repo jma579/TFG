@@ -19,8 +19,15 @@ from typing import Union
 
 from backend.core.extraccion.horarios.extractor import HorarioExtractor
 from backend.core.extraccion.horarios.parser import HorarioParser
+from backend.core.extraccion.horarios.normalize import horario_data_normalizer
 
-from backend.modules.docencia.schemas.horarios import HorarioTemporalOut
+
+from backend.modules.docencia.schemas.horarios import (
+    HorarioTemporalOut, HorarioTemporalConfirmIn, HorarioConfirmResponse
+)
+from backend.modules.docencia.services.horarios_normalization_models import (
+    build_parsing_result_for_normalization,
+)
 
 
 class HorariosPipelineService:
@@ -72,3 +79,58 @@ class HorariosPipelineService:
         #    los dicts anidados de metadatos a ExtractionMetadataOut y
         #    ParsingMetadataOut automáticamente.
         return HorarioTemporalOut(**parsed_dict)
+    
+
+    def confirmar_horario(self, data: HorarioTemporalConfirmIn) -> HorarioConfirmResponse:
+        """Confirmar un horario editado y normalizar sus sesiones.
+
+        En esta fase el método NO persiste nada en la base de datos. Su
+        responsabilidad es:
+
+        - A partir del DTO HorarioTemporalConfirmIn reconstruir una estructura
+          equivalente a ParsingResult (usando modelos de adaptación internos).
+        - Pasar esa estructura al HorarioDataNormalizer para:
+            - Filtrar tablas mal construidas
+            - Filtrar sesiones mal formadas (sin horas, sin día, etc.)
+        - Calcular métricas agregadas sobre el resultado:
+            - nº de tablas/sesiones recibidas
+            - nº de tablas/sesiones que sobreviven a la normalización
+
+        Más adelante, este método será el punto donde se conecte la
+        persistencia (creación de grupos, sesiones, etc.).
+        """
+
+        # 1) Métricas básicas de lo que llega del frontend
+        num_tablas_recibidas = len(data.horarios)
+        num_sesiones_recibidas = sum(
+            len(tabla.sesiones or [])
+            for tabla in data.horarios
+        )
+
+        # 2) Reconstruir una estructura tipo ParsingResult usando el adaptador
+        parsed_for_normalizer = build_parsing_result_for_normalization(data)
+
+        # 3) Normalizar usando HorarioDataNormalizer (fail-soft)
+        normalized_tablas = horario_data_normalizer.normalize_horarios(
+            parsed_for_normalizer
+        )
+
+        num_tablas_normalizadas = len(normalized_tablas)
+        num_sesiones_normalizadas = sum(
+            len(tabla.sesiones)
+            for tabla in normalized_tablas
+        )
+
+        # 4) Construir respuesta (sin persistencia todavía)
+        return HorarioConfirmResponse(
+            grupos=[],   # se rellenará cuando creemos grupos en BD
+            sesiones=[],  # se rellenará cuando creemos sesiones en BD
+            created_entities={
+                "horarios_recibidos": num_tablas_recibidas,
+                "sesiones_recibidas": num_sesiones_recibidas,
+                "horarios_normalizados": num_tablas_normalizadas,
+                "sesiones_normalizadas": num_sesiones_normalizadas,
+            },
+            warnings=[],
+            errors=[],
+        )

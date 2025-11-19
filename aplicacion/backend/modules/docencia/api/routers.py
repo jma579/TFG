@@ -31,7 +31,11 @@ from backend.modules.docencia.services.sesion_service import sesion_service
 from backend.constants.enums import (
     TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana
 )
-from backend.modules.docencia.schemas.horarios import HorarioTemporalOut
+from backend.modules.docencia.schemas.horarios import (
+    HorarioTemporalOut,
+    HorarioTemporalConfirmIn,
+    HorarioConfirmResponse,
+)
 from backend.modules.docencia.services.horarios_pipeline_service import HorariosPipelineService
 
 # Instancia compartida del servicio de pipeline de horarios.
@@ -1151,3 +1155,49 @@ async def extract_horario(
 
     return horario_temporal
 
+@router.post(
+    "/horarios/confirm",
+    response_model=HorarioConfirmResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Confirmar un horario editado y preparar la creación de grupos y sesiones",
+    description="""
+    Confirmar un horario académico previamente extraído y editado en el frontend.
+
+    Este endpoint recibe un objeto `HorarioTemporalConfirmIn`, que representa
+    el horario temporal editable devuelto por `/horarios/extract` pero ya
+    revisado y modificado por el usuario.
+
+    **Flujo previsto (fases posteriores):**
+    1. Reconstruir una estructura compatible con el ParsingResult del parser.
+    2. Ejecutar el normalizador de horarios para obtener estructuras de dominio.
+    3. Crear o reutilizar:
+        - Programas y asignaturas
+        - Grupos docentes
+        - Aulas
+        - Sesiones
+    4. Detectar incidencias (asignaturas no encontradas, aulas faltantes, etc.)
+       y reflejarlas en `warnings` y `errors`.
+
+    En esta primera versión, el endpoint devuelve una respuesta vacía bien
+    tipada, de forma que el contrato con el frontend quede definido mientras
+    se implementa la lógica de normalización y persistencia.
+    """,
+    responses={
+        200: {"description": "Horario confirmado (respuesta provisional)"},
+        422: {"description": "Datos de entrada inválidos"},
+    },
+    tags=["Horarios"],
+)
+async def confirm_horario(
+    payload: HorarioTemporalConfirmIn,
+):
+    """
+    Confirmar un horario editado para su futura normalización y persistencia.
+
+    Args:
+        payload: Horario temporal editado que envía el frontend.
+
+    Returns:
+        HorarioConfirmResponse (por ahora vacío, sin grupos ni sesiones reales).
+    """
+    return horarios_pipeline_service.confirmar_horario(payload)
