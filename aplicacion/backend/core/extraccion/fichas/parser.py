@@ -5,14 +5,14 @@ import re
 from datetime import datetime
 import time
 
-from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata, Warning
+from backend.core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata, Warning
 
-from core.extraccion.fichas.constants import (
+from backend.core.extraccion.fichas.constants import (
     BASE_PARSER_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_TITULACION, PATTERN_ECTS, PATTERN_PERIODO,
     PATTERN_MODALIDAD, PATTERN_IDIOMA, PATTERN_ENGLISH_FRIENDLY, PATTERN_PROFESORADO,
     PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA
 )
-from core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
+from backend.core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
 
 class FichaParser:  
     """
@@ -186,11 +186,7 @@ class FichaParser:
             raise ParserError(f"Errores de validación: {errores}")
 
         # Retorno del objeto tipado
-        return self.to_normalized(
-            parsed=ficha,
-            extraction_metadata=extraction_metadata,
-            parsing_metadata=parser_metadata
-        )
+        return ficha
 
 
     # Extractores principales
@@ -222,11 +218,11 @@ class FichaParser:
         # Busca líneas tipo: Grado en Física OBLIGATORIA 2
         patron = re.compile(PATTERN_TITULACION, re.IGNORECASE)
         for match in patron.finditer(text):
-            titulacion = match.group(1).strip()
+            programa_nombre = match.group(1).strip()
             tipo = match.group(2).strip().capitalize()
             curso = match.group(3).strip()
             titulaciones.append(Titulacion(
-                titulacion=titulacion,
+                programa_nombre=programa_nombre,
                 tipo_asignatura=tipo,
                 curso=curso
             ))
@@ -395,80 +391,3 @@ class FichaParser:
         if parsed.ects <= 0:
             errores.append("ECTS no válido.")
         return (len(errores) == 0, errores)
-
-    def to_normalized(
-        self,
-        parsed: SubjectSheet,
-        extraction_metadata: Optional[ExtractionMetadata] = None,
-        parsing_metadata: Optional[ParsingMetadata] = None
-    ) -> Dict[str, Any]:
-        """
-        Convierte el objeto SubjectSheet a un dict alineado con los modelos de BD.
-        """
-        result = {
-            "codigo_plan": parsed.codigo_plan,
-            "nombre": parsed.nombre,
-            "titulaciones": [
-                {
-                    "titulacion": t.titulacion,
-                    "tipo_asignatura": t.tipo_asignatura,
-                    "curso": t.curso
-                }
-                for t in parsed.titulaciones
-            ],
-            "periodo": parsed.periodo,
-            "num_periodo": parsed.num_periodo,
-            "ects": parsed.ects,
-            "profesores": [  
-                {
-                    "nombre": p.nombre,
-                    "apellidos": p.apellidos
-                }
-                for p in parsed.profesores
-            ],
-            "modalidad": parsed.modalidad,
-            "idioma": parsed.idioma,
-            "english_friendly": parsed.english_friendly,
-        }
-        
-        # Agregar centro si existe
-        if parsed.centro:
-            result["centro"] = parsed.centro
-        
-        # Agregar departamento si existe
-        if parsed.departamento:
-            result["departamento"] = parsed.departamento
-        
-        # Agregar raw_text si existe
-        if parsed.raw_text:
-            result["raw_text"] = parsed.raw_text
-        
-        # Agregar parsing_metadata si se proporcionó
-        if parsing_metadata:
-            result["parsing_metadata"] = {
-                "parser_name": parsing_metadata.parser_name,
-                "parser_version": parsing_metadata.parser_version,
-                "parse_timestamp": parsing_metadata.parse_timestamp.isoformat() + "Z" if parsing_metadata.parse_timestamp else None,
-                "parse_duration": parsing_metadata.parse_duration,
-                "warnings": [w.__dict__ for w in parsing_metadata.warnings] if parsing_metadata.warnings else [],
-                "errors": parsing_metadata.errors or []
-            }
-        
-        # Agregar extraction_metadata si se proporcionó
-        if extraction_metadata:
-            result["extraction_metadata"] = {
-                "quality": extraction_metadata.quality,
-                "confidence": extraction_metadata.confidence,
-                "status": extraction_metadata.status,
-                "processing_time_seconds": extraction_metadata.processing_time_seconds,
-                "page_count": extraction_metadata.page_count,
-                "file_size_mb": extraction_metadata.file_size_mb,
-                "has_embedded_text": extraction_metadata.has_embedded_text,
-                "char_count": extraction_metadata.char_count,
-                "word_count": extraction_metadata.word_count,
-                "errors": extraction_metadata.errors or [],
-                "warnings": [w.__dict__ for w in extraction_metadata.warnings] if extraction_metadata.warnings else [],
-                "pages_with_text": extraction_metadata.pages_with_text
-            }
-        
-        return result

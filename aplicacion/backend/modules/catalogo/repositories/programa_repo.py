@@ -83,6 +83,45 @@ class ProgramaRepository:
             Programa.nombre.ilike(nombre)  # Case-insensitive
         ).first()
     
+
+    # ============================================================
+    #  QUERY ESPECIALIZADA: Buscar por nombre y tipo
+    # ============================================================
+    def get_by_nombre_tipo(
+        self,
+        db: Session,
+        nombre: str,
+        tipo: TipoPrograma,
+    ) -> Optional[Programa]:
+        """
+        Buscar programa por nombre y tipo.
+
+        Combina ambos campos (nombre, tipo), que son únicos en la tabla
+        gracias a la constraint uq_programa_nombre_tipo.
+
+        Args:
+            db: Sesión de SQLAlchemy
+            nombre: Nombre del programa (case-insensitive)
+            tipo: Tipo de programa (GRADO, MASTER, DOBLE_GRADO, etc.)
+
+        Returns:
+            Objeto Programa si existe, None si no se encuentra.
+
+        SQL aproximado:
+            SELECT * FROM programas
+            WHERE LOWER(nombre) = LOWER(:nombre)
+              AND tipo = :tipo
+            LIMIT 1;
+        """
+        return (
+            db.query(Programa)
+            .filter(
+                Programa.nombre.ilike(nombre),  # Case-insensitive
+                Programa.tipo == tipo,
+            )
+            .first()
+        )
+    
     
     # ============================================================
     #  GET MULTI (con filtros y paginación)
