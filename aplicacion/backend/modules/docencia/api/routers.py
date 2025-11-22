@@ -1190,6 +1190,7 @@ async def extract_horario(
 )
 async def confirm_horario(
     payload: HorarioTemporalConfirmIn,
+    db: Session = Depends(get_db),
 ):
     """
     Confirmar un horario editado para su futura normalización y persistencia.
@@ -1200,4 +1201,4 @@ async def confirm_horario(
     Returns:
         HorarioConfirmResponse (por ahora vacío, sin grupos ni sesiones reales).
     """
-    return horarios_pipeline_service.confirmar_horario(payload)
+    return horarios_pipeline_service.confirmar_horario(db, payload)

@@ -1,50 +1,42 @@
-"""Servicio de orquestación para el flujo de horarios académicos.
-
-Este servicio coordina las distintas fases del pipeline de horarios:
-- extracción de tablas a partir de un PDF de horario (HorarioExtractor)
-- parsing de las tablas en sesiones temporales (HorarioParser)
-
-En esta primera versión **no** realiza persistencia en BD ni normalización;
-únicamente devuelve un `HorarioTemporalOut` listo para que el frontend lo
-muestre y permita su edición.
-
-La normalización y creación de entidades en la base de datos se implementará
-posteriormente en un método separado (`confirmar_horario`).
-"""
-
 from __future__ import annotations
 
+from typing import Dict, List, Optional, Union
 from pathlib import Path
-from typing import Union
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.core.extraccion.horarios.extractor import HorarioExtractor
-from backend.core.extraccion.horarios.parser import HorarioParser
-from backend.core.extraccion.horarios.normalize import horario_data_normalizer
-
-
+from database.models import Asignatura, Aula
 from backend.modules.docencia.schemas.horarios import (
     HorarioTemporalOut, HorarioTemporalConfirmIn, HorarioConfirmResponse
 )
+from backend.modules.docencia.schemas.grupo_docente import (
+    GrupoDocenteCreate,
+    GrupoDocenteOut,
+)
+from backend.modules.docencia.schemas.sesion import SesionCreate, SesionOut
+from backend.modules.docencia.services.grupo_docente_service import (
+    grupo_docente_service,
+)
+from backend.modules.docencia.services.sesion_service import sesion_service
+from backend.core.extraccion.horarios.extractor import HorarioExtractor
+from backend.core.extraccion.horarios.parser import HorarioParser
+
+from backend.core.extraccion.horarios.normalize import horario_data_normalizer
 from backend.modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
-# from backend.modules.catalogo.repositories.asignatura_repo import asignatura_repository  # TODO futuro
 
 
 class HorariosPipelineService:
-    """Servicio de alto nivel para el flujo de horarios.
+    """Servicio de orquestación del flujo de horarios.
 
-    Responsable de exponer una API de Python sencilla para los routers FastAPI,
-    escondiendo los detalles de extractor y parser.
-
-    Uso típico desde un endpoint:
-
-        service = HorariosPipelineService()
-        horario_temporal = service.extraer_horario(pdf_path)
-
-    Más adelante se añadirá un método `confirmar_horario(...)` que utilizará
-    el normalizador y los servicios de dominio (grupos, sesiones, aulas...).
+    Esta implementación de `confirmar_horario`:
+    - Recibe el horario confirmado desde el frontend.
+    - Reconstruye un resultado de parsing sintético.
+    - Normaliza las tablas/sesiones a dominio.
+    - Resuelve asignaturas, grupos y aulas contra la BD.
+    - Crea sesiones usando la capa de servicio de docencia.
+    - Devuelve los grupos/sesiones creados y métricas de apoyo.
     """
 
     def __init__(self) -> None:
@@ -81,109 +73,211 @@ class HorariosPipelineService:
         #    los dicts anidados de metadatos a ExtractionMetadataOut y
         #    ParsingMetadataOut automáticamente.
         return HorarioTemporalOut(**parsed_dict)
-    
 
-    def confirmar_horario(self, db: Session, data: HorarioTemporalConfirmIn,) -> HorarioConfirmResponse:
+    def confirmar_horario(
+        self,
+        db: Session,
+        data: HorarioTemporalConfirmIn,
+    ) -> HorarioConfirmResponse:
+        """Confirmar un horario temporal y persistirlo en BD.
+
+        Pasos principales:
+        1. Métricas de entrada.
+        2. Reconstrucción del resultado de parsing para el normalizador.
+        3. Normalización de las tablas/sesiones.
+        4. Resolución de asignaturas, grupos y aulas.
+        5. Creación de sesiones vía capa de servicio.
+        6. Construcción de la respuesta con métricas y advertencias.
+        """
+
         # 1) Métricas de lo que llega del frontend
         num_tablas_recibidas = len(data.horarios)
         num_sesiones_recibidas = sum(len(t.sesiones or []) for t in data.horarios)
 
-        # 2) Reconstruir ParsingResult sintético
+        # 2) Reconstruir ParsingResult sintético para el normalizador
         parsed_for_normalizer = build_parsing_result_for_normalization(data)
 
         # 3) Normalizar
-        normalized_tablas = horario_data_normalizer.normalize_horarios(parsed_for_normalizer)
+        normalized_tablas = horario_data_normalizer.normalize_horarios(
+            parsed_for_normalizer
+        )
 
         num_tablas_normalizadas = len(normalized_tablas)
-        num_sesiones_normalizadas = sum(len(t.sesiones) for t in normalized_tablas)
+        num_sesiones_normalizadas = sum(
+            len(t.sesiones or []) for t in normalized_tablas
+        )
 
-        # 4) Estructuras auxiliares (para futuro)
-        grupos_creados = []
-        sesiones_creadas = []
-        warnings = []
+        warnings: List[str] = []
+        errors: List[str] = []
 
-        # Caches en memoria (para no machacar la BD a queries)
-        # TODO FUTURO: cuando haya catálogo de asignaturas y aulas consolidadas,
-        # descomentar y usar caches de búsqueda por nombre normalizado.
-        #
-        # asignaturas_cache = asignatura_repository.get_all_indexed_by_nombre(db)
-        # aulas_cache = aula_repository.get_all_indexed_by_nombre(db)
+        # Caches en memoria para evitar queries repetidas
+        asignatura_cache: Dict[str, Optional[Asignatura]] = {}
+        aula_cache: Dict[str, Optional[Aula]] = {}
+        grupos_cache: Dict[tuple[int, str], GrupoDocenteOut] = {}
 
-        # 5) Recorrer tablas normalizadas y (en el futuro) persistir
-        for tabla in normalized_tablas:
-            for ses in tabla.sesiones:
-                # AQUÍ iría la lógica de:
-                # - Resolver asignatura por nombre → asignatura_id
-                # - Resolver aula por nombre → aula_id
-                # - Resolver/crear grupo docente por (asignatura_id, tipo, codigo)
-                # - Crear sesión
+        # Resultados a devolver
+        grupos_resultado: Dict[int, GrupoDocenteOut] = {}
+        sesiones_resultado: List[SesionOut] = []
+
+        grupos_creados = 0
+        grupos_reutilizados = 0
+        sesiones_creadas = 0
+
+        # 4) Recorrer tablas y sesiones normalizadas
+        for idx_tabla, tabla in enumerate(normalized_tablas):
+            sesiones_tabla = getattr(tabla, "sesiones", []) or []
+
+            for idx_sesion, sesion_norm in enumerate(sesiones_tabla):
+                # -----------------------------
+                # 4.1) Resolver asignatura por nombre
+                # -----------------------------
+                asignatura_nombre = getattr(sesion_norm, "asignatura", None)
+
+                if not asignatura_nombre:
+                    warnings.append(
+                        f"Sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1}: "
+                        "sin nombre de asignatura; no se persiste."
+                    )
+                    continue
+
+                asignatura_key = asignatura_nombre.strip().lower()
+
+                if asignatura_key in asignatura_cache:
+                    asignatura = asignatura_cache[asignatura_key]
+                else:
+                    asignatura = (
+                        db.query(Asignatura)
+                        .filter(Asignatura.nombre.ilike(asignatura_nombre.strip()))
+                        .one_or_none()
+                    )
+                    asignatura_cache[asignatura_key] = asignatura
+
+                if asignatura is None:
+                    warnings.append(
+                        "No se encontró la asignatura "
+                        f"'{asignatura_nombre}' en el catálogo; "
+                        f"sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
+                        "no se ha persistido."
+                    )
+                    continue
 
                 # -----------------------------
-                # BLOQUE DE COMPROBACIÓN POR NOMBRE (COMENTADO)
+                # 4.2) Resolver / crear grupo docente
                 # -----------------------------
-                #
-                # # 5.1. Resolver asignatura por nombre
-                # asignatura = asignaturas_cache.get(ses.asignatura_nombre_normalizado)
-                # if not asignatura:
-                #     warnings.append(
-                #         f"Asig. no encontrada en catálogo: {ses.asignatura_nombre_normalizado}"
-                #     )
-                #     continue  # ← ESTA PARTE ES LA QUE QUERÍAS EVITAR AHORA
-                #
-                # # 5.2. Resolver aula por nombre
-                # aula = aulas_cache.get(ses.aula_nombre_normalizado)
-                # if not aula:
-                #     warnings.append(
-                #         f"Aula no encontrada en recursos: {ses.aula_nombre_normalizado}"
-                #     )
-                #     continue  # ← Y ESTA TAMBIÉN
+                grupo_codigo_raw = getattr(sesion_norm, "grupo", None)
+                if not grupo_codigo_raw:
+                    # Si el horario no trae grupo, podemos asumir un código genérico
+                    grupo_codigo_raw = "G1"
+
+                grupo_codigo_norm = grupo_codigo_raw.strip().upper()
+                grupo_key = (asignatura.id, grupo_codigo_norm)
+
+                grupo_out = grupos_cache.get(grupo_key)
+
+                if grupo_out is None:
+                    # Intentar recuperar un grupo existente para (asignatura, codigo)
+                    try:
+                        grupo_out = grupo_docente_service.get_by_asignatura_codigo(
+                            db=db,
+                            asignatura_id=asignatura.id,
+                            codigo=grupo_codigo_norm,
+                        )
+                        grupos_reutilizados += 1
+                    except HTTPException as exc:  # grupo no encontrado u otro error
+                        if exc.status_code == status.HTTP_404_NOT_FOUND:
+                            # Crear un grupo nuevo
+                            grupo_in = GrupoDocenteCreate(
+                                asignatura_id=asignatura.id,
+                                codigo=grupo_codigo_norm,
+                                tipo=getattr(sesion_norm, "tipo_grupo", None),
+                                curso=getattr(tabla, "curso", None),
+                                turno=getattr(tabla, "turno", None),
+                            )
+                            grupo_out = grupo_docente_service.create(db, grupo_in)
+                            grupos_creados += 1
+                        else:
+                            # Para otros errores (409, etc.) dejamos propagar
+                            raise
+
+                    grupos_cache[grupo_key] = grupo_out
+                    grupos_resultado[grupo_out.id] = grupo_out
 
                 # -----------------------------
-                # A PARTIR DE AQUÍ, PERSISTENCIA REAL
+                # 4.3) Resolver aula
                 # -----------------------------
-                # ⚠️ Aquí necesitaríamos disponer de:
-                # - asignatura_id (de algún sitio: DTO, mapeo manual, etc.)
-                # - aula_id (igual)
-                #
-                # Ejemplo ideal (cuando tengamos IDs):
-                #
-                # grupo_in = GrupoDocenteCreate(
-                #     asignatura_id=asignatura.id,
-                #     codigo=ses.grupo_codigo or "T1",
-                #     tipo=ses.tipo_grupo,
-                #     curso=tabla.curso,
-                #     turno=None,
-                # )
-                # grupo = grupo_docente_repository.create(db, grupo_in)
-                # grupos_creados.append(grupo)
-                #
-                # sesion_in = SesionCreate(
-                #     grupo_docente_id=grupo.id,
-                #     aula_id=aula.id,
-                #     modalidad=ses.modalidad,          # p.ej. PRESENCIAL
-                #     tipo_recurrencia=ses.tipo_recurrencia,  # SEMANAL
-                #     dia_semana=ses.dia_semana,
-                #     hora_inicio=ses.hora_inicio,
-                #     hora_fin=ses.hora_fin,
-                #     profesores=[],  # por ahora vacío
-                # )
-                # sesion = sesion_repository.create(db, sesion_in)
-                # sesiones_creadas.append(sesion)
-                ...
+                aula_nombre = getattr(sesion_norm, "aula", None)
+                if not aula_nombre:
+                    warnings.append(
+                        "Sesión para asignatura "
+                        f"'{asignatura_nombre}' sin aula; "
+                        f"tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
+                        "no se ha persistido."
+                    )
+                    continue
 
-        # 6) Construir respuesta (por ahora, sin grupos/sesiones reales si no tienes IDs)
+                aula_key = aula_nombre.strip().lower()
+
+                if aula_key in aula_cache:
+                    aula = aula_cache[aula_key]
+                else:
+                    aula = (
+                        db.query(Aula)
+                        .filter(Aula.nombre.ilike(aula_nombre.strip()))
+                        .one_or_none()
+                    )
+                    aula_cache[aula_key] = aula
+
+                if aula is None:
+                    warnings.append(
+                        f"No se encontró el aula '{aula_nombre}'; "
+                        f"sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
+                        "no se ha persistido."
+                    )
+                    continue
+
+                # -----------------------------
+                # 4.4) Construir SesionCreate
+                # -----------------------------
+                # IMPORTANTE: los nombres de atributos (modalidad, tipo_recurrencia,
+                # dia_semana, hora_inicio, hora_fin, inicio, fin) deben coincidir
+                # con lo que devuelve tu normalizador. Si alguno difiere, ajusta
+                # los getattr(...) correspondientes.
+
+                sesion_in = SesionCreate(
+                    grupo_docente_id=grupo_out.id,
+                    aula_id=aula.id,
+                    modalidad=getattr(sesion_norm, "modalidad", None),
+                    tipo_recurrencia=getattr(
+                        sesion_norm, "tipo_recurrencia", None
+                    ),
+                    dia_semana=getattr(sesion_norm, "dia_semana", None),
+                    hora_inicio=getattr(sesion_norm, "hora_inicio", None),
+                    hora_fin=getattr(sesion_norm, "hora_fin", None),
+                    inicio=getattr(sesion_norm, "inicio", None),
+                    fin=getattr(sesion_norm, "fin", None),
+                    profesores=[],  # el flujo de horarios no asigna profesores todavía
+                )
+
+                sesion_out = sesion_service.create(db, sesion_in)
+                sesiones_resultado.append(sesion_out)
+                sesiones_creadas += 1
+
+        # 5) Construir métricas de entidades creadas / procesadas
+        created_entities = {
+            "horarios_recibidos": num_tablas_recibidas,
+            "sesiones_recibidas": num_sesiones_recibidas,
+            "horarios_normalizados": num_tablas_normalizadas,
+            "sesiones_normalizadas": num_sesiones_normalizadas,
+            "grupos_creados": grupos_creados,
+            "grupos_reutilizados": grupos_reutilizados,
+            "sesiones_creadas": sesiones_creadas,
+        }
+
+        # 6) Construir respuesta
         return HorarioConfirmResponse(
-
-            grupos=[],   # o mapear grupos_creados → GrupoDocenteOut cuando lo actives
-            sesiones=[],  # idem sesiones_creadas → SesionOut
-            created_entities={
-                "horarios_recibidos": num_tablas_recibidas,
-                "sesiones_recibidas": num_sesiones_recibidas,
-                "horarios_normalizados": num_tablas_normalizadas,
-                "sesiones_normalizadas": num_sesiones_normalizadas,
-                # "grupos_creados": len(grupos_creados),
-                # "sesiones_creadas": len(sesiones_creadas),
-            },
+            grupos=list(grupos_resultado.values()),
+            sesiones=sesiones_resultado,
+            created_entities=created_entities,
             warnings=warnings,
-            errors=[],
+            errors=errors,
         )
