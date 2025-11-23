@@ -464,6 +464,53 @@ def listar_asignaturas(
         activo=activo
     )
 
+@router.get(
+    "/programas/{programa_id}/asignaturas",
+    response_model=AsignaturaList,
+    summary="Listar asignaturas de un programa",
+    description="Obtiene una lista paginada de asignaturas asociadas a un programa concreto"
+)
+def listar_asignaturas_de_programa(
+    programa_id: int = Path(..., ge=1, description="ID del programa del que se quieren obtener las asignaturas", example=1),
+    skip: int = Query(0, ge=0, description="Número de registros a saltar (offset para paginación)", example=0),
+    limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros a devolver", example=10),
+    db: Session = Depends(get_db),
+):
+    """
+    Listar asignaturas asociadas a un programa.
+
+    ### Parámetros de ruta:
+    - `programa_id`: ID del programa (entero positivo)
+
+    ### Parámetros de consulta:
+    - `skip`: Offset para paginación (por defecto 0)
+    - `limit`: Límite de resultados (por defecto 100, máximo 1000)
+
+    ### Comportamiento:
+    - Usa la tabla de relación programa-asignatura para obtener las asignaturas
+      vinculadas al programa indicado.
+    - Devuelve un objeto `AsignaturaList` con:
+      - `total`: Número total de asignaturas asociadas al programa (sin paginar)
+      - `items`: Lista de asignaturas en la página actual
+      - `page`: Número de página actual (calculado a partir de skip/limit)
+      - `size`: Tamaño de página (`limit`)
+
+    ### Ejemplos de uso:
+    ```
+    # Primera página de asignaturas del programa 1
+    GET /v0/catalogo/programas/1/asignaturas
+
+    # Segunda página (10 por página)
+    GET /v0/catalogo/programas/1/asignaturas?skip=10&limit=10
+    ```
+    """
+    return asignatura_service.get_asignaturas_by_programa(
+        db=db,
+        programa_id=programa_id,
+        skip=skip,
+        limit=limit,
+    )
+
 
 @router.get(
     "/asignaturas/codigo/{codigo_plan}",

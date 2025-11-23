@@ -150,6 +150,36 @@ class AsignaturaService:
             size=limit
         )
     
+    def get_asignaturas_by_programa(
+        self,
+        db: Session,
+        programa_id: int,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> AsignaturaList:
+        """
+        Listar asignaturas asociadas a un programa concreto.
+
+        Usa la tabla de relación ProgramaAsignatura y devuelve
+        un listado paginado con metadatos (total, page, size).
+        """
+        items, total = self.repo.get_by_programa(
+            db=db,
+            programa_id=programa_id,
+            skip=skip,
+            limit=limit,
+        )
+
+        items_out = [AsignaturaOut.model_validate(item) for item in items]
+        page = (skip // limit) + 1 if limit > 0 else 1
+
+        return AsignaturaList(
+            total=total,
+            items=items_out,
+            page=page,
+            size=limit,
+        )
+    
     
     # ============================================================
     #  OPERACIONES DE ESCRITURA (CREATE/UPDATE/DELETE)
