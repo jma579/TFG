@@ -125,18 +125,18 @@ class HorariosPipelineService:
 
         # 4) Recorrer tablas y sesiones normalizadas
         for idx_tabla, tabla in enumerate(normalized_tablas):
-            sesiones_tabla = getattr(tabla, "sesiones", []) or []
+            sesiones_tabla = tabla.sesiones or []
 
             for idx_sesion, sesion_norm in enumerate(sesiones_tabla):
                 # -----------------------------
                 # 4.1) Resolver asignatura por nombre
                 # -----------------------------
-                asignatura_nombre = getattr(sesion_norm, "asignatura", None)
+                asignatura_nombre = sesion_norm.asignatura_nombre
 
                 if not asignatura_nombre:
                     warnings.append(
                         f"Sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1}: "
-                        "sin nombre de asignatura; no se persiste."
+                        "sin nombre de asignatura normalizado; no se persiste."
                     )
                     continue
 
@@ -164,12 +164,7 @@ class HorariosPipelineService:
                 # -----------------------------
                 # 4.2) Resolver / crear grupo docente
                 # -----------------------------
-                grupo_codigo_raw = getattr(sesion_norm, "grupo", None)
-                if not grupo_codigo_raw:
-                    # Si el horario no trae grupo, podemos asumir un código genérico
-                    grupo_codigo_raw = "G1"
-
-                grupo_codigo_norm = grupo_codigo_raw.strip().upper()
+                grupo_codigo_norm = sesion_norm.grupo_codigo.strip().upper()
                 grupo_key = (asignatura.id, grupo_codigo_norm)
 
                 grupo_out = grupos_cache.get(grupo_key)
@@ -189,9 +184,9 @@ class HorariosPipelineService:
                             grupo_in = GrupoDocenteCreate(
                                 asignatura_id=asignatura.id,
                                 codigo=grupo_codigo_norm,
-                                tipo=getattr(sesion_norm, "tipo_grupo", None),
-                                curso=getattr(tabla, "curso", None),
-                                turno=getattr(tabla, "turno", None),
+                                tipo=sesion_norm.tipo_grupo,
+                                curso=tabla.curso,
+                                turno=None,
                             )
                             grupo_out = grupo_docente_service.create(db, grupo_in)
                             grupos_creados += 1
@@ -205,11 +200,12 @@ class HorariosPipelineService:
                 # -----------------------------
                 # 4.3) Resolver aula
                 # -----------------------------
-                aula_nombre = getattr(sesion_norm, "aula", None)
+                aula_nombre = sesion_norm.aula_nombre
+
                 if not aula_nombre:
                     warnings.append(
                         "Sesión para asignatura "
-                        f"'{asignatura_nombre}' sin aula; "
+                        f"'{asignatura_nombre}' sin aula normalizada; "
                         f"tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
                         "no se ha persistido."
                     )
@@ -229,32 +225,25 @@ class HorariosPipelineService:
 
                 if aula is None:
                     warnings.append(
-                        f"No se encontró el aula '{aula_nombre}'; "
+                        f"No se encontró el aula normalizada '{aula_nombre}'; "
                         f"sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
                         "no se ha persistido."
                     )
                     continue
 
                 # -----------------------------
-                # 4.4) Construir SesionCreate
+                # 4.4) Construir SesionCreate a partir del modelo normalizado
                 # -----------------------------
-                # IMPORTANTE: los nombres de atributos (modalidad, tipo_recurrencia,
-                # dia_semana, hora_inicio, hora_fin, inicio, fin) deben coincidir
-                # con lo que devuelve tu normalizador. Si alguno difiere, ajusta
-                # los getattr(...) correspondientes.
-
                 sesion_in = SesionCreate(
                     grupo_docente_id=grupo_out.id,
                     aula_id=aula.id,
-                    modalidad=getattr(sesion_norm, "modalidad", None),
-                    tipo_recurrencia=getattr(
-                        sesion_norm, "tipo_recurrencia", None
-                    ),
-                    dia_semana=getattr(sesion_norm, "dia_semana", None),
-                    hora_inicio=getattr(sesion_norm, "hora_inicio", None),
-                    hora_fin=getattr(sesion_norm, "hora_fin", None),
-                    inicio=getattr(sesion_norm, "inicio", None),
-                    fin=getattr(sesion_norm, "fin", None),
+                    modalidad=sesion_norm.modalidad,
+                    tipo_recurrencia=sesion_norm.tipo_recurrencia,
+                    dia_semana=sesion_norm.dia_semana,
+                    hora_inicio=sesion_norm.hora_inicio,
+                    hora_fin=sesion_norm.hora_fin,
+                    inicio=None,  # el normalizador actual no maneja sesiones puntuales
+                    fin=None,
                     profesores=[],  # el flujo de horarios no asigna profesores todavía
                 )
 
