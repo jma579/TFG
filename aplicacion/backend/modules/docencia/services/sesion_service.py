@@ -14,8 +14,6 @@ Validaciones:
 - FK aula_id debe existir
 - FK profesor_id deben existir (todos los de la lista)
 - Existencia de sesión antes de actualizar/eliminar
-
-TODO (Fase 3.5 - Motor de Conflictos):
 - Detectar conflictos de aula al crear/actualizar
 - Detectar conflictos de profesor al crear/actualizar
 - Detectar conflictos de grupo docente al crear/actualizar
@@ -28,8 +26,14 @@ from fastapi import HTTPException, status
 
 from backend.modules.docencia.repositories.sesion_repo import sesion_repository
 from backend.modules.docencia.schemas.sesion import (
-    SesionCreate, SesionUpdate, SesionOut, ProfesorSesionOut
+    SesionCreate, SesionUpdate, SesionOut, ProfesorSesionOut,
+    SesionWithConflictosOut
 )
+from backend.modules.conflictos.schemas.conflicto import ConflictoOut
+from backend.modules.conflictos.repositories.conflictos_repo import sync_conflictos_for_sesion
+from backend.core.conflictos.types import ParametrosDeteccion
+from backend.core.conflictos.engine import conflict_engine
+
 from backend.constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
 
 # Importar repositories para validar FK
@@ -45,7 +49,7 @@ class SesionService:
     Patrón Service: Encapsula lógica de negocio y orquesta repositories.
     """
     
-    def create(self, db: Session, sesion_in: SesionCreate) -> SesionOut:
+    def create(self, db: Session, sesion_in: SesionCreate) -> SesionWithConflictosOut:
         """
         Crear nueva sesión con profesores asignados.
         
@@ -96,7 +100,6 @@ class SesionService:
                     detail=f"Profesor con id {prof_data.profesor_id} no encontrado"
                 )
         
-        # TODO (Fase 3.5): Detectar conflictos ANTES de crear
         # from backend.modules.conflictos.services.conflict_engine import conflict_engine
         # 
         # conflictos_aula = conflict_engine.detect_aula_conflicts(db, sesion_in)
@@ -129,16 +132,29 @@ class SesionService:
         if profesores_data:
             sesion_repository.update_profesores(db, sesion.id, profesores_data)
         
+        # Flush para asegurar que la sesión y sus relaciones existen en BD
+        db.flush()
+
+        # Detectar y sincronizar conflictos para esta sesión
+        resultados = conflict_engine.detect_conflicts_for_session(
+            sesion_id=sesion.id,
+            db_session=db,
+            params=ParametrosDeteccion(),
+        )
+        conflictos_db = sync_conflictos_for_sesion(
+            db=db,
+            sesion_id=sesion.id,
+            resultados_engine=resultados,
+        )
+
         # Commit
         db.commit()
         db.refresh(sesion)
         
-        # TODO (Fase 3.5): Persistir conflictos detectados
-        # if conflictos_aula or conflictos_profesor or conflictos_grupo:
-        #     conflict_engine.persist_conflicts(db, sesion.id, conflictos_aula + ...)
-        
-        # Convertir modelo SQLAlchemy a schema Pydantic
-        return self._convert_to_out(sesion)
+        return SesionWithConflictosOut(
+            sesion=self._convert_to_out(sesion),
+            conflictos=[ConflictoOut.model_validate(c) for c in conflictos_db],
+        )
     
     
     def get_by_id(self, db: Session, id: int) -> SesionOut:
@@ -211,12 +227,7 @@ class SesionService:
         return items_out, total
     
     
-    def update(
-        self,
-        db: Session,
-        id: int,
-        sesion_in: SesionUpdate
-    ) -> SesionOut:
+    def update(self, db: Session, id: int, sesion_in: SesionUpdate) -> SesionWithConflictosOut:
         """
         Actualizar sesión existente (actualización parcial).
         
@@ -225,8 +236,6 @@ class SesionService:
         2. Si se actualiza grupo_docente_id, verificar que existe
         3. Si se actualiza aula_id, verificar que existe
         4. Si se actualizan profesores, verificar que todos existen
-        
-        TODO (Fase 3.5):
         5. Detectar conflictos si cambian horarios o recursos
         6. Actualizar conflictos persistidos
         
@@ -278,17 +287,6 @@ class SesionService:
                         detail=f"Profesor con id {prof_data.profesor_id} no encontrado"
                     )
         
-        # TODO (Fase 3.5): Detectar conflictos si cambian horarios o recursos
-        # cambio_horario = (sesion_in.tipo_recurrencia or sesion_in.dia_semana or 
-        #                   sesion_in.hora_inicio or sesion_in.inicio)
-        # cambio_recursos = (sesion_in.aula_id or sesion_in.profesores)
-        # 
-        # if cambio_horario or cambio_recursos:
-        #     conflictos = conflict_engine.detect_conflicts_for_update(db, id, sesion_in)
-        #     if conflictos:
-        #         raise HTTPException(409, detail=conflictos)
-        
-        # Actualizar sesión (sin profesores)
         sesion = sesion_repository.update(db, sesion, sesion_in)
         
         # Actualizar profesores si se proporcionan
@@ -302,15 +300,28 @@ class SesionService:
             ]
             sesion_repository.update_profesores(db, id, profesores_data)
         
+        # Flush para asegurar que los cambios están en BD antes de detectar conflictos
+        db.flush()
+
+        resultados = conflict_engine.detect_conflicts_for_session(
+            sesion_id=sesion.id,
+            db_session=db,
+            params=ParametrosDeteccion(),
+        )
+        conflictos_db = sync_conflictos_for_sesion(
+            db=db,
+            sesion_id=sesion.id,
+            resultados_engine=resultados,
+        )
+
         # Commit
         db.commit()
         db.refresh(sesion)
         
-        # TODO (Fase 3.5): Actualizar conflictos persistidos
-        # conflict_engine.update_conflicts_for_session(db, id)
-        
-        # Convertir a schema Pydantic
-        return self._convert_to_out(sesion)
+        return SesionWithConflictosOut(
+            sesion=self._convert_to_out(sesion),
+            conflictos=[ConflictoOut.model_validate(c) for c in conflictos_db],
+        )
     
     
     def delete(self, db: Session, id: int) -> None:

@@ -20,15 +20,15 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 # Core imports
-from .types import (
+from backend.core.conflictos.types import (
     SesionRef, RestriccionRef, ResultadoDeteccion,
     TipoConflicto, SeveridadConflicto, ParametrosDeteccion
 )
-from .basic_rules import (
+from backend.core.conflictos.basic_rules import (
     detectar_todos_los_conflictos_basicos,
     SolapamientoProfesor, SolapamientoAula, ViolacionRestriccion
 )
-from .hashing import generar_hash_conflicto
+from backend.core.conflictos.hashing import generar_hash_conflicto
 
 #TODO: Database imports -> ajustar según estructura real de modelos
 # from ...db.models import Sesion as DBSesion, Restriccion as DBRestriccion

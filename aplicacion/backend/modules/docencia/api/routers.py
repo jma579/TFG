@@ -24,7 +24,7 @@ from backend.modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate, GrupoDocenteOut, GrupoDocenteList
 )
 from backend.modules.docencia.schemas.sesion import (
-    SesionCreate, SesionUpdate, SesionOut, SesionList
+    SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut
 )
 from backend.modules.docencia.services.grupo_docente_service import grupo_docente_service
 from backend.modules.docencia.services.sesion_service import sesion_service
@@ -760,7 +760,7 @@ def obtener_sesion(
 
 @router.post(
     "/sesiones",
-    response_model=SesionOut,
+    response_model=SesionWithConflictosOut,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nueva sesión",
     description="""
@@ -876,7 +876,7 @@ def crear_sesion(
 
 @router.put(
     "/sesiones/{id}",
-    response_model=SesionOut,
+    response_model=SesionWithConflictosOut,
     summary="Actualizar sesión",
     description="""
     Actualizar una sesión existente (actualización parcial).
