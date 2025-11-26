@@ -25,6 +25,7 @@ from backend.db.session import engine, create_tables
 from backend.modules.catalogo.api.routers import router as catalogo_router
 from backend.modules.recursos.api.routers import router as recursos_router
 from backend.modules.docencia.api.routers import router as docencia_router
+from backend.modules.conflictos.api.routers import router as conflictos_router
 
 # Obtener configuración
 settings = get_settings()
@@ -285,7 +286,7 @@ app.include_router(docencia_router, prefix=f"{settings.api_v0_prefix}/docencia",
 
 # Fase 3: Sistema de Conflictos
 # from conflictos.router import router as conflictos_router
-# app.include_router(conflictos_router, prefix=f"{settings.api_v0_prefix}/conflictos", tags=["Conflictos"])
+app.include_router(conflictos_router, prefix=f"{settings.api_v0_prefix}/conflictos", tags=["Conflictos"])
 
 # Fase 4: Ingesta y Procesamiento
 # from ingesta.router import router as ingesta_router

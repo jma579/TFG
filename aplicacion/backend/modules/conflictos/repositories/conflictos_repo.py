@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Iterable, List
+from typing import Iterable, List, Optional, Tuple
 
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 
 from backend.core.conflictos.types import ResultadoDeteccion
 
-from backend.constants.enums import EstadoConflicto
+from backend.constants.enums import EstadoConflicto, TipoConflicto, SeveridadConflicto
 from database.models import Conflicto
+
+
+def get_conflicto_by_id(db: Session, conflicto_id: int) -> Optional[Conflicto]:
+    """Obtiene un conflicto por su ID o None si no existe."""
+    return db.query(Conflicto).filter(Conflicto.id == conflicto_id).first()
 
 
 def get_conflictos_for_sesion(db: Session, sesion_id: int) -> List[Conflicto]:
@@ -27,6 +32,52 @@ def get_conflictos_for_sesion(db: Session, sesion_id: int) -> List[Conflicto]:
         )
         .all()
     )
+
+
+def search_conflictos(
+    db: Session,
+    *,
+    skip: int = 0,
+    limit: int = 100,
+    tipo: Optional[TipoConflicto] = None,
+    severidad: Optional[SeveridadConflicto] = None,
+    estado: Optional[EstadoConflicto] = None,
+    profesor_id: Optional[int] = None,
+    aula_id: Optional[int] = None,
+    sesion_id: Optional[int] = None,
+) -> Tuple[List[Conflicto], int]:
+    """Busca conflictos con filtros y paginación.
+
+    Devuelve la lista de conflictos y el total antes de paginar.
+    """
+
+    query = db.query(Conflicto)
+
+    if tipo is not None:
+        query = query.filter(Conflicto.tipo == tipo)
+    if severidad is not None:
+        query = query.filter(Conflicto.severidad == severidad)
+    if estado is not None:
+        query = query.filter(Conflicto.estado == estado)
+    if profesor_id is not None:
+        query = query.filter(Conflicto.profesor_id == profesor_id)
+    if aula_id is not None:
+        query = query.filter(Conflicto.aula_id == aula_id)
+    if sesion_id is not None:
+        query = query.filter(
+            or_(
+                Conflicto.sesion_id == sesion_id,
+                Conflicto.sesion_2_id == sesion_id,
+            )
+        )
+
+    total = query.with_entities(func.count(Conflicto.id)).scalar() or 0
+
+    if limit > 0:
+        query = query.offset(skip).limit(limit)
+
+    items = query.all()
+    return items, total
 
 
 def _apply_resultado_to_conflicto(
