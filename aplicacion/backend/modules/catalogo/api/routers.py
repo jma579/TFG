@@ -44,7 +44,8 @@ from backend.modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
     AsignaturaOut,
-    AsignaturaList
+    AsignaturaList,
+    AsignaturaProgramaOut
 )
 
 from backend.modules.catalogo.services.mencion_service import mencion_service
@@ -54,6 +55,8 @@ from backend.modules.catalogo.schemas.mencion import (
     MencionOut,
     MencionList
 ) 
+
+from backend.modules.recursos.schemas.profesor import ProfesorOut
 
 from backend.constants.enums import TipoPrograma, Periodo, ModalidadAsignatura, Idioma 
 
@@ -509,6 +512,54 @@ def listar_asignaturas_de_programa(
         programa_id=programa_id,
         skip=skip,
         limit=limit,
+    )
+
+
+@router.get(
+    "/asignaturas/{asignatura_id}/programas",
+    response_model=list[AsignaturaProgramaOut],
+    summary="Listar programas de una asignatura",
+    description=(
+        "Devuelve los programas (titulaciones) a los que está asociada una asignatura, "
+        "incluyendo el curso y el tipo de asignatura dentro de cada programa."
+    ),
+)
+def listar_programas_de_asignatura(
+    asignatura_id: int = Path(
+        ...,
+        ge=1,
+        description="ID de la asignatura",
+        examples=[1, 2, 3],
+    ),
+    db: Session = Depends(get_db),
+):
+    return asignatura_service.get_programas_de_asignatura(
+        db=db,
+        asignatura_id=asignatura_id,
+    )
+
+
+@router.get(
+    "/asignaturas/{asignatura_id}/profesores",
+    response_model=list[ProfesorOut],
+    summary="Listar profesores de una asignatura",
+    description=(
+        "Devuelve el profesorado asociado a una asignatura a través de la tabla "
+        "`profesores_asignaturas`."
+    ),
+)
+def listar_profesores_de_asignatura(
+    asignatura_id: int = Path(
+        ...,
+        ge=1,
+        description="ID de la asignatura",
+        examples=[1, 2, 3],
+    ),
+    db: Session = Depends(get_db),
+):
+    return asignatura_service.get_profesores_de_asignatura(
+        db=db,
+        asignatura_id=asignatura_id,
     )
 
 
