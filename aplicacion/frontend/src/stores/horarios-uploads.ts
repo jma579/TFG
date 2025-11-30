@@ -3,9 +3,13 @@
 import { create } from 'zustand';
 import type { UploadItem } from '@/components/uploads/types';
 import { uid } from '@/lib/id';
+import { extractHorario, type HorarioTemporalOut } from '@/lib/api/client';
 
 export type HorarioUploadItem = UploadItem & {
-  confirmed?: boolean; // marcado al confirmar horario tras la revisión
+  progress: number;
+  confirmed?: boolean;
+  backendId?: number;
+  horarioTemporal?: HorarioTemporalOut;
 };
 
 type State = {
@@ -15,13 +19,12 @@ type State = {
 type Actions = {
   addFiles: (files: File[]) => void;
   remove: (id: string) => void;
-
-  // Simulación de análisis
-  startAnalyze: () => void;
+ 
+  startAnalyze: () => Promise<void>;
   setProgress: (id: string, value: number) => void;
   setDone: (id: string) => void;
   setError: (id: string, msg: string) => void;
-
+ 
   confirm: (id: string) => void;
   clear: () => void;
 };
@@ -29,73 +32,135 @@ type Actions = {
 export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
   items: [],
 
-  addFiles: (files) =>
-    set((s) => ({
-      items: [
-        ...s.items,
-        ...files.map<HorarioUploadItem>((f) => ({
-          id: uid('hor'),
-          file: f,
-          status: 'pending',
-          progress: 0,
-        })),
-      ],
+  addFiles: (files) => {
+    if (!files?.length) return;
+
+    const newItems: HorarioUploadItem[] = files.map((file) => ({
+      id: uid('horario-upload'),
+      file,
+      status: 'pending',
+      result: undefined,
+      errorMessage: undefined,
+      // campos específicos de horarios
+      progress: 0,
+      confirmed: false,
+      backendId: undefined,
+      horarioTemporal: undefined,
+    }));
+
+    set((state) => ({
+      items: [...state.items, ...newItems],
+    }));
+  },
+
+  remove: (id) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== id),
     })),
 
-  remove: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
+  startAnalyze: async () => {
+    const { items } = get();
 
-  startAnalyze: () => {
-    const items = get().items;
-    // set all to uploading
-    set({
-      items: items.map((i) =>
-        i.status === 'pending' ? { ...i, status: 'uploading', progress: 5 } : i
-      ),
-    });
+    // Pr++ocesamos en serie para simplificar
+    for (const item of items) {
+      if (item.status !== 'pending') continue;
 
-    const steps = 10;
-    items.forEach((it) => {
-      if (it.status !== 'pending') return;
-      const totalMs = 2000 + Math.floor(Math.random() * 2000);
+      const id = item.id;
 
-      for (let k = 1; k <= steps; k++) {
-        setTimeout(() => {
-          get().setProgress(it.id, Math.min(100, Math.round((k / steps) * 100)));
-        }, (totalMs / steps) * k);
+      // Marcamos como "subiendo/procesando"
+      set((state) => ({
+        items: state.items.map((i) =>
+          i.id === id
+            ? { ...i, status: 'uploading', progress: 0, errorMessage: undefined }
+            : i,
+        ),
+      }));
+
+      try {
+        const result = await extractHorario(item.file);
+
+        // 🔍 Normalizamos el nodo que realmente contiene el horario temporal.
+        // Ajusta esta lista de claves si tu backend usa otro nombre.
+        const maybeWrapped = result as unknown as {
+          horario?: HorarioTemporalOut;
+          horario_temporal?: HorarioTemporalOut;
+        };
+
+        const horarioNode: HorarioTemporalOut =
+          maybeWrapped.horario ??
+          maybeWrapped.horario_temporal ??
+          (result as HorarioTemporalOut);
+
+        // Para depurar, puedes ver en consola qué llega realmente:
+        // eslint-disable-next-line no-console
+        console.log('Resultado extractHorario:', result);
+        // eslint-disable-next-line no-console
+        console.log('Nodo horarioTemporal usado:', horarioNode);
+
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  status: 'done',
+                  progress: 100,
+                  errorMessage: undefined,
+                  // Si quieres seguir guardando también el wrapper completo, puedes añadir otra propiedad
+                  // rawResult: result,
+                  horarioTemporal: horarioNode,
+                }
+              : i,
+          ),
+        }));
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Error al procesar el horario.';
+
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  status: 'error',
+                  progress: 0,
+                  errorMessage: message,
+                }
+              : i,
+          ),
+        }));
       }
-
-      setTimeout(() => {
-        // En este flujo, todos pasan a "Listo para revisión"
-        get().setDone(it.id);
-      }, totalMs + 60);
-    });
+    }
   },
 
   setProgress: (id, value) =>
-    set((s) => ({
-      items: s.items.map((i) => (i.id === id ? { ...i, progress: value } : i)),
+    set((state) => ({
+      items: state.items.map((i) =>
+        i.id === id ? { ...i, progress: value } : i
+      ),
     })),
 
   setDone: (id) =>
-    set((s) => ({
-      items: s.items.map((i) =>
+    set((state) => ({
+      items: state.items.map((i) =>
         i.id === id ? { ...i, status: 'done', progress: 100 } : i
       ),
     })),
 
   setError: (id, msg) =>
-    set((s) => ({
-      items: s.items.map((i) =>
+    set((state) => ({
+      items: state.items.map((i) =>
         i.id === id ? { ...i, status: 'error', errorMessage: msg } : i
       ),
     })),
 
   confirm: (id) =>
-    set((s) => ({
-      items: s.items.map((i) =>
+    set((state) => ({
+      items: state.items.map((i) =>
         i.id === id ? { ...i, confirmed: true } : i
       ),
     })),
 
-    clear: () => set({ items: [] }),
+  clear: () => set({ items: [] }),
 }));
