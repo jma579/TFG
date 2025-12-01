@@ -14,16 +14,30 @@ TABLA_CONFIG = {
 # Patrones de identificación
 PATRONES = {
     'titulo': r'(?:DOBLE )?GRADO\s+EN\s+.+?(?:PRIMER|SEGUNDO)\s+CUATRIMESTRE',  # DOTALL/IGNORECASE en búsqueda
-    'curso': r'\b[1-5]º\s*(?:CURSO)?\b',
+
+    # Curso: admite formas numéricas ("1º", "2º CURSO") y textuales ("PRIMER CURSO", "SEGUNDO CURSO", ...)
+    'curso': (
+        r'\b(?:'
+        r'[1-5]\s*º\s*(?:CURSO)?'                           # 1º, 2º CURSO...
+        r'|PRIMER\s+CURSO'
+        r'|SEGUNDO\s+CURSO'
+        r'|TERCER\s+CURSO'
+        r'|CUARTO\s+CURSO'
+        r'|QUINTO\s+CURSO'
+        r')\b'
+    ),
+
+    # Mención: "MENCIÓN EN <TEXTO>"
     'mencion': r'MENCI[ÓO]N\s+EN\s+[A-ZÁÉÍÓÚÑ\s]+',
-    'hora': r'\b(?:[01]?\d|2[0-3])[:.]?[0-5]\d\b'
+    'hora': r'\b(?:[01]?\d|2[0-3])[:.]?[0-5]\d\b',
 }
+
 # Hora: admite 08:30, 8:30, 0830, 08.30
 PATRON_HORA = r'\b(?:[01]?\d|2[0-3])[:.]?[0-5]\d\b'
 RX_HORA = re.compile(PATRON_HORA, re.IGNORECASE)
 
-# Curso: 1º, 2º, ..., 5º (opcional "CURSO"); tolera espacio antes del "º"
-PATRON_CURSO = r'\b[1-5]\s*º\s*(?:CURSO)?\b'
+# Curso: reutilizamos el mismo patrón que en PATRONES['curso']
+PATRON_CURSO = PATRONES['curso']
 RX_CURSO = re.compile(PATRON_CURSO, re.IGNORECASE)
 
 # Mención: "MENCIÓN EN <TEXTO>"

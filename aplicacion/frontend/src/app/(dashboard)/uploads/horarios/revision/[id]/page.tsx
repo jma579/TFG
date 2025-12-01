@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useRouter } from 'next/navigation';
-import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
-import type { Session } from '@/components/solver/schedule-mock';
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { InteractiveScheduleGrid } from "@/components/solver/interactive-schedule-grid";
+import type { Session } from "@/components/solver/schedule-mock";
 import {
   useHorariosUploadsStore,
   type HorarioUploadItem,
-} from '@/stores/horarios-uploads';
+} from "@/stores/horarios-uploads";
 import {
   confirmHorario,
   type HorarioTemporalOut,
-} from '@/lib/api/client';
-import { Button } from '@/components/ui/button';
+} from "@/lib/api/client";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 type RouteParams = { id: string };
 
@@ -30,7 +30,7 @@ type Props = {
 /**
  * Tipo que refleja el JSON real que devuelve /docencia/horarios/extract.
  */
-type HorarioExtraido = {
+export type HorarioExtraido = {
   titulo: string;
   plan: string;
   periodo: string;
@@ -38,7 +38,7 @@ type HorarioExtraido = {
   [key: string]: unknown;
 };
 
-type HorarioExtraidoBloque = {
+export type HorarioExtraidoBloque = {
   curso: string;
   periodo: string;
   mencion: string | null;
@@ -47,7 +47,7 @@ type HorarioExtraidoBloque = {
   [key: string]: unknown;
 };
 
-type HorarioExtraidoSesion = {
+export type HorarioExtraidoSesion = {
   asignatura: string;
   aula: string;
   dia: string;
@@ -70,25 +70,37 @@ export default function RevisionHorarioPage({ params }: Props) {
     ),
   ) as HorarioUploadItem | undefined;
 
-  // El store tiene horarioTemporal con el resultado de extractHorario.
   const horarioTemporal: HorarioExtraido | undefined =
     item?.horarioTemporal as unknown as HorarioExtraido | undefined;
 
   const [isConfirming, setIsConfirming] = React.useState(false);
   const [confirmError, setConfirmError] = React.useState<string | null>(null);
 
-  const sessions = React.useMemo<Session[]>(() => {
-    if (!horarioTemporal) return [];
-    return mapHorarioToSessions(horarioTemporal);
-  }, [horarioTemporal]);
-
-  const totalBloques = React.useMemo(
-    () =>
-      horarioTemporal && Array.isArray(horarioTemporal.horarios)
-        ? horarioTemporal.horarios.length
-        : 0,
+  const bloques = React.useMemo(
+    () => (horarioTemporal?.horarios ?? []) as HorarioExtraidoBloque[],
     [horarioTemporal],
   );
+
+  const [selectedBlockIndex, setSelectedBlockIndex] = React.useState(0);
+
+  // Si cambia el número de bloques, nos aseguramos de que el índice siga siendo válido
+  React.useEffect(() => {
+    if (selectedBlockIndex >= bloques.length) {
+      setSelectedBlockIndex(0);
+    }
+  }, [bloques.length, selectedBlockIndex]);
+
+  const totalSessions = React.useMemo(() => {
+    if (!horarioTemporal) return 0;
+    return mapHorarioToSessions(horarioTemporal).length;
+  }, [horarioTemporal]);
+
+  const sessions = React.useMemo<Session[]>(() => {
+    if (!horarioTemporal || bloques.length === 0) return [];
+    const bloque = bloques[selectedBlockIndex];
+    if (!bloque) return [];
+    return mapBloqueToSessions(bloque, selectedBlockIndex);
+  }, [bloques, horarioTemporal, selectedBlockIndex]);
 
   const hasData = Boolean(horarioTemporal && sessions.length > 0);
 
@@ -99,17 +111,14 @@ export default function RevisionHorarioPage({ params }: Props) {
     setConfirmError(null);
 
     try {
-      // Cast explícito para satisfacer el tipo esperado por confirmHorario.
-      await confirmHorario(
-        horarioTemporal as unknown as HorarioTemporalOut,
-      );
+      await confirmHorario(horarioTemporal as unknown as HorarioTemporalOut);
       useHorariosUploadsStore.getState().confirm(item.id);
-      router.push('/app/datos/horarios');
+      router.push("/app/datos/horarios");
     } catch (error: unknown) {
       const message =
         error instanceof Error
           ? error.message
-          : 'Error al confirmar el horario.';
+          : "Error al confirmar el horario.";
       setConfirmError(message);
     } finally {
       setIsConfirming(false);
@@ -125,9 +134,9 @@ export default function RevisionHorarioPage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              No se ha encontrado ningún archivo de horario asociado a esta
-              URL. Es posible que la lista de subidas se haya limpiado o que
-              el identificador no sea válido.
+              No se ha encontrado ningún archivo de horario asociado a esta URL.
+              Es posible que la lista de subidas se haya limpiado o que el
+              identificador no sea válido.
             </p>
           </CardContent>
         </Card>
@@ -145,8 +154,8 @@ export default function RevisionHorarioPage({ params }: Props) {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               El archivo se ha registrado, pero no se dispone de datos de
-              extracción en memoria. Vuelve a la pantalla de subida de
-              horarios y lanza de nuevo el análisis.
+              extracción en memoria. Vuelve a la pantalla de subida de horarios
+              y lanza de nuevo el análisis.
             </p>
           </CardContent>
         </Card>
@@ -162,19 +171,18 @@ export default function RevisionHorarioPage({ params }: Props) {
             Revisión de horario
           </h1>
           <p className="text-sm text-muted-foreground">
-            ID de subida:{' '}
-            <span className="font-mono text-xs">{id}</span>
+            ID de subida: <span className="font-mono text-xs">{id}</span>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Revisa la información extraída del horario antes de confirmarla
-            y crear las sesiones en la base de datos.
+            Revisa la información extraída del horario antes de confirmarla y
+            crear las sesiones en la base de datos.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
           <Button
             variant="outline"
             type="button"
-            onClick={() => router.push('/app/uploads/horarios')}
+            onClick={() => router.push("/app/uploads/horarios")}
             disabled={isConfirming}
           >
             Volver a subidas
@@ -184,7 +192,7 @@ export default function RevisionHorarioPage({ params }: Props) {
             onClick={handleConfirm}
             disabled={isConfirming || !hasData}
           >
-            {isConfirming ? 'Confirmando…' : 'Confirmar horario'}
+            {isConfirming ? "Confirmando…" : "Confirmar horario"}
           </Button>
           {confirmError && (
             <p className="max-w-xs text-right text-xs text-destructive">
@@ -200,33 +208,63 @@ export default function RevisionHorarioPage({ params }: Props) {
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           <p>
-            <span className="font-medium">Título:</span>{' '}
+            <span className="font-medium">Título:</span>{" "}
             {horarioTemporal.titulo}
           </p>
           <p>
-            <span className="font-medium">Plan:</span>{' '}
+            <span className="font-medium">Plan:</span>{" "}
             {horarioTemporal.plan}
           </p>
           <p>
-            <span className="font-medium">Periodo:</span>{' '}
+            <span className="font-medium">Periodo:</span>{" "}
             {horarioTemporal.periodo}
           </p>
           <p>
-            <span className="font-medium">Bloques de horario detectados:</span>{' '}
-            {totalBloques}
+            <span className="font-medium">Bloques de horario detectados:</span>{" "}
+            {bloques.length}
           </p>
           <p>
-            <span className="font-medium">Sesiones detectadas:</span>{' '}
-            {sessions.length}
+            <span className="font-medium">Sesiones detectadas (total):</span>{" "}
+            {totalSessions}
           </p>
 
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <pre className="mt-4 max-h-64 overflow-auto rounded bg-muted p-2 text-xs">
               {JSON.stringify(horarioTemporal, null, 2)}
             </pre>
           )}
         </CardContent>
       </Card>
+
+      {bloques.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-md border bg-muted/40 px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-medium">{horarioTemporal.titulo}</p>
+              <p className="text-xs text-muted-foreground">
+                Selecciona el curso/mención del que quieres ver el horario.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {bloques.map((bloque, index) => {
+                const label = buildBloqueLabel(bloque);
+                const isActive = index === selectedBlockIndex;
+                return (
+                  <Button
+                    key={`${bloque.pagina}-${index}`}
+                    type="button"
+                    size="sm"
+                    variant={isActive ? "default" : "outline"}
+                    onClick={() => setSelectedBlockIndex(index)}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {hasData ? (
         <InteractiveScheduleGrid
@@ -245,8 +283,7 @@ export default function RevisionHorarioPage({ params }: Props) {
 }
 
 /**
- * Mapea el JSON devuelto por /horarios/extract (HorarioExtraido)
- * a la estructura Session usada por el grid.
+ * Mapea todos los bloques a sesiones (para contar totales).
  */
 function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
   const sessions: Session[] = [];
@@ -256,28 +293,43 @@ function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
     : [];
 
   bloques.forEach((bloque, bloqueIndex) => {
-    const sesiones = Array.isArray(bloque.sesiones)
-      ? bloque.sesiones
-      : [];
+    const bloqueSessions = mapBloqueToSessions(bloque, bloqueIndex);
+    sessions.push(...bloqueSessions);
+  });
 
-    sesiones.forEach((sesion, sesionIndex) => {
-      const dayIndex = diaToDayIndex(sesion.dia);
-      if (dayIndex < 0) return;
+  return sessions;
+}
 
-      const session: Session = {
-        id: `${bloqueIndex}-${sesionIndex}`,
-        courseId: sesion.asignatura || 'SIN_ASIGNATURA',
-        dayIndex,
-        start: normalizeTime(sesion.hora_inicio),
-        end: normalizeTime(sesion.hora_fin),
-        title: buildSessionTitle(sesion, bloque),
-        room: sesion.aula ?? '—',
-        teacher: 'Profesor no asignado',
-        color: 'blue',
-      };
+/**
+ * Mapea un bloque concreto a sesiones para el grid.
+ */
+function mapBloqueToSessions(
+  bloque: HorarioExtraidoBloque,
+  bloqueIndex: number,
+): Session[] {
+  const sessions: Session[] = [];
 
-      sessions.push(session);
-    });
+  const sesiones = Array.isArray(bloque.sesiones)
+    ? bloque.sesiones
+    : [];
+
+  sesiones.forEach((sesion, sesionIndex) => {
+    const dayIndex = diaToDayIndex(sesion.dia);
+    if (dayIndex < 0) return;
+
+    const session: Session = {
+      id: `${bloqueIndex}-${sesionIndex}`,
+      courseId: buildCourseIdFromCurso(bloque.curso),
+      dayIndex,
+      start: normalizeTime(sesion.hora_inicio),
+      end: normalizeTime(sesion.hora_fin),
+      title: buildSessionTitle(sesion, bloque),
+      room: sesion.aula ?? "—",
+      teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : "",   // ⬅️ aquí
+      color: "blue",
+    };
+
+    sessions.push(session);
   });
 
   return sessions;
@@ -288,9 +340,9 @@ function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
  */
 function normalizeTime(value: string): string {
   if (!value) return value;
-  const parts = value.split(':');
+  const parts = value.split(":");
   if (parts.length >= 2) {
-    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
   }
   return value;
 }
@@ -317,11 +369,11 @@ function diaToDayIndex(dia: string): number {
 
   if (d in map) return map[d];
 
-  if (d.startsWith('L')) return 0;
-  if (d.startsWith('MA')) return 1;
-  if (d.startsWith('MI')) return 2;
-  if (d.startsWith('J')) return 3;
-  if (d.startsWith('V')) return 4;
+  if (d.startsWith("L")) return 0;
+  if (d.startsWith("MA")) return 1;
+  if (d.startsWith("MI")) return 2;
+  if (d.startsWith("J")) return 3;
+  if (d.startsWith("V")) return 4;
 
   return -1;
 }
@@ -331,14 +383,75 @@ function diaToDayIndex(dia: string): number {
  */
 function buildSessionTitle(
   s: HorarioExtraidoSesion,
-  bloque: HorarioExtraidoBloque,
+  _bloque: HorarioExtraidoBloque,
 ): string {
-  const parts: string[] = [];
+  const asignatura = (s.asignatura ?? "").trim();
+  return asignatura || "Sesión";
+}
 
-  if (s.asignatura) parts.push(s.asignatura);
-  if (s.grupo) parts.push(`(${s.grupo})`);
-  if (s.tipo) parts.push(`[${s.tipo}]`);
-  if (bloque.curso) parts.push(`Curso ${bloque.curso}`);
+/**
+ * Construye un id aproximado de curso a partir del texto de curso.
+ */
+function buildCourseIdFromCurso(cursoTexto: string): string {
+  const n = getCourseNumberFromTexto(cursoTexto);
+  if (n === null) return cursoTexto || "DESCONOCIDO";
+  return `${n}º`;
+}
 
-  return parts.length ? parts.join(' ') : 'Sesión';
+/**
+ * Intenta obtener el número de curso (1-5) a partir de textos del estilo
+ * "PRIMER CURSO", "SEGUNDO CURSO" o "1º".
+ */
+function getCourseNumberFromTexto(cursoTexto: string): number | null {
+  if (!cursoTexto) return null;
+  const t = cursoTexto.toUpperCase();
+
+  if (t.includes("PRIMER")) return 1;
+  if (t.includes("SEGUNDO")) return 2;
+  if (t.includes("TERCER")) return 3;
+  if (t.includes("CUARTO")) return 4;
+  if (t.includes("QUINTO")) return 5;
+
+  const m = t.match(/[1-5]/);
+  if (m) return parseInt(m[0], 10);
+
+  return null;
+}
+
+/**
+ * Devuelve una etiqueta amigable para el botón de selección de bloque.
+ * Ejemplo: "1º", "4º - Mención en informática".
+ */
+function buildBloqueLabel(bloque: HorarioExtraidoBloque): string {
+  const n = getCourseNumberFromTexto(bloque.curso);
+  const base = n ? `${n}º` : bloque.curso || "Curso";
+
+  if (!bloque.mencion) return base;
+
+  const niceMention = prettifyMention(bloque.mencion);
+  return `${base} - ${niceMention}`;
+}
+
+/**
+ * Limpia el texto de mención (elimina prefix "MENCIÓN EN" y lo pasa a
+ * "Mención en …" con capitalización básica).
+ */
+function prettifyMention(raw: string): string {
+  if (!raw) return "Mención";
+  let text = raw.trim();
+
+  const m = text.match(/MENCI[ÓO]N\s+EN\s+(.+)/i);
+  if (m) {
+    text = m[1];
+  }
+
+  // Pasamos a minúsculas y luego capitalizamos cada palabra
+  text = text.toLowerCase();
+  text = text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
+
+  return `Mención en ${text}`;
 }
