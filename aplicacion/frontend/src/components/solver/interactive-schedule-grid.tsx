@@ -6,13 +6,19 @@ import type { Session } from '@/components/solver/schedule-mock';
 
 type Props = {
   sessions: Session[];
-  start?: string;   // HH:MM
-  end?: string;     // HH:MM
+  start?: string; // HH:MM
+  end?: string; // HH:MM
   stepMin?: number; // tamaño de fila en minutos (30 por defecto)
   className?: string;
+  onSessionClick?: (session: Session) => void;
 };
 
 const DAYS = ['L', 'M', 'X', 'J', 'V'];
+
+type LayoutInfo = {
+  lane: number;  // índice dentro del grupo solapado
+  lanes: number; // nº total de sesiones solapadas en ese grupo
+};
 
 export function InteractiveScheduleGrid({
   sessions,
@@ -20,6 +26,7 @@ export function InteractiveScheduleGrid({
   end = '21:30',
   stepMin = 30,
   className,
+  onSessionClick,
 }: Props) {
   const startMin = timeToMinutes(start);
   const endMin = timeToMinutes(end);
@@ -29,6 +36,12 @@ export function InteractiveScheduleGrid({
   const timeLabels = React.useMemo(
     () => generateTimeLabels(startMin, slotCount, stepMin),
     [startMin, slotCount, stepMin],
+  );
+
+  // Cálculo de lanes dinámicos por día
+  const layoutById = React.useMemo(
+    () => buildLayoutById(sessions),
+    [sessions],
   );
 
   return (
@@ -45,14 +58,17 @@ export function InteractiveScheduleGrid({
           gridTemplateRows: `32px repeat(${slotCount}, 32px)`,
         }}
       >
-        {/* Cabecera de días */}
+        {/* Cabecera hora */}
         <div className="sticky top-0 z-20 flex items-center justify-center border-b bg-muted text-[11px] font-medium">
           Hora
         </div>
-        {DAYS.map((d) => (
+
+        {/* Cabeceras de días */}
+        {DAYS.map((d, index) => (
           <div
             key={d}
             className="sticky top-0 z-20 flex items-center justify-center border-b border-l bg-muted text-[11px] font-medium"
+            style={{ gridColumn: index + 2 }}
           >
             {d}
           </div>
@@ -69,41 +85,54 @@ export function InteractiveScheduleGrid({
           </div>
         ))}
 
-        {/* Celdas de fondo (rejilla) */}
+        {/* Celdas de fondo */}
         {Array.from({ length: slotCount }).map((_, row) =>
-          DAYS.map((_, col) => (
+          DAYS.map((_, dayIndex) => (
             <div
-              key={`cell-${row}-${col}`}
+              key={`cell-${row}-${dayIndex}`}
               className="border-b border-l bg-background/60"
-              style={{ gridRow: row + 2, gridColumn: col + 2 }}
+              style={{
+                gridRow: row + 2,
+                gridColumn: dayIndex + 2,
+              }}
             />
           )),
         )}
 
-        {/* Bloques de sesión */}
+        {/* Sesiones */}
         {sessions.map((session) => {
-          const col = (session.dayIndex ?? 0) + 2; // 2 = 1 (horas) + 1 (offset)
+          const dayIndex = session.dayIndex ?? 0;
+          if (dayIndex < 0 || dayIndex >= DAYS.length) return null;
+
           const rowStart =
-            timeToSlotIndex(session.start, startMin, stepMin) + 2; // +2: cabecera + primera fila
+            timeToSlotIndex(session.start, startMin, stepMin) + 2;
           const rowEnd =
             timeToSlotIndex(session.end, startMin, stepMin) + 2;
 
-          if (col < 2 || col > DAYS.length + 1 || rowEnd <= rowStart) {
-            return null;
-          }
+          if (rowEnd <= rowStart) return null;
+
+          const layout =
+            layoutById.get(String(session.id)) ??
+            ({ lane: 0, lanes: 1 } as LayoutInfo);
+
+          const widthPercent = 100 / layout.lanes;
+          const leftPercent = layout.lane * widthPercent;
 
           return (
             <button
               key={session.id}
               type="button"
               className={cn(
-                "m-[2px] flex flex-col items-stretch justify-center overflow-hidden rounded-sm border px-1 py-[2px] text-left text-[11px] shadow-sm ring-1",
+                'my-[2px] flex flex-col items-stretch justify-center overflow-hidden rounded-sm border px-1 py-[2px] text-left text-[11px] shadow-sm ring-1',
                 chipColor(session.color),
               )}
               style={{
-                gridColumn: col,
                 gridRow: `${rowStart} / ${rowEnd}`,
+                gridColumn: dayIndex + 2,
+                width: `calc(${widthPercent}% - 4px)`,
+                marginLeft: `calc(${leftPercent}% + 2px)`,
               }}
+              onClick={() => onSessionClick?.(session)}
             >
               {/* 1ª línea: asignatura */}
               <span className="truncate font-medium leading-tight">
@@ -117,7 +146,7 @@ export function InteractiveScheduleGrid({
                 </span>
               )}
 
-              {/* 3ª línea: grupo (si lo hay) */}
+              {/* 3ª línea: grupo (teacher = texto de grupo) */}
               {session.teacher && (
                 <span className="truncate text-[10px] leading-tight opacity-70">
                   {session.teacher}
@@ -132,7 +161,88 @@ export function InteractiveScheduleGrid({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Helpers                                                                     */
+/* Cálculo de solapamientos y lanes dinámicos                                 */
+/* -------------------------------------------------------------------------- */
+
+function buildLayoutById(sessions: Session[]): Map<string, LayoutInfo> {
+  const result = new Map<string, LayoutInfo>();
+
+  // Agrupamos sesiones por día
+  const byDay = new Map<
+    number,
+    { session: Session; start: number; end: number }[]
+  >();
+
+  sessions.forEach((s) => {
+    const day = s.dayIndex ?? 0;
+    const start = timeToMinutes(s.start);
+    const end = timeToMinutes(s.end);
+    if (!byDay.has(day)) byDay.set(day, []);
+    byDay.get(day)!.push({ session: s, start, end });
+  });
+
+  byDay.forEach((list) => {
+    // Ordenamos por inicio
+    const sorted = [...list].sort((a, b) => a.start - b.start);
+
+    type Item = (typeof sorted)[number];
+
+    // 1) Dividimos en grupos conectados por solapamiento
+    const groups: Item[][] = [];
+    let currentGroup: Item[] = [];
+    let currentEnd = -Infinity;
+
+    for (const item of sorted) {
+      if (currentGroup.length === 0) {
+        currentGroup.push(item);
+        currentEnd = item.end;
+        continue;
+      }
+
+      if (item.start < currentEnd) {
+        // Sigue solapando con el grupo actual
+        currentGroup.push(item);
+        currentEnd = Math.max(currentEnd, item.end);
+      } else {
+        // El nuevo ya no solapa con el grupo anterior → cerramos grupo
+        groups.push(currentGroup);
+        currentGroup = [item];
+        currentEnd = item.end;
+      }
+    }
+    if (currentGroup.length > 0) groups.push(currentGroup);
+
+    // 2) Dentro de cada grupo asignamos lane (modelo Google Calendar)
+    groups.forEach((group) => {
+      const laneEnds: number[] = []; // fin de la última sesión de cada lane
+      const laneOfItem = new Map<Item, number>();
+
+      for (const item of group) {
+        // buscamos un lane libre (su última sesión termina antes que empiece este)
+        let laneIndex = laneEnds.findIndex((end) => item.start >= end);
+        if (laneIndex === -1) {
+          laneIndex = laneEnds.length;
+          laneEnds.push(item.end);
+        } else {
+          laneEnds[laneIndex] = item.end;
+        }
+        laneOfItem.set(item, laneIndex);
+      }
+
+      const lanesCount = laneEnds.length || 1;
+
+      for (const item of group) {
+        const lane = laneOfItem.get(item) ?? 0;
+        result.set(String(item.session.id), { lane, lanes: lanesCount });
+      }
+    });
+  });
+
+  return result;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Helpers de tiempo y estilos                                                */
 /* -------------------------------------------------------------------------- */
 
 function timeToMinutes(value: string): number {
