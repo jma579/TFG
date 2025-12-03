@@ -1,25 +1,19 @@
-import { Breadcrumbs } from '@/components/common/breadcrumbs';
-import { Sidebar } from '@/components/common/sidebar';
-import { UserMenu } from '@/components/common/user-menu';
-import { PageTitle } from '@/components/common/page-title';
+import type { ReactNode } from "react";
+import { Sidebar } from "@/components/common/sidebar";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
-    <div className="min-h-dvh grid grid-cols-[240px_1fr]">
+    <div className="flex min-h-screen bg-slate-100 text-slate-900">
       <Sidebar />
-
-      <div className="grid grid-rows-[56px_1fr]">
-        <header className="border-b bg-background/50 px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <PageTitle />
-            {/* Breadcrumbs solo saldrán cuando haya profundidad > 1 */}
-            <Breadcrumbs className="hidden md:block" />
-          </div>
-          <UserMenu />
-        </header>
-
-        <main className="p-6">{children}</main>
-      </div>
+      <main className="flex-1 overflow-x-hidden overflow-y-auto">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-8 py-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
