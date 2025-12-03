@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, Engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 
-from backend.config.settings import get_settings
+from config.settings import get_settings
 
 # Obtener configuración
 settings = get_settings()

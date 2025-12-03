@@ -13,14 +13,14 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, Path, Body, status
 from sqlalchemy.orm import Session
 
-from backend.db.session import get_db
-from backend.constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
-from backend.modules.conflictos.schemas.conflicto import (
+from db.session import get_db
+from constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
+from modules.conflictos.schemas.conflicto import (
     ConflictoOut,
     ConflictoList,
     ConflictoEstadoUpdateIn,
 )
-from backend.modules.conflictos.service.conflictos_service import conflicto_service
+from modules.conflictos.service.conflictos_service import conflicto_service
 
 
 router = APIRouter(

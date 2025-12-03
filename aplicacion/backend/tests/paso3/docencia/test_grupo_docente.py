@@ -39,14 +39,14 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
 from database.models import Base, GrupoDocente, Asignatura, Programa, Aula, Profesor  # Import todos los modelos necesarios
-from backend.main import app
-from backend.db.session import get_db
-from backend.modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
-from backend.modules.docencia.services.grupo_docente_service import grupo_docente_service
-from backend.modules.docencia.schemas.grupo_docente import (
+from main import app
+from db.session import get_db
+from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
+from modules.docencia.services.grupo_docente_service import grupo_docente_service
+from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate
 )
-from backend.constants.enums import (
+from constants.enums import (
     TipoGrupoDocente, TipoPrograma, Periodo, ModalidadAsignatura, Idioma
 )
 

@@ -18,11 +18,11 @@ from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from backend.modules.recursos.repositories.aula_repo import aula_repository
-from backend.modules.recursos.schemas.aula import (
+from modules.recursos.repositories.aula_repo import aula_repository
+from modules.recursos.schemas.aula import (
     AulaCreate, AulaUpdate, AulaOut
 )
-from backend.constants.enums import TipoAula
+from constants.enums import TipoAula
 
 
 class AulaService:
@@ -308,7 +308,7 @@ aula_service = AulaService()
 Instancia singleton del servicio de Aula.
 
 Uso:
-    from backend.modules.recursos.services.aula_service import aula_service
+    from modules.recursos.services.aula_service import aula_service
     
     aula = aula_service.get_by_id(db, 1)
 """

@@ -19,24 +19,24 @@ from typing import Optional
 from pathlib import Path as PathlibPath
 import tempfile
 
-from backend.db.session import get_db
-from backend.modules.docencia.schemas.grupo_docente import (
+from db.session import get_db
+from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate, GrupoDocenteOut, GrupoDocenteList
 )
-from backend.modules.docencia.schemas.sesion import (
+from modules.docencia.schemas.sesion import (
     SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut
 )
-from backend.modules.docencia.services.grupo_docente_service import grupo_docente_service
-from backend.modules.docencia.services.sesion_service import sesion_service
-from backend.constants.enums import (
+from modules.docencia.services.grupo_docente_service import grupo_docente_service
+from modules.docencia.services.sesion_service import sesion_service
+from constants.enums import (
     TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana
 )
-from backend.modules.docencia.schemas.horarios import (
+from modules.docencia.schemas.horarios import (
     HorarioTemporalOut,
     HorarioTemporalConfirmIn,
     HorarioConfirmResponse,
 )
-from backend.modules.docencia.services.horarios_pipeline_service import HorariosPipelineService
+from modules.docencia.services.horarios_pipeline_service import HorariosPipelineService
 
 # Instancia compartida del servicio de pipeline de horarios.
 # En esta fase es suficiente con un singleton simple a nivel de módulo.

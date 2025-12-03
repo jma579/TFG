@@ -14,7 +14,7 @@ Responsabilidades:
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from database.models import ProgramaAsignatura, Programa, Asignatura
-from backend.constants.enums import TipoAsignatura
+from constants.enums import TipoAsignatura
 
 
 class ProgramaAsignaturaRepository:

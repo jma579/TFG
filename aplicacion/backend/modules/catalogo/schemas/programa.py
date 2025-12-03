@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 import re
 
-from backend.constants.enums import TipoPrograma
+from constants.enums import TipoPrograma
 
 
 # ============================================================

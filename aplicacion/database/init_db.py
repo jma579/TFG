@@ -1,5 +1,5 @@
 from database.models import Base
-from backend.db.session import engine
+from db.session import engine
 from database.inspect_db import inspect_database
 
 

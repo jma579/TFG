@@ -17,12 +17,12 @@ Flujo:
 import re
 from typing import Optional, List
 
-from backend.core.extraccion.fichas.entities import (
+from core.extraccion.fichas.entities import (
     SubjectSheet, Titulacion, Teacher,
     NormalizedAsignaturaData, NormalizedTitulacionData,
     NormalizedProfesorData, NormalizedFichaData
 )
-from backend.constants.enums import Periodo, TipoAsignatura, ModalidadAsignatura, Idioma
+from constants.enums import Periodo, TipoAsignatura, ModalidadAsignatura, Idioma
 
 
 

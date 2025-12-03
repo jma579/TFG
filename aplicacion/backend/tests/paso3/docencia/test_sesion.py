@@ -29,14 +29,14 @@ from datetime import datetime, time
 from database.models import (
     Base, Sesion, GrupoDocente, Asignatura, Programa, Aula, Profesor, ProfesorSesion
 )
-from backend.main import app
-from backend.db.session import get_db
-from backend.modules.docencia.repositories.sesion_repo import sesion_repository
-from backend.modules.docencia.services.sesion_service import sesion_service
-from backend.modules.docencia.schemas.sesion import (
+from main import app
+from db.session import get_db
+from modules.docencia.repositories.sesion_repo import sesion_repository
+from modules.docencia.services.sesion_service import sesion_service
+from modules.docencia.schemas.sesion import (
     SesionCreate, SesionUpdate, ProfesorSesionCreate
 )
-from backend.constants.enums import (
+from constants.enums import (
     TipoGrupoDocente, TipoPrograma, Periodo, ModalidadAsignatura, Idioma,
     TipoAula, ModalidadSesion, TipoRecurrencia, DiaSemana
 )

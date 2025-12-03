@@ -19,7 +19,7 @@ from sqlalchemy import func, or_
 from typing import Optional, List, Tuple
 
 from database.models import Asignatura, ProgramaAsignatura
-from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma
+from constants.enums import Periodo, ModalidadAsignatura, Idioma
 
 
 class AsignaturaRepository:
@@ -418,7 +418,7 @@ asignatura_repository = AsignaturaRepository()
 Instancia singleton del repository.
 
 Usar esta instancia en toda la aplicación:
-    from backend.modules.catalogo.repositories.asignatura_repo import asignatura_repository
+    from modules.catalogo.repositories.asignatura_repo import asignatura_repository
     
     asignatura = asignatura_repository.get_by_id(db, 1)
 """

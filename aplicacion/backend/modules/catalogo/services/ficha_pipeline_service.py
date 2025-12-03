@@ -18,34 +18,34 @@ from typing import Dict, List, Union
 
 from sqlalchemy.orm import Session
 
-from backend.constants.enums import TipoPrograma
+from constants.enums import TipoPrograma
 
 # Core de extracción de fichas
-from backend.core.extraccion.fichas.extractor import FichaExtractor
-from backend.core.extraccion.fichas.parser import FichaParser
-from backend.core.extraccion.fichas.normalize import DataNormalizer
-from backend.core.extraccion.fichas.entities import (
+from core.extraccion.fichas.extractor import FichaExtractor
+from core.extraccion.fichas.parser import FichaParser
+from core.extraccion.fichas.normalize import DataNormalizer
+from core.extraccion.fichas.entities import (
     NormalizedFichaData,
     PipelineResult,
 )
 
 # Servicios y repositorios de catálogo
-from backend.modules.catalogo.schemas.asignatura import (
+from modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
 )
-from backend.modules.catalogo.schemas.programa import ProgramaCreate
-from backend.modules.catalogo.services.asignatura_service import AsignaturaService
-from backend.modules.catalogo.services.programa_service import ProgramaService
-from backend.modules.catalogo.repositories.asignatura_repo import asignatura_repository
-from backend.modules.catalogo.repositories.programa_repo import programa_repository
-from backend.modules.catalogo.repositories.programa_asignatura_repo import (
+from modules.catalogo.schemas.programa import ProgramaCreate
+from modules.catalogo.services.asignatura_service import AsignaturaService
+from modules.catalogo.services.programa_service import ProgramaService
+from modules.catalogo.repositories.asignatura_repo import asignatura_repository
+from modules.catalogo.repositories.programa_repo import programa_repository
+from modules.catalogo.repositories.programa_asignatura_repo import (
     programa_asignatura_repository,
 )
-from backend.modules.recursos.schemas.profesor import ProfesorCreate
-from backend.modules.recursos.services.profesor_service import ProfesorService
-from backend.modules.recursos.repositories.profesor_repo import profesor_repository
-from backend.modules.recursos.repositories.profesor_asignatura_repo import (
+from modules.recursos.schemas.profesor import ProfesorCreate
+from modules.recursos.services.profesor_service import ProfesorService
+from modules.recursos.repositories.profesor_repo import profesor_repository
+from modules.recursos.repositories.profesor_asignatura_repo import (
     profesor_asignatura_repository,
 )
 

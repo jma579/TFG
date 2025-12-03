@@ -454,7 +454,7 @@ class OCRExtractor:
 ```python
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from backend.constants.enums import TipoPrograma
+from constants.enums import TipoPrograma
 
 class ProgramaBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=200)
@@ -677,7 +677,7 @@ from ..schemas.programa import (
     ProgramaCreate, ProgramaUpdate, ProgramaOut, ProgramaConMenciones
 )
 from ..schemas.asignatura import AsignaturaOut
-from backend.constants.enums import TipoPrograma
+from constants.enums import TipoPrograma
 
 router = APIRouter(prefix="/v0/catalogo", tags=["catálogo"])
 

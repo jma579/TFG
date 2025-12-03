@@ -13,9 +13,9 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from backend.modules.catalogo.repositories.mencion_repo import mencion_repository
-from backend.modules.catalogo.repositories.programa_repo import programa_repository
-from backend.modules.catalogo.schemas.mencion import (
+from modules.catalogo.repositories.mencion_repo import mencion_repository
+from modules.catalogo.repositories.programa_repo import programa_repository
+from modules.catalogo.schemas.mencion import (
     MencionCreate,
     MencionUpdate,
     MencionOut,

@@ -4,12 +4,12 @@ from typing import List, Tuple, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.constants.enums import EstadoConflicto
-from backend.modules.conflictos.schemas.conflicto import (
+from constants.enums import EstadoConflicto
+from modules.conflictos.schemas.conflicto import (
     ConflictoOut,
     ConflictoEstadoUpdateIn,
 )
-from backend.modules.conflictos.repositories.conflictos_repo import (
+from modules.conflictos.repositories.conflictos_repo import (
     search_conflictos,
     get_conflicto_by_id,
 )

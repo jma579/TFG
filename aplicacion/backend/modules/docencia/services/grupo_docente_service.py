@@ -18,14 +18,14 @@ from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from backend.modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
-from backend.modules.docencia.schemas.grupo_docente import (
+from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
+from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate, GrupoDocenteOut
 )
-from backend.constants.enums import TipoGrupoDocente
+from constants.enums import TipoGrupoDocente
 
 # Importar repository de asignatura para validar FK
-from backend.modules.catalogo.repositories.asignatura_repo import asignatura_repository
+from modules.catalogo.repositories.asignatura_repo import asignatura_repository
 
 
 class GrupoDocenteService:
@@ -355,7 +355,7 @@ grupo_docente_service = GrupoDocenteService()
 Instancia singleton del servicio de GrupoDocente.
 
 Uso:
-    from backend.modules.docencia.services.grupo_docente_service import grupo_docente_service
+    from modules.docencia.services.grupo_docente_service import grupo_docente_service
     
     grupo = grupo_docente_service.get_by_id(db, 1)
 """

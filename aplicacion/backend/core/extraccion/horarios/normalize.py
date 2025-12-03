@@ -24,14 +24,14 @@ import re
 import logging
 from typing import List, Optional
 
-from backend.core.extraccion.horarios.entities import (
+from core.extraccion.horarios.entities import (
     ParsingResult,
     Horario as ParsedHorario,
     Sesion as ParsedSesion,
     NormalizedHorarioTablaData,
     NormalizedSesionHorarioData,
 )
-from backend.core.extraccion.horarios.constants import (
+from core.extraccion.horarios.constants import (
     DIA_SEMANA_MAP,
     PERIODO_MAP,
     AULA_KEYWORDS,
@@ -42,7 +42,7 @@ from backend.core.extraccion.horarios.constants import (
     GRUPO_DEFAULT_TEORIA,
     GRUPO_DEFAULT_PRACTICA,
 )
-from backend.constants.enums import (
+from constants.enums import (
     DiaSemana,
     Periodo,
     TipoGrupoDocente,

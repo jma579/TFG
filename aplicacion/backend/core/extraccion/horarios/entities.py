@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import time
 
-from backend.core.extraccion.common.entities import ExtractionMetadata, ParsingMetadata
-from backend.constants.enums import (
+from core.extraccion.common.entities import ExtractionMetadata, ParsingMetadata
+from constants.enums import (
     Periodo, DiaSemana, TipoGrupoDocente,
     ModalidadSesion, TipoRecurrencia, TipoAula
 )

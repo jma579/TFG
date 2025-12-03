@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 import re
 
-from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma, TipoAsignatura
-from backend.modules.catalogo.schemas.programa import ProgramaOut
+from constants.enums import Periodo, ModalidadAsignatura, Idioma, TipoAsignatura
+from modules.catalogo.schemas.programa import ProgramaOut
 
 
 # ============================================================

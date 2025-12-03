@@ -13,10 +13,10 @@ from fastapi import HTTPException
 from typing import List, Tuple, Optional
 
 from database.models import Profesor
-from backend.modules.recursos.schemas.profesor import (
+from modules.recursos.schemas.profesor import (
     ProfesorCreate, ProfesorUpdate, ProfesorOut
 )
-from backend.modules.recursos.repositories.profesor_repo import profesor_repository
+from modules.recursos.repositories.profesor_repo import profesor_repository
 
 
 class ProfesorService:

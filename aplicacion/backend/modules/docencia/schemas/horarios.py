@@ -22,8 +22,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from backend.modules.docencia.schemas.grupo_docente import GrupoDocenteOut
-from backend.modules.docencia.schemas.sesion import SesionOut
+from modules.docencia.schemas.grupo_docente import GrupoDocenteOut
+from modules.docencia.schemas.sesion import SesionOut
 
 
 # ============================================================

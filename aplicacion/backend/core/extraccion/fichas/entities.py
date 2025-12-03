@@ -7,11 +7,11 @@ from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, Field
 
-from backend.core.extraccion.common.entities import (
+from core.extraccion.common.entities import (
     ExtractionQuality, ProcessingStatus, ErrorType,
     ExtractionMetadata, ParsingMetadata
 )
-from backend.constants.enums import Periodo, TipoAsignatura, ModalidadAsignatura, Idioma
+from constants.enums import Periodo, TipoAsignatura, ModalidadAsignatura, Idioma
 
 
 # =============================================================================

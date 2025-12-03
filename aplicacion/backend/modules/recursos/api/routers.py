@@ -17,16 +17,16 @@ from fastapi import APIRouter, Depends, Query, Path, Body, status
 from sqlalchemy.orm import Session
 from typing import Optional, List
 
-from backend.db.session import get_db
-from backend.modules.recursos.schemas.profesor import (
+from db.session import get_db
+from modules.recursos.schemas.profesor import (
     ProfesorCreate, ProfesorUpdate, ProfesorOut, ProfesorList
 )
-from backend.modules.recursos.schemas.aula import (
+from modules.recursos.schemas.aula import (
     AulaCreate, AulaUpdate, AulaOut, AulaList
 )
-from backend.modules.recursos.services.profesor_service import profesor_service
-from backend.modules.recursos.services.aula_service import aula_service
-from backend.constants.enums import TipoAula
+from modules.recursos.services.profesor_service import profesor_service
+from modules.recursos.services.aula_service import aula_service
+from constants.enums import TipoAula
 
 
 # ============================================================

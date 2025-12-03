@@ -13,23 +13,23 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from backend.modules.catalogo.repositories.asignatura_repo import asignatura_repository
-from backend.modules.catalogo.repositories.programa_asignatura_repo import (
+from modules.catalogo.repositories.asignatura_repo import asignatura_repository
+from modules.catalogo.repositories.programa_asignatura_repo import (
     programa_asignatura_repository,
 )
-from backend.modules.recursos.repositories.profesor_asignatura_repo import (
+from modules.recursos.repositories.profesor_asignatura_repo import (
     profesor_asignatura_repository,
 )
 
-from backend.modules.catalogo.schemas.asignatura import (
+from modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
     AsignaturaOut,
     AsignaturaList,
     AsignaturaProgramaOut,
 )
-from backend.modules.recursos.schemas.profesor import ProfesorOut
-from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma
+from modules.recursos.schemas.profesor import ProfesorOut
+from constants.enums import Periodo, ModalidadAsignatura, Idioma
 
 
 class AsignaturaService:

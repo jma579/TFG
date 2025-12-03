@@ -1,0 +1,41 @@
+# --- Framework web y servidor ASGI ---
+fastapi==0.119.0
+uvicorn==0.38.0
+starlette==0.48.0
+
+# --- Base de datos ---
+SQLAlchemy==2.0.44
+
+# --- Configuración y modelos ---
+pydantic==2.12.3
+pydantic-core==2.41.4
+pydantic-settings==2.11.0
+typing-extensions==4.15.0
+annotated-types==0.7.0
+python-dotenv==1.1.1
+PyYAML==6.0.3
+
+# --- Procesado y extracción de PDFs ---
+PyPDF2==3.0.1
+PyMuPDF==1.26.6
+pdfplumber==0.11.7
+pdfminer.six==20250506
+pypdfium2==4.30.0
+
+# --- Limpieza de texto ---
+cleantext==1.1.4
+Unidecode==1.4.0
+
+# --- Formularios / subida de ficheros ---
+python-multipart==0.0.20
+
+# --- Herramientas de migraciones (si las usas) ---
+alembic==1.17.0
+Mako==1.3.10
+MarkupSafe==3.0.3
+
+# --- Testing (dev, pero integrado aquí) ---
+pytest==8.4.2
+pytest-asyncio==1.2.0
+pytest-cov==7.0.0
+coverage==7.11.0

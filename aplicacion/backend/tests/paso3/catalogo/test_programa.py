@@ -19,18 +19,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import ValidationError
 
-from backend.main import app
-from backend.db.session import get_db
+from main import app
+from db.session import get_db
 from database.models import Programa, Base
-from backend.constants.enums import TipoPrograma
-from backend.modules.catalogo.schemas.programa import (
+from constants.enums import TipoPrograma
+from modules.catalogo.schemas.programa import (
     ProgramaCreate,
     ProgramaUpdate,
     ProgramaOut,
     ProgramaList
 )
-from backend.modules.catalogo.repositories.programa_repo import ProgramaRepository
-from backend.modules.catalogo.services.programa_service import ProgramaService
+from modules.catalogo.repositories.programa_repo import ProgramaRepository
+from modules.catalogo.services.programa_service import ProgramaService
 
 
 # ============================================================

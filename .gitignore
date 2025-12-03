@@ -34,3 +34,13 @@ aplicacion/backend/uploads
 # OS
 .DS_Store
 Thumbs.db
+
+# Archivos generados en la raíz (PDF, TXT, etc.)
+/*.pdf
+/*.PDF
+/*.txt
+/*.TXT
+/*.doc
+/*.docx
+/*.csv
+/*.xlsx

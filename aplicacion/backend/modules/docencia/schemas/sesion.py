@@ -18,10 +18,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator, ConfigD
 from typing import Optional, List
 from datetime import time, datetime
 
-from backend.constants.enums import (
+from constants.enums import (
     ModalidadSesion, TipoRecurrencia, DiaSemana
 )
-from backend.modules.conflictos.schemas.conflicto import ConflictoOut
+from modules.conflictos.schemas.conflicto import ConflictoOut
 
 
 

@@ -1,6 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
-from backend.constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
+from constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
 
 class ConflictoOut(BaseModel):
     id: int

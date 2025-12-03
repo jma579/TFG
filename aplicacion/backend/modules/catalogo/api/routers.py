@@ -28,19 +28,19 @@ from datetime import datetime
 from pathlib import Path as FilePath
 from dataclasses import asdict
 
-from backend.db.session import get_db
-from backend.config.settings import settings
+from db.session import get_db
+from config.settings import settings
 
-from backend.modules.catalogo.services.programa_service import programa_service
-from backend.modules.catalogo.schemas.programa import (
+from modules.catalogo.services.programa_service import programa_service
+from modules.catalogo.schemas.programa import (
     ProgramaCreate,
     ProgramaUpdate,
     ProgramaOut,
     ProgramaList
 )
 
-from backend.modules.catalogo.services.asignatura_service import asignatura_service
-from backend.modules.catalogo.schemas.asignatura import (
+from modules.catalogo.services.asignatura_service import asignatura_service
+from modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
     AsignaturaOut,
@@ -48,19 +48,19 @@ from backend.modules.catalogo.schemas.asignatura import (
     AsignaturaProgramaOut
 )
 
-from backend.modules.catalogo.services.mencion_service import mencion_service
-from backend.modules.catalogo.schemas.mencion import (
+from modules.catalogo.services.mencion_service import mencion_service
+from modules.catalogo.schemas.mencion import (
     MencionCreate,
     MencionUpdate,
     MencionOut,
     MencionList
 ) 
 
-from backend.modules.recursos.schemas.profesor import ProfesorOut
+from modules.recursos.schemas.profesor import ProfesorOut
 
-from backend.constants.enums import TipoPrograma, Periodo, ModalidadAsignatura, Idioma 
+from constants.enums import TipoPrograma, Periodo, ModalidadAsignatura, Idioma 
 
-from backend.modules.catalogo.services.ficha_pipeline_service import FichaPipelineService
+from modules.catalogo.services.ficha_pipeline_service import FichaPipelineService
 
 
 # ============================================================

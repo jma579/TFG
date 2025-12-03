@@ -5,14 +5,14 @@ import re
 from datetime import datetime
 import time
 
-from backend.core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata, Warning
+from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata, Warning
 
-from backend.core.extraccion.fichas.constants import (
+from core.extraccion.fichas.constants import (
     BASE_PARSER_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_TITULACION, PATTERN_ECTS, PATTERN_PERIODO,
     PATTERN_MODALIDAD, PATTERN_IDIOMA, PATTERN_ENGLISH_FRIENDLY, PATTERN_PROFESORADO,
     PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA
 )
-from backend.core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
+from core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
 
 class FichaParser:  
     """

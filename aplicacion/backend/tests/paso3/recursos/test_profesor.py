@@ -22,13 +22,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from database.models import Base, Profesor
-from backend.db.session import get_db
-from backend.main import app
-from backend.modules.recursos.schemas.profesor import (
+from db.session import get_db
+from main import app
+from modules.recursos.schemas.profesor import (
     ProfesorCreate, ProfesorUpdate, ProfesorOut
 )
-from backend.modules.recursos.repositories.profesor_repo import profesor_repository
-from backend.modules.recursos.services.profesor_service import profesor_service
+from modules.recursos.repositories.profesor_repo import profesor_repository
+from modules.recursos.services.profesor_service import profesor_service
 
 # Configuración de base de datos de pruebas
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

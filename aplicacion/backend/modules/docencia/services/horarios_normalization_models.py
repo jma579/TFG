@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional
 
-from backend.modules.docencia.schemas.horarios import (
+from modules.docencia.schemas.horarios import (
     HorarioTemporalConfirmIn,
     HorarioTablaTemporal,
     HorarioSesionTemporal,

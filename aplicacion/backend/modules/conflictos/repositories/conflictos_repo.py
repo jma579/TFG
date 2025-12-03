@@ -6,9 +6,9 @@ from typing import Iterable, List, Optional, Tuple
 from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 
-from backend.core.conflictos.types import ResultadoDeteccion
+from core.conflictos.types import ResultadoDeteccion
 
-from backend.constants.enums import EstadoConflicto, TipoConflicto, SeveridadConflicto
+from constants.enums import EstadoConflicto, TipoConflicto, SeveridadConflicto
 from database.models import Conflicto
 
 

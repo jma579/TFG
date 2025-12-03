@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 # Core imports
-from backend.core.conflictos.types import (
+from core.conflictos.types import (
     SesionRef,
     RestriccionRef,
     ResultadoDeteccion,
@@ -32,13 +32,13 @@ from backend.core.conflictos.types import (
     SlotSemanal,
     Intervalo,
 )
-from backend.core.conflictos.basic_rules import (
+from core.conflictos.basic_rules import (
     detectar_todos_los_conflictos_basicos,
     SolapamientoProfesor,
     SolapamientoAula,
     ViolacionRestriccion,
 )
-from backend.core.conflictos.hashing import generar_hash_conflicto
+from core.conflictos.hashing import generar_hash_conflicto
 
 # Modelos ORM reales
 from database.models import Sesion, Restriccion

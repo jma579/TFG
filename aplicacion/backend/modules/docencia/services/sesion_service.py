@@ -24,22 +24,22 @@ from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from backend.modules.docencia.repositories.sesion_repo import sesion_repository
-from backend.modules.docencia.schemas.sesion import (
+from modules.docencia.repositories.sesion_repo import sesion_repository
+from modules.docencia.schemas.sesion import (
     SesionCreate, SesionUpdate, SesionOut, ProfesorSesionOut,
     SesionWithConflictosOut
 )
-from backend.modules.conflictos.schemas.conflicto import ConflictoOut
-from backend.modules.conflictos.repositories.conflictos_repo import sync_conflictos_for_sesion
-from backend.core.conflictos.types import ParametrosDeteccion
-from backend.core.conflictos.engine import conflict_engine
+from modules.conflictos.schemas.conflicto import ConflictoOut
+from modules.conflictos.repositories.conflictos_repo import sync_conflictos_for_sesion
+from core.conflictos.types import ParametrosDeteccion
+from core.conflictos.engine import conflict_engine
 
-from backend.constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
+from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
 
 # Importar repositories para validar FK
-from backend.modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
-from backend.modules.recursos.repositories.aula_repo import aula_repository
-from backend.modules.recursos.repositories.profesor_repo import profesor_repository
+from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
+from modules.recursos.repositories.aula_repo import aula_repository
+from modules.recursos.repositories.profesor_repo import profesor_repository
 
 
 class SesionService:
@@ -100,7 +100,7 @@ class SesionService:
                     detail=f"Profesor con id {prof_data.profesor_id} no encontrado"
                 )
         
-        # from backend.modules.conflictos.services.conflict_engine import conflict_engine
+        # from modules.conflictos.services.conflict_engine import conflict_engine
         # 
         # conflictos_aula = conflict_engine.detect_aula_conflicts(db, sesion_in)
         # conflictos_profesor = conflict_engine.detect_profesor_conflicts(db, sesion_in)
@@ -421,7 +421,7 @@ sesion_service = SesionService()
 Instancia singleton del servicio de Sesion.
 
 Uso:
-    from backend.modules.docencia.services.sesion_service import sesion_service
+    from modules.docencia.services.sesion_service import sesion_service
     
     sesion = sesion_service.get_by_id(db, 1)
 """

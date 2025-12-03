@@ -31,14 +31,14 @@ from cleantext import clean
 
 
 # === Imports actualizados ===
-from backend.core.extraccion.common.entities import (
+from core.extraccion.common.entities import (
     ExtractionQuality, ProcessingStatus, ErrorType,
     ExtractionMetadata, Warning
 )
-from backend.core.extraccion.fichas.entities import (
+from core.extraccion.fichas.entities import (
     ExtractionResult
 )
-from backend.core.extraccion.fichas.constants import (
+from core.extraccion.fichas.constants import (
     DEFAULT_EXTRACTOR_CONFIG, CLEANTEXT_CONFIG,
     ACADEMIC_TERMS, SUBJECT_CODE_PATTERNS,
     CORRUPTION_PATTERNS, NOISE_PATTERNS,

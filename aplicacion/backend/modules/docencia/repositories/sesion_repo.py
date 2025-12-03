@@ -29,8 +29,8 @@ from sqlalchemy import and_, or_
 from datetime import datetime, time
 
 from database.models import Sesion, Profesor, ProfesorSesion
-from backend.modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
-from backend.constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
+from modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
+from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
 
 
 class SesionRepository:
@@ -441,7 +441,7 @@ sesion_repository = SesionRepository()
 Instancia singleton del repositorio de Sesion.
 
 Uso:
-    from backend.modules.docencia.repositories.sesion_repo import sesion_repository
+    from modules.docencia.repositories.sesion_repo import sesion_repository
     
     sesion = sesion_repository.get_by_id(db, 1)
 """

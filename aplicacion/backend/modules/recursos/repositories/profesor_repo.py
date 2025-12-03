@@ -10,7 +10,7 @@ from sqlalchemy import func, or_
 from typing import List, Optional, Tuple
 
 from database.models import Profesor
-from backend.modules.recursos.schemas.profesor import ProfesorCreate, ProfesorUpdate
+from modules.recursos.schemas.profesor import ProfesorCreate, ProfesorUpdate
 
 
 class ProfesorRepository:

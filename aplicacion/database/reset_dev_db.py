@@ -1,4 +1,4 @@
-from backend.db.session import drop_tables, create_tables, engine
+from db.session import drop_tables, create_tables, engine
 
 
 def reset_db() -> None:

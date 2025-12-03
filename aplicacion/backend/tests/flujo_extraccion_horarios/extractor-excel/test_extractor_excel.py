@@ -46,7 +46,7 @@ except Exception as e1:
     import_error = e1
     try:
         # Ruta estilo "backend"
-        from backend.extraction.excel_extractor import ExcelExtractor as ExtractorCls  # type: ignore
+        from extraction.excel_extractor import ExcelExtractor as ExtractorCls  # type: ignore
     except Exception as e2:
         import_error = (e1, e2)
 

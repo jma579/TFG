@@ -16,7 +16,7 @@ Responsabilidades:
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List
 
-from backend.constants.enums import TipoGrupoDocente
+from constants.enums import TipoGrupoDocente
 
 
 # ============================================================

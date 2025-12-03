@@ -5,12 +5,22 @@ Sistema de Detección de Conflictos Académicos - Backend API.
 Configura la aplicación, middlewares, exception handlers y health checks.
 """
 
+import sys
 from datetime import datetime, timezone
 from typing import Dict, Any
 import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+# Asegurar que el directorio "aplicacion" está en sys.path
+# BASE_DIR = .../aplicacion/backend
+# PROJECT_ROOT = .../aplicacion
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,13 +29,14 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy import text
 
-from backend.config.settings import get_settings
-from backend.db.session import engine, create_tables
+from config.settings import get_settings
+from db.session import engine, create_tables
 
-from backend.modules.catalogo.api.routers import router as catalogo_router
-from backend.modules.recursos.api.routers import router as recursos_router
-from backend.modules.docencia.api.routers import router as docencia_router
-from backend.modules.conflictos.api.routers import router as conflictos_router
+from modules.catalogo.api.routers import router as catalogo_router
+from modules.recursos.api.routers import router as recursos_router
+from modules.docencia.api.routers import router as docencia_router
+from modules.conflictos.api.routers import router as conflictos_router
+
 
 # Obtener configuración
 settings = get_settings()

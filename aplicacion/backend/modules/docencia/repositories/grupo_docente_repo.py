@@ -23,10 +23,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from database.models import GrupoDocente
-from backend.modules.docencia.schemas.grupo_docente import (
+from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate
 )
-from backend.constants.enums import TipoGrupoDocente
+from constants.enums import TipoGrupoDocente
 
 
 class GrupoDocenteRepository:
@@ -281,7 +281,7 @@ grupo_docente_repository = GrupoDocenteRepository()
 Instancia singleton del repositorio de GrupoDocente.
 
 Uso:
-    from backend.modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
+    from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
     
     grupo = grupo_docente_repository.get_by_id(db, 1)
 """

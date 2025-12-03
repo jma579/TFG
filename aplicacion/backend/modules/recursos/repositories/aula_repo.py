@@ -25,8 +25,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 
 from database.models import Aula
-from backend.modules.recursos.schemas.aula import AulaCreate, AulaUpdate
-from backend.constants.enums import TipoAula
+from modules.recursos.schemas.aula import AulaCreate, AulaUpdate
+from constants.enums import TipoAula
 
 
 class AulaRepository:
@@ -310,7 +310,7 @@ aula_repository = AulaRepository()
 Instancia singleton del repositorio de Aula.
 
 Uso:
-    from backend.modules.recursos.repositories.aula_repo import aula_repository
+    from modules.recursos.repositories.aula_repo import aula_repository
     
     aula = aula_repository.get_by_id(db, 1)
 """

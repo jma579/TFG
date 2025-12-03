@@ -1,4 +1,4 @@
-from backend.db.session import SessionLocal
+from db.session import SessionLocal
 from database.models import Profesor
 
 

@@ -22,14 +22,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from database.models import Base, Aula
-from backend.db.session import get_db
-from backend.main import app
-from backend.modules.recursos.schemas.aula import (
+from db.session import get_db
+from main import app
+from modules.recursos.schemas.aula import (
     AulaCreate, AulaUpdate, AulaOut
 )
-from backend.modules.recursos.repositories.aula_repo import aula_repository
-from backend.modules.recursos.services.aula_service import aula_service
-from backend.constants.enums import TipoAula
+from modules.recursos.repositories.aula_repo import aula_repository
+from modules.recursos.services.aula_service import aula_service
+from constants.enums import TipoAula
 
 # Configuración de base de datos de pruebas
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

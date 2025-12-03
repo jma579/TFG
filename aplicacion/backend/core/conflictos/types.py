@@ -13,7 +13,7 @@ from datetime import datetime, time
 from pydantic import BaseModel, field_validator, model_validator, Field
 
 # Importa enums globales desde constants (no redefinir aquí)
-from backend.constants.enums import TipoConflicto, SeveridadConflicto  # ajusta rutas si difieren
+from constants.enums import TipoConflicto, SeveridadConflicto  # ajusta rutas si difieren
 
 # -----------------------------------------------------------------------------
 # Value Objects (tiempo)

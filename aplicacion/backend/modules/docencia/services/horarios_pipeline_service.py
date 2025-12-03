@@ -6,23 +6,23 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from database.models import Asignatura, Aula
-from backend.modules.docencia.schemas.horarios import (
+from modules.docencia.schemas.horarios import (
     HorarioTemporalOut, HorarioTemporalConfirmIn, HorarioConfirmResponse
 )
-from backend.modules.docencia.schemas.grupo_docente import (
+from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate,
     GrupoDocenteOut,
 )
-from backend.modules.docencia.schemas.sesion import SesionCreate, SesionOut
-from backend.modules.docencia.services.grupo_docente_service import (
+from modules.docencia.schemas.sesion import SesionCreate, SesionOut
+from modules.docencia.services.grupo_docente_service import (
     grupo_docente_service,
 )
-from backend.modules.docencia.services.sesion_service import sesion_service
-from backend.core.extraccion.horarios.extractor import HorarioExtractor
-from backend.core.extraccion.horarios.parser import HorarioParser
+from modules.docencia.services.sesion_service import sesion_service
+from core.extraccion.horarios.extractor import HorarioExtractor
+from core.extraccion.horarios.parser import HorarioParser
 
-from backend.core.extraccion.horarios.normalize import horario_data_normalizer
-from backend.modules.docencia.services.horarios_normalization_models import (
+from core.extraccion.horarios.normalize import horario_data_normalizer
+from modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
 

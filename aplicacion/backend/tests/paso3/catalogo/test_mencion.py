@@ -20,14 +20,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from database.models import Base
-from backend.db.session import get_db
-from backend.main import app
-from backend.modules.catalogo.schemas.mencion import (
+from db.session import get_db
+from main import app
+from modules.catalogo.schemas.mencion import (
     MencionCreate, MencionUpdate, MencionOut
 )
-from backend.modules.catalogo.repositories.mencion_repo import mencion_repository
-from backend.modules.catalogo.services.mencion_service import mencion_service
-from backend.constants.enums import TipoPrograma
+from modules.catalogo.repositories.mencion_repo import mencion_repository
+from modules.catalogo.services.mencion_service import mencion_service
+from constants.enums import TipoPrograma
 
 # Configuración de base de datos de pruebas
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_catalogo_mencion.db"
@@ -69,7 +69,7 @@ def client(db_session):
 
 @pytest.fixture()
 def sample_programa(db_session):
-    from backend.modules.catalogo.repositories.programa_repo import programa_repository
+    from modules.catalogo.repositories.programa_repo import programa_repository
     data = {
         "nombre": "Grado en Informática",
         "tipo": TipoPrograma.GRADO,

@@ -14,7 +14,7 @@ from sqlalchemy import select, and_
 from typing import Optional
 
 from database.models import Programa
-from backend.constants.enums import TipoPrograma
+from constants.enums import TipoPrograma
 
 
 class ProgramaRepository:
@@ -404,7 +404,7 @@ programa_repository = ProgramaRepository()
 Instancia singleton del repositorio.
 
 Se usa así en services:
-    from backend.modules.catalogo.repositories.programa_repo import programa_repository
+    from modules.catalogo.repositories.programa_repo import programa_repository
     
     programa = programa_repository.get_by_id(db, 1)
 """

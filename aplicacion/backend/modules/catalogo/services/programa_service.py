@@ -13,14 +13,14 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from fastapi import HTTPException, status
 
-from backend.modules.catalogo.repositories.programa_repo import programa_repository
-from backend.modules.catalogo.schemas.programa import (
+from modules.catalogo.repositories.programa_repo import programa_repository
+from modules.catalogo.schemas.programa import (
     ProgramaCreate, 
     ProgramaUpdate, 
     ProgramaOut, 
     ProgramaList
 )
-from backend.constants.enums import TipoPrograma
+from constants.enums import TipoPrograma
 
 
 class ProgramaService:
@@ -343,7 +343,7 @@ programa_service = ProgramaService()
 Instancia singleton del service.
 
 Se usa así en routers:
-    from backend.modules.catalogo.services.programa_service import programa_service
+    from modules.catalogo.services.programa_service import programa_service
     
     resultado = programa_service.create_programa(db, programa_data)
 """

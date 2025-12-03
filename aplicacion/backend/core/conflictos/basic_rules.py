@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import List, Dict, Tuple
 from collections import defaultdict
 
-from backend.core.conflictos.types import SesionRef, RestriccionRef, Intervalo, SlotSemanal
+from core.conflictos.types import SesionRef, RestriccionRef, Intervalo, SlotSemanal
 
 # ============================================================================
 # TIPOS DE DATOS PARA DETECCIÓN

@@ -19,18 +19,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import ValidationError
 
-from backend.main import app
-from backend.db.session import get_db
+from main import app
+from db.session import get_db
 from database.models import Asignatura, Base
-from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma
-from backend.modules.catalogo.schemas.asignatura import (
+from constants.enums import Periodo, ModalidadAsignatura, Idioma
+from modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
     AsignaturaOut,
     AsignaturaList
 )
-from backend.modules.catalogo.repositories.asignatura_repo import AsignaturaRepository
-from backend.modules.catalogo.services.asignatura_service import AsignaturaService
+from modules.catalogo.repositories.asignatura_repo import AsignaturaRepository
+from modules.catalogo.services.asignatura_service import AsignaturaService
 
 
 # ============================================================
