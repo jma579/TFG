@@ -16,9 +16,9 @@ Responsabilidades:
 
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
-from typing import Optional
+from typing import Optional, List, Tuple
 
-from database.models import Asignatura
+from database.models import Asignatura, ProgramaAsignatura
 from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma
 
 
@@ -94,6 +94,32 @@ class AsignaturaRepository:
         return db.query(Asignatura).filter(
             Asignatura.codigo_plan == codigo_plan
         ).first()
+    
+    def get_by_programa(
+        self,
+        db: Session,
+        programa_id: int,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[Asignatura], int]:
+        """
+        Obtener asignaturas asociadas a un programa concreto.
+
+        Retorna (items, total) para poder construir listados paginados.
+        """
+        query = (
+            db.query(Asignatura)
+            .join(
+                ProgramaAsignatura,
+                ProgramaAsignatura.asignatura_id == Asignatura.id,
+            )
+            .filter(ProgramaAsignatura.programa_id == programa_id)
+        )
+
+        total = query.count()
+        items = query.offset(skip).limit(limit).all()
+
+        return items, total
     
     
     def get_multi(

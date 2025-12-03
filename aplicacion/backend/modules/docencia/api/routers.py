@@ -13,22 +13,34 @@ Responsabilidades:
 - Serializar respuestas a JSON
 """
 
-from fastapi import APIRouter, Depends, Query, Path, Body, status
+from fastapi import APIRouter, Depends, Query, Path, Body, status, File, UploadFile, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
+from pathlib import Path as PathlibPath
+import tempfile
 
 from backend.db.session import get_db
 from backend.modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate, GrupoDocenteOut, GrupoDocenteList
 )
 from backend.modules.docencia.schemas.sesion import (
-    SesionCreate, SesionUpdate, SesionOut, SesionList
+    SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut
 )
 from backend.modules.docencia.services.grupo_docente_service import grupo_docente_service
 from backend.modules.docencia.services.sesion_service import sesion_service
 from backend.constants.enums import (
     TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana
 )
+from backend.modules.docencia.schemas.horarios import (
+    HorarioTemporalOut,
+    HorarioTemporalConfirmIn,
+    HorarioConfirmResponse,
+)
+from backend.modules.docencia.services.horarios_pipeline_service import HorariosPipelineService
+
+# Instancia compartida del servicio de pipeline de horarios.
+# En esta fase es suficiente con un singleton simple a nivel de módulo.
+horarios_pipeline_service = HorariosPipelineService()
 
 
 # ============================================================
@@ -748,7 +760,7 @@ def obtener_sesion(
 
 @router.post(
     "/sesiones",
-    response_model=SesionOut,
+    response_model=SesionWithConflictosOut,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nueva sesión",
     description="""
@@ -864,7 +876,7 @@ def crear_sesion(
 
 @router.put(
     "/sesiones/{id}",
-    response_model=SesionOut,
+    response_model=SesionWithConflictosOut,
     summary="Actualizar sesión",
     description="""
     Actualizar una sesión existente (actualización parcial).
@@ -1030,3 +1042,163 @@ def eliminar_sesion(
     """
     sesion_service.delete(db, id)
     return None
+
+
+# ============================================================
+#  ENDPOINTS DE HORARIOS (PIPELINE EXTRACCIÓN)
+# ============================================================
+
+@router.post(
+    "/horarios/extract",
+    response_model=HorarioTemporalOut,
+    status_code=status.HTTP_200_OK,
+    summary="Subir un PDF de horario y obtener un horario temporal editable",
+    description="""
+    Subir un horario académico en PDF y obtener un horario temporal editable.
+
+    Este endpoint ejecuta el **pipeline de extracción y parsing** del módulo
+    de horarios y devuelve un objeto `HorarioTemporalOut` con:
+
+    - Información global del horario (`titulo`, `plan`, `periodo`)
+    - Listado de tablas de horario (`horarios`) con:
+        - `curso`, `periodo`, `mencion`, `pagina`
+        - `sesiones` extraídas (asignatura, aula, día, horas, tipo, grupo)
+    - Metadatos de extracción (`extraction_metadata`)
+    - Metadatos de parsing (`parsing_metadata`)
+
+    **Flujo interno:**
+    1. Valida que el archivo subido sea un PDF.
+    2. Guarda el archivo temporalmente en disco.
+    3. Ejecuta el `HorariosPipelineService` (extractor + parser).
+    4. Elimina el archivo temporal.
+    5. Devuelve el horario temporal editable.
+
+    **Importante:**
+    - En esta versión NO se realiza persistencia en BD ni normalización.
+    - El resultado está pensado para que el frontend permita la edición manual
+      antes de confirmar el horario en un endpoint posterior.
+    """,
+    responses={
+        200: {"description": "Horario extraído correctamente"},
+        400: {
+            "description": "El archivo subido no es un PDF válido",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "El archivo subido debe ser un PDF"}
+                }
+            },
+        },
+        500: {
+            "description": "Error interno al procesar el horario",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Se ha producido un error al procesar el horario"
+                    }
+                }
+            },
+        },
+    },
+    tags=["Horarios"],
+)
+async def extract_horario(
+    file: UploadFile = File(
+        ...,
+        description="Archivo PDF de horario a procesar",
+    ),
+):
+    """
+    Extraer un horario académico a partir de un PDF.
+
+    Args:
+        file: Archivo PDF de horario subido por el cliente.
+
+    Returns:
+        HorarioTemporalOut con el horario temporal editable.
+
+    Raises:
+        HTTPException 400: Si el archivo no es un PDF.
+        HTTPException 500: Si ocurre un error en la extracción/parsing.
+    """
+    # 1) Validar tipo de contenido (check básico para evitar errores comunes)
+    if file.content_type not in ("application/pdf", "application/x-pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo subido debe ser un PDF",
+        )
+
+    # 2) Guardar el PDF en un archivo temporal
+    try:
+        original_name = file.filename or "horario.pdf"
+        suffix = PathlibPath(original_name).suffix or ".pdf"
+
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp_path = PathlibPath(tmp.name)
+            contenido = await file.read()
+            tmp.write(contenido)
+    except Exception as exc:  # pragma: no cover - error poco frecuente de IO
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No se ha podido almacenar temporalmente el PDF de horario",
+        ) from exc
+
+    # 3) Ejecutar el pipeline extractor + parser
+    try:
+        horario_temporal = horarios_pipeline_service.extraer_horario(tmp_path)
+    finally:
+        # 4) Limpiar el archivo temporal en cualquier caso
+        try:
+            tmp_path.unlink(missing_ok=True)
+        except Exception:
+            # Si falla el borrado no consideramos que sea un error fatal
+            pass
+
+    return horario_temporal
+
+@router.post(
+    "/horarios/confirm",
+    response_model=HorarioConfirmResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Confirmar un horario editado y preparar la creación de grupos y sesiones",
+    description="""
+    Confirmar un horario académico previamente extraído y editado en el frontend.
+
+    Este endpoint recibe un objeto `HorarioTemporalConfirmIn`, que representa
+    el horario temporal editable devuelto por `/horarios/extract` pero ya
+    revisado y modificado por el usuario.
+
+    **Flujo previsto (fases posteriores):**
+    1. Reconstruir una estructura compatible con el ParsingResult del parser.
+    2. Ejecutar el normalizador de horarios para obtener estructuras de dominio.
+    3. Crear o reutilizar:
+        - Programas y asignaturas
+        - Grupos docentes
+        - Aulas
+        - Sesiones
+    4. Detectar incidencias (asignaturas no encontradas, aulas faltantes, etc.)
+       y reflejarlas en `warnings` y `errors`.
+
+    En esta primera versión, el endpoint devuelve una respuesta vacía bien
+    tipada, de forma que el contrato con el frontend quede definido mientras
+    se implementa la lógica de normalización y persistencia.
+    """,
+    responses={
+        200: {"description": "Horario confirmado (respuesta provisional)"},
+        422: {"description": "Datos de entrada inválidos"},
+    },
+    tags=["Horarios"],
+)
+async def confirm_horario(
+    payload: HorarioTemporalConfirmIn,
+    db: Session = Depends(get_db),
+):
+    """
+    Confirmar un horario editado para su futura normalización y persistencia.
+
+    Args:
+        payload: Horario temporal editado que envía el frontend.
+
+    Returns:
+        HorarioConfirmResponse (por ahora vacío, sin grupos ni sesiones reales).
+    """
+    return horarios_pipeline_service.confirmar_horario(db, payload)

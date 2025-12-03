@@ -21,37 +21,36 @@ IMPORTANTE:
 from __future__ import annotations
 
 import re
+import logging
 from typing import List, Optional
 
-from core.extraccion.horarios.entities import (
+from backend.core.extraccion.horarios.entities import (
     ParsingResult,
     Horario as ParsedHorario,
     Sesion as ParsedSesion,
     NormalizedHorarioTablaData,
     NormalizedSesionHorarioData,
 )
-from core.extraccion.horarios.constants import (
-    PERIODO_MAP,
+from backend.core.extraccion.horarios.constants import (
     DIA_SEMANA_MAP,
+    PERIODO_MAP,
     AULA_KEYWORDS,
-    PATRON_NUMERO_ROMANO,
     CURSO_MAP,
-    GRUPO_DEFAULT_TEORIA,
-    GRUPO_DEFAULT_PRACTICA,
     CURSO_MIN,
     CURSO_MAX,
+    PATRON_NUMERO_ROMANO,
+    GRUPO_DEFAULT_TEORIA,
+    GRUPO_DEFAULT_PRACTICA,
 )
-from constants.enums import (
+from backend.constants.enums import (
     DiaSemana,
+    Periodo,
     TipoGrupoDocente,
     TipoAula,
-    Periodo,
 )
 
 
-# ==========================================================================
-# NORMALIZADOR PRINCIPAL
-# ==========================================================================
+logger = logging.getLogger(__name__)
 
 
 class HorarioDataNormalizer:
@@ -69,6 +68,10 @@ class HorarioDataNormalizer:
     def normalize_horarios(self, parsed: ParsingResult) -> List[NormalizedHorarioTablaData]:
         """Normaliza un ParsingResult completo.
 
+        Esta operación debe ser *fail-soft*: nunca debe tumbar el flujo completo
+        por culpa de una tabla mal formada. Si una tabla no se puede
+        normalizar, se descarta y se registra un warning.
+
         Args:
             parsed: Resultado del parser de horarios.
 
@@ -80,12 +83,31 @@ class HorarioDataNormalizer:
         programa_nombre = self._normalize_nombre(parsed.titulo)
 
         for horario in parsed.horarios:
-            resultados.append(
-                self._normalize_horario_tabla(
+            try:
+                normalizado = self._normalize_horario_tabla(
                     programa_nombre=programa_nombre,
                     horario=horario,
                 )
-            )
+            except Exception as exc:
+                logger.warning(
+                    "Horario descartado en normalización: %s (curso=%r, periodo=%r)",
+                    exc,
+                    getattr(horario, "curso", None),
+                    getattr(horario, "periodo", None),
+                )
+                continue
+
+            # Si una tabla no deja ninguna sesión válida, no tiene mucho sentido
+            # mantenerla en la salida
+            if not normalizado.sesiones:
+                logger.warning(
+                    "Horario sin sesiones válidas descartado (curso=%r, periodo=%r)",
+                    getattr(horario, "curso", None),
+                    getattr(horario, "periodo", None),
+                )
+                continue
+
+            resultados.append(normalizado)
 
         return resultados
 
@@ -98,7 +120,13 @@ class HorarioDataNormalizer:
         programa_nombre: str,
         horario: ParsedHorario,
     ) -> NormalizedHorarioTablaData:
-        """Normaliza una tabla de horario concreta (un curso/mención/página)."""
+        """Normaliza una tabla de horario concreta (un curso/mención/página).
+
+        Esta operación también debe ser *fail-soft* a nivel de sesión: si una
+        sesión individual no se puede normalizar, se descarta y se registra un
+        warning, pero el resto de sesiones de la tabla continúan
+        procesándose.
+        """
 
         curso = self._parse_curso(horario.curso)
         periodo_enum = self._map_periodo(horario.periodo)
@@ -106,11 +134,22 @@ class HorarioDataNormalizer:
 
         sesiones_norm: List[NormalizedSesionHorarioData] = []
         for sesion in horario.sesiones:
-            sesiones_norm.append(
-                self._normalize_sesion(
-                    sesion=sesion,
+            try:
+                sesiones_norm.append(
+                    self._normalize_sesion(
+                        sesion=sesion,
+                    )
                 )
-            )
+            except Exception as exc:
+                logger.warning(
+                    "Sesión descartada en normalización: %s (asignatura=%r, dia=%r, hora_inicio=%r, hora_fin=%r)",
+                    exc,
+                    getattr(sesion, "asignatura", None),
+                    getattr(sesion, "dia", None),
+                    getattr(sesion, "hora_inicio", None),
+                    getattr(sesion, "hora_fin", None),
+                )
+                continue
 
         return NormalizedHorarioTablaData(
             programa_nombre=programa_nombre,
@@ -121,13 +160,8 @@ class HorarioDataNormalizer:
         )
 
     def _normalize_sesion(self, sesion: ParsedSesion) -> NormalizedSesionHorarioData:
-        """Normalizar una sesión individual.
+        """Normaliza una sesión individual del horario."""
 
-        - Limpia nombre de asignatura
-        - Mapea día de la semana a enum
-        - Infere tipo de grupo y código
-        - Infere tipo de aula y la normaliza
-        """
         asignatura_nombre = self._normalize_nombre(sesion.asignatura)
         dia_semana = self._map_dia_semana(sesion.dia)
 
@@ -151,7 +185,7 @@ class HorarioDataNormalizer:
         )
 
     # ------------------------------------------------------------------
-    # Helpers de normalización de strings
+    # Helpers de mapeo / normalización de campos simples
     # ------------------------------------------------------------------
 
     def _normalize_nombre(self, nombre: str) -> str:
@@ -173,153 +207,172 @@ class HorarioDataNormalizer:
         return nombre
 
     def _normalize_mencion(self, mencion: Optional[str]) -> Optional[str]:
-        """Normalizar el texto de mención (si existe)."""
+        """Normalizar texto de mención (si existe)."""
+        if not mencion:
+            return None
+        mencion = mencion.strip()
         if not mencion:
             return None
         return self._normalize_nombre(mencion)
 
-    def _normalize_aula_nombre(self, aula: str) -> str:
-        """Normalizar nombre de aula.
-
-        - strip
-        - colapsar espacios
-        - upper para facilitar matching posterior
-        """
-        aula = (aula or "").strip()
-        aula = re.sub(r"\s+", " ", aula)
-        return aula.upper()
-
-    # ------------------------------------------------------------------
-    # Mapeos a enums
-    # ------------------------------------------------------------------
-
     def _map_periodo(self, periodo: str) -> Periodo:
-        """Mapear string de periodo de horario a enum Periodo.
+        """Mapear texto de periodo a enum Periodo.
 
-        Se espera valores tipo "PRIMER CUATRIMESTRE", "SEGUNDO CUATRIMESTRE",
-        "ANUAL", etc.
+        En caso de no reconocer el periodo se lanza ValueError. Este error
+        será capturado en niveles superiores para descartar la tabla.
         """
         if not periodo:
             raise ValueError("Periodo vacío en horario")
 
+        # Normalizamos el texto de entrada
         p = periodo.strip().lower()
-        
-        # Buscar en el mapa de periodos
-        if p in PERIODO_MAP:
-            return PERIODO_MAP[p]
-        
-        # Búsqueda parcial si no hay coincidencia exacta
+
+        # Quitar tildes y variantes típicas
+        p = (
+            p.replace("á", "a")
+            .replace("é", "e")
+            .replace("í", "i")
+            .replace("ó", "o")
+            .replace("ú", "u")
+        )
+
+        # Intentar match directo después de normalizar
+        # (también normalizamos las claves del PERIODO_MAP)
+        def _norm(s: str) -> str:
+            s = s.strip().lower()
+            return (
+                s.replace("á", "a")
+                .replace("é", "e")
+                .replace("í", "i")
+                .replace("ó", "o")
+                .replace("ú", "u")
+            )
+
+        # 1) Match exacto con alguna clave
         for key, value in PERIODO_MAP.items():
-            if key in p:
+            if _norm(key) == p:
                 return value
 
+        # 2) Match parcial: alguna clave está contenida en el texto
+        for key, value in PERIODO_MAP.items():
+            if _norm(key) in p:
+                return value
+
+        # Si hemos llegado hasta aquí, no hemos sabido mapear el periodo
         raise ValueError(f"Periodo de horario desconocido: {periodo!r}")
 
-    def _map_dia_semana(self, dia: str) -> DiaSemana:
-        """Mapear el día en texto del parser a DiaSemana.
 
-        Admite variantes con y sin acento y mayúsculas.
-        """
+    def _map_dia_semana(self, dia: str) -> DiaSemana:
+        """Mapear texto de día de la semana a enum DiaSemana."""
         if not dia:
             raise ValueError("Día vacío en sesión de horario")
 
         d = dia.strip().lower()
 
-        # Normalizar acentos básicos
+        # Normalizar tildes comunes
         d = d.replace("miércoles", "miercoles").replace("sábado", "sabado")
-        
-        # Buscar en el mapa de días
+
         if d in DIA_SEMANA_MAP:
             return DIA_SEMANA_MAP[d]
-        
-        # Búsqueda por prefijo si no hay coincidencia exacta
+
+        # Intentar match parcial (p.ej. "lun" → LUNES)
         for key, value in DIA_SEMANA_MAP.items():
-            if d.startswith(key[:3]):  # Primeras 3 letras
+            if d.startswith(key[:3]):
                 return value
 
         raise ValueError(f"Día de la semana desconocido: {dia!r}")
-
-    # ------------------------------------------------------------------
-    # Inferencias varias
-    # ------------------------------------------------------------------
 
     def _infer_tipo_grupo_y_codigo(
         self,
         tipo: Optional[str],
         grupo: Optional[str],
     ) -> tuple[str, TipoGrupoDocente]:
-        """Inferir código de grupo y TipoGrupoDocente.
+        """Inferir tipo de grupo (TEORIA vs PRACTICA) + código básico.
 
-        Reglas sencillas:
-        - Si el parser indica tipo "PRÁCTICA" → TipoGrupoDocente.PRACTICA
-        - Si indica "TEORÍA" o None → TipoGrupoDocente.TEORIA
-        - Si hay texto de grupo (PL2, PA1, Grupo 3...) se limpia y usa
-        - Si no hay grupo, usa constantes por defecto
+        Reglas (heurísticas):
+        - Si el texto del tipo contiene "práctica"/"practica" → PRACTICA
+        - Si el grupo empieza por "PA","PB","PC","PL" → PRACTICA
+        - En otro caso se asume TEORIA
+        - Si falta el grupo, se asigna un código por defecto distinto para
+          teoría vs práctica.
         """
         tipo_valor = (tipo or "").strip().lower()
+        grupo_valor = (grupo or "").strip().upper()
 
+        # Inferir tipo de grupo
         if "práctica" in tipo_valor or "practica" in tipo_valor:
             tipo_enum = TipoGrupoDocente.PRACTICA
         else:
-            # Incluye TEORÍA, PRÁCTICA_AULA u otros como teoría por defecto
             tipo_enum = TipoGrupoDocente.TEORIA
 
-        if grupo:
-            codigo = grupo.strip().upper()
+        # Ajustar según prefijo de grupo
+        if grupo_valor.startswith(("PA", "PB", "PC", "PL")):
+            tipo_enum = TipoGrupoDocente.PRACTICA
+
+        # Código de grupo
+        if grupo_valor:
+            codigo = grupo_valor
         else:
             codigo = GRUPO_DEFAULT_PRACTICA if tipo_enum is TipoGrupoDocente.PRACTICA else GRUPO_DEFAULT_TEORIA
 
         return codigo, tipo_enum
 
+    def _normalize_aula_nombre(self, aula: Optional[str]) -> str:
+        """Normalizar nombre de aula: strip, upper, colapsar espacios."""
+        if not aula:
+            return "DESCONOCIDA"
+
+        nombre = aula.strip().upper()
+        nombre = re.sub(r"\s+", " ", nombre)
+        return nombre
+
     def _infer_aula_tipo(self, aula_nombre: str) -> TipoAula:
-        """Inferir TipoAula a partir del nombre de aula.
+        """Inferir tipo de aula a partir del nombre textual.
 
-        Usa AULA_KEYWORDS de constants.py para clasificar.
+        Usa heurísticas simples basadas en palabras clave definidas en
+        AULA_KEYWORDS.
         """
-        nombre_lower = aula_nombre.lower()
+        texto = aula_nombre.lower()
 
-        # Buscar en keywords de laboratorio
-        for keyword in AULA_KEYWORDS['laboratorio']:
-            if keyword in nombre_lower:
+        # Laboratorio
+        for keyword in AULA_KEYWORDS["laboratorio"]:
+            if keyword in texto:
                 return TipoAula.LABORATORIO
-        
-        # Buscar en keywords de informática
-        for keyword in AULA_KEYWORDS['informatica']:
-            if keyword in nombre_lower:
+
+        # Informática
+        for keyword in AULA_KEYWORDS["informatica"]:
+            if keyword in texto:
                 return TipoAula.INFORMATICA
-        
-        # Buscar en keywords de seminario
-        for keyword in AULA_KEYWORDS['seminario']:
-            if keyword in nombre_lower:
+
+        # Seminario
+        for keyword in AULA_KEYWORDS["seminario"]:
+            if keyword in texto:
                 return TipoAula.SEMINARIO
-        
-        # Buscar en keywords de teórica
-        for keyword in AULA_KEYWORDS['teorica']:
-            if keyword in nombre_lower:
+
+        # Teórica (aula genérica)
+        for keyword in AULA_KEYWORDS["teorica"]:
+            if keyword in texto:
                 return TipoAula.TEORICA
 
+        # Por defecto, consideramos aula teórica genérica
         return TipoAula.TEORICA
 
-    # ------------------------------------------------------------------
-    # Parseos auxiliares
-    # ------------------------------------------------------------------
-
     def _parse_curso(self, curso_str: str) -> int:
-        """Parsear curso ("1º", "Primero", "1", etc.) a int.
+        """Parsear curso textual a entero (1-4).
 
-        Usa CURSO_MAP de constants.py.
+        Se aceptan formatos como "1º", "1", "PRIMERO", etc., según CURSO_MAP.
         """
         if not curso_str:
             raise ValueError("Curso vacío en horario")
 
         s = curso_str.strip().lower()
 
-        # Buscar en el mapa de cursos
+        # Intentar usar el mapa de curso primero
         for key, value in CURSO_MAP.items():
             if key in s:
                 return value
 
-        # Intentar parsear directamente como número
+        # Si no se encuentra en el mapa, intentar parsear como entero directo
         try:
             valor = int(s)
         except ValueError as exc:

@@ -12,11 +12,24 @@ Responsabilidades:
 - Serializar respuestas a JSON
 """
 
-from fastapi import APIRouter, Depends, Query, Path, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Query,
+    Path,
+    status,
+    HTTPException,
+    UploadFile,
+    File,
+)
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime
+from pathlib import Path as FilePath
+from dataclasses import asdict
 
 from backend.db.session import get_db
+from backend.config.settings import settings
 
 from backend.modules.catalogo.services.programa_service import programa_service
 from backend.modules.catalogo.schemas.programa import (
@@ -31,7 +44,8 @@ from backend.modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
     AsignaturaOut,
-    AsignaturaList
+    AsignaturaList,
+    AsignaturaProgramaOut
 )
 
 from backend.modules.catalogo.services.mencion_service import mencion_service
@@ -42,7 +56,11 @@ from backend.modules.catalogo.schemas.mencion import (
     MencionList
 ) 
 
+from backend.modules.recursos.schemas.profesor import ProfesorOut
+
 from backend.constants.enums import TipoPrograma, Periodo, ModalidadAsignatura, Idioma 
+
+from backend.modules.catalogo.services.ficha_pipeline_service import FichaPipelineService
 
 
 # ============================================================
@@ -57,6 +75,7 @@ router = APIRouter(
         422: {"description": "Error de validación"}
     }
 )
+ficha_pipeline_service = FichaPipelineService()
 """
 Router para endpoints del módulo Catálogo.
 
@@ -446,6 +465,101 @@ def listar_asignaturas(
         modalidad=modalidad,
         idioma=idioma,
         activo=activo
+    )
+
+@router.get(
+    "/programas/{programa_id}/asignaturas",
+    response_model=AsignaturaList,
+    summary="Listar asignaturas de un programa",
+    description="Obtiene una lista paginada de asignaturas asociadas a un programa concreto"
+)
+def listar_asignaturas_de_programa(
+    programa_id: int = Path(..., ge=1, description="ID del programa del que se quieren obtener las asignaturas", example=1),
+    skip: int = Query(0, ge=0, description="Número de registros a saltar (offset para paginación)", example=0),
+    limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros a devolver", example=10),
+    db: Session = Depends(get_db),
+):
+    """
+    Listar asignaturas asociadas a un programa.
+
+    ### Parámetros de ruta:
+    - `programa_id`: ID del programa (entero positivo)
+
+    ### Parámetros de consulta:
+    - `skip`: Offset para paginación (por defecto 0)
+    - `limit`: Límite de resultados (por defecto 100, máximo 1000)
+
+    ### Comportamiento:
+    - Usa la tabla de relación programa-asignatura para obtener las asignaturas
+      vinculadas al programa indicado.
+    - Devuelve un objeto `AsignaturaList` con:
+      - `total`: Número total de asignaturas asociadas al programa (sin paginar)
+      - `items`: Lista de asignaturas en la página actual
+      - `page`: Número de página actual (calculado a partir de skip/limit)
+      - `size`: Tamaño de página (`limit`)
+
+    ### Ejemplos de uso:
+    ```
+    # Primera página de asignaturas del programa 1
+    GET /v0/catalogo/programas/1/asignaturas
+
+    # Segunda página (10 por página)
+    GET /v0/catalogo/programas/1/asignaturas?skip=10&limit=10
+    ```
+    """
+    return asignatura_service.get_asignaturas_by_programa(
+        db=db,
+        programa_id=programa_id,
+        skip=skip,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/asignaturas/{asignatura_id}/programas",
+    response_model=list[AsignaturaProgramaOut],
+    summary="Listar programas de una asignatura",
+    description=(
+        "Devuelve los programas (titulaciones) a los que está asociada una asignatura, "
+        "incluyendo el curso y el tipo de asignatura dentro de cada programa."
+    ),
+)
+def listar_programas_de_asignatura(
+    asignatura_id: int = Path(
+        ...,
+        ge=1,
+        description="ID de la asignatura",
+        examples=[1, 2, 3],
+    ),
+    db: Session = Depends(get_db),
+):
+    return asignatura_service.get_programas_de_asignatura(
+        db=db,
+        asignatura_id=asignatura_id,
+    )
+
+
+@router.get(
+    "/asignaturas/{asignatura_id}/profesores",
+    response_model=list[ProfesorOut],
+    summary="Listar profesores de una asignatura",
+    description=(
+        "Devuelve el profesorado asociado a una asignatura a través de la tabla "
+        "`profesores_asignaturas`."
+    ),
+)
+def listar_profesores_de_asignatura(
+    asignatura_id: int = Path(
+        ...,
+        ge=1,
+        description="ID de la asignatura",
+        examples=[1, 2, 3],
+    ),
+    db: Session = Depends(get_db),
+):
+    return asignatura_service.get_profesores_de_asignatura(
+        db=db,
+        asignatura_id=asignatura_id,
     )
 
 
@@ -874,3 +988,87 @@ def eliminar_mencion(
     **Nota:** Para recuperar menciones inactivas, usar `GET /menciones?activo=false`
     """
     return mencion_service.delete_mencion(db, mencion_id)
+
+
+# ============================================================
+#  ENDPOINTS DE FICHA PIPELINE
+# ============================================================
+@router.post(
+    "/fichas/process",
+    status_code=status.HTTP_200_OK,
+    summary="Procesar ficha de asignatura desde PDF",
+    response_description="Resultado del pipeline de procesamiento de ficha",
+    tags=["Fichas"],
+)
+async def procesar_ficha_desde_pdf(
+    file: UploadFile = File(..., description="PDF de la ficha de asignatura"),
+    db: Session = Depends(get_db),
+):
+    """Procesa una ficha de asignatura a partir de un PDF."""
+
+    # 1) Validar tipo de archivo
+    if file.content_type not in ("application/pdf", "application/x-pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo debe ser un PDF (content-type application/pdf)",
+        )
+
+    # 2) Directorio de uploads específico para fichas
+    upload_dir = FilePath(settings.upload_directory) / "fichas"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    # 3) Construir una ruta temporal segura
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+    tmp_filename = f"ficha_{timestamp}.pdf"
+    tmp_path = upload_dir / tmp_filename
+
+    try:
+        # 4) Guardar el archivo en disco
+        content = await file.read()
+        with tmp_path.open("wb") as f:
+            f.write(content)
+
+        # 5) Ejecutar el pipeline de fichas
+        pipeline_result = ficha_pipeline_service.procesar_ficha(tmp_path, db)
+
+        # 6) Comprobar si el pipeline fue exitoso
+        if not pipeline_result.success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="; ".join(pipeline_result.errors)
+                if pipeline_result.errors
+                else "Error al procesar la ficha",
+            )
+
+        # 7) Convertir el dataclass PipelineResult a dict para devolver JSON
+        # Serializar resultado (compatible Pydantic v1 y v2)
+        if hasattr(pipeline_result, 'model_dump'):
+            return pipeline_result.model_dump()  # Pydantic v2
+        else:
+            return pipeline_result.dict()  # Pydantic v1
+
+    except HTTPException:
+        # Re-lanzamos HTTPException tal cual
+        raise
+    except Exception as exc:
+        # ⚠️ CAMBIO AQUÍ: Mostrar el error completo con traceback
+        import traceback
+        error_detail = f"Error al procesar la ficha: {str(exc)}\n\nTraceback:\n{traceback.format_exc()}"
+        
+        # Log completo en consola
+        print("=" * 80)
+        print("ERROR EN PIPELINE DE FICHAS:")
+        print("=" * 80)
+        traceback.print_exc()
+        print("=" * 80)
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail,  # ← Ahora verás el error completo
+        ) from exc
+    finally:
+        # 8) Limpiar el archivo temporal
+        try:
+            tmp_path.unlink(missing_ok=True)
+        except Exception:
+            pass

@@ -14,12 +14,21 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from backend.modules.catalogo.repositories.asignatura_repo import asignatura_repository
+from backend.modules.catalogo.repositories.programa_asignatura_repo import (
+    programa_asignatura_repository,
+)
+from backend.modules.recursos.repositories.profesor_asignatura_repo import (
+    profesor_asignatura_repository,
+)
+
 from backend.modules.catalogo.schemas.asignatura import (
     AsignaturaCreate,
     AsignaturaUpdate,
     AsignaturaOut,
-    AsignaturaList
+    AsignaturaList,
+    AsignaturaProgramaOut,
 )
+from backend.modules.recursos.schemas.profesor import ProfesorOut
 from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma
 
 
@@ -33,6 +42,8 @@ class AsignaturaService:
     def __init__(self):
         """Inicializar service con instancia del repositorio."""
         self.repo = asignatura_repository
+        self.programa_asignatura_repo = programa_asignatura_repository
+        self.profesor_asignatura_repo = profesor_asignatura_repository
     
     
     # ============================================================
@@ -149,6 +160,102 @@ class AsignaturaService:
             page=page,
             size=limit
         )
+    
+    def get_asignaturas_by_programa(
+        self,
+        db: Session,
+        programa_id: int,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> AsignaturaList:
+        """
+        Listar asignaturas asociadas a un programa concreto.
+
+        Usa la tabla de relación ProgramaAsignatura y devuelve
+        un listado paginado con metadatos (total, page, size).
+        """
+        items, total = self.repo.get_by_programa(
+            db=db,
+            programa_id=programa_id,
+            skip=skip,
+            limit=limit,
+        )
+
+        items_out = [AsignaturaOut.model_validate(item) for item in items]
+        page = (skip // limit) + 1 if limit > 0 else 1
+
+        return AsignaturaList(
+            total=total,
+            items=items_out,
+            page=page,
+            size=limit,
+        )
+    
+    def get_programas_de_asignatura(
+        self,
+        db: Session,
+        asignatura_id: int,
+    ) -> list[AsignaturaProgramaOut]:
+        """
+        Obtener los programas (titulaciones) asociados a una asignatura.
+
+        Usa la tabla intermedia ProgramaAsignatura y devuelve
+        una lista de relaciones enriquecidas con los datos del programa.
+        """
+        # 1. Validar que la asignatura existe
+        asignatura = self.repo.get_by_id(db, asignatura_id)
+        if not asignatura:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Asignatura con ID {asignatura_id} no encontrada",
+            )
+
+        # 2. Obtener relaciones Programa-Asignatura con el programa cargado (joinedload)
+        relaciones = self.programa_asignatura_repo.get_by_asignatura(
+            db=db,
+            asignatura_id=asignatura_id,
+        )
+
+        # 3. Mapear a DTO
+        return [
+            AsignaturaProgramaOut(
+                programa=rel.programa,
+                curso=rel.curso,
+                tipo_asignatura=rel.tipo_asignatura,
+            )
+            for rel in relaciones
+        ]
+    
+    def get_profesores_de_asignatura(
+        self,
+        db: Session,
+        asignatura_id: int,
+    ) -> list[ProfesorOut]:
+        """
+        Obtener el profesorado asociado a una asignatura.
+
+        Usa la tabla intermedia ProfesorAsignatura y devuelve
+        una lista de profesores (ProfesorOut).
+        """
+        # 1. Validar que la asignatura existe
+        asignatura = self.repo.get_by_id(db, asignatura_id)
+        if not asignatura:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Asignatura con ID {asignatura_id} no encontrada",
+            )
+
+        # 2. Obtener relaciones Profesor-Asignatura con el profesor cargado (joinedload)
+        relaciones = self.profesor_asignatura_repo.get_by_asignatura(
+            db=db,
+            asignatura_id=asignatura_id,
+        )
+
+        # 3. Mapear a DTO de salida
+        return [
+            ProfesorOut.model_validate(rel.profesor)
+            for rel in relaciones
+        ]
     
     
     # ============================================================

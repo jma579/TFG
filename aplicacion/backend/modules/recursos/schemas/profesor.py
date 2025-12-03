@@ -46,7 +46,7 @@ class ProfesorBase(BaseModel):
         examples=["García López", "Martínez", "Fernández García"]
     )
     
-    email: Optional[EmailStr] = Field(
+    email: Optional[str] = Field(
         None,
         max_length=200,
         description="Correo electrónico único del profesor",
@@ -229,7 +229,7 @@ class ProfesorUpdate(BaseModel):
         description="Apellidos del profesor"
     )
     
-    email: Optional[EmailStr] = Field(
+    email: Optional[str] = Field(
         None,
         max_length=200,
         description="Correo electrónico único"

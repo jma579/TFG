@@ -5,8 +5,8 @@
 
 export type Session = {
   id: string;
-  courseId: 'mat-3A' | 'fis-2B';
-  dayIndex: 0 | 1 | 2 | 3 | 4; // 0=L, 1=M, 2=X, 3=J, 4=V
+  courseId: string;
+  dayIndex: number; // 0=L, 1=M, 2=X, 3=J, 4=V
   start: string; // 'HH:MM'
   end: string;   // 'HH:MM'
   title: string;

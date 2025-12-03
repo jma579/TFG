@@ -12,7 +12,8 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 import re
 
-from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma
+from backend.constants.enums import Periodo, ModalidadAsignatura, Idioma, TipoAsignatura
+from backend.modules.catalogo.schemas.programa import ProgramaOut
 
 
 # ============================================================
@@ -319,6 +320,35 @@ class AsignaturaOut(AsignaturaBase):
             }
         }
     )
+
+class AsignaturaProgramaOut(BaseModel):
+    """
+    Relación entre una asignatura y un programa concreto.
+
+    Incluye la información del programa y los metadatos de la relación
+    (curso y tipo de asignatura dentro del programa).
+    """
+
+    programa: ProgramaOut = Field(
+        ...,
+        description="Programa / titulación al que pertenece la asignatura"
+    )
+
+    curso: Optional[int] = Field(
+        None,
+        description="Curso dentro del programa (1..4, o None si no aplica)",
+        examples=[1, 2, None],
+    )
+
+    tipo_asignatura: Optional[TipoAsignatura] = Field(
+        None,
+        description="Tipo de asignatura dentro del programa (OBLIGATORIA, OPTATIVA, ...)",
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
 
 
 # ============================================================

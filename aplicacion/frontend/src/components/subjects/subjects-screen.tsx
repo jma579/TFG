@@ -1,90 +1,155 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { SubjectsTable } from '@/components/subjects/table';
 import type { SubjectRow } from '@/components/subjects/data';
+import { SubjectFormDialog } from '@/components/subjects/subject-form-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteAsignatura, updateAsignatura } from '@/lib/api/client';
 
-type Props = { data: SubjectRow[] };
+type SubjectsScreenProps = {
+  data: SubjectRow[];
+};
 
-export function SubjectsScreen({ data }: Props) {
+export function SubjectsScreen({ data }: SubjectsScreenProps) {
+  const { toast } = useToast();
+
+  const [rows, setRows] = React.useState<SubjectRow[]>(data);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
 
-  // Nota: por ahora los filtros son solo UI (no filtran los datos).
-  // Cuando toque conectar, almacenamos estado y filtramos `data`.
-  return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3">
-        <Button
-          variant="outline"
-          onClick={() => setFiltersOpen((v) => !v)}
-          aria-expanded={filtersOpen}
-        >
-          {filtersOpen ? 'Ocultar filtros' : 'Filtros'}
-        </Button>
+  const [editing, setEditing] = React.useState<SubjectRow | null>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
-        <Button asChild>
-          <Link href="/uploads/fichas">Subir fichas</Link>
-        </Button>
+  const handleEdit = (row: SubjectRow) => {
+    setEditing(row);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (row: SubjectRow) => {
+    try {
+      await deleteAsignatura(Number(row.id));
+      setRows((prev) => prev.filter((r) => r.id !== row.id));
+      toast({
+        title: 'Asignatura eliminada',
+        description:
+          'La asignatura se ha desactivado correctamente y ya no aparece en el listado.',
+      });
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al eliminar',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'No se ha podido eliminar la asignatura.',
+      });
+    }
+  };
+
+  const handleSubmit = async (values: {
+    nombre: string;
+    ects: number | null;
+    english_friendly: boolean;
+    activo: boolean;
+  }) => {
+    if (!editing) return;
+    setSaving(true);
+
+    try {
+      const updated = await updateAsignatura(Number(editing.id), {
+        nombre: values.nombre,
+        ects: values.ects,
+        english_friendly: values.english_friendly,
+        activo: values.activo,
+      });
+
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === String(updated.id)
+            ? {
+                ...row,
+                nombre: (updated as { nombre?: string }).nombre ?? row.nombre,
+                ects:
+                  (updated as { ects?: number | null }).ects ?? row.ects,
+                english_friendly:
+                  (updated as { english_friendly?: boolean | null })
+                    .english_friendly ?? row.english_friendly,
+                activo:
+                  (updated as { activo?: boolean | null }).activo ?? row.activo,
+              }
+            : row,
+        ),
+      );
+
+      toast({
+        title: 'Asignatura actualizada',
+        description: 'Los cambios se han guardado correctamente.',
+      });
+
+      setDialogOpen(false);
+      setEditing(null);
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al actualizar',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'No se ha podido actualizar la asignatura.',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold tracking-tight">
+            Fichas académicas
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Asignaturas extraídas a partir de las fichas académicas.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setFiltersOpen((prev) => !prev)}
+          >
+            {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+          </Button>
+        </div>
       </div>
 
-      {/* Panel de filtros (UI) */}
       {filtersOpen && (
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <form className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div className="grid gap-1">
-              <label htmlFor="periodo" className="text-xs text-muted-foreground">
-                Periodo
-              </label>
-              <select id="periodo" className="h-9 rounded-md border bg-background px-2 text-sm">
-                <option value="">Todos</option>
-                <option value="ANUAL">Anual</option>
-                <option value="SEMESTRAL">Semestral</option>
-              </select>
-            </div>
-
-            <div className="grid gap-1">
-              <label htmlFor="idioma" className="text-xs text-muted-foreground">
-                Idioma
-              </label>
-              <select id="idioma" className="h-9 rounded-md border bg-background px-2 text-sm">
-                <option value="">Todos</option>
-                <option value="ESPAÑOL">Español</option>
-                <option value="INGLÉS">Inglés</option>
-              </select>
-            </div>
-
-            <div className="grid gap-1">
-              <label htmlFor="extraccion" className="text-xs text-muted-foreground">
-                Extracción
-              </label>
-              <select id="extraccion" className="h-9 rounded-md border bg-background px-2 text-sm">
-                <option value="">Todas</option>
-                <option value="ok">OK</option>
-                <option value="incidencias">Con incidencias</option>
-                <option value="parsing-error">Error de parsing</option>
-              </select>
-            </div>
-
-            <div className="grid gap-1">
-              <label htmlFor="activa" className="text-xs text-muted-foreground">
-                Activa
-              </label>
-              <select id="activa" className="h-9 rounded-md border bg-background px-2 text-sm">
-                <option value="">Todas</option>
-                <option value="si">Sí</option>
-                <option value="no">No</option>
-              </select>
-            </div>
-          </form>
-          {/* Cuando implementemos filtro real: botones Aplicar/Reset aquí */}
+        <div className="rounded-md border bg-card p-4">
+          <p className="text-sm text-muted-foreground">
+            Los filtros avanzados se conectarán más adelante. De momento son
+            solo UI.
+          </p>
         </div>
       )}
 
-      {/* Tabla */}
-      <SubjectsTable data={data} />
+      <SubjectsTable data={rows} onEdit={handleEdit} onDelete={handleDelete} />
+
+      <SubjectFormDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditing(null);
+          }
+        }}
+        initial={editing}
+        onSubmit={handleSubmit}
+        saving={saving}
+      />
     </div>
   );
 }

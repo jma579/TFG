@@ -111,11 +111,6 @@ class Profesor(Base):
     # Conveniencia (solo lectura)
     asignaturas = relationship("Asignatura", secondary="profesores_asignaturas", viewonly=True, overlaps="profesores_asignaturas,profesores")
     sesiones = relationship("Sesion", secondary="profesores_sesiones", viewonly=True, overlaps="profesores_sesiones,sesiones")
-    conflictos = relationship("Conflicto", back_populates="profesor", passive_deletes=True)
-
-    # Conveniencia (solo lectura)
-    asignaturas = relationship("Asignatura", secondary="profesores_asignaturas", viewonly=True, overlaps="profesores_asignaturas,asignaturas")
-    sesiones = relationship("Sesion", secondary="profesores_sesiones", viewonly=True, overlaps="profesores_sesiones,sesiones")
 
 
 class Aula(Base):
@@ -191,7 +186,7 @@ class Sesion(Base):
     __tablename__ = "sesiones"
     id = Column(Integer, primary_key=True)
     grupo_docente_id = Column(Integer, ForeignKey("grupos_docentes.id", ondelete="CASCADE"), nullable=False)
-    aula_id = Column(Integer, ForeignKey("aulas.id", ondelete="SET NULL"), nullable=False)
+    aula_id = Column(Integer, ForeignKey("aulas.id", ondelete="RESTRICT"), nullable=False)
     modalidad = Column(Enum(ModalidadSesion), nullable=False)
     tipo_recurrencia = Column(Enum(TipoRecurrencia), nullable=False)
 

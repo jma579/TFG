@@ -25,6 +25,7 @@ from backend.db.session import engine, create_tables
 from backend.modules.catalogo.api.routers import router as catalogo_router
 from backend.modules.recursos.api.routers import router as recursos_router
 from backend.modules.docencia.api.routers import router as docencia_router
+from backend.modules.conflictos.api.routers import router as conflictos_router
 
 # Obtener configuración
 settings = get_settings()
@@ -62,10 +63,17 @@ async def lifespan(app: FastAPI):
         upload_path.mkdir(parents=True, exist_ok=True)
         logger.info(f"📁 Directorio de uploads verificado: {upload_path}")
         
-        # Crear tablas si no existen (solo en desarrollo)
+        # Inicializar esquema de base de datos (solo en desarrollo).
+        # create_tables() usa Base.metadata.create_all(), que es idempotente:
+        # crea tablas que no existan y nunca borra datos ni recrea tablas.
         if settings.debug:
             create_tables()
-            logger.info("✅ Tablas de base de datos verificadas/creadas")
+            logger.info("✅ Tablas de base de datos verificadas/creadas (entorno debug)")
+        else:
+            logger.info(
+                "ℹ️ Entorno no debug: se asume que la base de datos ya está "
+                "inicializada y no se ejecuta create_tables() automáticamente"
+            )
             
     except Exception as e:
         logger.error(f"❌ Error en startup: {e}")
@@ -278,7 +286,7 @@ app.include_router(docencia_router, prefix=f"{settings.api_v0_prefix}/docencia",
 
 # Fase 3: Sistema de Conflictos
 # from conflictos.router import router as conflictos_router
-# app.include_router(conflictos_router, prefix=f"{settings.api_v0_prefix}/conflictos", tags=["Conflictos"])
+app.include_router(conflictos_router, prefix=f"{settings.api_v0_prefix}/conflictos", tags=["Conflictos"])
 
 # Fase 4: Ingesta y Procesamiento
 # from ingesta.router import router as ingesta_router

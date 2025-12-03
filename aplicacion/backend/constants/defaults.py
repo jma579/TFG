@@ -38,7 +38,12 @@ DEFAULT_LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 # ============================
 # Database Configuration
 # ============================
-DEFAULT_DATABASE_URL = "sqlite:///../database/dev.db"
+# BD de desarrollo (por defecto):
+# - La URL es relativa al directorio base_dir (= backend/)
+# - "../database/database.db" hace que la ruta física sea:
+#   D:\TFG\aplicacion\database\database.db
+# - En producción se debe usar DATABASE_URL en .env / variables de entorno
+DEFAULT_DATABASE_URL = "sqlite:///../database/database.db"
 DEFAULT_DB_POOL_SIZE = 10
 DEFAULT_DB_POOL_TIMEOUT = 30
 

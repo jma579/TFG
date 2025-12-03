@@ -23,20 +23,20 @@ import fitz  # PyMuPDF
 import pdfplumber
 import re
 
-from core.extraccion.common.entities import (
+from backend.core.extraccion.common.entities import (
     ExtractionQuality, ProcessingStatus, ErrorType,
     ExtractionMetadata, Warning
 )
-from core.extraccion.horarios.entities import (
+from backend.core.extraccion.horarios.entities import (
     HorarioExtractionResult, TablaHorario
 )
-from core.extraccion.horarios.constants import (
+from backend.core.extraccion.horarios.constants import (
     DEFAULT_EXTRACTOR_CONFIG, PDFPLUMBER_TABLE_SETTINGS_TEXT,
     DIAS_SEMANA, DAYS_MAP, TIME_CONFIG, VALID_TIME_CHARS,
     PATRONES, TABLE_QUALITY_WEIGHTS, PDFPLUMBER_TABLE_SETTINGS_LINES,
     RX_HORA, RX_CURSO, RX_MENCION, PATRON_HORA
 )
-from core.extraccion.common.constants import (
+from backend.core.extraccion.common.constants import (
     THRESHOLD_EXCELLENT, THRESHOLD_GOOD, 
     THRESHOLD_ACCEPTABLE, THRESHOLD_POOR
 )

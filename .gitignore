@@ -25,7 +25,7 @@ venv.bak/
 *.log
 
 # Archivos subidos
-uploads/
+aplicacion/backend/uploads
 
 # IDE
 .vscode/

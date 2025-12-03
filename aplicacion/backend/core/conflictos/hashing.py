@@ -9,7 +9,7 @@ import json
 from datetime import datetime, time
 from typing import Any, Dict, List, Tuple
 
-from .types import (
+from backend.core.conflictos.types import (
     ResultadoDeteccion, 
     SesionRef, 
     RestriccionRef, 
@@ -17,7 +17,7 @@ from .types import (
     Intervalo
 )
 
-from constants.enums import TipoConflicto
+from backend.constants.enums import TipoConflicto
 
 # ============================================================================
 # Configuración Global

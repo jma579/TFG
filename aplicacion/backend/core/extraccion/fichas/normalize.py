@@ -17,12 +17,12 @@ Flujo:
 import re
 from typing import Optional, List
 
-from core.extraccion.fichas.entities import (
+from backend.core.extraccion.fichas.entities import (
     SubjectSheet, Titulacion, Teacher,
     NormalizedAsignaturaData, NormalizedTitulacionData,
     NormalizedProfesorData, NormalizedFichaData
 )
-from constants.enums import Periodo, TipoAsignatura, ModalidadAsignatura, Idioma
+from backend.constants.enums import Periodo, TipoAsignatura, ModalidadAsignatura, Idioma
 
 
 
@@ -135,7 +135,7 @@ class DataNormalizer:
         
         for tit in titulaciones:
             # Normalizar nombre del programa
-            programa_nombre = self._normalize_nombre(tit.titulacion)
+            programa_nombre = self._normalize_nombre(tit.programa_nombre)
             
             # Mapear tipo de asignatura a enum
             tipo_asignatura = self._map_tipo_asignatura(tit.tipo_asignatura)
