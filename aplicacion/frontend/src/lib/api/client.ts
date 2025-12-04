@@ -108,6 +108,13 @@ export type AsignaturaOut = {
   idioma?: string | null;
   english_friendly?: boolean | null;
   activo?: boolean | null;
+  num_profesores?: number;
+  num_titulaciones?: number;
+  titulaciones?: {
+    programa: { nombre: string };
+    curso?: number | null;
+    tipo_asignatura?: string | null;
+  }[];
   // Campos adicionales que pueda devolver el backend
   [key: string]: unknown;
 };
@@ -544,3 +551,37 @@ export async function deleteAula(id: number): Promise<void> {
     method: 'DELETE',
   });
 }
+
+// ==============================
+// Catálogo: Programas (Titulaciones)
+// ==============================
+
+export type ProgramaOut = {
+  id: number;
+  nombre: string;
+  tipo: string;
+  activo: boolean;
+};
+
+export type ProgramaList = {
+  total: number;
+  items: ProgramaOut[];
+  page: number;
+  size: number;
+};
+
+export async function listProgramas(
+  page = 1,
+  size = 100,
+  activo?: boolean,
+): Promise<ProgramaList> {
+  const params = new URLSearchParams();
+  params.set('page', page.toString());
+  params.set('size', size.toString());
+  if (activo !== undefined) {
+    params.set('activo', activo.toString());
+  }
+
+  return apiFetch<ProgramaList>(`/v0/catalogo/programas?${params.toString()}`);
+}
+

@@ -16,6 +16,7 @@ type Props = {
     success: boolean;
     errors?: string[] | null;
   };
+  onDataLoaded?: (data: { profesores: any[]; titulaciones: any[] }) => void;
 };
 
 type SubjectData = {
@@ -46,7 +47,7 @@ function PeriodBadge({ periodo, num_periodo }: { periodo?: string; num_periodo?:
   );
 }
 
-export function SubjectDetailView({ asignaturaId, extractionStatus }: Props) {
+export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded }: Props) {
   const [data, setData] = React.useState<SubjectData>({
     asignatura: null,
     profesores: [],
@@ -84,6 +85,10 @@ export function SubjectDetailView({ asignaturaId, extractionStatus }: Props) {
           titulaciones,
           loading: false,
         });
+
+        if (onDataLoaded) {
+          onDataLoaded({ profesores: teachers, titulaciones });
+        }
       } catch (err) {
         if (!mounted) return;
         setData((prev) => ({

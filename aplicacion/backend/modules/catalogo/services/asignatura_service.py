@@ -76,7 +76,11 @@ class AsignaturaService:
                 detail=f"Asignatura con ID {asignatura_id} no encontrada"
             )
         
-        return AsignaturaOut.model_validate(asignatura)
+        out = AsignaturaOut.model_validate(asignatura)
+        out.num_profesores = len(asignatura.profesores_asignaturas)
+        out.num_titulaciones = len(asignatura.programa_asignaturas)
+        out.titulaciones = [AsignaturaProgramaOut.model_validate(pa) for pa in asignatura.programa_asignaturas]
+        return out
     
     
     def get_asignatura_by_codigo(self, db: Session, codigo_plan: str) -> AsignaturaOut:
@@ -105,7 +109,11 @@ class AsignaturaService:
                 detail=f"Asignatura con código '{codigo_plan}' no encontrada"
             )
         
-        return AsignaturaOut.model_validate(asignatura)
+        out = AsignaturaOut.model_validate(asignatura)
+        out.num_profesores = len(asignatura.profesores_asignaturas)
+        out.num_titulaciones = len(asignatura.programa_asignaturas)
+        out.titulaciones = [AsignaturaProgramaOut.model_validate(pa) for pa in asignatura.programa_asignaturas]
+        return out
     
     
     def get_asignaturas(
@@ -148,8 +156,16 @@ class AsignaturaService:
             activo=activo
         )
         
-        # Convertir modelos ORM a schemas Pydantic
-        items = [AsignaturaOut.model_validate(asig) for asig in asignaturas]
+        # Convertir modelos ORM a schemas Pydantic y poblar contadores
+        items = []
+        for asig in asignaturas:
+            out = AsignaturaOut.model_validate(asig)
+            # Calcular contadores (esto puede disparar lazy loading)
+            out.num_profesores = len(asig.profesores_asignaturas)
+            out.num_titulaciones = len(asig.programa_asignaturas)
+            # Poblar lista de titulaciones para filtros
+            out.titulaciones = [AsignaturaProgramaOut.model_validate(pa) for pa in asig.programa_asignaturas]
+            items.append(out)
         
         # Calcular número de página
         page = (skip // limit) + 1 if limit > 0 else 1
