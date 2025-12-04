@@ -144,6 +144,10 @@ export async function listAsignaturas(params?: {
   return apiFetch<AsignaturaListResponse>(path);
 }
 
+export async function getAsignatura(id: number): Promise<AsignaturaOut> {
+  return apiFetch<AsignaturaOut>(`/v0/catalogo/asignaturas/${id}`);
+}
+
 export type AsignaturaUpdateInput = {
   nombre?: string;
   ects?: number | null;
