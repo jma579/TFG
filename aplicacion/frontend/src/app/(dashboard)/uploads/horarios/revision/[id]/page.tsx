@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { Plus, Pencil } from "lucide-react";
 import { InteractiveScheduleGrid } from "@/components/solver/interactive-schedule-grid";
 import type { Session } from "@/components/solver/schedule-mock";
 import {
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 type RouteParams = { id: string };
 
@@ -100,6 +102,7 @@ const DIAS_SEMANA = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"] as co
 export default function RevisionHorarioPage({ params }: Props) {
   const { id } = React.use(params);
   const router = useRouter();
+  const { toast } = useToast();
 
   // Selector tipado del store
   const item = useHorariosUploadsStore(
@@ -249,6 +252,12 @@ export default function RevisionHorarioPage({ params }: Props) {
     mencion: string;
   }>({ curso: "", mencion: "" });
 
+  const [isEditBlockOpen, setIsEditBlockOpen] = React.useState(false);
+  const [editBlockForm, setEditBlockForm] = React.useState<{
+    curso: string;
+    mencion: string;
+  }>({ curso: "", mencion: "" });
+
   const canCreateSession = bloques.length > 0;
   const selectedBloque = bloques[selectedBlockIndex];
 
@@ -343,6 +352,66 @@ export default function RevisionHorarioPage({ params }: Props) {
     closeCreateDialog();
   };
 
+  const openEditBlockDialog = () => {
+    const bloque = bloques[selectedBlockIndex];
+    if (!bloque) return;
+    setEditBlockForm({
+      curso: bloque.curso,
+      mencion: bloque.mencion || "",
+    });
+    setIsEditBlockOpen(true);
+  };
+
+  const handleSaveBlock = () => {
+    setDraftHorario((prev) => {
+      const source = prev ?? horario;
+      if (!source) return prev;
+      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
+      const bloque = cloned.horarios[selectedBlockIndex];
+      if (bloque) {
+        bloque.curso = editBlockForm.curso;
+        bloque.mencion = editBlockForm.mencion || null;
+      }
+      return cloned;
+    });
+    setIsEditBlockOpen(false);
+  };
+
+  const handleSessionMove = (
+    session: Session,
+    newDayIndex: number,
+    newStartTime: string,
+  ) => {
+    setDraftHorario((prev) => {
+      const source = prev ?? horario;
+      if (!source) return prev;
+
+      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
+      const [blockStr, sesStr] = String(session.id).split("-");
+      const blockIndex = Number(blockStr);
+      const sessionIndex = Number(sesStr);
+
+      const bloque = cloned.horarios[blockIndex];
+      const sesion = bloque?.sesiones?.[sessionIndex];
+      if (!bloque || !sesion) return prev;
+
+      // Calcular duración original
+      const startMin = timeToMinutes(sesion.hora_inicio);
+      const endMin = timeToMinutes(sesion.hora_fin);
+      const duration = endMin - startMin;
+
+      // Calcular nuevos tiempos
+      const newStartMin = timeToMinutes(newStartTime);
+      const newEndMin = newStartMin + duration;
+
+      sesion.dia = DIAS_SEMANA[newDayIndex];
+      sesion.hora_inicio = newStartTime;
+      sesion.hora_fin = minutesToTimeLabel(newEndMin);
+
+      return cloned;
+    });
+  };
+
   /* --------------------------- Confirmación horario --------------------------- */
 
   const handleConfirm = async () => {
@@ -354,6 +423,12 @@ export default function RevisionHorarioPage({ params }: Props) {
     try {
       await confirmHorario(horario as unknown as HorarioTemporalOut);
       useHorariosUploadsStore.getState().confirm(item.id);
+      
+      toast({
+        title: "Horario confirmado",
+        description: "El horario se ha guardado correctamente en la base de datos.",
+      });
+
       router.push("/app/datos/horarios");
     } catch (error: unknown) {
       const message =
@@ -361,6 +436,12 @@ export default function RevisionHorarioPage({ params }: Props) {
           ? error.message
           : "Error al confirmar el horario.";
       setConfirmError(message);
+      
+      toast({
+        title: "Error al guardar",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsConfirming(false);
     }
@@ -414,21 +495,18 @@ export default function RevisionHorarioPage({ params }: Props) {
   const isEditOpen = Boolean(editingLocation && editingForm && editingBloque);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Revisión de horario
           </h1>
-          <p className="text-sm text-muted-foreground">
-            ID de subida: <span className="font-mono text-xs">{id}</span>
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Revisa la información extraída del horario antes de confirmarla y
             crear las sesiones en la base de datos.
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
           <Button
             variant="outline"
             type="button"
@@ -444,42 +522,43 @@ export default function RevisionHorarioPage({ params }: Props) {
           >
             {isConfirming ? "Confirmando…" : "Confirmar horario"}
           </Button>
-          {confirmError && (
-            <p className="max-w-xs text-right text-xs text-destructive">
-              {confirmError}
-            </p>
-          )}
         </div>
       </div>
+      {confirmError && (
+        <p className="text-right text-sm text-destructive">
+          {confirmError}
+        </p>
+      )}
 
       <Card>
         <CardHeader>
           <CardTitle>Resumen del horario</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-1 text-sm">
-          <p>
-            <span className="font-medium">Título:</span> {horario.titulo}
-          </p>
-          <p>
-            <span className="font-medium">Plan:</span> {horario.plan}
-          </p>
-          <p>
-            <span className="font-medium">Periodo:</span> {horario.periodo}
-          </p>
-          <p>
-            <span className="font-medium">Bloques de horario detectados:</span>{" "}
-            {bloques.length}
-          </p>
-          <p>
-            <span className="font-medium">Sesiones detectadas (total):</span>{" "}
-            {totalSessions}
-          </p>
-
-          {process.env.NODE_ENV === "development" && (
-            <pre className="mt-4 max-h-64 overflow-auto rounded bg-muted p-2 text-xs">
-              {JSON.stringify(horario, null, 2)}
-            </pre>
-          )}
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Plan de estudios</p>
+              <p className="text-sm font-medium">{horario.plan}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Periodo</p>
+              <p className="text-sm font-medium">{horario.periodo}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Estadísticas</p>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold">{bloques.length}</span>
+                  <span className="text-muted-foreground">bloques</span>
+                </div>
+                <div className="h-4 w-px bg-border" />
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold">{totalSessions}</span>
+                  <span className="text-muted-foreground">sesiones</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -519,14 +598,26 @@ export default function RevisionHorarioPage({ params }: Props) {
           </div>
         )}
 
-        <Button
-          type="button"
-          onClick={openCreateDialog}
-          aria-label="Añadir sesión u horario"
-          className="h-9 w-9 rounded-md bg-black text-white hover:bg-black/90"
-        >
-          +
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={openEditBlockDialog}
+            aria-label="Editar curso/mención actual"
+            size="icon"
+            variant="outline"
+            disabled={!bloques.length}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            onClick={openCreateDialog}
+            aria-label="Añadir sesión u horario"
+            size="icon"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {hasData ? (
@@ -536,12 +627,67 @@ export default function RevisionHorarioPage({ params }: Props) {
           stepMin={30}
           sessions={sessions}
           onSessionClick={openEditSesion}
+          onSessionMove={handleSessionMove}
         />
       ) : (
         <div className="rounded-md border bg-muted/20 p-6 text-sm text-muted-foreground">
           No hay datos de horario para mostrar todavía.
         </div>
       )}
+
+      {/* Diálogo de edición de bloque (curso/mención) */}
+      <Dialog
+        open={isEditBlockOpen}
+        onOpenChange={(open) => !open && setIsEditBlockOpen(false)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar horario</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-sm">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-curso">Curso</Label>
+              <Input
+                id="edit-curso"
+                value={editBlockForm.curso}
+                onChange={(e) =>
+                  setEditBlockForm((prev) => ({
+                    ...prev,
+                    curso: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-mencion">Mención (opcional)</Label>
+              <Input
+                id="edit-mencion"
+                value={editBlockForm.mencion}
+                onChange={(e) =>
+                  setEditBlockForm((prev) => ({
+                    ...prev,
+                    mencion: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setIsEditBlockOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleSaveBlock}>
+              Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Diálogo de edición de sesión */}
       <Dialog
@@ -584,30 +730,24 @@ export default function RevisionHorarioPage({ params }: Props) {
             <DialogTitle>Crear elemento</DialogTitle>
           </DialogHeader>
 
-          {/* Pestañas como dos botones negros */}
-          <div className="mb-4 flex gap-2 text-xs">
-            <button
+          <div className="mb-4 flex gap-2">
+            <Button
               type="button"
-              className={`h-8 rounded-md px-3 ${
-                createTab === "session"
-                  ? "bg-black text-white"
-                  : "bg-black/60 text-white"
-              } ${!canCreateSession ? "cursor-not-allowed opacity-50" : ""}`}
-              onClick={() => canCreateSession && setCreateTab("session")}
+              size="sm"
+              variant={createTab === "session" ? "default" : "secondary"}
+              disabled={!canCreateSession}
+              onClick={() => setCreateTab("session")}
             >
               Nueva sesión
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className={`h-8 rounded-md px-3 ${
-                createTab === "block"
-                  ? "bg-black text-white"
-                  : "bg-black/60 text-white"
-              }`}
+              size="sm"
+              variant={createTab === "block" ? "default" : "secondary"}
               onClick={() => setCreateTab("block")}
             >
               Nuevo horario
-            </button>
+            </Button>
           </div>
 
           {createTab === "session" && (
@@ -890,6 +1030,20 @@ function diaToDayIndex(dia: string): number {
   if (d.startsWith("V")) return 4;
 
   return -1;
+}
+
+function timeToMinutes(value: string): number {
+  if (!value) return 0;
+  const [h, m] = value.split(':').map((n) => parseInt(n, 10) || 0);
+  return h * 60 + m;
+}
+
+function minutesToTimeLabel(totalMin: number): string {
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  const hh = String(h).padStart(2, '0');
+  const mm = String(m).padStart(2, '0');
+  return `${hh}:${mm}`;
 }
 
 /**
