@@ -450,6 +450,23 @@ export async function listProfesores(): Promise<ProfesorListResponse> {
   return apiFetch<ProfesorListResponse>('/v0/recursos/profesores');
 }
 
+export type ProfesorCreateInput = {
+  nombre: string;
+  apellidos: string;
+  email?: string | null;
+  departamento?: string | null;
+  activo?: boolean;
+};
+
+export async function createProfessor(
+  data: ProfesorCreateInput,
+): Promise<ProfesorAPI> {
+  return apiFetch<ProfesorAPI>('/v0/recursos/profesores', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function updateProfesor(
   id: number,
   data: ProfesorUpdateInput,

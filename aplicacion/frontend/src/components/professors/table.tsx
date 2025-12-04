@@ -1,168 +1,227 @@
 'use client';
 
 import * as React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import {
+  ArrowUpDown,
+  MoreHorizontal,
+  Search,
+  X
+} from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableCell,
+  TableBody,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
+
 import type { Professor } from './data';
-import { updateProfesor } from '@/lib/api/client';
-
-type EstadoFilter = 'all' | 'active' | 'inactive';
-
-type ProfessorFormState = {
-  nombre: string;
-  apellidos: string;
-  email: string;
-  departamento: string;
-  activo: boolean;
-};
 
 type ProfessorsTableProps = {
   data: Professor[];
+  onEdit: (row: Professor) => void;
 };
 
-export function ProfessorsTable({ data }: ProfessorsTableProps) {
-  const { toast } = useToast();
+export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'nombre', desc: false }
+  ]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([
+    { id: 'activo', value: 'active' }
+  ]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
-  const [rows, setRows] = React.useState<Professor[]>(data);
-  const [search, setSearch] = React.useState('');
-  const [estadoFilter, setEstadoFilter] = React.useState<EstadoFilter>('all');
-
-  const [editing, setEditing] = React.useState<Professor | null>(null);
-  const [form, setForm] = React.useState<ProfessorFormState | null>(null);
-  const [saving, setSaving] = React.useState(false);
-
-  const filteredRows = React.useMemo(() => {
-    const q = search.trim().toLowerCase();
-
-    return rows.filter((p) => {
-      if (estadoFilter === 'active' && !p.activo) return false;
-      if (estadoFilter === 'inactive' && p.activo) return false;
-
-      if (q) {
-        const haystack = `${p.nombre} ${p.apellidos} ${p.departamento ?? ''}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-
-      return true;
-    });
-  }, [rows, search, estadoFilter]);
-
-  const openEdit = (prof: Professor) => {
-    setEditing(prof);
-    setForm({
-      nombre: prof.nombre,
-      apellidos: prof.apellidos,
-      email: prof.email ?? '',
-      departamento: prof.departamento ?? '',
-      activo: prof.activo,
-    });
-  };
-
-  const closeEdit = () => {
-    setEditing(null);
-    setForm(null);
-    setSaving(false);
-  };
-
-  const handleChange = (field: keyof ProfessorFormState, value: string | boolean) => {
-    setForm((prev) =>
-      prev
-        ? {
-            ...prev,
-            [field]: value,
-          }
-        : prev,
-    );
-  };
-
-  const handleSave = async () => {
-    if (!editing || !form) return;
-    setSaving(true);
-
-    try {
-      const updated = await updateProfesor(Number(editing.id), {
-        nombre: form.nombre,
-        apellidos: form.apellidos,
-        email: form.email || null,
-        departamento: form.departamento || null,
-        activo: form.activo,
-      });
-
-      setRows((prev) =>
-        prev.map((p) =>
-          p.id === String(updated.id)
-            ? {
-                id: String(updated.id),
-                nombre: updated.nombre,
-                apellidos: updated.apellidos,
-                email: updated.email ?? null,
-                departamento: updated.departamento ?? null,
-                activo: updated.activo,
-              }
-            : p,
+  const columns = React.useMemo<ColumnDef<Professor>[]>(
+    () => [
+      {
+        accessorKey: 'nombre',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              className="-ml-4"
+            >
+              Nombre
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span className="font-medium">
+              {row.original.nombre} {row.original.apellidos}
+            </span>
+          </div>
         ),
-      );
+        filterFn: (row, id, value) => {
+            const search = value.toLowerCase();
+            const nombre = `${row.original.nombre} ${row.original.apellidos}`.toLowerCase();
+            const depto = (row.original.departamento || '').toLowerCase();
+            return nombre.includes(search) || depto.includes(search);
+        }
+      },
+      {
+        accessorKey: 'email',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              className="-ml-4"
+            >
+              Email
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => {
+          const email = row.original.email;
+          if (!email) return <span className="text-muted-foreground">—</span>;
+          return (
+            <a
+              href={`mailto:${email}`}
+              className="text-sm text-primary underline-offset-2 hover:underline"
+            >
+              {email}
+            </a>
+          );
+        },
+      },
+      {
+        accessorKey: 'departamento',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              className="-ml-4"
+            >
+              Departamento
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {row.original.departamento || <span className="text-muted-foreground">—</span>}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'activo',
+        header: 'Estado',
+        cell: ({ row }) => (
+          row.original.activo ? (
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+              Activo
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-slate-100 text-slate-600">
+              Inactivo
+            </Badge>
+          )
+        ),
+        filterFn: (row, id, value) => {
+          if (value === 'all') return true;
+          if (value === 'active') return row.original.activo === true;
+          if (value === 'inactive') return row.original.activo === false;
+          return true;
+        },
+      },
+      {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Abrir menú</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                  Editar profesor
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    [onEdit]
+  );
 
-      toast({
-        title: 'Profesor actualizado',
-        description: 'Los cambios se han guardado correctamente.',
-      });
-
-      closeEdit();
-    } catch (error: unknown) {
-      toast({
-        variant: 'destructive',
-        title: 'Error al actualizar',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'No se ha podido actualizar el profesor.',
-      });
-      setSaving(false);
-    }
-  };
+  const table = useReactTable({
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+    },
+  });
 
   return (
-    <div className="space-y-4">
-      {/* Filtros */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">Profesores</h1>
-          <p className="text-sm text-muted-foreground">
-            Listado de personal docente registrado en el sistema.
-          </p>
-        </div>
+    <div className="w-full space-y-4">
+      {/* Toolbar de filtros */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+          {/* Buscador Global */}
+          <div className="relative w-full md:max-w-xs">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre o departamento..."
+              value={globalFilter ?? ''}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder="Buscar por nombre o departamento…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-xs"
-          />
+          {/* Filtro Estado */}
           <Select
-            value={estadoFilter}
-            onValueChange={(value) => setEstadoFilter(value as EstadoFilter)}
+            value={(table.getColumn('activo')?.getFilterValue() as string) ?? 'active'}
+            onValueChange={(value) => table.getColumn('activo')?.setFilterValue(value)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="h-9 w-full md:w-[150px]">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -171,173 +230,83 @@ export function ProfessorsTable({ data }: ProfessorsTableProps) {
               <SelectItem value="inactive">Inactivos</SelectItem>
             </SelectContent>
           </Select>
+          
+          {/* Botón limpiar filtros */}
+          {(globalFilter || columnFilters.length > 1) && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setGlobalFilter('');
+                setColumnFilters([{ id: 'activo', value: 'active' }]);
+                table.resetSorting();
+              }}
+              className="h-9 px-2 lg:px-3"
+            >
+              Limpiar
+              <X className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-hidden rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Departamento</TableHead>
-              <TableHead className="w-[120px] text-center">Estado</TableHead>
-              <TableHead className="w-[120px] text-right">Acciones</TableHead>
-            </TableRow>
+      {/* Tabla con Scroll Interno */}
+      <div className="rounded-md border h-[600px] overflow-auto relative">
+        <table className="w-full caption-bottom text-sm">
+          <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
-            {filteredRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">
-                  No hay profesores que coincidan con los filtros.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredRows.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">
-                    {p.nombre} {p.apellidos}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {p.email ? (
-                      <a
-                        href={`mailto:${p.email}`}
-                        className="text-sm text-primary underline-offset-2 hover:underline"
-                      >
-                        {p.email}
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {p.departamento || <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {p.activo ? (
-                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
-                        Activo
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-slate-100 text-slate-600">
-                        Inactivo
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(p)}>
-                      Editar
-                    </Button>
-                  </TableCell>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No se encontraron resultados.
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
-
-      {/* Diálogo de edición */}
-      <Dialog
-        open={!!editing}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeEdit();
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar profesor</DialogTitle>
-            <DialogDescription>
-              Actualiza los datos del profesor y guarda los cambios.
-            </DialogDescription>
-          </DialogHeader>
-
-          {form && editing && (
-            <div className="space-y-4 py-2">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor="nombre">
-                    Nombre
-                  </label>
-                  <Input
-                    id="nombre"
-                    value={form.nombre}
-                    onChange={(e) => handleChange('nombre', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label
-                    className="text-xs font-medium text-muted-foreground"
-                    htmlFor="apellidos"
-                  >
-                    Apellidos
-                  </label>
-                  <Input
-                    id="apellidos"
-                    value={form.apellidos}
-                    onChange={(e) => handleChange('apellidos', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground" htmlFor="email">
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  placeholder="nombre.apellidos@universidad.es"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label
-                  className="text-xs font-medium text-muted-foreground"
-                  htmlFor="departamento"
-                >
-                  Departamento
-                </label>
-                <Input
-                  id="departamento"
-                  value={form.departamento}
-                  onChange={(e) => handleChange('departamento', e.target.value)}
-                  placeholder="Departamento"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">Estado</span>
-                <Select
-                  value={form.activo ? 'active' : 'inactive'}
-                  onValueChange={(value) => handleChange('activo', value === 'active')}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="inactive">Inactivo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={closeEdit} disabled={saving}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSave} disabled={saving || !form}>
-              {saving ? 'Guardando…' : 'Guardar cambios'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      
+      {/* Contador final */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} profesores.
+        </div>
+      </div>
     </div>
   );
 }
