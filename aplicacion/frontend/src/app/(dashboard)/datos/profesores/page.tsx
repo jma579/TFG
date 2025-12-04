@@ -1,6 +1,7 @@
 import { listProfesores } from '@/lib/api/client';
 import { ProfessorsTable } from '@/components/professors/table';
 import type { Professor } from '@/components/professors/data';
+import { PageTitle } from '@/components/common/page-title';
 
 export default async function ProfesoresPage() {
   const resp = await listProfesores();
@@ -15,7 +16,11 @@ export default async function ProfesoresPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="space-y-6">
+      <PageTitle
+        title="Profesorado"
+        subtitle="Directorio de docentes y sus departamentos."
+      />
       <ProfessorsTable data={data} />
     </div>
   );

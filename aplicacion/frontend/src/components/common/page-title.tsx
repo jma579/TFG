@@ -2,27 +2,47 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const LABELS: Record<string, string> = {
   app: 'Inicio',
-  conflictos: 'Conflictos',
+  conflictos: 'Resolución de Conflictos',
   uploads: 'Subidas',
-  fichas: 'Subir fichas',
-  horarios: 'Subir horarios',
-  datos: 'Datos',
-  'fichas-academicas': 'Fichas académicas',
+  fichas: 'Subir Fichas Académicas',
+  horarios: 'Subir Horarios',
+  datos: 'Datos Maestros',
+  'fichas-academicas': 'Fichas Académicas',
   profesores: 'Profesores',
   aulas: 'Aulas',
-  horario: 'Horario',
+  horario: 'Editor de Horarios',
 };
 
-export function PageTitle() {
+interface PageTitleProps {
+  title?: string;
+  subtitle?: string;
+  className?: string;
+}
+
+export function PageTitle({ title, subtitle, className }: PageTitleProps) {
   const pathname = usePathname() || '/';
+  
+  // Lógica de fallback si no se pasa título explícito
   const parts = pathname.split('/').filter(Boolean).filter((seg) => seg !== '(dashboard)');
   const last = parts[parts.length - 1] ?? 'app';
-  const title = LABELS[last] ?? capitalize(last);
+  const autoTitle = LABELS[last] ?? capitalize(last);
 
-  return <h1 className="text-xl md:text-2xl font-semibold tracking-tight">{title}</h1>;
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">
+        {title || autoTitle}
+      </h1>
+      {subtitle && (
+        <p className="text-muted-foreground text-lg">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function capitalize(s: string) {

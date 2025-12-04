@@ -1,6 +1,7 @@
 import { RoomsScreen } from '@/components/rooms/rooms-screen';
 import { listAulas, type AulaOut } from '@/lib/api/client';
 import type { Room } from '@/components/rooms/data';
+import { PageTitle } from '@/components/common/page-title';
 
 export default async function AulasPage() {
   const resp = await listAulas();
@@ -14,7 +15,11 @@ export default async function AulasPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="space-y-6">
+      <PageTitle
+        title="Gestión de Aulas"
+        subtitle="Inventario de espacios y capacidades."
+      />
       <RoomsScreen initialData={rooms} />
     </div>
   );

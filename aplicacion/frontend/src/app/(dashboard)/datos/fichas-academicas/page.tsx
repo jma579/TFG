@@ -1,6 +1,7 @@
 import { listAsignaturas, AsignaturaOut } from '@/lib/api/client';
 import { SubjectsScreen } from '@/components/subjects/subjects-screen';
 import type { SubjectRow } from '@/components/subjects/data';
+import { PageTitle } from '@/components/common/page-title';
 
 function mapAsignaturaToSubjectRow(a: AsignaturaOut): SubjectRow {
   return {
@@ -28,7 +29,11 @@ export default async function FichasAcademicasPage() {
   const data: SubjectRow[] = resp.items.map(mapAsignaturaToSubjectRow);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="space-y-6">
+      <PageTitle
+        title="Catálogo de Asignaturas"
+        subtitle="Gestión de materias, créditos y guías docentes."
+      />
       <SubjectsScreen data={data} />
     </div>
   );
