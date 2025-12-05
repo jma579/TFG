@@ -14,11 +14,14 @@ export default async function AulasPage() {
     capacidad: aula.capacidad ?? null,
   }));
 
+  // Ordenar por código por defecto
+  rooms.sort((a, b) => a.codigo.localeCompare(b.codigo));
+
   return (
     <div className="space-y-6">
       <PageTitle
-        title="Gestión de Aulas"
-        subtitle="Inventario de espacios y capacidades."
+        title="Aulas"
+        subtitle="Gestión de espacios y capacidades."
       />
       <RoomsScreen initialData={rooms} />
     </div>

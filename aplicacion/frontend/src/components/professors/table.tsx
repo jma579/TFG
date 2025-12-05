@@ -16,13 +16,15 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   Search,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Table,
   TableHead,
   TableHeader,
   TableRow,
@@ -49,9 +51,10 @@ import type { Professor } from './data';
 type ProfessorsTableProps = {
   data: Professor[];
   onEdit: (row: Professor) => void;
+  onCreate: () => void;
 };
 
-export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
+export function ProfessorsTable({ data, onEdit, onCreate }: ProfessorsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'nombre', desc: false }
   ]);
@@ -247,6 +250,10 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
             </Button>
           )}
         </div>
+
+        <Button onClick={onCreate}>
+          <Plus className="mr-2 h-4 w-4" /> Añadir profesor
+        </Button>
       </div>
 
       {/* Tabla con Scroll Interno */}

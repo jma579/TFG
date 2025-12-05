@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProfessorsTable } from '@/components/professors/table';
@@ -115,15 +114,13 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Añadir profesor
-        </Button>
-      </div>
-
       <Card>
         <CardContent className="pt-6">
-          <ProfessorsTable data={rows} onEdit={handleEdit} />
+          <ProfessorsTable 
+            data={rows} 
+            onEdit={handleEdit} 
+            onCreate={handleCreate}
+          />
         </CardContent>
       </Card>
 
