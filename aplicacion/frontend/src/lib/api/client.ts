@@ -108,6 +108,13 @@ export type AsignaturaOut = {
   idioma?: string | null;
   english_friendly?: boolean | null;
   activo?: boolean | null;
+  num_profesores?: number;
+  num_titulaciones?: number;
+  titulaciones?: {
+    programa: { nombre: string };
+    curso?: number | null;
+    tipo_asignatura?: string | null;
+  }[];
   // Campos adicionales que pueda devolver el backend
   [key: string]: unknown;
 };
@@ -142,6 +149,10 @@ export async function listAsignaturas(params?: {
     : '/v0/catalogo/asignaturas';
 
   return apiFetch<AsignaturaListResponse>(path);
+}
+
+export async function getAsignatura(id: number): Promise<AsignaturaOut> {
+  return apiFetch<AsignaturaOut>(`/v0/catalogo/asignaturas/${id}`);
 }
 
 export type AsignaturaUpdateInput = {
@@ -439,6 +450,23 @@ export async function listProfesores(): Promise<ProfesorListResponse> {
   return apiFetch<ProfesorListResponse>('/v0/recursos/profesores');
 }
 
+export type ProfesorCreateInput = {
+  nombre: string;
+  apellidos: string;
+  email?: string | null;
+  departamento?: string | null;
+  activo?: boolean;
+};
+
+export async function createProfessor(
+  data: ProfesorCreateInput,
+): Promise<ProfesorAPI> {
+  return apiFetch<ProfesorAPI>('/v0/recursos/profesores', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function updateProfesor(
   id: number,
   data: ProfesorUpdateInput,
@@ -540,3 +568,37 @@ export async function deleteAula(id: number): Promise<void> {
     method: 'DELETE',
   });
 }
+
+// ==============================
+// Catálogo: Programas (Titulaciones)
+// ==============================
+
+export type ProgramaOut = {
+  id: number;
+  nombre: string;
+  tipo: string;
+  activo: boolean;
+};
+
+export type ProgramaList = {
+  total: number;
+  items: ProgramaOut[];
+  page: number;
+  size: number;
+};
+
+export async function listProgramas(
+  page = 1,
+  size = 100,
+  activo?: boolean,
+): Promise<ProgramaList> {
+  const params = new URLSearchParams();
+  params.set('page', page.toString());
+  params.set('size', size.toString());
+  if (activo !== undefined) {
+    params.set('activo', activo.toString());
+  }
+
+  return apiFetch<ProgramaList>(`/v0/catalogo/programas?${params.toString()}`);
+}
+

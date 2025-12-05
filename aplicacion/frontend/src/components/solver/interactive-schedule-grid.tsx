@@ -11,6 +11,7 @@ type Props = {
   stepMin?: number; // tamaño de fila en minutos (30 por defecto)
   className?: string;
   onSessionClick?: (session: Session) => void;
+  onSessionMove?: (session: Session, newDayIndex: number, newStartTime: string) => void;
 };
 
 const DAYS = ['L', 'M', 'X', 'J', 'V'];
@@ -27,6 +28,7 @@ export function InteractiveScheduleGrid({
   stepMin = 30,
   className,
   onSessionClick,
+  onSessionMove,
 }: Props) {
   const startMin = timeToMinutes(start);
   const endMin = timeToMinutes(end);
@@ -43,6 +45,33 @@ export function InteractiveScheduleGrid({
     () => buildLayoutById(sessions),
     [sessions],
   );
+
+  const handleDragStart = (e: React.DragEvent, session: Session) => {
+    e.dataTransfer.setData('sessionId', String(session.id));
+    e.dataTransfer.effectAllowed = 'move';
+    // Set a transparent drag image or custom one if needed, 
+    // but default ghost element is usually fine.
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, dayIndex: number, slotIndex: number) => {
+    e.preventDefault();
+    const sessionId = e.dataTransfer.getData('sessionId');
+    if (!sessionId) return;
+
+    const session = sessions.find((s) => String(s.id) === sessionId);
+    if (!session) return;
+
+    const minutesFromStart = slotIndex * stepMin;
+    const newStartMin = startMin + minutesFromStart;
+    const newStartTime = minutesToTimeLabel(newStartMin);
+
+    onSessionMove?.(session, dayIndex, newStartTime);
+  };
 
   return (
     <div
@@ -90,11 +119,13 @@ export function InteractiveScheduleGrid({
           DAYS.map((_, dayIndex) => (
             <div
               key={`cell-${row}-${dayIndex}`}
-              className="border-b border-l bg-background/60"
+              className="border-b border-l bg-background/60 transition-colors hover:bg-muted/50"
               style={{
                 gridRow: row + 2,
                 gridColumn: dayIndex + 2,
               }}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, dayIndex, row)}
             />
           )),
         )}
@@ -119,12 +150,14 @@ export function InteractiveScheduleGrid({
           const leftPercent = layout.lane * widthPercent;
 
           return (
-            <button
+            <div
               key={session.id}
-              type="button"
+              draggable={!!onSessionMove}
+              onDragStart={(e) => handleDragStart(e, session)}
               className={cn(
-                'my-[2px] flex flex-col items-stretch justify-center overflow-hidden rounded-sm border px-1 py-[2px] text-left text-[11px] shadow-sm ring-1',
+                'my-[2px] flex cursor-pointer flex-col items-stretch justify-center overflow-hidden rounded-sm border px-1 py-[2px] text-left text-[11px] shadow-sm ring-1 transition-all hover:z-20 hover:shadow-md',
                 chipColor(session.color),
+                onSessionMove ? 'cursor-grab active:cursor-grabbing' : ''
               )}
               style={{
                 gridRow: `${rowStart} / ${rowEnd}`,
@@ -152,7 +185,7 @@ export function InteractiveScheduleGrid({
                   {session.teacher}
                 </span>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

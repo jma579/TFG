@@ -14,7 +14,7 @@ Responsabilidades:
 - NO lanza excepciones HTTP (eso va en Service)
 """
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, or_
 from typing import Optional, List, Tuple
 
@@ -190,6 +190,13 @@ class AsignaturaRepository:
         
         # Paginación
         asignaturas = query.offset(skip).limit(limit).all()
+
+        # OPTIMIZACIÓN: Carga ansiosa de relaciones
+        # Esto evita que al acceder a .profesores_asignaturas en el servicio se disparen nuevas queries
+        query = query.options(
+            joinedload(Asignatura.profesores_asignaturas),
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa)
+        )
         
         return asignaturas, total
     

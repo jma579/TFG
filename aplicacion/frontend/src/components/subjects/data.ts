@@ -27,6 +27,10 @@ export type SubjectRow = {
   // Extracción (SubjectSheet)
   titulaciones: Titulacion[];
   profesores: Teacher[];
+  
+  // Contadores (para vista de lista)
+  num_profesores?: number;
+  num_titulaciones?: number;
 
   // Estados de extracción/parseo
   parsing_ok: boolean;

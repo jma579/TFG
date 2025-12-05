@@ -3,12 +3,30 @@
 import * as React from 'react';
 import {
   ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from '@tanstack/react-table';
+import {
+  ChevronDown,
+  ChevronRight,
+  MoreHorizontal,
+  Search,
+  Settings2,
+  ArrowUpDown,
+  Filter,
+  X
+} from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -24,22 +42,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import type { SubjectRow } from '@/components/subjects/data';
 import {
-  getAsignaturaProgramas,
-  getAsignaturaProfesores,
-  type AsignaturaProgramaAPI,
-  type ProfesorAPI,
-} from '@/lib/api/client';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-// ------- Tipos internos -------
+import type { SubjectRow } from '@/components/subjects/data';
+import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
+import type { ProgramaOut } from '@/lib/api/client';
 
-type SubjectDetails = {
-  loading: boolean;
-  error?: string;
-  profesores: SubjectRow['profesores'];
-  titulaciones: SubjectRow['titulaciones'];
+// ------- Filtros personalizados -------
+
+const multiColumnFilterFn: FilterFn<SubjectRow> = (row, columnId, filterValue) => {
+  const searchValue = filterValue.toLowerCase();
+  const nombre = row.original.nombre.toLowerCase();
+  const codigo = row.original.codigo_plan.toLowerCase();
+  return nombre.includes(searchValue) || codigo.includes(searchValue);
 };
 
 // ------- UI helpers -------
@@ -49,399 +72,390 @@ function PeriodBadge({ row }: { row: SubjectRow }) {
     row.periodo === 'ANUAL'
       ? 'Anual'
       : row.periodo === 'primer_cuatrimestre'
-      ? '1º cuatri'
+      ? '1º Cuatri'
       : row.periodo === 'segundo_cuatrimestre'
-      ? '2º cuatri'
+      ? '2º Cuatri'
       : row.periodo;
 
+  const variant = row.periodo === 'ANUAL' ? 'default' : 'outline';
+
   return (
-    <Badge variant="outline" className="font-normal">
+    <Badge variant={variant} className="font-normal whitespace-nowrap">
       {label}
-      {row.num_periodo ? ` · P${row.num_periodo}` : ''}
     </Badge>
   );
 }
 
-function ExtractionBadge({ row }: { row: SubjectRow }) {
-  if (row.parsing_ok && row.extraction_ok) {
-    return <Badge variant="secondary">OK</Badge>;
-  }
-
-  if (!row.parsing_ok) {
-    return <Badge variant="destructive">Error parsing</Badge>;
-  }
-
-  if (!row.extraction_ok) {
-    return <Badge variant="outline">Incidencias</Badge>;
-  }
-
-  return <Badge variant="outline">Desconocido</Badge>;
-}
-
-// ------- Bloque de detalle -------
-
-function DetailBlock({
-  row,
-  details,
-}: {
-  row: SubjectRow;
-  details?: SubjectDetails;
-}) {
-  const loading = details?.loading;
-  const error = details?.error;
-
-  const profesores =
-    details && details.profesores.length > 0
-      ? details.profesores
-      : row.profesores;
-
-  const titulaciones =
-    details && details.titulaciones.length > 0
-      ? details.titulaciones
-      : row.titulaciones;
-
+function StatusBadge({ active }: { active: boolean }) {
   return (
-    <div className="rounded-md border bg-muted/30 px-4 py-3">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs text-muted-foreground">Asignatura</p>
-          <p className="text-sm font-medium">{row.nombre}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <PeriodBadge row={row} />
-          <ExtractionBadge row={row} />
-        </div>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-3">
-        <div>
-          <p className="text-xs text-muted-foreground">Código plan</p>
-          <p className="text-sm font-mono">{row.codigo_plan}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Periodo</p>
-          <p className="text-sm">
-            {row.periodo}
-            {row.num_periodo ? ` · P${row.num_periodo}` : ''}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">ECTS</p>
-          <p className="text-sm">{row.ects}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Modalidad</p>
-          <p className="text-sm">{row.modalidad}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Idioma</p>
-          <p className="text-sm">{row.idioma}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">English friendly</p>
-          <p className="text-sm">{row.english_friendly ? 'Sí' : 'No'}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Estado</p>
-          <p className="text-sm">{row.activo ? 'Activa' : 'Inactiva'}</p>
-        </div>
-        <div className="md:col-span-3">
-          <p className="text-xs text-muted-foreground">Profesores</p>
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Cargando profesorado…</p>
-          ) : error ? (
-            <p className="text-sm text-destructive">
-              Error al cargar profesorado: {error}
-            </p>
-          ) : (
-            <p className="text-sm">
-              {profesores.length
-                ? profesores.map((p) => `${p.nombre} ${p.apellidos}`).join(' · ')
-                : '—'}
-            </p>
-          )}
-        </div>
-        <div className="md:col-span-3">
-          <p className="text-xs text-muted-foreground">Titulaciones</p>
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Cargando titulaciones…</p>
-          ) : error ? (
-            <p className="text-sm text-destructive">Error al cargar titulaciones.</p>
-          ) : titulaciones.length ? (
-            <ul className="list-disc pl-4 text-sm">
-              {titulaciones.map((t, i) => (
-                <li key={i}>
-                  {t.titulacion} — {t.tipo_asignatura} — {t.curso}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm">—</p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-        <span>
-          Parsing: {row.parsing_ok ? 'OK' : 'Con errores'} · Extracción:{' '}
-          {row.extraction_ok ? 'OK' : 'Incidencias'}
-        </span>
-      </div>
+    <div className="flex items-center gap-2">
+      <span className={`h-2 w-2 rounded-full ${active ? 'bg-green-500' : 'bg-slate-300'}`} />
+      <span className="text-sm text-muted-foreground">{active ? 'Activa' : 'Inactiva'}</span>
     </div>
   );
 }
 
-// ------- Tabla con expand por fila y acciones -------
+// ------- Tabla Principal -------
 
 export type SubjectsTableProps = {
   data: SubjectRow[];
   onEdit: (row: SubjectRow) => void;
   onDelete: (row: SubjectRow) => void;
+  onDataUpdate: (id: string, data: { profesores: any[]; titulaciones: any[] }) => void;
+  titulacionesDisponibles?: ProgramaOut[];
 };
 
-export function SubjectsTable({ data, onEdit, onDelete }: SubjectsTableProps) {
-  const [expandedId, setExpandedId] = React.useState<string | null>(null);
-  const [detailsById, setDetailsById] = React.useState<
-    Record<string, SubjectDetails>
-  >({});
-
-  const loadDetails = React.useCallback(
-    async (row: SubjectRow) => {
-      const key = row.id;
-      const existing = detailsById[key];
-
-      if (
-        existing &&
-        !existing.error &&
-        (existing.profesores.length > 0 || existing.titulaciones.length > 0)
-      ) {
-        return;
-      }
-
-      setDetailsById((prev) => ({
-        ...prev,
-        [key]: {
-          loading: true,
-          error: undefined,
-          profesores: existing?.profesores ?? [],
-          titulaciones: existing?.titulaciones ?? [],
-        },
-      }));
-
-      try {
-        const asignaturaId = Number(row.id);
-        const [programas, profesores] = await Promise.all([
-          getAsignaturaProgramas(asignaturaId),
-          getAsignaturaProfesores(asignaturaId),
-        ]);
-
-        const titulaciones = programas.map((p) => ({
-          titulacion: p.programa.nombre,
-          tipo_asignatura: p.tipo_asignatura ?? '—',
-          curso: p.curso != null ? `${p.curso}º` : '—',
-        }));
-
-        const teachers = profesores.map((p) => ({
-          nombre: p.nombre,
-          apellidos: p.apellidos,
-        }));
-
-        setDetailsById((prev) => ({
-          ...prev,
-          [key]: {
-            loading: false,
-            error: undefined,
-            profesores: teachers,
-            titulaciones,
-          },
-        }));
-      } catch (error) {
-        setDetailsById((prev) => ({
-          ...prev,
-          [key]: {
-            loading: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Error al cargar docencia de la asignatura',
-            profesores: [],
-            titulaciones: [],
-          },
-        }));
-      }
-    },
-    [detailsById],
-  );
+export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacionesDisponibles = [] }: SubjectsTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'codigo_plan', desc: false } // Orden inicial por código
+  ]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([
+    { id: 'activo', value: 'active' } // Filtro inicial: solo activas
+  ]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [expanded, setExpanded] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const columns = React.useMemo<ColumnDef<SubjectRow>[]>(
     () => [
       {
+        id: 'expander',
+        header: () => null,
+        cell: ({ row }) => {
+          return (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 p-0"
+              onClick={() => row.toggleExpanded()}
+            >
+              {row.getIsExpanded() ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          );
+        },
+      },
+      {
         accessorKey: 'codigo_plan',
-        header: 'Código',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              className="-ml-4"
+            >
+              Código
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
         cell: ({ row }) => (
-          <span className="font-mono text-sm">{row.original.codigo_plan}</span>
+          <span className="font-mono text-sm font-medium text-muted-foreground">
+            {row.original.codigo_plan}
+          </span>
         ),
       },
       {
         accessorKey: 'nombre',
-        header: 'Asignatura',
-        cell: ({ row }) => <span className="font-medium">{row.original.nombre}</span>,
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              className="-ml-4"
+            >
+              Asignatura
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span className="font-medium">{row.original.nombre}</span>
+            <span className="text-xs text-muted-foreground md:hidden">
+              {row.original.codigo_plan}
+            </span>
+          </div>
+        ),
+        filterFn: multiColumnFilterFn, // Usamos filtro personalizado para buscar en nombre y código
       },
       {
-        id: 'periodo',
+        accessorKey: 'periodo',
         header: 'Periodo',
         cell: ({ row }) => <PeriodBadge row={row.original} />,
+        filterFn: (row, id, value) => {
+          return value === 'all' ? true : row.getValue(id) === value;
+        },
       },
       {
         accessorKey: 'ects',
         header: 'ECTS',
-        cell: ({ row }) => <span>{row.original.ects}</span>,
+        cell: ({ row }) => <span className="text-sm">{row.original.ects}</span>,
       },
       {
         accessorKey: 'modalidad',
         header: 'Modalidad',
-        cell: ({ row }) => <span>{row.original.modalidad}</span>,
+        cell: ({ row }) => <span className="capitalize text-sm">{row.original.modalidad}</span>,
       },
       {
-        accessorKey: 'idioma',
-        header: 'Idioma',
-        cell: ({ row }) => <span>{row.original.idioma}</span>,
+        id: 'contadores',
+        header: 'Info',
+        cell: ({ row }) => (
+          <div className="flex gap-3 text-xs text-muted-foreground">
+            <span title="Profesores asignados">
+              Prof: <span className="font-medium text-foreground">{row.original.profesores?.length || row.original.num_profesores || 0}</span>
+            </span>
+            <span title="Titulaciones vinculadas">
+              Tit: <span className="font-medium text-foreground">{row.original.titulaciones?.length || row.original.num_titulaciones || 0}</span>
+            </span>
+          </div>
+        ),
       },
       {
-        id: 'profesores',
-        header: () => <div className="text-center">Profesores</div>,
-        cell: ({ row }) => {
-          const details = detailsById[row.original.id];
-          const count = details?.profesores?.length ?? row.original.profesores.length;
-          return <div className="text-center">{count}</div>;
+        accessorKey: 'activo',
+        header: 'Estado',
+        cell: ({ row }) => <StatusBadge active={row.original.activo} />,
+        filterFn: (row, id, value) => {
+          if (value === 'all') return true;
+          if (value === 'active') return row.original.activo === true;
+          if (value === 'inactive') return row.original.activo === false;
+          return true;
         },
       },
       {
-        id: 'titulaciones',
-        header: () => <div className="text-center">Titulaciones</div>,
-        cell: ({ row }) => {
-          const details = detailsById[row.original.id];
-          const count = details?.titulaciones?.length ?? row.original.titulaciones.length;
-          return <div className="text-center">{count}</div>;
+        // Columna virtual para filtrar por titulación
+        id: 'titulacionFilter',
+        accessorFn: (row) => row.titulaciones?.map(t => t.titulacion).join(' '),
+        header: 'Titulación', // Oculta visualmente pero usada para filtro
+        enableHiding: true,
+        filterFn: (row, id, value) => {
+          if (!value) return true;
+          const titulaciones = row.original.titulaciones || [];
+          return titulaciones.some(t => 
+            t.titulacion.toLowerCase().includes(value.toLowerCase())
+          );
         },
       },
       {
-        id: 'extraccion',
-        header: 'Extracción',
-        cell: ({ row }) => <ExtractionBadge row={row.original} />,
-      },
-      {
-        id: 'acciones',
-        header: '',
-        enableSorting: false,
+        id: 'actions',
+        enableHiding: false,
         cell: ({ row }) => {
-          const isOpen = expandedId === row.original.id;
           return (
-            <div className="flex items-center justify-end gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const nextId = isOpen ? null : row.original.id;
-                  setExpandedId(nextId);
-                  if (!isOpen) {
-                    void loadDetails(row.original);
-                  }
-                }}
-              >
-                {isOpen ? 'Ocultar' : 'Ver detalles'}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost">
-                    <span className="sr-only">Abrir menú</span>
-                    ⋯
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                    Editar asignatura
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={() => onDelete(row.original)}
-                  >
-                    Eliminar (soft delete)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Abrir menú</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                  Editar asignatura
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDelete(row.original)}
+                >
+                  {row.original.activo ? 'Desactivar (Eliminar)' : 'Eliminar definitivamente'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           );
         },
       },
     ],
-    [expandedId, detailsById, loadDetails, onEdit, onDelete],
+    [onEdit, onDelete]
   );
 
   const table = useReactTable({
     data,
     columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    onExpandedChange: setExpanded,
+    getRowCanExpand: () => true,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      expanded,
+      globalFilter,
+    },
   });
 
-  const rowModel = table.getRowModel();
-  const colCount = table.getAllLeafColumns().length;
+  // Ocultar columna de filtro de titulación visualmente
+  React.useEffect(() => {
+    table.getColumn('titulacionFilter')?.toggleVisibility(false);
+  }, [table]);
 
   return (
-    <div className="rounded-md border bg-card">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id}>
-              {hg.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
+    <div className="w-full space-y-4">
+      {/* Toolbar de filtros */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+          {/* Buscador Global */}
+          <div className="relative w-full md:max-w-xs">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar asignatura o código..."
+              value={globalFilter ?? ''}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
+
+          {/* Filtro Periodo */}
+          <Select
+            value={(table.getColumn('periodo')?.getFilterValue() as string) ?? 'all'}
+            onValueChange={(value) => table.getColumn('periodo')?.setFilterValue(value)}
+          >
+            <SelectTrigger className="h-9 w-full md:w-[180px]">
+              <SelectValue placeholder="Periodo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los periodos</SelectItem>
+              <SelectItem value="primer_cuatrimestre">1º Cuatrimestre</SelectItem>
+              <SelectItem value="segundo_cuatrimestre">2º Cuatrimestre</SelectItem>
+              <SelectItem value="ANUAL">Anual</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Filtro Estado */}
+          <Select
+            value={(table.getColumn('activo')?.getFilterValue() as string) ?? 'active'}
+            onValueChange={(value) => table.getColumn('activo')?.setFilterValue(value)}
+          >
+            <SelectTrigger className="h-9 w-full md:w-[150px]">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Activas</SelectItem>
+              <SelectItem value="inactive">Inactivas</SelectItem>
+            </SelectContent>
+          </Select>
+
+           {/* Filtro Titulación (Select) */}
+           <Select
+            value={(table.getColumn('titulacionFilter')?.getFilterValue() as string) ?? 'all'}
+            onValueChange={(value) => table.getColumn('titulacionFilter')?.setFilterValue(value === 'all' ? '' : value)}
+          >
+            <SelectTrigger className="h-9 w-full md:w-[200px]">
+              <SelectValue placeholder="Filtrar titulación" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las titulaciones</SelectItem>
+              {titulacionesDisponibles.map((prog) => (
+                <SelectItem key={prog.id} value={prog.nombre}>
+                  {prog.nombre}
+                </SelectItem>
               ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {rowModel.rows.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={colCount}
-                className="py-8 text-center text-sm text-muted-foreground"
-              >
-                No hay asignaturas registradas.
-              </TableCell>
-            </TableRow>
+            </SelectContent>
+          </Select>
+          
+          {/* Botón limpiar filtros */}
+          {(globalFilter || columnFilters.length > 1) && ( // >1 porque 'activo' siempre está
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setGlobalFilter('');
+                setColumnFilters([{ id: 'activo', value: 'active' }]);
+                table.resetSorting();
+              }}
+              className="h-9 px-2 lg:px-3"
+            >
+              Limpiar
+              <X className="ml-2 h-4 w-4" />
+            </Button>
           )}
+        </div>
+      </div>
 
-          {rowModel.rows.map((row) => (
-            <React.Fragment key={row.id}>
-              <TableRow>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+      {/* Tabla con Scroll Interno */}
+      <div className="rounded-md border h-[600px] overflow-auto relative">
+        <table className="w-full caption-bottom text-sm">
+          <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
-
-              {expandedId === row.original.id && (
-                <TableRow>
-                  <TableCell colSpan={colCount}>
-                    <DetailBlock
-                      row={row.original}
-                      details={detailsById[row.original.id]}
-                    />
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
-          ))}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <React.Fragment key={row.id}>
+                  <TableRow
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={row.getIsExpanded() ? 'bg-muted/20 border-b-0' : ''}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="p-0">
+                        <div className="p-4 bg-muted/10 border-t shadow-inner">
+                           <SubjectDetailView 
+                              asignaturaId={Number(row.original.id)} 
+                              onDataLoaded={(data) => onDataUpdate(row.original.id, data)}
+                           />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No se encontraron resultados.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </table>
+      </div>
+      
+      {/* Contador final */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} asignaturas.
+        </div>
+      </div>
     </div>
   );
 }

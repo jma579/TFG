@@ -1,6 +1,7 @@
 import { listProfesores } from '@/lib/api/client';
-import { ProfessorsTable } from '@/components/professors/table';
+import { ProfessorsScreen } from '@/components/professors/professors-screen';
 import type { Professor } from '@/components/professors/data';
+import { PageTitle } from '@/components/common/page-title';
 
 export default async function ProfesoresPage() {
   const resp = await listProfesores();
@@ -14,9 +15,19 @@ export default async function ProfesoresPage() {
     activo: p.activo,
   }));
 
+  data.sort((a, b) => {
+    const nameA = `${a.nombre} ${a.apellidos}`.toLowerCase();
+    const nameB = `${b.nombre} ${b.apellidos}`.toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <ProfessorsTable data={data} />
+    <div className="space-y-6">
+      <PageTitle
+        title="Profesores"
+        subtitle="Gestión del personal docente y departamentos."
+      />
+      <ProfessorsScreen data={data} />
     </div>
   );
 }

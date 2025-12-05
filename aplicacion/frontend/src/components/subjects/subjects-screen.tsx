@@ -2,11 +2,12 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { SubjectsTable } from '@/components/subjects/table';
 import type { SubjectRow } from '@/components/subjects/data';
 import { SubjectFormDialog } from '@/components/subjects/subject-form-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { deleteAsignatura, updateAsignatura } from '@/lib/api/client';
+import { deleteAsignatura, updateAsignatura, listProgramas, type ProgramaOut } from '@/lib/api/client';
 
 type SubjectsScreenProps = {
   data: SubjectRow[];
@@ -16,11 +17,21 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
   const { toast } = useToast();
 
   const [rows, setRows] = React.useState<SubjectRow[]>(data);
-  const [filtersOpen, setFiltersOpen] = React.useState(false);
+  const [programas, setProgramas] = React.useState<ProgramaOut[]>([]);
 
   const [editing, setEditing] = React.useState<SubjectRow | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    listProgramas(1, 1000, true)
+      .then((res) => {
+        if (res && res.items) {
+          setProgramas(res.items);
+        }
+      })
+      .catch((err) => console.error('Error cargando programas', err));
+  }, []);
 
   const handleEdit = (row: SubjectRow) => {
     setEditing(row);
@@ -46,6 +57,16 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
             : 'No se ha podido eliminar la asignatura.',
       });
     }
+  };
+
+  const handleDataUpdate = (id: string, data: { profesores: any[]; titulaciones: any[] }) => {
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === id
+          ? { ...row, profesores: data.profesores, titulaciones: data.titulaciones }
+          : row
+      )
+    );
   };
 
   const handleSubmit = async (values: {
@@ -106,37 +127,17 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">
-            Fichas académicas
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Asignaturas extraídas a partir de las fichas académicas.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setFiltersOpen((prev) => !prev)}
-          >
-            {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
-          </Button>
-        </div>
-      </div>
-
-      {filtersOpen && (
-        <div className="rounded-md border bg-card p-4">
-          <p className="text-sm text-muted-foreground">
-            Los filtros avanzados se conectarán más adelante. De momento son
-            solo UI.
-          </p>
-        </div>
-      )}
-
-      <SubjectsTable data={rows} onEdit={handleEdit} onDelete={handleDelete} />
+      <Card>
+        <CardContent className="pt-6">
+           <SubjectsTable 
+             data={rows} 
+             onEdit={handleEdit} 
+             onDelete={handleDelete} 
+             onDataUpdate={handleDataUpdate}
+             titulacionesDisponibles={programas}
+           />
+        </CardContent>
+      </Card>
 
       <SubjectFormDialog
         open={dialogOpen}

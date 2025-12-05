@@ -1,6 +1,7 @@
 import { RoomsScreen } from '@/components/rooms/rooms-screen';
 import { listAulas, type AulaOut } from '@/lib/api/client';
 import type { Room } from '@/components/rooms/data';
+import { PageTitle } from '@/components/common/page-title';
 
 export default async function AulasPage() {
   const resp = await listAulas();
@@ -13,8 +14,15 @@ export default async function AulasPage() {
     capacidad: aula.capacidad ?? null,
   }));
 
+  // Ordenar por código por defecto
+  rooms.sort((a, b) => a.codigo.localeCompare(b.codigo));
+
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="space-y-6">
+      <PageTitle
+        title="Aulas"
+        subtitle="Gestión de espacios y capacidades."
+      />
       <RoomsScreen initialData={rooms} />
     </div>
   );

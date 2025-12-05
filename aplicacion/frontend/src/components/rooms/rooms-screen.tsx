@@ -2,19 +2,11 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 import { RoomsTable } from './table';
 import { RoomFormDialog } from './room-form-dialog';
 import type { Room } from './data';
 import {
-  listAulas,
   createAula,
   updateAula,
   deleteAula,
@@ -40,50 +32,9 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
   const { toast } = useToast();
 
   const [rows, setRows] = React.useState<Room[]>(initialData);
-  const [search, setSearch] = React.useState('');
-  const [tipoFilter, setTipoFilter] = React.useState<string>('all');
-  const [capacidadMin, setCapacidadMin] = React.useState<string>('');
-
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Room | null>(null);
   const [saving, setSaving] = React.useState(false);
-
-  // Tipos de aula disponibles, derivados de los datos actuales
-  const tiposDisponibles = React.useMemo(() => {
-    const set = new Set<string>();
-    rows.forEach((r) => {
-      if (r.tipo) {
-        set.add(r.tipo);
-      }
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [rows]);
-
-  const filtered = React.useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const minCap = capacidadMin.trim() ? Number(capacidadMin) : null;
-
-    return rows.filter((r) => {
-      if (tipoFilter !== 'all' && r.tipo !== tipoFilter) {
-        return false;
-      }
-
-      if (minCap !== null && !Number.isNaN(minCap)) {
-        if (r.capacidad == null || r.capacidad < minCap) {
-          return false;
-        }
-      }
-
-      if (q) {
-        const haystack = `${r.nombre} ${r.codigo} ${r.tipo}`.toLowerCase();
-        if (!haystack.includes(q)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [rows, search, tipoFilter, capacidadMin]);
 
   const openNew = () => {
     setEditing(null);
@@ -169,76 +120,18 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
     }
   };
 
-  // Opcional: recarga manual desde el backend (por si quieres añadir un botón "Recargar")
-  const handleReload = async () => {
-    try {
-      const resp = await listAulas();
-      const mapped = resp.items.map(mapAulaToRoom);
-      setRows(mapped);
-      toast({ title: 'Aulas actualizadas', description: 'Se han recargado las aulas del servidor.' });
-    } catch (error: unknown) {
-      toast({
-        variant: 'destructive',
-        title: 'Error al recargar',
-        description:
-          error instanceof Error ? error.message : 'No se han podido recargar las aulas.',
-      });
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">Aulas</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestión de aulas registradas en el sistema.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder="Buscar por nombre, código o tipo…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-xs"
+      <Card>
+        <CardContent className="pt-6">
+          <RoomsTable 
+            data={rows} 
+            onEdit={openEdit} 
+            onDelete={handleDelete} 
+            onCreate={openNew}
           />
-
-          <Select
-            value={tipoFilter}
-            onValueChange={(value) => setTipoFilter(value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tipo de aula" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {tiposDisponibles.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Input
-            type="number"
-            min={0}
-            placeholder="Capacidad mínima"
-            value={capacidadMin}
-            onChange={(e) => setCapacidadMin(e.target.value)}
-            className="w-36"
-          />
-
-          <Button variant="outline" onClick={handleReload}>
-            Recargar
-          </Button>
-
-          <Button onClick={openNew}>Nueva aula</Button>
-        </div>
-      </div>
-
-      <RoomsTable data={filtered} onEdit={openEdit} onDelete={handleDelete} />
+        </CardContent>
+      </Card>
 
       <RoomFormDialog
         open={dialogOpen}

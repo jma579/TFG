@@ -288,39 +288,6 @@ class AsignaturaUpdate(BaseModel):
 #  OUT: Schema de respuesta (GET)
 # ============================================================
 
-class AsignaturaOut(AsignaturaBase):
-    """
-    Schema de salida para asignatura.
-    
-    Incluye el ID autogenerado por la base de datos.
-    Se usa en respuestas de GET, POST y PUT.
-    
-    Hereda todos los campos de AsignaturaBase + ID.
-    """
-    
-    id: int = Field(
-        ...,
-        description="ID único autogenerado de la asignatura",
-        examples=[1, 42, 123]
-    )
-    
-    model_config = ConfigDict(
-        from_attributes=True,  # Permite crear desde ORM models
-        json_schema_extra={
-            "example": {
-                "id": 1,
-                "codigo_plan": "MAT101",
-                "nombre": "Matemáticas I",
-                "periodo": "cuatrimestral_1",
-                "ects": 6,
-                "modalidad": "presencial",
-                "idioma": "español",
-                "english_friendly": False,
-                "activo": True
-            }
-        }
-    )
-
 class AsignaturaProgramaOut(BaseModel):
     """
     Relación entre una asignatura y un programa concreto.
@@ -343,6 +310,61 @@ class AsignaturaProgramaOut(BaseModel):
     tipo_asignatura: Optional[TipoAsignatura] = Field(
         None,
         description="Tipo de asignatura dentro del programa (OBLIGATORIA, OPTATIVA, ...)",
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class AsignaturaOut(AsignaturaBase):
+    """
+    Schema de salida para asignatura.
+    
+    Incluye el ID autogenerado por la base de datos.
+    Se usa en respuestas de GET, POST y PUT.
+    
+    Hereda todos los campos de AsignaturaBase + ID.
+    """
+    
+    id: int = Field(
+        ...,
+        description="ID único autogenerado de la asignatura",
+        examples=[1, 42, 123]
+    )
+
+    num_profesores: int = Field(
+        default=0,
+        description="Número de profesores asignados",
+        examples=[0, 2]
+    )
+
+    num_titulaciones: int = Field(
+        default=0,
+        description="Número de titulaciones vinculadas",
+        examples=[1, 3]
+    )
+
+    titulaciones: list[AsignaturaProgramaOut] = Field(
+        default_factory=list,
+        description="Lista de titulaciones vinculadas"
+    )
+    
+    model_config = ConfigDict(
+        from_attributes=True,  # Permite crear desde ORM models
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "codigo_plan": "MAT101",
+                "nombre": "Matemáticas I",
+                "periodo": "cuatrimestral_1",
+                "ects": 6,
+                "modalidad": "presencial",
+                "idioma": "español",
+                "english_friendly": False,
+                "activo": True
+            }
+        }
     )
 
     model_config = ConfigDict(
