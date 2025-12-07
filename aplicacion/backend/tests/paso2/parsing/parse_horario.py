@@ -4,8 +4,8 @@ import json
 from dataclasses import asdict
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-from core.extraccion.horarios.extractor import get_schedule_extractor
-from core.extraccion.horarios.parser import ScheduleParser
+from core.extraccion.horarios.extractor.extractor import get_schedule_extractor
+from core.extraccion.horarios.parser.parser import ScheduleParser
 
 HORARIOS_OUTDIR = os.path.join(os.path.dirname(__file__), "horarios")
 

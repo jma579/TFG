@@ -21,8 +21,8 @@ from pathlib import Path
 # Ajustar path para imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-from core.extraccion.horarios.extractor import HorarioExtractor
-from core.extraccion.horarios.parser import HorarioParser
+from core.extraccion.horarios.extractor.extractor import HorarioExtractor
+from core.extraccion.horarios.parser.parser import HorarioParser
 from core.extraccion.common.entities import ParserError
 
 # ============================================================
