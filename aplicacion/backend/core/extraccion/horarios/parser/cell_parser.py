@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 import re
-from core.extraccion.horarios.parser_rules import (
+from core.extraccion.horarios.parser.parser_rules import (
     RE_AULA, RE_GRUPO, TIPO_PRACTICA, TIPO_TEORIA, TIPO_GENERICO, 
     clean_subject_name, apply_ocr_corrections
 )

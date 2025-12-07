@@ -16,16 +16,16 @@ from core.extraccion.common.entities import (
 from core.extraccion.horarios.entities import (
     HorarioExtractionResult, TablaHorario
 )
-from core.extraccion.horarios.constants import (
+from core.extraccion.horarios.extractor.constants import (
     DEFAULT_EXTRACTOR_CONFIG, ATOM_EXTRACT_SETTINGS, 
     RX_CURSO, RX_MENCION, DIAS_REGEX, DAYS_MAP, RX_HORA, VALID_TIME_CHARS, PATRONES_RADAR,
     DIAS_SEMANA
 )
 
 # Componentes internos
-from core.extraccion.horarios.internal_models import TextAtom, GridCell
-from core.extraccion.horarios.grid_detector import GridDetector
-from core.extraccion.horarios.spatial_mapper import SpatialMapper
+from core.extraccion.horarios.extractor.internal_models import TextAtom, GridCell
+from core.extraccion.horarios.extractor.grid_detector import GridDetector
+from core.extraccion.horarios.extractor.spatial_mapper import SpatialMapper
 
 class HorarioExtractor:
     

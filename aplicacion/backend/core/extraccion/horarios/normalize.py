@@ -31,7 +31,7 @@ from core.extraccion.horarios.entities import (
     NormalizedHorarioTablaData,
     NormalizedSesionHorarioData,
 )
-from core.extraccion.horarios.constants import (
+from core.extraccion.horarios.extractor.constants import (
     DIA_SEMANA_MAP,
     PERIODO_MAP,
     AULA_KEYWORDS,

@@ -24,7 +24,7 @@ from typing import List
 # Ajustar path para imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-from core.extraccion.horarios.extractor import HorarioExtractor
+from core.extraccion.horarios.extractor.extractor import HorarioExtractor
 from core.extraccion.horarios.entities import TablaHorario
 
 # ============================================================

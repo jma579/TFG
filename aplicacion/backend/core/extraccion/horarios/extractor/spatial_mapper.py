@@ -2,8 +2,8 @@ from typing import List, Optional
 import re
 import logging
 
-from core.extraccion.horarios.internal_models import GridCell, TextAtom
-from core.extraccion.horarios.constants import (
+from core.extraccion.horarios.extractor.internal_models import GridCell, TextAtom
+from core.extraccion.horarios.extractor.constants import (
     STITCHING_CONFIG, REPAIRS_BROKEN_WORDS
 )
 

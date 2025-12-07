@@ -21,7 +21,7 @@ if str(backend_root) not in sys.path:
 # 2. IMPORTS DEL SISTEMA
 # =============================================================================
 try:
-    from core.extraccion.horarios.extractor import HorarioExtractor
+    from core.extraccion.horarios.extractor.extractor import HorarioExtractor
 except ImportError as e:
     print(f"\n❌ CRITICAL ERROR: No se pudieron importar los módulos del Core.")
     print(f"Detalle: {e}")

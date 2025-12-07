@@ -6,8 +6,8 @@ import re
 from core.extraccion.horarios.entities import (
     HorarioExtractionResult, ParsingResult, Horario, Sesion, ParsingMetadata
 )
-from core.extraccion.horarios.constants import DIAS_SEMANA
-from core.extraccion.horarios.cell_parser import CellParser, ParsedCellData, clean_subject_name
+from core.extraccion.horarios.extractor.constants import DIAS_SEMANA
+from core.extraccion.horarios.parser.cell_parser import CellParser, ParsedCellData, clean_subject_name
 
 class HorarioParser:
     

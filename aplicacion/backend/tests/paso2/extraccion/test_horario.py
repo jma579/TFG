@@ -4,7 +4,7 @@ import json
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from core.extraccion.horarios.extractor import get_schedule_extractor
+from core.extraccion.horarios.extractor.extractor import get_schedule_extractor
 
 # === CONFIGURACIÓN ===
 PDF_PATH = Path(r"C:\Users\usuario\TFG\Horarios\Grado\1C_DOBLE GRADO_v6.pdf")  # Cambia la ruta al PDF real

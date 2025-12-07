@@ -1,7 +1,7 @@
 from typing import List
 import logging
-from core.extraccion.horarios.constants import PDFPLUMBER_GRID_SETTINGS, GRID_CONFIG
-from core.extraccion.horarios.internal_models import GridCell
+from core.extraccion.horarios.extractor.constants import PDFPLUMBER_GRID_SETTINGS, GRID_CONFIG
+from core.extraccion.horarios.extractor.internal_models import GridCell
 
 class GridDetector:
     
