@@ -1,0 +1,987 @@
+{
+    "titulo": "GRADO EN INGENIERÍA INFORMÁTICA SEGUNDO CUATRIMESTRE",
+    "tablas": [
+        {
+            "curso": "SEGUNDO",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "PRIMER",
+                    "CURSO",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "AULA",
+                    "2",
+                    null,
+                    "Lógica 2",
+                    "Lógica PA1/PL1"
+                ],
+                [
+                    "Estadística Optim AUL",
+                    "y ización A 2",
+                    "Intr. a los computa-",
+                    "Estadíst. y Optimiza- ción",
+                    "AULA 13"
+                ],
+                [
+                    "Est. y AULA",
+                    "Optimización 2",
+                    "dores PL4 ATC",
+                    "PA2 AULA2",
+                    "Introducción a los Computadores AULA 2"
+                ],
+                [
+                    "Métodos de progra-",
+                    "Intr. a los computa-",
+                    "Métodos de",
+                    "programación 2",
+                    "Introducción a los Computadores AULA 2"
+                ],
+                [
+                    "mación PL1 y PL2 AULA 13",
+                    "dores PL1 ATC",
+                    "Estadística y",
+                    "Optimización",
+                    "Métodos de programación TE/PA 2 AULA 2"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "2",
+                    "I.Computadores PA 1 AULA 2"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Introducción",
+                    "a los",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Introducción",
+                    "a los",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "14:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "SEGUNDO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Algorítmica y complejidad AULA 14",
+                    null,
+                    "Bases de datos AULA 14",
+                    null,
+                    "Bases AULA"
+                ],
+                [
+                    "Sistemas operativos TE AULA 14",
+                    "Alg. y complejidad",
+                    "Org. Computadores",
+                    "Sistemas operativos",
+                    "Bases de datos"
+                ],
+                [
+                    "Sist. Operativos PA1 AULA 14",
+                    "PA 2 AULA 14",
+                    "LATC",
+                    "PL3 y PL4 LSC 1",
+                    "PL1 AULA 14"
+                ],
+                [
+                    "Org. Computadores TE AULA 14",
+                    "Org.",
+                    "Computadores PL2",
+                    "Sistemas de Información",
+                    "Sistemas"
+                ],
+                [
+                    "Org. Comp. PA1 AULA 14",
+                    null,
+                    "LATC",
+                    "PL1 AULA 9",
+                    "LSC"
+                ],
+                [
+                    "grupos podría reducirse",
+                    "si el número",
+                    "alumnos",
+                    "es inferior",
+                    "al estimado."
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Sistemas informáticos AULA 4",
+                    "Ingeniería TE",
+                    "de software II PA 2 4",
+                    "Arq. e",
+                    "de"
+                ],
+                [
+                    "Redes de comp. y sist. distribuidos AULA 4",
+                    "Redes de",
+                    "comp. y sist. distribuidos 4",
+                    "computadores LSC",
+                    null
+                ],
+                [
+                    "Sistemas de tiempo real",
+                    "RC y S. Distrib. PA 2 AULA 4",
+                    "Ing. de Softw. II PA1 SEM INF",
+                    null,
+                    "Ingeniería de"
+                ],
+                [
+                    "PL1 LTR",
+                    "Redes de Distr",
+                    "omp. y sist. ibuidos PA1 4",
+                    "Sistemas informáticos PL1 y PL4 AULA 4",
+                    "software II PL3 AULA 13"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Optativas",
+                    null,
+                    "Obligatorias",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "MIÉRCOLES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    null,
+                    "MIÉRCOLES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Sistemas informáticos AULA 4",
+                    "Ingeniería TE / AULA",
+                    "de software PA 2 4",
+                    "Lenguajes",
+                    "formales"
+                ],
+                [
+                    "Redes de comp. y sist. distribuidos AULA 4",
+                    "Redes de AULA",
+                    "comp. y sist. 4",
+                    "SEM",
+                    "INF"
+                ],
+                [
+                    "A.A. y minería de datos",
+                    "RC y S. Distrib. PA 2 AULA 4",
+                    "Ing. de Softw. II PA1 SEM INF",
+                    null,
+                    "Ingeniería de software II"
+                ],
+                [
+                    "SEM INF",
+                    "Redes de AULA",
+                    "comp. y sist. 4",
+                    "Sistemas informátic os PL1 y PL4",
+                    "PL3 AULA 13"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Optativas",
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Sistemas informáticos AULA 4",
+                    "Ingeniería TE / AULA",
+                    "de software PA 2 4",
+                    "Ingeniería",
+                    "de"
+                ],
+                [
+                    "Redes de comp. y sist. distribuidos AULA 4",
+                    "Redes de AULA",
+                    "comp. y sist. 4",
+                    "AULA",
+                    "4"
+                ],
+                [
+                    "Ingeniería de",
+                    "RC y S. Distrib. PA 2 AULA 4",
+                    "Ing. de Softw. II PA1 SEM INF",
+                    null,
+                    "Ingeniería de"
+                ],
+                [
+                    "requisitos AULA 4",
+                    "Redes de AULA",
+                    "comp. y sist. 4",
+                    "Sistemas informátic os PL1 y PL4",
+                    "software II PL3 AULA 13"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Optativas",
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "A.A. y minería de datos",
+                    "Informática AULA L4",
+                    "industrial semanas)",
+                    null,
+                    null
+                ],
+                [
+                    "SEM INF",
+                    "L",
+                    "Electrónica",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "Diseño y",
+                    "Gestión de"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "sistemas AULA",
+                    "informáticos L4"
+                ],
+                [
+                    "System and network",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "secutity and assurance AULA L4",
+                    "Gestión de",
+                    "proyectos software",
+                    "Gestión de",
+                    "proyectos"
+                ],
+                [
+                    null,
+                    "SEM",
+                    "INF",
+                    "software SEM",
+                    "INF"
+                ],
+                [
+                    "Optativas",
+                    "Obligatorias",
+                    "de mención",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 5
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Informática AULA L4 (5",
+                    "industrial semanas)",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "L",
+                    "Electrónica",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Natural Language",
+                    "Natural AULA",
+                    "Language 8",
+                    "Natural",
+                    "Language Processing AULA 8"
+                ],
+                [
+                    "Processing Aula 8",
+                    "Lenguajes",
+                    "de",
+                    "Lenguajes",
+                    "de"
+                ],
+                [
+                    "System and network",
+                    "AULA",
+                    "8",
+                    null,
+                    "programación 8"
+                ],
+                [
+                    "secutity and assurance AULA L4",
+                    "Gestión de",
+                    "proyectos",
+                    "Gestión",
+                    "proyectos"
+                ],
+                [
+                    null,
+                    "SEM",
+                    "INF",
+                    "SEM",
+                    "software INF"
+                ],
+                [
+                    "Optativas",
+                    "Obligatorias",
+                    "de",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 6
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "A.A. y minería de datos",
+                    "Informática AULA L4 (5",
+                    "industrial semanas)",
+                    null,
+                    null
+                ],
+                [
+                    "SEM INF",
+                    "L",
+                    "Electrónica",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "A.A. y",
+                    "mineria datos",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "(3",
+                    "sesiones)",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Servicios",
+                    "sotware",
+                    "Servicios",
+                    "sotware"
+                ],
+                [
+                    "System and network",
+                    "SEM",
+                    "INF",
+                    "SEM",
+                    "INF"
+                ],
+                [
+                    "secutity and assurance AULA L4",
+                    "Gestión de",
+                    "proyectos",
+                    "Gestión de",
+                    "proyectos"
+                ],
+                [
+                    null,
+                    "SEM",
+                    "INF",
+                    "SEM",
+                    "INF"
+                ],
+                [
+                    "Optativas",
+                    "Obligatorias",
+                    "de",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 7
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 1.27337646484375,
+        "page_count": 8,
+        "file_size_mb": 0.14393043518066406,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 8
+    }
+}

@@ -1,0 +1,855 @@
+{
+    "titulo": "GRADO EN INGENIERÍA INFORMÁTICA PRIMER CUATRIMESTRE",
+    "tablas": [
+        {
+            "curso": "PRIMER",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MARTES",
+                "JUEVES",
+                "MIÉRCOLES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    null,
+                    null,
+                    null,
+                    "PRIMER",
+                    "CURSO",
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    "MARTES",
+                    null,
+                    "MIÉRCOLES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    "ODS",
+                    "Sistemas Digitales AULA 2",
+                    null,
+                    "Algebra Lineal y AULA 2",
+                    null
+                ],
+                [
+                    null,
+                    "8",
+                    "Algebra Lineal y AULA 2",
+                    "Discreta",
+                    "Fundamentos AULA 2",
+                    "Sist. Digitales TE / PA 1 AULA 7"
+                ],
+                [
+                    "Fund. Físicos Grupo PL3",
+                    "Sistemas Digitales PL1",
+                    "Fund. Físicos",
+                    "Intro al software",
+                    "Intro al software TE AULA 2",
+                    "Sist. Digitales PA 2 AULA 7"
+                ],
+                [
+                    "AULA 13 (*)",
+                    null,
+                    "AULA 13 (*)",
+                    "PL3 y PL4 LSC 1",
+                    "Sistemas Digitales",
+                    "Algebra Lineal y Discreta"
+                ],
+                [
+                    "Fund. Físicos Grupo PL1",
+                    "Sistemas Digitales PL3",
+                    "Fund. Físicos Grupo PL4",
+                    "Introduc. al software",
+                    "LSC 1?? O SEM.INF??",
+                    "AULA 14"
+                ],
+                [
+                    "AULA 13 (*)",
+                    null,
+                    "AULA 13 (*)",
+                    "PL1 y PL2 LSC 1",
+                    "Intro al software PA3 AULA 5",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "(*) La programación",
+                    "de práctiacs de",
+                    "y",
+                    "simulación se dará a conocer",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "VIERNES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:00",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "19:30"
+            ],
+            "celdas": [
+                [
+                    "CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    null,
+                    "MIÉRCOLES",
+                    null,
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Estructura de",
+                    "Computadores",
+                    null,
+                    "Estructura",
+                    null
+                ],
+                [
+                    null,
+                    "PL3 LATC",
+                    null,
+                    null,
+                    "PL4",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Estructura Computadores PA1 AULA 2",
+                    "Estructura de TE/tutoría AULA 2",
+                    "Computadores",
+                    "Estructura de Computadores AULA 2",
+                    "Estructura de Datos PA1 AULA 9",
+                    "Int.persona-comp. PL1 y PL2"
+                ],
+                [
+                    null,
+                    "Interacción TE AULA 7",
+                    null,
+                    null,
+                    "Estructuras TE",
+                    "AULA 7"
+                ],
+                [
+                    "Matemática Discreta AULA 2",
+                    "Interacción TE / PA1 y PA2 AULA 7",
+                    null,
+                    "Matemática Discreta AULA 2",
+                    "Estructuras TE / AULA",
+                    "Estructura de Computadores"
+                ],
+                [
+                    "Estructura de Computadores",
+                    "Estructuras de Datos",
+                    "Estructura de",
+                    "Econ. y ADE",
+                    "Econ.",
+                    "LATC"
+                ],
+                [
+                    "PL1 L ATC",
+                    "AULA 2",
+                    "ores PL2 LATC",
+                    "AULA 14",
+                    "AULA",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "17:30",
+                "17:30",
+                "19:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    "MIÉRCOLES",
+                    null,
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    "Int.persona-comp.",
+                    "Prog.",
+                    "concurrente",
+                    "Prog. paralela, concurrente"
+                ],
+                [
+                    "Programación paralela, concurrente y de tiempo real AULA 14",
+                    "Programación paralela, concurrente y de tiempo real AULA 14",
+                    "AULA 14",
+                    null,
+                    "LTR/ATC",
+                    "y de tiempo real PL5 LTR/ATC"
+                ],
+                [
+                    "Interacción persona-computador TE AULA 14",
+                    "Introducción a los sistemas inteligentes AULA 14",
+                    "Introducción a los sistemas inteligentes AULA 14",
+                    "Intr. a redes de computado ras PA1 AULA 13",
+                    "Ingeniería P SEM",
+                    "Ingeniería de software I"
+                ],
+                [
+                    "Ingeniería de software I AULA 14",
+                    "Intr. a redes de computadoras TE AULA 14",
+                    "Intr. a redes de computadoras TE AULA 14",
+                    "Intr. a redes de computado ras PA2 AULA 13",
+                    "Ingeniería SEM",
+                    "PL3 SEM INF"
+                ],
+                [
+                    "Prog. paralela, concurrente y de",
+                    "Interacción persona-comp. TE / PA1 y PA2 AULA 14",
+                    "Prog. paralela, concurrente y de tiempo real",
+                    "Prog. paralela, concurrent",
+                    "Ingeniería de",
+                    "Ingeniería de software I"
+                ],
+                [
+                    "LTR/ATC",
+                    null,
+                    "LTR/ATC",
+                    "tiempo real PL4 LRT",
+                    "PL1 SEM INF",
+                    "PL2 SEM INF"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "Introducción a redes de computadoras",
+                    null,
+                    "a computadoras",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "LATC",
+                    null,
+                    "PL3 LATC",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "a",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "PL4 LATC",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MARTES",
+                "JUEVES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    null,
+                    null,
+                    null,
+                    "CUARTO",
+                    "CURSO MENCIÓN EN",
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    "MARTES",
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Diseño y administración de redes AULA 15",
+                    "Computer animation",
+                    "Bases de",
+                    "Sist. informacio",
+                    null,
+                    "Bases de",
+                    null
+                ],
+                [
+                    "Multiprocesadores",
+                    "and videogames Portátiles AULA 13",
+                    "datos avanzadas AULA 15",
+                    "n empresa AULA 5",
+                    "Sistemas embebidos AULA 15",
+                    "datos avanzadas AULA 15",
+                    "Sistemas embebidos AULA LSC4"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Sistemas operativos",
+                    null,
+                    null
+                ],
+                [
+                    "Sistemas operativos avanzados UNICAN-LABS",
+                    null,
+                    "Multiprocesadores AULA 15",
+                    null,
+                    "avanzados UNICAN-LABS AULA 15",
+                    "administración DICOM - AULA",
+                    null
+                ],
+                [
+                    "AULA 15",
+                    null,
+                    null,
+                    null,
+                    "Diseño y administración de redes AULA 15",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MARTES",
+                "JUEVES",
+                "MIÉRCOLES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    null,
+                    null,
+                    "CUARTO",
+                    "CURSO",
+                    "MENCIÓN EN COMPUTACIÓN",
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    "MARTES",
+                    null,
+                    "MIÉRCOLES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Computer animation",
+                    "Bases de",
+                    "Sist. informacio",
+                    "Representación del",
+                    "Representación del"
+                ],
+                [
+                    "Modelos de cálculo AULA 13",
+                    "and videogames Portátiles AULA 13",
+                    "datos avanzadas AULA 15",
+                    "n empresa AULA 5",
+                    "conocimiento AULA 13",
+                    "conocimiento AULA 13"
+                ],
+                [
+                    "Gráficos por",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "computador y realidad virtual AULA 13",
+                    "Diseño",
+                    "de algoritmos AULA 13",
+                    null,
+                    "Modelos de cálculo AULA 13",
+                    "Diseño de algoritmos AULA 13"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "MIÉRCOLES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    null,
+                    null,
+                    null,
+                    "CURSO",
+                    "MENCIÓN EN I. SOFTWARE",
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Métodos de desarrollo",
+                    "Computer animation",
+                    "Bases de",
+                    "Sist. informacio",
+                    null,
+                    "Métodos de desarrollo"
+                ],
+                [
+                    "Software SEM INF",
+                    "and videogames Portátiles AULA 13",
+                    "datos avanzadas AULA 15",
+                    "n empresa AULA 5",
+                    "Procesos software SEM INF",
+                    "Software SEM INF"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Calidad y auditoría SEM INF",
+                    null,
+                    "Software SEM INF",
+                    null,
+                    "Calidad y auditoría SEM INF",
+                    "Diseño Software SEM INF"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 5
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 0.8452467918395996,
+        "page_count": 6,
+        "file_size_mb": 0.12977218627929688,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 6
+    }
+}

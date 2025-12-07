@@ -1,0 +1,760 @@
+{
+    "titulo": "Horario Académico",
+    "tablas": [
+        {
+            "curso": "SEGUNDO",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "17:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "PRIMER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    "Estad. Básica AULA 1",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Programación TE / PA1 AULA 1",
+                    "Estadística Básica",
+                    "Matemática discreta AULA 7",
+                    null
+                ],
+                [
+                    "Geometría Arte y naturaleza AULA 1",
+                    "Programación PA2 AULA 6",
+                    "AULA 1",
+                    "Geometría Arte y",
+                    "Geometría Arte y naturaleza AULA 8"
+                ],
+                [
+                    "Programación TE AULA 1",
+                    "Matemática discreta AULA 7",
+                    null,
+                    "naturaleza AULA 8",
+                    "Matemática discreta"
+                ],
+                [
+                    "Programación",
+                    "Cálculo Integral",
+                    "Programación",
+                    "Cálculo Integral",
+                    "AULA 7"
+                ],
+                [
+                    "PL1 y PL4 LSC 1",
+                    "(Grupo 1) AULA 1",
+                    "PL5 Y PL6 LSC 1",
+                    "(Grupo 1) AULA 1",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Programación PL2",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LSC 1",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Programación PL3",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LSC 1",
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "SEGUNDO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Estructuras algebraicas AULA 1",
+                    "Estructuras algebraicas AULA 13",
+                    "Estructuras algebraicas AULA 1",
+                    "Estructuras algebraicas AULA 13",
+                    null
+                ],
+                [
+                    "Estructuras algebraicas PA1 AULA 1",
+                    "Estructuras algebraicas PA2 AULA 13",
+                    "Cálculo",
+                    "Numérico I",
+                    "Geometría de curvas y superficies AULA 2"
+                ],
+                [
+                    "Ecuaciones AULA",
+                    "Parciales 2",
+                    "AULA",
+                    "2",
+                    "Ecuaciones der. Parciales AULA 2"
+                ],
+                [
+                    "Ampl. Cálculo",
+                    "Integral",
+                    "Ecuaciones",
+                    "der. Parciales",
+                    "Ampl. Cálculo Integral"
+                ],
+                [
+                    "AULA",
+                    "2",
+                    "AULA",
+                    "2",
+                    "AULA 2"
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Optimización",
+                    null,
+                    "Optimización",
+                    null
+                ],
+                [
+                    null,
+                    "PL 2 LSC 1",
+                    null,
+                    "PL 1 LSC 1",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Algebra Conmutativa",
+                    null,
+                    null,
+                    "Variable Compleja AULA 4",
+                    "Variable Compleja"
+                ],
+                [
+                    "AULA 4",
+                    "Taller de modelización",
+                    "Algebra Conmutativa",
+                    "Taller de modelización",
+                    "AULA 4"
+                ],
+                [
+                    "Inferencia estadística AULA 4",
+                    "AULA 4",
+                    "AULA 4",
+                    "AULA 4",
+                    "Optimización"
+                ],
+                [
+                    "Optimización AULA 4",
+                    "Variable Compleja AULA 4",
+                    "Optimización AULA 4",
+                    "Inferencia estadística",
+                    "PL 3 LSC 1"
+                ],
+                [
+                    null,
+                    null,
+                    "Inferencia estadística AULA 4",
+                    "AULA 4",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    "MENCIÓN EN MATEMÁTICA"
+                ],
+                [
+                    "Amp.de álgebra",
+                    "Algebra",
+                    "computacional",
+                    "Mat.para Educ. Sec.",
+                    "Algebra computacional"
+                ],
+                [
+                    "AULA 5",
+                    "AULA",
+                    "5",
+                    "AULA 7",
+                    "AULA 5"
+                ],
+                [
+                    "Geometría Proyectiva y",
+                    "Measure",
+                    "Theory",
+                    "Geom. Proy. Algebraica",
+                    "Measure Theory"
+                ],
+                [
+                    "Algebraica AULA 5",
+                    "AULA",
+                    "5",
+                    "AULA 5",
+                    "AULA 5"
+                ],
+                [
+                    "Calculo Numérico III AULA 5",
+                    "Amp.de AULA",
+                    "álgebra 5",
+                    "Calculo Numérico III AULA 5",
+                    "Amp.de álgebra AULA 5"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    "MECIÓN EN INFORMÁTICA"
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "Bases de datos",
+                    null,
+                    "Alg. y complejidad"
+                ],
+                [
+                    "Algorítmica y complejidad AULA 14",
+                    "Bases AULA",
+                    "datos 14",
+                    "AULA 14",
+                    "Algorítmica y complejidad AULA 14",
+                    "AULA 14"
+                ],
+                [
+                    null,
+                    "Alg. y",
+                    "complejidad",
+                    "Bases de datos",
+                    "Bases datos TE /PA AULA 14",
+                    null
+                ],
+                [
+                    null,
+                    "PL 2 AULA",
+                    "PA 2 14",
+                    "PL1 AULA 1 4",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Alg. y",
+                    "complejidad",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "PL3 AULA",
+                    "PA3 14",
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:00",
+                "16:00",
+                "17:00",
+                "18:00",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    "MENCIÓN EN",
+                    "ECONOMIA Y FINANZAS"
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Análisis de los mercados de valores",
+                    "Análisis de de",
+                    "los mercados valores",
+                    null,
+                    null,
+                    "Investigación de mercados"
+                ],
+                [
+                    "3º C GADE A7 (F. C. Económicas y Emp.)",
+                    "3º C A7 (F. C.",
+                    "GADE Económicas y",
+                    null,
+                    null,
+                    "3º C GADE A6 (F. C. Económicas y Emp.)"
+                ],
+                [
+                    null,
+                    "1º C",
+                    "GADE",
+                    "Investigación de mercados",
+                    "Macroeconomía 1º C GADE",
+                    null
+                ],
+                [
+                    null,
+                    "A3 (F. C.",
+                    "Económicas y",
+                    "3º C GADE Aula Inf. 1 (F. C. Económicas y Emp.)",
+                    "A3 (F. C. Económicas y Emp.)",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 5
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 0.7775077819824219,
+        "page_count": 6,
+        "file_size_mb": 0.12334346771240234,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 6
+    }
+}

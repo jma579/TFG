@@ -1,0 +1,655 @@
+{
+    "titulo": "Horario Académico",
+    "tablas": [
+        {
+            "curso": "SEGUNDO",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MARTES",
+                "JUEVES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "17:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "PRIMER CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    "MARTES",
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    "Estad. AULA",
+                    "Básica 1",
+                    null,
+                    null,
+                    null,
+                    "Lab. de física Básica III Grupo E",
+                    "Química y su ASN (*) Grupo E"
+                ],
+                [
+                    null,
+                    null,
+                    "Programación TE / PA1 AULA 1",
+                    null,
+                    "Estadística Básica",
+                    null,
+                    null
+                ],
+                [
+                    "Física AULA",
+                    "Básica III 14",
+                    "Física Básica IV (**)",
+                    null,
+                    "AULA 1",
+                    "Física Básica III AULA 14",
+                    "Física Básica IV (**) AULA 14"
+                ],
+                [
+                    "Programación AULA",
+                    "TE 1",
+                    "AULA 14",
+                    "Química",
+                    "y su Ap.en Naturales AULA 14",
+                    "Química y su Ap.en Sistemas Naturales AULA 14",
+                    "Química y su ASN (*) Grupo B"
+                ],
+                [
+                    "Progra- mación PL1 y",
+                    "Lab. Física",
+                    "Cálculo Integral",
+                    "Lab. Física",
+                    "Programaci ón",
+                    "Cálculo Integral",
+                    "Grupos B y E AULA 8"
+                ],
+                [
+                    "PL4 LSC 1",
+                    "Básica III Grupo B",
+                    "AULA 1",
+                    "Básica III Grupo C",
+                    "PL5 Y PL6 LSC 1",
+                    "AULA 1",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Programació",
+                    "Química y su ASN",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "n PL2 LSC 1",
+                    "(*) Grupo C",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Programación",
+                    "PL3",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LSC",
+                    "1",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "y su ASN: Los se unirán los semana del IV los alumnos",
+                    "grupos del vieres grupos en el curso estas de doble",
+                    "serán sólo necesarios AULA 14 como se indica. horas de clase serán de la deben ir en el grupo E",
+                    "para algunas asignatura",
+                    "de las sesiones Básica III",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "SEGUNDO",
+                    "CURSO",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "Matemática AULA",
+                    "discreta 7",
+                    "Laboratorio de Física I (grupo C)"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Estructuras algebraicas AULA 1",
+                    "Estructuras algebraicas AULA 13",
+                    "Estructuras algebraicas AULA 1",
+                    "Estructuras algebraicas AULA 13",
+                    "Fundamentos física cuántica AULA 1"
+                ],
+                [
+                    "Estructuras algebraicas PA1 AULA 1",
+                    "Estructuras algebraicas PA2 AULA 13",
+                    "Fundamentos",
+                    "física",
+                    null
+                ],
+                [
+                    "Ecuaciones AULA",
+                    "der. Parciales 2",
+                    "AULA",
+                    "1",
+                    "Ecuaciones der. Parciales AULA 2"
+                ],
+                [
+                    "Ampl. Cálculo",
+                    "Integral",
+                    "Ecuaciones",
+                    "der.",
+                    "Ampl. Cálculo Integral"
+                ],
+                [
+                    "AULA",
+                    "2",
+                    "AULA",
+                    "2",
+                    "AULA 2"
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "JUEVES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    null,
+                    null,
+                    "JUEVES"
+                ],
+                [
+                    "Lab. de física IV",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Grupo 1 AULA 12",
+                    null,
+                    "Laboratorio Grupo AULA",
+                    "de física IV 2 12",
+                    "Laboratorio de física IV Grupo 3 AULA 12"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Física del Estado Sólido AULA 1",
+                    "Física del AULA",
+                    "Estado Sólido 1",
+                    "Física del Estado Sólido AULA 1"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Electromagnetismo II AULA 2",
+                    "Electromagnetismo II AULA 2",
+                    "Lab. Física IV Grupo 1 AULA 12",
+                    "Lab. Física IV Grupo 2 AULA 6",
+                    "Variable Compleja AULA 4"
+                ],
+                [
+                    null,
+                    "Cálculo Numérico I",
+                    "Geometría AULA",
+                    "de curvas y 2",
+                    "Geometría de curvas y"
+                ],
+                [
+                    null,
+                    "AULA 2",
+                    "Electromagnetismo",
+                    "II",
+                    "superficies AULA 2"
+                ],
+                [
+                    null,
+                    "Variable Compleja AULA 4",
+                    "AULA",
+                    "13",
+                    "Cálculo Numérico I"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "PL3 LSC 3"
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Lab. de física IV Grupo 1 AULA 12",
+                    null,
+                    "Laboratorio Grupo AULA",
+                    "de física IV 2 12",
+                    "Laboratorio de física IV Grupo 3 AULA 12"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Astronomía",
+                    "Optimización",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "AULA 13",
+                    "PL2 LSC 1",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Algebra Conmutativa",
+                    null,
+                    "Lab. Física IV Grupo 1 AULA 12",
+                    "Lab. Física IV Grupo 2 AULA 6",
+                    null
+                ],
+                [
+                    "AULA 4",
+                    "Taller de modelización",
+                    "Algebra",
+                    "Conmutativa",
+                    "Taller de modelización"
+                ],
+                [
+                    "Inferencia estadística AULA 4",
+                    "AULA 4",
+                    "AULA",
+                    "4",
+                    "AULA 4"
+                ],
+                [
+                    "Optimización AULA 4",
+                    null,
+                    "AULA",
+                    "4",
+                    "Inferencia estadística"
+                ],
+                [
+                    null,
+                    null,
+                    "Inferencia AULA",
+                    "estadística 4",
+                    "AULA 4"
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "VIERNES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "QUINTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    null,
+                    "VIERNES"
+                ],
+                [
+                    "Amp.de álgebra",
+                    "Algebra",
+                    "computacional",
+                    "Mat.para Educ. Sec.",
+                    "Algebra",
+                    "Matemáticas para Educ. Sec."
+                ],
+                [
+                    "AULA 5",
+                    "AULA",
+                    "5",
+                    "AULA 7",
+                    "AULA",
+                    "AULA 7"
+                ],
+                [
+                    "Geometría Proyectiva y",
+                    "Measure",
+                    "Theory",
+                    "Geom. Proy. Algebraica",
+                    "Measure",
+                    "Calculo Numérico III"
+                ],
+                [
+                    "Algebraica AULA 5",
+                    "AULA",
+                    "5",
+                    "AULA 5",
+                    "AULA",
+                    "AULA 5"
+                ],
+                [
+                    "Calculo Numérico III AULA 5",
+                    "Amp.de AULA",
+                    "álgebra 5",
+                    "Calculo Numérico III AULA 5",
+                    "Amp.de AULA",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Physics of Materials",
+                    null,
+                    null,
+                    "Panorama y Proyectos",
+                    "Physics of",
+                    null
+                ],
+                [
+                    "Aula 5",
+                    null,
+                    null,
+                    "AULA 13",
+                    "Materials Aula 5",
+                    "Physics of Materials PL2"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Panorama",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "SEM.",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 0.7827284336090088,
+        "page_count": 5,
+        "file_size_mb": 0.12495136260986328,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 5
+    }
+}

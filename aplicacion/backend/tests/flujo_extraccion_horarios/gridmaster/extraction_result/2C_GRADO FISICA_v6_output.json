@@ -1,0 +1,603 @@
+{
+    "titulo": "Horario Académico",
+    "tablas": [
+        {
+            "curso": "SEGUNDO",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "17:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "PRIMER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Lab. de física Básica III",
+                    "Lab. de física básica IV Grupos",
+                    "Cálculo Integral AULA 14",
+                    null,
+                    null
+                ],
+                [
+                    "Grupo A",
+                    "C-D AULA L4",
+                    null,
+                    null,
+                    "Programación PA 5 AULA"
+                ],
+                [
+                    "Física Básica AULA",
+                    "III",
+                    "Física Básica IV (**)",
+                    null,
+                    "Programación TE / PA4 AULA"
+                ],
+                [
+                    "Programación AULA",
+                    "TE",
+                    "AULA 14",
+                    "Química y",
+                    "su Ap.en AULA"
+                ],
+                [
+                    "Programación",
+                    "Lab. Física",
+                    "Química y su ASN (*) Grupo A",
+                    "Lab. Física",
+                    "Progra- mación"
+                ],
+                [
+                    "LSC 1",
+                    "Grupo B",
+                    "Grupos A-C-D AULA 7",
+                    "Grupo C",
+                    "PL5 Y PL6 LSC 1"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Programación",
+                    "Química y su ASN",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LSC 1",
+                    "C",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Programación",
+                    "PL3",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LSC 1",
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "SEGUNDO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Laboratorio de Física I (grupo B)",
+                    "Laboratorio de Física I (grupo C)",
+                    "Laboratorio de Física I (grupo D)*",
+                    "Laboratorio de Física I (grupo E)"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Electromagnetismo II AULA 2",
+                    "Electromagnetismo II AULA 2",
+                    "Fundamentos física cuántica AULA 1",
+                    "Métodos numéricos",
+                    "Fundamentos física cuántica AULA 1"
+                ],
+                [
+                    "Métodos numéricos AULA 7",
+                    "Fundamentos física",
+                    "Métodos numéricos AULA 7",
+                    null,
+                    "Laboratorio de Física I"
+                ],
+                [
+                    null,
+                    "cuántica AULA 1",
+                    "Electromagnetismo II AULA 1",
+                    "Met. Mat II: Ecuaciones der. Parciales",
+                    "AULA 4"
+                ],
+                [
+                    "Laboratorio de Física I (grupo A)",
+                    "Met. Mat II: Ecuaciones der.",
+                    null,
+                    "AULA 1",
+                    null
+                ],
+                [
+                    null,
+                    "Parciales AULA 1",
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Lab. de física IV",
+                    null,
+                    null,
+                    null,
+                    "Laboratori o de física"
+                ],
+                [
+                    "Grupos 1 y 2 AULA 12 SEM FIS",
+                    "Lab. de física III Grupo 1",
+                    "Experimental Optics Grupo 2",
+                    "Lab. de física III Grupo 2",
+                    "IV Grupos 3 y 4 AULA 12"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Astronomía",
+                    "Astronomy",
+                    "Física del Estado Sólido AULA 1",
+                    "Física del AULA",
+                    "Estado Sólido 1"
+                ],
+                [
+                    "AULA 13",
+                    "TE/PL AULA 12",
+                    "Física Nuclear y de Partículas AULA 14",
+                    "Física Partículas AULA",
+                    "y de 14"
+                ],
+                [
+                    "Astronomy PO AULA",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "Lab. Física IV Grupo 1 AULA 12",
+                    "Lab. Física IV Grupo 2 AULA 6"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Experimental Grupo",
+                    "Optics 1",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "de laboratorios se",
+                    "organizaran",
+                    "al inicio del curso.",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "Panorama",
+                    "Proyectos"
+                ],
+                [
+                    "Physics of Materials Aula 5",
+                    "Adva Exper Techniques Th",
+                    "nced ental (*) /Lab",
+                    "AULA",
+                    "13"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Particle Physics"
+                ],
+                [
+                    "Advanced Experimental Techniques Th /Lab AULA 5",
+                    "Particle AULA",
+                    "Physics 5",
+                    "Lab Particle Phys. (5-6 weeks)",
+                    "without lab) AULA 5"
+                ],
+                [
+                    null,
+                    "Particle (on weeks",
+                    "Physics lab) AULA",
+                    null,
+                    null
+                ],
+                [
+                    "Particle Physics son asignaturas",
+                    "de",
+                    "en Física",
+                    "Fundamental",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MARTES",
+                "JUEVES",
+                "MIÉRCOLES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    null,
+                    null,
+                    null,
+                    "INTERNATIONAL",
+                    "DIPLOMA IN PHYSICS"
+                ],
+                [
+                    "LUNES",
+                    null,
+                    "MARTES",
+                    null,
+                    "MIERCOLES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "de física III Grupo 1",
+                    null,
+                    "Experimental Optics Grupo 2",
+                    "Lab.",
+                    "de física III Grupo 2"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "AULA",
+                    "12",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "Panorama",
+                    "y Proyectos"
+                ],
+                [
+                    null,
+                    null,
+                    "Advanced Experimental Techniques (*) Th AULA 5",
+                    null,
+                    "AULA 13"
+                ],
+                [
+                    null,
+                    "Experi- mental Optics Grupo 1",
+                    null,
+                    null,
+                    "Particle Physics (on weeks without"
+                ],
+                [
+                    "Experimental",
+                    null,
+                    "Particle Physics AULA 5",
+                    "Lab Particle Phys. (5-6",
+                    "lab) AULA 5"
+                ],
+                [
+                    null,
+                    null,
+                    "Particle Physics (on weeks with lab) AULA 5",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 0.7963979244232178,
+        "page_count": 5,
+        "file_size_mb": 0.12250995635986328,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 5
+    }
+}
