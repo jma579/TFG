@@ -21,7 +21,7 @@ from modules.docencia.services.sesion_service import sesion_service
 from core.extraccion.horarios.extractor.extractor import HorarioExtractor
 from core.extraccion.horarios.parser.parser import HorarioParser
 
-from core.extraccion.horarios.normalize import horario_data_normalizer
+from core.extraccion.horarios.normalizador.normalize import horario_data_normalizer
 from modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
