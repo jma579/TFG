@@ -23,7 +23,8 @@ from core.extraccion.horarios.extractor.constants import (
     LABEL_GRADO_FISICA, LABEL_GRADO_MATEMATICAS, 
     LABEL_GRADO_INFORMATICA, LABEL_GRADO_DOBLE, LABEL_GRADO_UNKNOWN,
     KEYWORDS_PERIODO_1, KEYWORDS_PERIODO_2,
-    KEYWORDS_FISICA, KEYWORDS_MATEMATICAS, KEYWORDS_DOBLE, KEYWORDS_INFORMATICA
+    KEYWORDS_FISICA, KEYWORDS_MATEMATICAS, KEYWORDS_DOBLE, KEYWORDS_INFORMATICA,
+    MAPA_CURSOS, KEYWORDS_TABLE_CONTENT
 )
 
 # Componentes internos
@@ -332,15 +333,16 @@ class HorarioExtractor:
                 elif any(kw in text_upper for kw in KEYWORDS_PERIODO_1):
                     periodo = LABEL_PERIODO_1
 
-                # 2. DETECCIÓN DE GRADO
+                # 2. DETECCIÓN DE GRADO (Lógica Refinada)
                 grado = LABEL_GRADO_UNKNOWN
                 
-                # Lógica de prioridades (Doble Grado primero porque contiene palabras de los otros)
-                is_doble = any(kw in text_upper for kw in KEYWORDS_DOBLE)
+                # Banderas
+                is_doble = any(kw in text_upper for kw in KEYWORDS_DOBLE) 
                 has_fisica = any(kw in text_upper for kw in KEYWORDS_FISICA)
                 has_mate = any(kw in text_upper for kw in KEYWORDS_MATEMATICAS)
                 
-                if is_doble and has_fisica:
+                # El archivo de Física solo tiene "DOBLE" (en nota al pie) y "FÍSICA", pero no "MATEMÁTICAS".
+                if is_doble and has_fisica and has_mate:
                     grado = LABEL_GRADO_DOBLE
                 elif any(kw in text_upper for kw in KEYWORDS_INFORMATICA):
                     grado = LABEL_GRADO_INFORMATICA
@@ -357,51 +359,106 @@ class HorarioExtractor:
 
     def _extract_metadata_radar(self, page, table_bbox):
         """
-        Busca el curso (1º, 2º...) y la mención encima de la tabla.
-        CORRECCIÓN: Ignora 'PRIMER/SEGUNDO CUATRIMESTRE' para no confundir el curso.
-        Normaliza palabras a números (PRIMER -> 1º).
+        Estrategia V5 (Scoring System):
+        Escanea la página buscando candidatos para Curso y Mención.
+        Asigna puntaje basada en la calidad de la coincidencia para evitar
+        falsos positivos por ruido (ej: números de página).
         """
         try:
-            _, y0, _, _ = table_bbox
-            # Buscamos en los 250px encima de la tabla
-            search_area = (0, max(0, y0 - 250), page.width, y0)
-            txt = page.within_bbox(search_area).extract_text(x_tolerance=3) or ""
+            # 1. Extracción completa preservando layout
+            text = page.extract_text(layout=True, x_tolerance=2, y_tolerance=3) or ""
             
-            # --- PROTECCIÓN ANTI-RUIDO ---
-            # Eliminamos menciones al cuatrimestre para evitar que 'SEGUNDO CUATRIMESTRE'
-            # se detecte como 'SEGUNDO CURSO'.
-            txt_clean = re.sub(r'(PRIMER|SEGUNDO)\s+CUATRIMESTRE', '', txt, flags=re.IGNORECASE)
-            txt_clean = txt_clean.replace('\n', ' ')
+            # 2. Limpieza de Cuatrimestre (Vital para no confundir 'Segundo Cuatrimestre')
+            text = re.sub(r'(?:PRIMER|SEGUNDO|1º|2º)\s+CUATRIMESTRE', '', text, flags=re.IGNORECASE)
             
-            # --- DETECCIÓN DE CURSO ---
-            curso = "1º" # Default
-            m_c = RX_CURSO.search(txt_clean)
-            if m_c: 
-                raw_curso = m_c.group(0).upper()
-                # Normalización explicita: Texto -> Número
-                if "PRIMER" in raw_curso: curso = "1º"
-                elif "SEGUNDO" in raw_curso: curso = "2º"
-                elif "TERCER" in raw_curso: curso = "3º"
-                elif "CUARTO" in raw_curso: curso = "4º"
-                elif "QUINTO" in raw_curso: curso = "5º"
-                elif "SEXTO" in raw_curso: curso = "6º"
-                else:
-                    # Si ya viene como "1º" o "2º", lo dejamos limpio
-                    curso = re.sub(r'\s*CURSO', '', raw_curso).strip()
+            lines = text.split('\n')
             
-            # --- DETECCIÓN DE MENCIÓN ---
-            mencion = None
-            m_m = RX_MENCION.search(txt_clean)
-            if m_m:
-                raw = m_m.group(0)
-                mencion = re.sub(r'MENCI[ÓO]N\s+EN\s+', '', raw, flags=re.IGNORECASE).strip()
+            # Variables para el "Campeón" actual
+            best_curso = None
+            best_curso_score = 0
+            
+            # Para mención, usaremos la más larga encontrada (más específica)
+            longest_mencion = None
+            
+            for line in lines:
+                line_clean = line.strip()
+                line_upper = line_clean.upper()
+                
+                if not line_clean: continue
+                
+                # A. FILTRO DE TABLA Y RUIDO
+                # Si la línea parece parte del horario o pie de página técnico, la ignoramos.
+                if any(kw in line_upper for kw in KEYWORDS_TABLE_CONTENT):
+                    continue
 
-            return curso, mencion
+                # B. BUSCAR CURSO (SISTEMA DE PUNTOS CORREGIDO)
+                m_c = RX_CURSO.search(line_clean)
+                if m_c:
+                    raw_match = m_c.group(0).upper()
+                    
+                    # CORRECCIÓN DE BUG CRÍTICO:
+                    # Eliminamos "CURSO", "º", "°". 
+                    # YA NO ELIMINAMOS "ER" CIEGAMENTE para no romper "PRIMER"/"TERCER".
+                    # Si viene "1ER", el mapa lo gestionará (MAPA_CURSOS["1ER"] = "1º").
+                    token = re.sub(r'\s*CURSO\s*|º|°', '', raw_match).strip()
+                    
+                    current_score = 0
+                    candidate_val = None
+
+                    # Validar en mapa
+                    if token in MAPA_CURSOS:
+                        candidate_val = MAPA_CURSOS[token]
+                    else:
+                        # Búsqueda palabra completa en claves del mapa
+                        # Esto ayuda si el token es "GRADO TERCER" (raro, pero posible)
+                        for k, v in MAPA_CURSOS.items():
+                            # Usamos bordes de palabra \b para evitar falsos positivos
+                            if re.search(rf'\b{k}\b', token):
+                                candidate_val = v
+                                break
+                    
+                    if candidate_val:
+                        # --- ASIGNACIÓN DE PUNTOS ---
+                        # 1. Si contiene la palabra "CURSO" explícita -> Puntuación Máxima (Certeza)
+                        if "CURSO" in raw_match:
+                            current_score = 100
+                        # 2. Si es una palabra larga (PRIMER, SEGUNDO...) -> Puntuación Media
+                        elif len(token) > 2: 
+                            current_score = 50
+                        # 3. Si es ordinal corto (1º, 2º) -> Puntuación Baja
+                        # (Sirve de fallback si no hay título explícito "CURSO")
+                        else:
+                            current_score = 20
+                        
+                        # Actualizar si encontramos un mejor candidato
+                        if current_score > best_curso_score:
+                            best_curso = candidate_val
+                            best_curso_score = current_score
+
+                # C. BUSCAR MENCIÓN
+                m_m = RX_MENCION.search(line_clean)
+                if m_m:
+                    if m_m.lastindex and m_m.lastindex >= 1:
+                        raw_mencion = m_m.group(1).strip()
+                    else:
+                        raw_mencion = m_m.group(0).strip()
+                    
+                    # Limpieza
+                    clean_mencion = re.split(r'\s{3,}', raw_mencion)[0].strip()
+                    
+                    # Nos quedamos con la mención más larga encontrada (evita fragmentos)
+                    if not longest_mencion or len(clean_mencion) > len(longest_mencion):
+                        longest_mencion = clean_mencion
+
+            # Si después de todo no hay curso (score 0), devolvemos "1º" por defecto lógico
+            final_curso = best_curso if best_curso else "N.A."
             
-        except Exception as e: 
+            return final_curso, longest_mencion
+
+        except Exception as e:
             self.logger.warning(f"Fallo radar metadata: {e}")
-            return "1º", None
-
+            return "N.A.", None
+        
     def _build_error_result(self, error, start_time):
         return HorarioExtractionResult(
             titulo="Error", tablas=[],

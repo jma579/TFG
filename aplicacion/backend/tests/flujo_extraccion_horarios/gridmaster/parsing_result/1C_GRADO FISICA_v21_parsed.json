@@ -197,7 +197,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -293,7 +293,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -461,8 +461,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "FÍSICA FUNDAMENTAL",
             "sesiones": [
                 {
                     "asignatura": "Advanced",
@@ -719,8 +719,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "FÍSICA APLICADA",
             "sesiones": [
                 {
                     "asignatura": "F Tierra",
@@ -890,8 +890,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:11.384100",
-        "parse_duration": 0.003171,
+        "parse_timestamp": "2025-12-08T18:03:42.118758",
+        "parse_duration": 0.004165,
         "warnings": [],
         "errors": []
     }

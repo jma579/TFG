@@ -179,7 +179,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -284,7 +284,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -398,8 +398,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "MATEMÁTICA PURA Y APLICADA",
             "sesiones": [
                 {
                     "asignatura": "V Diferenciables",
@@ -521,8 +521,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "INFORMÁTICA",
             "sesiones": [
                 {
                     "asignatura": "Introducción a los Sistemas Inteligentes",
@@ -626,8 +626,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "ECONOMIA Y FINANZAS",
             "sesiones": [
                 {
                     "asignatura": "Análisis Evaluación de Inversiones",
@@ -707,8 +707,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:12.436711",
-        "parse_duration": 0.002763,
+        "parse_timestamp": "2025-12-08T18:03:43.285122",
+        "parse_duration": 0.002789,
         "warnings": [],
         "errors": []
     }

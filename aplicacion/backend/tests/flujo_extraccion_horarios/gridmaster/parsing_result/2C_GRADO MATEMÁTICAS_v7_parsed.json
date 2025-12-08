@@ -161,7 +161,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -392,7 +392,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -533,8 +533,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "MATEMÁTICA PURA Y APLICADA",
             "sesiones": [
                 {
                     "asignatura": "Algebra",
@@ -710,8 +710,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "INFORMÁTICA",
             "sesiones": [
                 {
                     "asignatura": "Algorítmica complejidad",
@@ -815,8 +815,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "ECONOMIA Y FINANZAS",
             "sesiones": [
                 {
                     "asignatura": "Análisis de los mercados de valores",
@@ -941,8 +941,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:15.012161",
-        "parse_duration": 0.002642,
+        "parse_timestamp": "2025-12-08T18:03:46.472730",
+        "parse_duration": 0.002732,
         "warnings": [],
         "errors": []
     }

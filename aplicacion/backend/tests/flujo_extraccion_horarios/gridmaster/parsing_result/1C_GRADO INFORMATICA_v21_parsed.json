@@ -188,7 +188,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -374,7 +374,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -650,8 +650,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "COMPUTADORES",
             "sesiones": [
                 {
                     "asignatura": "Diseño Administración de Redes",
@@ -950,8 +950,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "I. SOFTWARE",
             "sesiones": [
                 {
                     "asignatura": "Computer Animation",
@@ -1085,8 +1085,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:12.036690",
-        "parse_duration": 0.003383,
+        "parse_timestamp": "2025-12-08T18:03:42.746257",
+        "parse_duration": 0.003435,
         "warnings": [],
         "errors": []
     }

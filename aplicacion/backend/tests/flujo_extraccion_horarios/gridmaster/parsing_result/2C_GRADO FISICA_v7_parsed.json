@@ -1,5 +1,5 @@
 {
-    "titulo": "Doble Grado en Física y Matemáticas - Segundo Cuatrimestre",
+    "titulo": "Grado en Física - Segundo Cuatrimestre",
     "horarios": [
         {
             "curso": "1º",
@@ -179,7 +179,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -302,7 +302,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -443,8 +443,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "FÍSICA FUNDAMENTAL Y APLICADA",
             "sesiones": [
                 {
                     "asignatura": "Panorama",
@@ -575,7 +575,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "N.A.",
             "mencion": null,
             "sesiones": [
                 {
@@ -755,8 +755,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:14.214552",
-        "parse_duration": 0.002857,
+        "parse_timestamp": "2025-12-08T18:03:45.628752",
+        "parse_duration": 0.002793,
         "warnings": [],
         "errors": []
     }

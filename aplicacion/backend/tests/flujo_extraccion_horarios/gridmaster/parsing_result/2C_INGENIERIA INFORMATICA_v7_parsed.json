@@ -215,7 +215,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -374,8 +374,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "3º",
+            "mencion": "COMPUTADORES",
             "sesiones": [
                 {
                     "asignatura": "Sistemas informáticos",
@@ -533,8 +533,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "3º",
+            "mencion": "COMPUTACIÓN",
             "sesiones": [
                 {
                     "asignatura": "Sistemas informáticos",
@@ -683,8 +683,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "3º",
+            "mencion": "I. SOFTWARE",
             "sesiones": [
                 {
                     "asignatura": "Sistemas informáticos",
@@ -815,8 +815,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "COMPUTADORES",
             "sesiones": [
                 {
                     "asignatura": "Informática",
@@ -956,8 +956,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "COMPUTACIÓN",
             "sesiones": [
                 {
                     "asignatura": "semanas",
@@ -1124,8 +1124,8 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "I. SOFTWARE",
             "sesiones": [
                 {
                     "asignatura": "semanas",
@@ -1268,8 +1268,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:16.331774",
-        "parse_duration": 0.004149,
+        "parse_timestamp": "2025-12-08T18:03:48.017352",
+        "parse_duration": 0.004132,
         "warnings": [],
         "errors": []
     }

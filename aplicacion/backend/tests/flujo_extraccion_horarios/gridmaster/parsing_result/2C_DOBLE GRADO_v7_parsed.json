@@ -269,7 +269,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -491,7 +491,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -695,7 +695,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "4º",
             "mencion": null,
             "sesiones": [
                 {
@@ -827,7 +827,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "5º",
             "mencion": null,
             "sesiones": [
                 {
@@ -1169,8 +1169,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T16:59:13.305922",
-        "parse_duration": 0.003764,
+        "parse_timestamp": "2025-12-08T18:03:44.706482",
+        "parse_duration": 0.003261,
         "warnings": [],
         "errors": []
     }
