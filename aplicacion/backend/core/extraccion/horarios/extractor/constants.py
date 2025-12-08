@@ -153,3 +153,24 @@ KEYWORDS_MATEMATICAS = ["MATEMÁTICAS", "MATEMATICAS"]
 KEYWORDS_DOBLE = ["DOBLE GRADO"]
 # Para informática buscamos la frase específica para no confundir con menciones
 KEYWORDS_INFORMATICA = ["GRADO EN INGENIERÍA INFORMÁTICA", "GRADO EN INGENIERIA INFORMATICA"]
+
+# =============================================================================
+# 6. CONFIGURACIÓN DE CORTE DE PIE DE PÁGINA (NOISE REMOVAL)
+# =============================================================================
+
+# Frases que indican inequívocamente el inicio del pie de página.
+# Si encontramos esto, ignoramos todo lo que haya visualmente debajo.
+FOOTER_CUTOFF_PATTERNS = [
+    r'Horas\s+reservadas\s+para',
+    r'La\s+programación\s+de\s+prácticas',
+    r'El\s+número\s+de\s+grupos\s+podría',
+    r'Las\s+prácticas\s+de\s+laboratorio',
+    r'Los\s+grupos\s+de\s+laboratorios',
+    r'^\s*\(\*\)\s*', # Líneas que empiezan por (*)
+    r'coordinadas\s+con\s+el\s+responsable',
+    r'Cada\s+alumno\s+sólo\s+tendrá',
+    r'se\s+unirán\s+los\s+grupos',
+    r'programación\s+estará\s+disponible'
+]
+
+RX_FOOTER_CUTOFF = [re.compile(p, re.IGNORECASE) for p in FOOTER_CUTOFF_PATTERNS]

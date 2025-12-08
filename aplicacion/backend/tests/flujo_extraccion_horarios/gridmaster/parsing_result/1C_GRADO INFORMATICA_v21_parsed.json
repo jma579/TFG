@@ -69,6 +69,15 @@
                     "grupo": "PA 2"
                 },
                 {
+                    "asignatura": "Fund Físicos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "Grupo PL3"
+                },
+                {
                     "asignatura": "Sistemas Digitales",
                     "aula": "POR DETERMINAR",
                     "dia": "MARTES",
@@ -76,6 +85,24 @@
                     "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PL1 y PL2"
+                },
+                {
+                    "asignatura": "Fund Físicos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Intro al software",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
                 },
                 {
                     "asignatura": "Intro al software",
@@ -94,96 +121,6 @@
                     "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PA 1"
-                },
-                {
-                    "asignatura": "Fund Físicos",
-                    "aula": "AULA 13",
-                    "dia": "LUNES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "12:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "Grupo PL3"
-                },
-                {
-                    "asignatura": "Fund Físicos",
-                    "aula": "AULA 13",
-                    "dia": "MARTES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "12:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Intro al software",
-                    "aula": "LSC 1",
-                    "dia": "JUEVES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "12:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL3 y PL4"
-                },
-                {
-                    "asignatura": "Sistemas Digitales",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "13:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL3"
-                },
-                {
-                    "asignatura": "Sistemas Digitales",
-                    "aula": "SEM.INF",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "11:30",
-                    "hora_fin": "13:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Fund Físicos",
-                    "aula": "AULA 13",
-                    "dia": "LUNES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "Grupo PL1"
-                },
-                {
-                    "asignatura": "Fund Físicos",
-                    "aula": "AULA 13",
-                    "dia": "MARTES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "Grupo PL4"
-                },
-                {
-                    "asignatura": "Introduc al",
-                    "aula": "LSC 1",
-                    "dia": "JUEVES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL1 y PL2"
-                },
-                {
-                    "asignatura": "Intro al software",
-                    "aula": "AULA 5",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "13:30",
-                    "hora_fin": "14:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PA3"
-                },
-                {
-                    "asignatura": "Algebra Lineal",
-                    "aula": "AULA 14",
-                    "dia": "VIERNES",
-                    "hora_inicio": "11:30",
-                    "hora_fin": "14:30",
-                    "tipo": "CLASE",
-                    "grupo": null
                 }
             ]
         },
@@ -1085,8 +1022,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T18:03:42.746257",
-        "parse_duration": 0.003435,
+        "parse_timestamp": "2025-12-08T19:09:21.415790",
+        "parse_duration": 0.003389,
         "warnings": [],
         "errors": []
     }

@@ -51,130 +51,22 @@
                     "grupo": null
                 },
                 {
+                    "asignatura": "Física Básica IV",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
                     "asignatura": "Programación AULA",
                     "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
-                    "hora_inicio": "11:30",
-                    "hora_fin": "12:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Física Básica IV",
-                    "aula": "AULA 14",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "12:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Programación AULA su Ap en Naturales AULA",
-                    "aula": "POR DETERMINAR",
                     "dia": "VIERNES",
                     "hora_inicio": "10:30",
-                    "hora_fin": "12:30",
+                    "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PA4"
-                },
-                {
-                    "asignatura": "Química",
-                    "aula": "Lab. Física",
-                    "dia": "JUEVES",
-                    "hora_inicio": "11:30",
-                    "hora_fin": "13:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Programación",
-                    "aula": "LSC 1",
-                    "dia": "LUNES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL1 y PL4"
-                },
-                {
-                    "asignatura": "Básica III",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "13:30",
-                    "hora_fin": "14:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "Grupo B"
-                },
-                {
-                    "asignatura": "Química su ASN",
-                    "aula": "AULA 7",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "Grupo A"
-                },
-                {
-                    "asignatura": "Básica III",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "13:30",
-                    "hora_fin": "14:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "Grupo C"
-                },
-                {
-                    "asignatura": "Progra mación",
-                    "aula": "LSC 1",
-                    "dia": "VIERNES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL5 Y PL6"
-                },
-                {
-                    "asignatura": "Química su ASN",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "17:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Programación su ASN Los se unirán los semana del IV los alumnos",
-                    "aula": "LSC 1",
-                    "dia": "LUNES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "19:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL2"
-                },
-                {
-                    "asignatura": "lunes tarde jueves el como se horas de clase serán grado deben ir en el",
-                    "aula": "AULA 7",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "serán sólo indica de la",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "grupo E"
-                },
-                {
-                    "asignatura": "necesarios Física",
-                    "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
                 }
             ]
         },
@@ -282,18 +174,9 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Parciales otro grupo",
+                    "asignatura": "Parciales",
                     "aula": "AULA 1",
                     "dia": "MARTES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "I Por si fuera necesario",
-                    "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
                     "hora_inicio": "18:30",
                     "hora_fin": "19:30",
                     "tipo": "CLASE",
@@ -419,24 +302,6 @@
                     "dia": "MARTES",
                     "hora_inicio": "16:30",
                     "hora_fin": "17:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "se organizaran",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "al inicio del curso",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
                     "tipo": "CLASE",
                     "grupo": null
                 }
@@ -755,8 +620,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T18:03:45.628752",
-        "parse_duration": 0.002793,
+        "parse_timestamp": "2025-12-08T19:09:23.655679",
+        "parse_duration": 0.002005,
         "warnings": [],
         "errors": []
     }

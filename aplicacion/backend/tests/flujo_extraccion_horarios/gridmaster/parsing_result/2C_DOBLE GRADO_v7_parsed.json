@@ -186,83 +186,20 @@
                     "grupo": null
                 },
                 {
+                    "asignatura": "Programaci",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
                     "asignatura": "Química su ASN",
                     "aula": "POR DETERMINAR",
                     "dia": "MARTES",
                     "hora_inicio": "15:30",
-                    "hora_fin": "17:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Programaci",
-                    "aula": "LSC 1",
-                    "dia": "LUNES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "17:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL2"
-                },
-                {
-                    "asignatura": "Programación",
-                    "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "LSC su ASN se unirán semana IV los",
-                    "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Los",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "grupos del los grupos en del curso estas de doble"
-                },
-                {
-                    "asignatura": "vieres serán sólo el como se horas de clase serán grado deben ir en el",
-                    "aula": "AULA 14",
-                    "dia": "MARTES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "para indica la asignatura",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "grupo E"
-                },
-                {
-                    "asignatura": "algunas de Física",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "de prácticas",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
+                    "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 }
@@ -670,7 +607,7 @@
                     "aula": "LSC 3",
                     "dia": "JUEVES",
                     "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
+                    "hora_fin": "19:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PL3"
                 },
@@ -678,15 +615,6 @@
                     "asignatura": "LSC",
                     "aula": "POR DETERMINAR",
                     "dia": "VIERNES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "al inicio del curso",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
                     "hora_inicio": "18:30",
                     "hora_fin": "19:30",
                     "tipo": "CLASE",
@@ -1169,8 +1097,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-08T18:03:44.706482",
-        "parse_duration": 0.003261,
+        "parse_timestamp": "2025-12-08T19:09:22.734494",
+        "parse_duration": 0.003245,
         "warnings": [],
         "errors": []
     }

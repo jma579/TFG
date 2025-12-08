@@ -24,7 +24,7 @@ from core.extraccion.horarios.extractor.constants import (
     LABEL_GRADO_INFORMATICA, LABEL_GRADO_DOBLE, LABEL_GRADO_UNKNOWN,
     KEYWORDS_PERIODO_1, KEYWORDS_PERIODO_2,
     KEYWORDS_FISICA, KEYWORDS_MATEMATICAS, KEYWORDS_DOBLE, KEYWORDS_INFORMATICA,
-    MAPA_CURSOS, KEYWORDS_TABLE_CONTENT
+    MAPA_CURSOS, KEYWORDS_TABLE_CONTENT, RX_FOOTER_CUTOFF
 )
 
 # Componentes internos
@@ -59,11 +59,11 @@ class HorarioExtractor:
             with pdfplumber.open(pdf_path) as pdf:
                 for page_num, page in enumerate(pdf.pages):
                     
-                    # 1. DETECCIÓN
+                    # 1. DETECCIÓN DE CELDAS
                     cells = self.detector.detect(page)
                     if not cells: continue
-                        
-                    # 2. ESCANEO
+                    
+                    # 2. ESCANEO DE ÁTOMOS
                     raw_words = page.extract_words(**ATOM_EXTRACT_SETTINGS)
                     atoms = [
                         TextAtom(
@@ -72,11 +72,23 @@ class HorarioExtractor:
                         ) for w in raw_words
                     ]
                     
-                    # 3. MAPEO
-                    self.mapper.map_and_stitch(cells, atoms)
+                    # --- NUEVO: FOOTER CROPPER (LA GUILLOTINA) ---
+                    # Calculamos dónde empieza el pie de página
+                    cutoff_y = self._calculate_footer_cutoff(atoms, page.height)
+                    
+                    # Filtramos celdas y átomos que estén por debajo de la línea roja
+                    # Damos un margen de 5px por si acaso
+                    valid_cells = [c for c in cells if c.bottom <= cutoff_y + 5]
+                    valid_atoms = [a for a in atoms if a.top <= cutoff_y]
+                    
+                    if not valid_cells:
+                        continue
+                        
+                    # 3. MAPEO (Usamos las listas filtradas)
+                    self.mapper.map_and_stitch(valid_cells, valid_atoms)
                     
                     # 4. CONVERSIÓN
-                    tabla = self._convert_grid_to_output(cells, page, page_num)
+                    tabla = self._convert_grid_to_output(valid_cells, page, page_num)
                     if tabla:
                         tablas_resultado.append(tabla)
             
@@ -458,6 +470,46 @@ class HorarioExtractor:
         except Exception as e:
             self.logger.warning(f"Fallo radar metadata: {e}")
             return "N.A.", None
+        
+    def _calculate_footer_cutoff(self, atoms: List[TextAtom], page_height: float) -> float:
+        """
+        Busca frases de pie de página y devuelve la coordenada Y donde empiezan.
+        Si no encuentra nada, devuelve la altura de la página (sin corte).
+        """
+        # Ordenamos átomos por posición vertical para leer en orden
+        sorted_atoms = sorted(atoms, key=lambda a: (a.top, a.x0))
+        
+        # Reconstruimos líneas de texto aproximadas para aplicar regex
+        current_line_text = ""
+        current_line_top = 0
+        
+        # Umbral para considerar que estamos en la misma línea
+        line_threshold = 5 
+        
+        cutoff_candidate = page_height
+
+        for atom in sorted_atoms:
+            # Si cambiamos de línea visualmente
+            if atom.top - current_line_top > line_threshold:
+                # Procesamos la línea anterior
+                for rx in RX_FOOTER_CUTOFF:
+                    if rx.search(current_line_text):
+                        # ¡ENCONTRADO! El corte es el inicio de esta línea
+                        # Retornamos un poco antes para no cortar justo en el texto
+                        return current_line_top - 2 
+                
+                # Reseteamos para nueva línea
+                current_line_text = atom.text
+                current_line_top = atom.top
+            else:
+                current_line_text += " " + atom.text
+        
+        # Comprobar la última línea
+        for rx in RX_FOOTER_CUTOFF:
+            if rx.search(current_line_text):
+                return current_line_top - 2
+
+        return cutoff_candidate
         
     def _build_error_result(self, error, start_time):
         return HorarioExtractionResult(
