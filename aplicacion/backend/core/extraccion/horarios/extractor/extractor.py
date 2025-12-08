@@ -19,7 +19,11 @@ from core.extraccion.horarios.entities import (
 from core.extraccion.horarios.extractor.constants import (
     DEFAULT_EXTRACTOR_CONFIG, ATOM_EXTRACT_SETTINGS, 
     RX_CURSO, RX_MENCION, DIAS_REGEX, DAYS_MAP, RX_HORA, VALID_TIME_CHARS, PATRONES_RADAR,
-    DIAS_SEMANA
+    DIAS_SEMANA, LABEL_PERIODO_1, LABEL_PERIODO_2, 
+    LABEL_GRADO_FISICA, LABEL_GRADO_MATEMATICAS, 
+    LABEL_GRADO_INFORMATICA, LABEL_GRADO_DOBLE, LABEL_GRADO_UNKNOWN,
+    KEYWORDS_PERIODO_1, KEYWORDS_PERIODO_2,
+    KEYWORDS_FISICA, KEYWORDS_MATEMATICAS, KEYWORDS_DOBLE, KEYWORDS_INFORMATICA
 )
 
 # Componentes internos
@@ -311,35 +315,92 @@ class HorarioExtractor:
         return None
 
     def _extract_title_global(self, pdf_path):
+        """
+        Estrategia V3.2 (Clean Code con Constantes):
+        Detecta Grado y Periodo usando configuraciones centralizadas en constants.py.
+        """
         try:
             with pdfplumber.open(pdf_path) as pdf:
-                first_page = pdf.pages[0]
-                txt = first_page.within_bbox((0,0, first_page.width, first_page.height/3)).extract_text()
-                if txt:
-                    rx = re.compile(PATRONES_RADAR['titulo'], re.IGNORECASE | re.DOTALL)
-                    m = rx.search(txt)
-                    if m: return m.group(0).replace('\n', ' ').strip()
-        except: pass
-        return "Horario Académico"
+                text = pdf.pages[0].extract_text() or ""
+                text_upper = text.upper().replace('\n', ' ')
+
+                # 1. DETECCIÓN DE PERIODO
+                periodo = LABEL_PERIODO_1 # Default
+                
+                if any(kw in text_upper for kw in KEYWORDS_PERIODO_2):
+                    periodo = LABEL_PERIODO_2
+                elif any(kw in text_upper for kw in KEYWORDS_PERIODO_1):
+                    periodo = LABEL_PERIODO_1
+
+                # 2. DETECCIÓN DE GRADO
+                grado = LABEL_GRADO_UNKNOWN
+                
+                # Lógica de prioridades (Doble Grado primero porque contiene palabras de los otros)
+                is_doble = any(kw in text_upper for kw in KEYWORDS_DOBLE)
+                has_fisica = any(kw in text_upper for kw in KEYWORDS_FISICA)
+                has_mate = any(kw in text_upper for kw in KEYWORDS_MATEMATICAS)
+                
+                if is_doble and has_fisica:
+                    grado = LABEL_GRADO_DOBLE
+                elif any(kw in text_upper for kw in KEYWORDS_INFORMATICA):
+                    grado = LABEL_GRADO_INFORMATICA
+                elif "GRADO" in text_upper and has_mate:
+                    grado = LABEL_GRADO_MATEMATICAS
+                elif "GRADO" in text_upper and has_fisica:
+                    grado = LABEL_GRADO_FISICA
+                
+                return f"{grado}|{periodo}"
+
+        except Exception as e:
+            self.logger.error(f"Error extrayendo título global: {e}")
+            return f"{LABEL_GRADO_UNKNOWN}|{LABEL_PERIODO_1}"
 
     def _extract_metadata_radar(self, page, table_bbox):
+        """
+        Busca el curso (1º, 2º...) y la mención encima de la tabla.
+        CORRECCIÓN: Ignora 'PRIMER/SEGUNDO CUATRIMESTRE' para no confundir el curso.
+        Normaliza palabras a números (PRIMER -> 1º).
+        """
         try:
             _, y0, _, _ = table_bbox
+            # Buscamos en los 250px encima de la tabla
             search_area = (0, max(0, y0 - 250), page.width, y0)
             txt = page.within_bbox(search_area).extract_text(x_tolerance=3) or ""
-            txt = txt.replace('\n', ' ')
             
-            curso = "1º"
-            m_c = RX_CURSO.search(txt)
-            if m_c: curso = m_c.group(0).strip()
+            # --- PROTECCIÓN ANTI-RUIDO ---
+            # Eliminamos menciones al cuatrimestre para evitar que 'SEGUNDO CUATRIMESTRE'
+            # se detecte como 'SEGUNDO CURSO'.
+            txt_clean = re.sub(r'(PRIMER|SEGUNDO)\s+CUATRIMESTRE', '', txt, flags=re.IGNORECASE)
+            txt_clean = txt_clean.replace('\n', ' ')
             
+            # --- DETECCIÓN DE CURSO ---
+            curso = "1º" # Default
+            m_c = RX_CURSO.search(txt_clean)
+            if m_c: 
+                raw_curso = m_c.group(0).upper()
+                # Normalización explicita: Texto -> Número
+                if "PRIMER" in raw_curso: curso = "1º"
+                elif "SEGUNDO" in raw_curso: curso = "2º"
+                elif "TERCER" in raw_curso: curso = "3º"
+                elif "CUARTO" in raw_curso: curso = "4º"
+                elif "QUINTO" in raw_curso: curso = "5º"
+                elif "SEXTO" in raw_curso: curso = "6º"
+                else:
+                    # Si ya viene como "1º" o "2º", lo dejamos limpio
+                    curso = re.sub(r'\s*CURSO', '', raw_curso).strip()
+            
+            # --- DETECCIÓN DE MENCIÓN ---
             mencion = None
-            m_m = RX_MENCION.search(txt)
+            m_m = RX_MENCION.search(txt_clean)
             if m_m:
                 raw = m_m.group(0)
                 mencion = re.sub(r'MENCI[ÓO]N\s+EN\s+', '', raw, flags=re.IGNORECASE).strip()
+
             return curso, mencion
-        except: return "1º", None
+            
+        except Exception as e: 
+            self.logger.warning(f"Fallo radar metadata: {e}")
+            return "1º", None
 
     def _build_error_result(self, error, start_time):
         return HorarioExtractionResult(

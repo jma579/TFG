@@ -95,3 +95,27 @@ DEFAULT_EXTRACTOR_CONFIG = {
     'min_tablas_por_pagina': 1,
     'log_level': 'INFO'
 }
+
+# =============================================================================
+# 4. CONFIGURACIÓN DE DETECCIÓN DE TÍTULOS Y PERIODOS
+# =============================================================================
+
+# Etiquetas de salida (Lo que se guarda en el JSON)
+LABEL_PERIODO_1 = "Primer Cuatrimestre"
+LABEL_PERIODO_2 = "Segundo Cuatrimestre"
+
+LABEL_GRADO_FISICA = "Grado en Física"
+LABEL_GRADO_MATEMATICAS = "Grado en Matemáticas"
+LABEL_GRADO_INFORMATICA = "Grado en Ingeniería Informática"
+LABEL_GRADO_DOBLE = "Doble Grado en Física y Matemáticas"
+LABEL_GRADO_UNKNOWN = "-"
+
+# Palabras clave para la detección (Debe estar en MAYÚSCULAS para coincidir con upper())
+KEYWORDS_PERIODO_1 = ["PRIMER CUATRIMESTRE", "1º CUATRIMESTRE"]
+KEYWORDS_PERIODO_2 = ["SEGUNDO CUATRIMESTRE", "2º CUATRIMESTRE"]
+
+KEYWORDS_FISICA = ["FÍSICA", "FISICA"]
+KEYWORDS_MATEMATICAS = ["MATEMÁTICAS", "MATEMATICAS"]
+KEYWORDS_DOBLE = ["DOBLE GRADO"]
+# Para informática buscamos la frase específica para no confundir con menciones
+KEYWORDS_INFORMATICA = ["GRADO EN INGENIERÍA INFORMÁTICA", "GRADO EN INGENIERIA INFORMATICA"]

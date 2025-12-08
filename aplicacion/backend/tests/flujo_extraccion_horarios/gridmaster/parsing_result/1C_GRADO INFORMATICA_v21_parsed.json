@@ -1,8 +1,8 @@
 {
-    "titulo": "GRADO EN INGENIERÍA INFORMÁTICA PRIMER CUATRIMESTRE",
+    "titulo": "- - Primer Cuatrimestre",
     "horarios": [
         {
-            "curso": "PRIMER",
+            "curso": "1º",
             "mencion": null,
             "sesiones": [
                 {
@@ -20,6 +20,15 @@
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "08:30",
                     "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
@@ -57,7 +66,7 @@
                     "hora_inicio": "09:30",
                     "hora_fin": "10:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PA 1"
+                    "grupo": "PA 2"
                 },
                 {
                     "asignatura": "Sistemas Digitales",
@@ -66,7 +75,7 @@
                     "hora_inicio": "10:30",
                     "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PL1"
+                    "grupo": "PL1 y PL2"
                 },
                 {
                     "asignatura": "Intro al software",
@@ -79,12 +88,12 @@
                 },
                 {
                     "asignatura": "Sist Digitales",
-                    "aula": "AULA 7",
+                    "aula": "AULA 14",
                     "dia": "VIERNES",
                     "hora_inicio": "10:30",
                     "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PA 2"
+                    "grupo": "PA 1"
                 },
                 {
                     "asignatura": "Fund Físicos",
@@ -116,15 +125,6 @@
                 {
                     "asignatura": "Sistemas Digitales",
                     "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "11:30",
-                    "hora_fin": "12:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Sistemas Digitales",
-                    "aula": "POR DETERMINAR",
                     "dia": "MARTES",
                     "hora_inicio": "12:30",
                     "hora_fin": "13:30",
@@ -132,18 +132,9 @@
                     "grupo": "PL3"
                 },
                 {
-                    "asignatura": "O SEM INF",
-                    "aula": "LSC 1",
+                    "asignatura": "Sistemas Digitales",
+                    "aula": "SEM.INF",
                     "dia": "MIÉRCOLES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "13:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Algebra Lineal Discreta",
-                    "aula": "AULA 14",
-                    "dia": "VIERNES",
                     "hora_inicio": "11:30",
                     "hora_fin": "13:30",
                     "tipo": "CLASE",
@@ -168,7 +159,7 @@
                     "grupo": "Grupo PL4"
                 },
                 {
-                    "asignatura": "Introduc al software",
+                    "asignatura": "Introduc al",
                     "aula": "LSC 1",
                     "dia": "JUEVES",
                     "hora_inicio": "12:30",
@@ -186,20 +177,11 @@
                     "grupo": "PA3"
                 },
                 {
-                    "asignatura": "de práctiacs de",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "simulación se dará a conocer",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
+                    "asignatura": "Algebra Lineal",
+                    "aula": "AULA 14",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "14:30",
                     "tipo": "CLASE",
                     "grupo": null
                 }
@@ -210,17 +192,17 @@
             "mencion": null,
             "sesiones": [
                 {
-                    "asignatura": "Computadores",
+                    "asignatura": "Estructura",
                     "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "12:00",
-                    "hora_fin": "12:30",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
                     "asignatura": "Estructura de",
-                    "aula": "LATC",
+                    "aula": "POR DETERMINAR",
                     "dia": "MARTES",
                     "hora_inicio": "12:00",
                     "hora_fin": "13:30",
@@ -228,13 +210,13 @@
                     "grupo": "PL3"
                 },
                 {
-                    "asignatura": "Estructura",
-                    "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
+                    "asignatura": "Computadores",
+                    "aula": "LATC",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "12:00",
                     "hora_fin": "13:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL4"
+                    "tipo": "CLASE",
+                    "grupo": null
                 },
                 {
                     "asignatura": "Estructura Computadores",
@@ -255,15 +237,6 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Computadores",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "14:30",
-                    "hora_fin": "15:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
                     "asignatura": "Estructura de Computadores",
                     "aula": "AULA 2",
                     "dia": "MIÉRCOLES",
@@ -273,7 +246,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Estructura de Datos",
+                    "asignatura": "Estructur a de Datos",
                     "aula": "AULA 9",
                     "dia": "VIERNES",
                     "hora_inicio": "14:30",
@@ -282,7 +255,7 @@
                     "grupo": "PA1"
                 },
                 {
-                    "asignatura": "Interacción",
+                    "asignatura": "Interacción computador",
                     "aula": "AULA 7",
                     "dia": "MARTES",
                     "hora_inicio": "15:30",
@@ -309,28 +282,19 @@
                     "grupo": "PL1 y PL2"
                 },
                 {
-                    "asignatura": "Matemática Discreta",
-                    "aula": "AULA 2",
-                    "dia": "LUNES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "17:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
                     "asignatura": "Interacción",
                     "aula": "AULA 7",
                     "dia": "MARTES",
                     "hora_inicio": "16:30",
                     "hora_fin": "17:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PA1 y PA2"
+                    "grupo": "PA1"
                 },
                 {
-                    "asignatura": "Matemática Discreta",
-                    "aula": "AULA 2",
+                    "asignatura": "Computadores persona persona comp",
+                    "aula": "POR DETERMINAR",
                     "dia": "MIÉRCOLES",
-                    "hora_inicio": "16:30",
+                    "hora_inicio": "14:30",
                     "hora_fin": "17:30",
                     "tipo": "CLASE",
                     "grupo": null
@@ -358,7 +322,7 @@
                     "aula": "LATC",
                     "dia": "VIERNES",
                     "hora_inicio": "16:30",
-                    "hora_fin": "19:30",
+                    "hora_fin": "20:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
@@ -373,15 +337,15 @@
                 },
                 {
                     "asignatura": "Estructuras de Datos",
-                    "aula": "AULA 2",
+                    "aula": "LSC 1",
                     "dia": "MARTES",
                     "hora_inicio": "17:30",
                     "hora_fin": "20:30",
-                    "tipo": "CLASE",
-                    "grupo": null
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
                 },
                 {
-                    "asignatura": "Estructura de ores",
+                    "asignatura": "Estructur a de dores",
                     "aula": "LATC",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "17:30",
@@ -391,7 +355,7 @@
                 },
                 {
                     "asignatura": "Econ ADE",
-                    "aula": "AULA 14",
+                    "aula": "AULA 2",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "17:30",
                     "hora_fin": "20:30",
@@ -423,7 +387,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "concurrente",
+                    "asignatura": "Paralela",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "08:30",
@@ -432,7 +396,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Programación paralela concurrente de tiempo real",
+                    "asignatura": "Prog Paralela Concurrent",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Programación Paralela Concurrente de Tiempo Real",
                     "aula": "AULA 14",
                     "dia": "LUNES",
                     "hora_inicio": "09:30",
@@ -441,7 +414,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Programación paralela concurrente de tiempo real",
+                    "asignatura": "Programación Paralela Concurrente de Tiempo Real",
                     "aula": "AULA 14",
                     "dia": "MARTES",
                     "hora_inicio": "09:30",
@@ -450,7 +423,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Int persona comp",
+                    "asignatura": "Int Persona comp",
                     "aula": "AULA 14",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "08:30",
@@ -468,16 +441,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Prog paralela concurrente de tiempo real LTR",
+                    "asignatura": "Tiempo Real LTR",
                     "aula": "ATC",
                     "dia": "VIERNES",
-                    "hora_inicio": "08:30",
+                    "hora_inicio": "09:30",
                     "hora_fin": "10:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PL5"
                 },
                 {
-                    "asignatura": "Interacción persona computador",
+                    "asignatura": "Interacción Persona computador",
                     "aula": "AULA 14",
                     "dia": "LUNES",
                     "hora_inicio": "10:30",
@@ -486,7 +459,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción a los sistemas inteligentes",
+                    "asignatura": "Introducción a los Sistemas Inteligentes",
                     "aula": "AULA 14",
                     "dia": "MARTES",
                     "hora_inicio": "10:30",
@@ -495,7 +468,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción a los sistemas inteligentes",
+                    "asignatura": "Introducción a los Sistemas Inteligentes",
                     "aula": "AULA 14",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "10:30",
@@ -504,7 +477,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Intr a redes de computado ras",
+                    "asignatura": "Intr a Redes de Computad oras",
                     "aula": "AULA 13",
                     "dia": "JUEVES",
                     "hora_inicio": "10:30",
@@ -513,7 +486,7 @@
                     "grupo": "PA1"
                 },
                 {
-                    "asignatura": "Ingeniería P SEM",
+                    "asignatura": "Ingeniería Software SEM",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "10:30",
@@ -522,7 +495,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Ingeniería de software I",
+                    "asignatura": "Ingeniería de Software I",
                     "aula": "AULA 14",
                     "dia": "LUNES",
                     "hora_inicio": "11:30",
@@ -531,7 +504,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Intr a redes de computadoras",
+                    "asignatura": "Intr a Redes de Computadoras",
                     "aula": "AULA 14",
                     "dia": "MARTES",
                     "hora_inicio": "11:30",
@@ -540,7 +513,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Intr a redes de computadoras",
+                    "asignatura": "Intr a Redes de Computadoras",
                     "aula": "AULA 14",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "11:30",
@@ -549,8 +522,8 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Intr a redes de computado ras",
-                    "aula": "AULA 13",
+                    "asignatura": "Intr a Redes de Computad oras",
+                    "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "11:30",
                     "hora_fin": "12:30",
@@ -567,16 +540,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Interacción persona comp",
-                    "aula": "AULA 14",
-                    "dia": "MARTES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "13:30",
+                    "asignatura": "Ingeniería de Software I",
+                    "aula": "SEM INF",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "12:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PA1 y PA2"
+                    "grupo": "PL3"
                 },
                 {
-                    "asignatura": "Prog paralela concurrente de tiempo real",
+                    "asignatura": "Prog Paralela Concurrente de Tiempo Real",
                     "aula": "POR DETERMINAR",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "12:30",
@@ -585,7 +558,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Prog paralela concurrente de LTR",
+                    "asignatura": "Prog Paralela Concurrente de LTR",
                     "aula": "ATC",
                     "dia": "LUNES",
                     "hora_inicio": "12:30",
@@ -594,16 +567,25 @@
                     "grupo": null
                 },
                 {
+                    "asignatura": "Interacción Persona comp",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1 y PA2"
+                },
+                {
                     "asignatura": "LTR",
                     "aula": "ATC",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "13:30",
                     "hora_fin": "14:30",
-                    "tipo": "CLASE",
-                    "grupo": null
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL2"
                 },
                 {
-                    "asignatura": "Prog paralela concurrent tiempo real LRT",
+                    "asignatura": "Prog Paralela Concurre nte de Tiempo Real LRT",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "12:30",
@@ -612,7 +594,7 @@
                     "grupo": "PL4"
                 },
                 {
-                    "asignatura": "Ingeniería de",
+                    "asignatura": "Ingenierí a de Software",
                     "aula": "SEM INF",
                     "dia": "JUEVES",
                     "hora_inicio": "12:30",
@@ -621,16 +603,25 @@
                     "grupo": "PL1"
                 },
                 {
-                    "asignatura": "Ingeniería de software I",
+                    "asignatura": "Ingeniería de",
                     "aula": "SEM INF",
                     "dia": "VIERNES",
-                    "hora_inicio": "10:30",
+                    "hora_inicio": "12:30",
                     "hora_fin": "14:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PL3"
+                    "grupo": "PL2"
                 },
                 {
-                    "asignatura": "Introducción a redes de computadoras",
+                    "asignatura": "Introducción",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Introducción a Redes de Computadoras",
                     "aula": "LATC",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "15:30",
@@ -639,7 +630,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "a computadoras",
+                    "asignatura": "Introducción",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "a Computadoras",
                     "aula": "LATC",
                     "dia": "JUEVES",
                     "hora_inicio": "15:30",
@@ -654,9 +654,36 @@
             "mencion": null,
             "sesiones": [
                 {
-                    "asignatura": "Diseño administración de redes",
+                    "asignatura": "Diseño Administración de Redes",
                     "aula": "AULA 15",
                     "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Computer Animation",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sist",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sistemas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "14:30",
                     "hora_fin": "15:30",
                     "tipo": "CLASE",
@@ -672,16 +699,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Computer animation and videogames Portátiles",
+                    "asignatura": "Videogame Portátiles",
                     "aula": "AULA 13",
                     "dia": "MARTES",
-                    "hora_inicio": "14:30",
+                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Bases de datos avanzadas",
+                    "asignatura": "Bases de Avanza",
                     "aula": "AULA 15",
                     "dia": "MARTES",
                     "hora_inicio": "14:30",
@@ -690,16 +717,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sist informacio n empresa",
+                    "asignatura": "Empresa",
                     "aula": "AULA 5",
                     "dia": "JUEVES",
-                    "hora_inicio": "14:30",
+                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sistemas embebidos",
+                    "asignatura": "Embebidos",
                     "aula": "AULA 15",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "15:30",
@@ -708,7 +735,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Bases de datos avanzadas",
+                    "asignatura": "Bases de Avanza",
                     "aula": "AULA 15",
                     "dia": "JUEVES",
                     "hora_inicio": "14:30",
@@ -717,34 +744,34 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sistemas embebidos",
-                    "aula": "AULA LSC4",
-                    "dia": "VIERNES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "16:30",
+                    "asignatura": "Sistemas Operativos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Multiprocesadores",
-                    "aula": "AULA 15",
-                    "dia": "MARTES",
+                    "asignatura": "Administración",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Avanzados AULA 15",
+                    "aula": "UNICAN-LABS",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "17:30",
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sistemas operativos avanzados AULA 15",
-                    "aula": "UNICAN-LABS",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "administración DICOM AULA",
+                    "asignatura": "Redes DICOM AULA",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "17:30",
@@ -753,7 +780,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sistemas operativos avanzados",
+                    "asignatura": "Multiprocesadores",
+                    "aula": "LSC 3",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sistemas Operativos Avanzados",
                     "aula": "UNICAN-LABS",
                     "dia": "LUNES",
                     "hora_inicio": "17:30",
@@ -762,7 +798,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Diseño administración de redes",
+                    "asignatura": "Diseño Administración de Redes",
                     "aula": "AULA 15",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "18:30",
@@ -773,29 +809,38 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "COMPUTACIÓN",
             "sesiones": [
                 {
-                    "asignatura": "Modelos de cálculo",
+                    "asignatura": "Computer Animation",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sist",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Videogame Portátiles",
                     "aula": "AULA 13",
-                    "dia": "LUNES",
+                    "dia": "MARTES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Computer animation and videogames Portátiles",
-                    "aula": "AULA 13",
-                    "dia": "MARTES",
-                    "hora_inicio": "14:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Bases de datos avanzadas",
+                    "asignatura": "Bases de Avanzadas",
                     "aula": "AULA 15",
                     "dia": "MARTES",
                     "hora_inicio": "14:30",
@@ -804,16 +849,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sist informacio n empresa",
+                    "asignatura": "Empresa",
                     "aula": "AULA 5",
                     "dia": "JUEVES",
-                    "hora_inicio": "14:30",
+                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Representación del conocimiento",
+                    "asignatura": "Representación del Conocimiento",
                     "aula": "AULA 13",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "14:30",
@@ -822,7 +867,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Representación del conocimiento",
+                    "asignatura": "Representación del Conocimiento",
                     "aula": "AULA 13",
                     "dia": "VIERNES",
                     "hora_inicio": "14:30",
@@ -831,10 +876,28 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Gráficos por computador realidad virtual",
-                    "aula": "AULA 13",
+                    "asignatura": "Gráficos por",
+                    "aula": "POR DETERMINAR",
                     "dia": "LUNES",
                     "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Bases de Avanzada por Computador",
+                    "aula": "AULA 15",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Computador Realidad Virtual",
+                    "aula": "AULA 13",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
                     "grupo": null
@@ -849,7 +912,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "de algoritmos",
+                    "asignatura": "de Algoritmos",
                     "aula": "AULA 13",
                     "dia": "MARTES",
                     "hora_inicio": "17:30",
@@ -858,7 +921,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Modelos de cálculo",
+                    "asignatura": "Modelos de Cálculo",
                     "aula": "AULA 13",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "17:30",
@@ -867,11 +930,20 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Diseño de algoritmos",
+                    "asignatura": "Diseño de Algoritmos",
                     "aula": "AULA 13",
                     "dia": "VIERNES",
-                    "hora_inicio": "17:30",
+                    "hora_inicio": "16:30",
                     "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Realidad Virtual",
+                    "aula": "AULA 13",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
                     "tipo": "CLASE",
                     "grupo": null
                 }
@@ -882,35 +954,44 @@
             "mencion": null,
             "sesiones": [
                 {
-                    "asignatura": "Métodos de desarrollo",
+                    "asignatura": "Computer Animation",
                     "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
+                    "dia": "MARTES",
                     "hora_inicio": "14:30",
                     "hora_fin": "15:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Métodos de desarrollo",
+                    "asignatura": "Sist",
                     "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
+                    "dia": "JUEVES",
                     "hora_inicio": "14:30",
                     "hora_fin": "15:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Software",
+                    "asignatura": "Métodos de Desarrollo Software",
                     "aula": "SEM INF",
                     "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Videogam Portátiles",
+                    "aula": "AULA 13",
+                    "dia": "MARTES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Computer animation and videogames Portátiles",
-                    "aula": "AULA 13",
+                    "asignatura": "Bases de Avanzadas",
+                    "aula": "AULA 15",
                     "dia": "MARTES",
                     "hora_inicio": "14:30",
                     "hora_fin": "16:30",
@@ -918,17 +999,17 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Bases de datos avanzadas",
-                    "aula": "AULA 15",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "14:30",
+                    "asignatura": "Empresa",
+                    "aula": "AULA 5",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Sist informacio n empresa",
-                    "aula": "AULA 5",
+                    "asignatura": "Bases de Avanzada",
+                    "aula": "AULA 15",
                     "dia": "JUEVES",
                     "hora_inicio": "14:30",
                     "hora_fin": "16:30",
@@ -936,25 +1017,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Procesos software",
-                    "aula": "SEM INF",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Software",
+                    "asignatura": "Métodos de Desarrollo Software",
                     "aula": "SEM INF",
                     "dia": "VIERNES",
-                    "hora_inicio": "15:30",
+                    "hora_inicio": "14:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Calidad auditoría",
+                    "asignatura": "Calidad Auditoría",
                     "aula": "SEM INF",
                     "dia": "LUNES",
                     "hora_inicio": "17:30",
@@ -965,16 +1037,16 @@
                 {
                     "asignatura": "Software",
                     "aula": "SEM INF",
-                    "dia": "MIÉRCOLES",
+                    "dia": "MARTES",
                     "hora_inicio": "17:30",
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Calidad auditoría",
+                    "asignatura": "Software",
                     "aula": "SEM INF",
-                    "dia": "MIÉRCOLES",
+                    "dia": "JUEVES",
                     "hora_inicio": "17:30",
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
@@ -988,6 +1060,24 @@
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
                     "grupo": null
+                },
+                {
+                    "asignatura": "Calidad Auditoría",
+                    "aula": "SEM INF",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Empresa",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
                 }
             ]
         }
@@ -995,8 +1085,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-07T18:34:28.281538",
-        "parse_duration": 0.003263,
+        "parse_timestamp": "2025-12-08T16:59:12.036690",
+        "parse_duration": 0.003383,
         "warnings": [],
         "errors": []
     }
