@@ -1,0 +1,1105 @@
+{
+    "titulo": "Doble Grado en Física y Matemáticas - Segundo Cuatrimestre",
+    "horarios": [
+        {
+            "curso": "1º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Estad",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Básica",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Química su ASN",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo E"
+                },
+                {
+                    "asignatura": "Programación",
+                    "aula": "AULA 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Física AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Básica III 14",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física Básica III",
+                    "aula": "AULA 14",
+                    "dia": "JUEVES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física Básica IV",
+                    "aula": "AULA 14",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Programación AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física Básica IV",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estadística su Ap en Naturales",
+                    "aula": "AULA 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Química su Ap en Sistemas Naturales",
+                    "aula": "AULA 14",
+                    "dia": "JUEVES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Química",
+                    "aula": "Lab. Física",
+                    "dia": "JUEVES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Química su ASN",
+                    "aula": "AULA 8",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo B"
+                },
+                {
+                    "asignatura": "Progra mación",
+                    "aula": "LSC 1",
+                    "dia": "LUNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Básica III",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "13:30",
+                    "hora_fin": "14:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo B"
+                },
+                {
+                    "asignatura": "Cálculo Integral",
+                    "aula": "AULA 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Básica III",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "13:30",
+                    "hora_fin": "14:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo C"
+                },
+                {
+                    "asignatura": "Programa ción",
+                    "aula": "LSC 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL5 Y PL6"
+                },
+                {
+                    "asignatura": "Cálculo Integral",
+                    "aula": "AULA 1",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Programaci",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Química su ASN",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "2º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Matemática",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "discreta 7",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Matemática AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "discreta 7",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "grupo",
+                    "aula": "Laboratorio",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de Física I D",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Matemática discreta",
+                    "aula": "AULA 7",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estructuras algebraicas",
+                    "aula": "AULA 13",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estructuras algebraicas",
+                    "aula": "AULA 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Fundamentos física cuántica",
+                    "aula": "AULA 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estructuras algebraicas",
+                    "aula": "AULA 1",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Estructuras algebraicas",
+                    "aula": "AULA 13",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA2"
+                },
+                {
+                    "asignatura": "Fundamentos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estructuras algebraicas física",
+                    "aula": "AULA 13",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estructuras algebraicas der Parciales 2",
+                    "aula": "AULA 13",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA2"
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ecuaciones der Parciales",
+                    "aula": "AULA 2",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Fundamentos física cuántica",
+                    "aula": "AULA 1",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Integral",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ecuaciones",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "der Parciales",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ampl Cálculo",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Integral",
+                    "aula": "AULA 2",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "3º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Física del AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Experimental Optics",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 2"
+                },
+                {
+                    "asignatura": "Experimental Optics",
+                    "aula": "Lab. de física III",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física del Estado Sólido",
+                    "aula": "AULA 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física del Estado Sólido",
+                    "aula": "AULA 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física del Estado Sólido",
+                    "aula": "AULA 1",
+                    "dia": "JUEVES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electromagnetismo II",
+                    "aula": "AULA 2",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electromagnetismo II",
+                    "aula": "AULA 2",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Variable Compleja",
+                    "aula": "AULA 4",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Variable",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Geometría de curvas superficies",
+                    "aula": "AULA 2",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Experimental Optics",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 1"
+                },
+                {
+                    "asignatura": "Cálculo Numérico I",
+                    "aula": "AULA 2",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Geometría de curvas superficies",
+                    "aula": "AULA 2",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Geometría AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Variable Compleja",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electromagnetismo II",
+                    "aula": "AULA 13",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Cálculo",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Cálculo Numérico I",
+                    "aula": "LSC 3",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL3"
+                },
+                {
+                    "asignatura": "LSC",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "4º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "de física 2 12",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Astronomía",
+                    "aula": "AULA 13",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optimización",
+                    "aula": "LSC 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL2"
+                },
+                {
+                    "asignatura": "Algebra Conmutativa",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Algebra",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Conmutativa",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Inferencia estadística",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Taller de modelización",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Taller de modelización",
+                    "aula": "AULA 4",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optimización",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Inferencia estadística",
+                    "aula": "AULA 4",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Inferencia AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "estadística 4",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "5º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Algebra",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "computacional",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Algebra",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "computacional",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Amp de álgebra",
+                    "aula": "AULA 5",
+                    "dia": "LUNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Mat para Educ Sec",
+                    "aula": "AULA 7",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Matemáticas para Educ Sec",
+                    "aula": "AULA 7",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Geometría Proyectiva",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Measure",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Theory",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Geom Proy",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Measure",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Theory",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Algebraica",
+                    "aula": "AULA 5",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Algebraica",
+                    "aula": "AULA 5",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Calculo Numérico III",
+                    "aula": "AULA 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Calculo Numérico III",
+                    "aula": "AULA 5",
+                    "dia": "LUNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Amp de AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "álgebra 5",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Calculo Numérico III",
+                    "aula": "AULA 5",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Amp de AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "álgebra 5",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Panorama",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Physics of",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Physics of Materials",
+                    "aula": "Aula 5",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Proyectos",
+                    "aula": "AULA 13",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Materials",
+                    "aula": "Aula 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Physics of Materials",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Physics of Materials",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL2"
+                },
+                {
+                    "asignatura": "Panorama",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Proyectos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "parser_name": "GridParserV2.1",
+        "parser_version": "2.1.0",
+        "parse_timestamp": "2025-12-08T19:09:22.734494",
+        "parse_duration": 0.003245,
+        "warnings": [],
+        "errors": []
+    }
+}
