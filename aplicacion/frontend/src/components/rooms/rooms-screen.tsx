@@ -11,7 +11,7 @@ import {
   updateAula,
   deleteAula,
   type AulaOut,
-} from '@/lib/api/client';
+} from '@/lib/api/recursos/aulas';
 import { useToast } from '@/hooks/use-toast';
 
 export type RoomsScreenProps = {

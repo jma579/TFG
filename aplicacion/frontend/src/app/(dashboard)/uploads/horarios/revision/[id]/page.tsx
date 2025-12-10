@@ -9,7 +9,7 @@ import {
   useHorariosUploadsStore,
   type HorarioUploadItem,
 } from "@/stores/horarios-uploads";
-import { confirmHorario, type HorarioTemporalOut } from "@/lib/api/client";
+import { confirmHorario, type HorarioTemporalOut } from "@/lib/api/docencia/horarios";
 import { Button } from "@/components/ui/button";
 import {
   Card,

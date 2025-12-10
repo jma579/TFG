@@ -1,13 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useCallback } from 'react'; // 1. Importamos useCallback
+import { Card, CardContent } from '@/components/ui/card';
 import { SubjectsTable } from '@/components/subjects/table';
 import type { SubjectRow } from '@/components/subjects/data';
 import { SubjectFormDialog } from '@/components/subjects/subject-form-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { deleteAsignatura, updateAsignatura, listProgramas, type ProgramaOut } from '@/lib/api/client';
+import { deleteAsignatura, updateAsignatura } from '@/lib/api/catalogo/asignaturas';
+import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
 
 type SubjectsScreenProps = {
   data: SubjectRow[];
@@ -59,7 +60,14 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
     }
   };
 
-  const handleDataUpdate = (id: string, data: { profesores: any[]; titulaciones: any[] }) => {
+  // 2. Envolvemos la función con useCallback para estabilizarla
+  const handleDataUpdate = useCallback((
+    id: string, 
+    data: { 
+      profesores: { nombre: string; apellidos: string }[]; 
+      titulaciones: { titulacion: string; tipo_asignatura: string; curso: string }[] 
+    }
+  ) => {
     setRows((prev) =>
       prev.map((row) =>
         row.id === id
@@ -67,7 +75,7 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
           : row
       )
     );
-  };
+  }, []); // Array de dependencias vacío porque setRows es estable
 
   const handleSubmit = async (values: {
     nombre: string;

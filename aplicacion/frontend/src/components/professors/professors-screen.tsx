@@ -7,7 +7,7 @@ import { ProfessorsTable } from '@/components/professors/table';
 import type { Professor } from '@/components/professors/data';
 import { ProfessorFormDialog } from '@/components/professors/professor-form-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfesor, createProfessor } from '@/lib/api/client';
+import { updateProfesor, createProfessor } from '@/lib/api/recursos/profesores';
 
 type ProfessorsScreenProps = {
   data: Professor[];

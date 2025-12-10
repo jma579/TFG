@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import type { UploadItem } from '@/components/uploads/types';
 import { uid } from '@/lib/id';
-import { extractHorario, type HorarioTemporalOut } from '@/lib/api/client';
+import { extractHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
 
 export type HorarioUploadItem = UploadItem & {
   progress: number;
