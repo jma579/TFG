@@ -1,8 +1,8 @@
 {
-    "titulo": "GRADO EN MATEMÁTICAS PRIMER CUATRIMESTRE",
+    "titulo": "Grado en Matemáticas - Primer Cuatrimestre",
     "horarios": [
         {
-            "curso": "PRIMER",
+            "curso": "1º",
             "mencion": null,
             "sesiones": [
                 {
@@ -15,7 +15,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción al lenguaje matemático",
+                    "asignatura": "Introducción al Lenguaje Matemático",
                     "aula": "AULA 1",
                     "dia": "MARTES",
                     "hora_inicio": "08:30",
@@ -42,7 +42,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción al lenguaje matemático",
+                    "asignatura": "Introducción al Lenguaje Matemático",
                     "aula": "AULA 1",
                     "dia": "LUNES",
                     "hora_inicio": "09:30",
@@ -60,7 +60,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción al lenguaje matemático",
+                    "asignatura": "Introducción al Lenguaje Matemático",
                     "aula": "AULA 1",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "09:30",
@@ -78,7 +78,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción al lenguaje matemático",
+                    "asignatura": "Introducción al Lenguaje Matemático",
                     "aula": "AULA 1",
                     "dia": "VIERNES",
                     "hora_inicio": "09:30",
@@ -179,7 +179,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
                 {
@@ -193,7 +193,7 @@
                 },
                 {
                     "asignatura": "Ampl Cálculo Dif",
-                    "aula": "AULA 8",
+                    "aula": "AULA 7",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "14:30",
                     "hora_fin": "15:30",
@@ -284,7 +284,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -299,7 +299,7 @@
                 {
                     "asignatura": "Cálculo Numérico II",
                     "aula": "LSC 1",
-                    "dia": "VIERNES",
+                    "dia": "JUEVES",
                     "hora_inicio": "10:30",
                     "hora_fin": "12:30",
                     "tipo": "PRÁCTICA",
@@ -308,20 +308,11 @@
                 {
                     "asignatura": "Cálculo Numérico II",
                     "aula": "LSC 1",
-                    "dia": "JUEVES",
-                    "hora_inicio": "11:30",
-                    "hora_fin": "13:30",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "12:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PL 3"
-                },
-                {
-                    "asignatura": "Cálculo de Probabilidades",
-                    "aula": "AULA 1",
-                    "dia": "LUNES",
-                    "hora_inicio": "14:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
                 },
                 {
                     "asignatura": "Teoría de Galois",
@@ -351,160 +342,88 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Cálculo de Probabilidades",
+                    "asignatura": "Cálculo Numérico II",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Cálculo Numérico II",
+                    "aula": "AULA 14",
+                    "dia": "JUEVES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Teoría global de superficies",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Teoría global de superficies",
+                    "aula": "AULA 14",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Cálculo de Teoría global de",
                     "aula": "AULA 14",
                     "dia": "VIERNES",
                     "hora_inicio": "14:30",
-                    "hora_fin": "16:30",
+                    "hora_fin": "18:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Cálculo Numérico II",
-                    "aula": "AULA 14",
-                    "dia": "MARTES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "17:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Cálculo Numérico II",
-                    "aula": "AULA 14",
-                    "dia": "JUEVES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "17:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Espacios de Hilbert",
-                    "aula": "AULA 14",
+                    "asignatura": "Cálculo de Espacios de Hilbert",
+                    "aula": "AULA 1",
                     "dia": "LUNES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Teoría global de superficies",
-                    "aula": "AULA 14",
-                    "dia": "MARTES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Teoría global de superficies",
-                    "aula": "AULA 14",
-                    "dia": "JUEVES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Teoría global de superficies",
-                    "aula": "AULA 14",
-                    "dia": "VIERNES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "18:30",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "19:30",
                     "tipo": "CLASE",
                     "grupo": null
                 }
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "MATEMÁTICA PURA Y APLICADA",
             "sesiones": [
                 {
-                    "asignatura": "Teoría",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
+                    "asignatura": "V Diferenciables",
+                    "aula": "AULA 9",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "08:30",
-                    "hora_fin": "09:30",
+                    "hora_fin": "10:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Ampliación de Análisis",
+                    "asignatura": "V Diferenciables",
+                    "aula": "AULA 9",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ampliación de Top Algebraica",
                     "aula": "AULA 7",
                     "dia": "LUNES",
                     "hora_inicio": "08:30",
-                    "hora_fin": "10:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "09:30",
-                    "hora_fin": "10:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "V Diferenciables",
-                    "aula": "AULA 9",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "08:30",
-                    "hora_fin": "10:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Teoría Cualitativa de EDO",
-                    "aula": "AULA 9",
-                    "dia": "JUEVES",
-                    "hora_inicio": "08:30",
-                    "hora_fin": "10:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "V Diferenciables",
-                    "aula": "AULA 9",
-                    "dia": "VIERNES",
-                    "hora_inicio": "08:30",
-                    "hora_fin": "10:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Ampliación",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "11:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Cualitativa de de Análisis",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "08:30",
-                    "hora_fin": "11:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Top Algebraica",
-                    "aula": "AULA 9",
-                    "dia": "LUNES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "12:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "11:30",
                     "hora_fin": "12:30",
                     "tipo": "CLASE",
                     "grupo": null
@@ -519,17 +438,17 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Adv Statistics",
-                    "aula": "Aula 3",
+                    "asignatura": "Teoría Cualitativa de Adv Statistics",
+                    "aula": "AULA 9",
                     "dia": "JUEVES",
-                    "hora_inicio": "10:30",
+                    "hora_inicio": "08:30",
                     "hora_fin": "12:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
                     "asignatura": "Adv Statistics",
-                    "aula": "Aula 3",
+                    "aula": "Aula 9",
                     "dia": "VIERNES",
                     "hora_inicio": "10:30",
                     "hora_fin": "12:30",
@@ -537,10 +456,10 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Análisis AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Teoría Cualitativa de Ampliación de Análisis Funcional",
+                    "aula": "AULA 9",
                     "dia": "MARTES",
-                    "hora_inicio": "12:30",
+                    "hora_inicio": "08:30",
                     "hora_fin": "13:30",
                     "tipo": "CLASE",
                     "grupo": null
@@ -564,46 +483,28 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Economía",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Advanced",
+                    "aula": "AULA 9",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Advanced Probability",
+                    "aula": "AULA 9",
+                    "dia": "VIERNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Economía ADE",
+                    "aula": "AULA 9",
                     "dia": "MARTES",
                     "hora_inicio": "13:30",
-                    "hora_fin": "14:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Funcional 9 ADE",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Advanced Probability",
-                    "aula": "AULA 3",
-                    "dia": "JUEVES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Advanced Probability",
-                    "aula": "AULA 3",
-                    "dia": "VIERNES",
-                    "hora_inicio": "12:30",
-                    "hora_fin": "14:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "14:30",
                     "hora_fin": "15:30",
                     "tipo": "CLASE",
                     "grupo": null
@@ -620,12 +521,12 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "INFORMÁTICA",
             "sesiones": [
                 {
-                    "asignatura": "Introducción sistemas AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Introducción a los Sistemas Inteligentes",
+                    "aula": "AULA 14",
                     "dia": "MARTES",
                     "hora_inicio": "10:30",
                     "hora_fin": "11:30",
@@ -633,16 +534,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "a los inteligentes 14",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "11:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Introducción a los sistemas inteligentes",
+                    "asignatura": "Introducción a los Sistemas Inteligentes",
                     "aula": "AULA 14",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "10:30",
@@ -651,7 +543,16 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Introducción a los sistemas inteligentes",
+                    "asignatura": "Intro Sistemas Inteligentes",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "13:30",
+                    "hora_fin": "14:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Introducción a los Sistemas Inteligentes",
                     "aula": "AULA 13",
                     "dia": "VIERNES",
                     "hora_inicio": "08:30",
@@ -660,19 +561,10 @@
                     "grupo": "PL3"
                 },
                 {
-                    "asignatura": "Modelos de cálculo",
+                    "asignatura": "Modelos de Cálculo",
                     "aula": "AULA 13",
                     "dia": "LUNES",
                     "hora_inicio": "14:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Métodos",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
@@ -683,15 +575,6 @@
                     "dia": "JUEVES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Aula",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "17:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
@@ -705,7 +588,7 @@
                     "grupo": "PA1"
                 },
                 {
-                    "asignatura": "Métodos de Programación",
+                    "asignatura": "Métodos de",
                     "aula": "Aula 9",
                     "dia": "VIERNES",
                     "hora_inicio": "15:30",
@@ -714,36 +597,27 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Estructura",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Métodos de Estructuras de Datos",
+                    "aula": "Aula 9",
                     "dia": "MARTES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "19:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "de Datos",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Modelos de cálculo",
+                    "asignatura": "Modelos Cálculo Métodos de Programación",
                     "aula": "AULA 13",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
+                    "dia": "JUEVES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
+                    "asignatura": "Estructuras de Datos",
+                    "aula": "AULA 2",
+                    "dia": "VIERNES",
                     "hora_inicio": "18:30",
                     "hora_fin": "19:30",
                     "tipo": "CLASE",
@@ -752,11 +626,20 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "ECONOMIA Y FINANZAS",
             "sesiones": [
                 {
-                    "asignatura": "evaluación Inversiones",
+                    "asignatura": "Análisis Evaluación de Inversiones",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:00",
+                    "hora_fin": "16:00",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Análisis Evaluación de Inversiones",
                     "aula": "POR DETERMINAR",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "15:00",
@@ -765,16 +648,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Análisis evaluación de Inversiones",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "15:00",
-                    "hora_fin": "16:00",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Herramientas para la decisión en operaciones",
+                    "asignatura": "Herramientas para la Decisión en Operaciones",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "15:00",
@@ -783,7 +657,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Herramientas para la decisión en operaciones",
+                    "asignatura": "Herramientas para la Decisión en Operaciones",
                     "aula": "POR DETERMINAR",
                     "dia": "VIERNES",
                     "hora_inicio": "15:00",
@@ -792,31 +666,22 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Análisis de 3º D A7 F C",
+                    "asignatura": "A7 F C Económicas Emp",
                     "aula": "POR DETERMINAR",
                     "dia": "MARTES",
-                    "hora_inicio": "15:00",
+                    "hora_inicio": "16:00",
                     "hora_fin": "17:00",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Económicas",
+                    "asignatura": "A7 F C Económicas Emp",
                     "aula": "POR DETERMINAR",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "16:00",
                     "hora_fin": "17:00",
-                    "tipo": "TEORÍA",
-                    "grupo": "GADE"
-                },
-                {
-                    "asignatura": "3º D A7 F C Económicas Emp",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "16:00",
-                    "hora_fin": "17:00",
-                    "tipo": "TEORÍA",
-                    "grupo": "GADE"
+                    "tipo": "CLASE",
+                    "grupo": null
                 },
                 {
                     "asignatura": "3º D A7 F C Económicas Emp",
@@ -842,8 +707,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-07T18:34:27.458014",
-        "parse_duration": 0.002953,
+        "parse_timestamp": "2025-12-08T19:09:21.947625",
+        "parse_duration": 0.004062,
         "warnings": [],
         "errors": []
     }

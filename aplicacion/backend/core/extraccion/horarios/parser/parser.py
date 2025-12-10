@@ -21,9 +21,21 @@ class HorarioParser:
         start_time = datetime.now()
         horarios_parsed = []
 
+        # 1. RECUPERAR DATOS (Ahora viene el formato largo)
+        raw_title = extraction_result.titulo
+        if "|" in raw_title:
+            titulo_grado, periodo_global = raw_title.split("|")
+        else:
+            # Fallback actualizado a formato largo por consistencia
+            titulo_grado, periodo_global = raw_title, "Primer Cuatrimestre"
+
+        # 2. TÍTULO FINAL (Ej: "Grado en Física - Segundo Cuatrimestre")
+        titulo_final = f"{titulo_grado} - {periodo_global}"
+
         for tabla in extraction_result.tablas:
             try:
-                horario = self._process_table(tabla)
+                # El periodo completo se pasará ahora a cada objeto horario
+                horario = self._process_table(tabla, periodo_global)
                 if horario.sesiones:
                     horarios_parsed.append(horario)
             except Exception as e:
@@ -41,14 +53,14 @@ class HorarioParser:
 
         return self._to_normalize(
             ParsingResult(
-                titulo=extraction_result.titulo,
+                titulo=titulo_final,
                 horarios=horarios_parsed,
                 extraction_metadata=extraction_result.metadata,
                 parsing_metadata=parsing_meta
             )
         )
 
-    def _process_table(self, tabla) -> Horario:
+    def _process_table(self, tabla, periodo_global: str) -> Horario:
         sesiones: List[Sesion] = []
         col_day_map = {idx: d for idx, d in enumerate(tabla.day_columns) if d in DIAS_SEMANA}
         
@@ -114,12 +126,11 @@ class HorarioParser:
 
         return Horario(
             curso=tabla.curso,
-            periodo=None,
+            periodo=periodo_global, # Usamos el periodo detectado (1C o 2C)
             sesiones=sesiones,
             mencion=tabla.mencion,
             pagina=tabla.pagina
         )
-
     def _check_continuation(self, prev: ParsedCellData, curr: ParsedCellData) -> str:
         """
         Analiza si 'curr' es continuación de 'prev'.

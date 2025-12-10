@@ -1,12 +1,21 @@
 {
-    "titulo": "GRADO EN FÍSICA PRIMER CUATRIMESTRE",
+    "titulo": "Grado en Física - Primer Cuatrimestre",
     "horarios": [
         {
-            "curso": "PRIMER",
+            "curso": "1º",
             "mencion": null,
             "sesiones": [
                 {
-                    "asignatura": "Álgebra Lineal",
+                    "asignatura": "Diferencial",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Lineal",
                     "aula": "AULA 4",
                     "dia": "MARTES",
                     "hora_inicio": "08:30",
@@ -26,7 +35,7 @@
                 {
                     "asignatura": "Cálculo",
                     "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
+                    "dia": "MARTES",
                     "hora_inicio": "09:30",
                     "hora_fin": "10:30",
                     "tipo": "CLASE",
@@ -42,13 +51,13 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Física Básica I",
+                    "asignatura": "Lineal",
                     "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "09:30",
-                    "hora_fin": "10:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "Grupo 4 LAB"
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
                 },
                 {
                     "asignatura": "Álgebra Lineal",
@@ -60,8 +69,8 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Básica I",
-                    "aula": "AULA 4",
+                    "asignatura": "Física",
+                    "aula": "POR DETERMINAR",
                     "dia": "MARTES",
                     "hora_inicio": "11:30",
                     "hora_fin": "11:30",
@@ -69,9 +78,9 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Física Básica",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
+                    "asignatura": "Básica I",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
                     "hora_inicio": "11:30",
                     "hora_fin": "11:30",
                     "tipo": "CLASE",
@@ -87,11 +96,20 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Física Básica",
+                    "aula": "AULA 4",
                     "dia": "JUEVES",
                     "hora_inicio": "11:30",
                     "hora_fin": "12:00",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Básica II 4",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "12:00",
+                    "hora_fin": "12:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
@@ -114,15 +132,6 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Física Básica I",
-                    "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
-                    "hora_inicio": "13:30",
-                    "hora_fin": "13:30",
-                    "tipo": "TEORÍA",
-                    "grupo": "Grupo 3"
-                },
-                {
                     "asignatura": "LAB",
                     "aula": "POR DETERMINAR",
                     "dia": "MARTES",
@@ -132,18 +141,9 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "AUL",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "13:30",
-                    "hora_fin": "13:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
                     "asignatura": "Física Básica I",
                     "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
+                    "dia": "MARTES",
                     "hora_inicio": "16:00",
                     "hora_fin": "17:00",
                     "tipo": "TEORÍA",
@@ -168,6 +168,15 @@
                     "grupo": "Grupo 2"
                 },
                 {
+                    "asignatura": "Física Básica II",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:00",
+                    "hora_fin": "18:00",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 5 LAB"
+                },
+                {
                     "asignatura": "LAB",
                     "aula": "POR DETERMINAR",
                     "dia": "MARTES",
@@ -179,45 +188,18 @@
                 {
                     "asignatura": "Física Básica II",
                     "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
+                    "dia": "VIERNES",
                     "hora_inicio": "16:00",
                     "hora_fin": "18:00",
                     "tipo": "TEORÍA",
                     "grupo": "Grupo 4 LAB"
-                },
-                {
-                    "asignatura": "simulaciónsedaráaconocera",
-                    "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
-                    "hora_inicio": "19:00",
-                    "hora_fin": "20:00",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "principiodecurso",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "19:00",
-                    "hora_fin": "20:00",
-                    "tipo": "CLASE",
-                    "grupo": null
                 }
             ]
         },
         {
-            "curso": "1º",
+            "curso": "2º",
             "mencion": null,
             "sesiones": [
-                {
-                    "asignatura": "Mecánica Clásica relatividad",
-                    "aula": "POR DETERMINAR",
-                    "dia": "LUNES",
-                    "hora_inicio": "14:30",
-                    "hora_fin": "15:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
                 {
                     "asignatura": "Electromagnetismo I",
                     "aula": "AULA 4",
@@ -228,8 +210,8 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Mecánica Clásica relatividad",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Mecánica Clásica Relatividad",
+                    "aula": "AULA 4",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "14:30",
                     "hora_fin": "15:30",
@@ -246,11 +228,11 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Herramientas",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Mecánica Clásica Relatividad",
+                    "aula": "AULA 4",
                     "dia": "LUNES",
-                    "hora_inicio": "16:30",
-                    "hora_fin": "17:30",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
@@ -264,15 +246,24 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Herramientas",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "18:30",
+                    "asignatura": "Herramientas Computacionales",
+                    "aula": "LSC3",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
+                    "asignatura": "Herramientas",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
                     "asignatura": "Termodinámica",
                     "aula": "AULA 4",
                     "dia": "JUEVES",
@@ -291,15 +282,6 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Computacionales",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "18:30",
-                    "hora_fin": "19:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
                     "asignatura": "Termodinámica",
                     "aula": "AULA 4",
                     "dia": "MIÉRCOLES",
@@ -311,7 +293,7 @@
             ]
         },
         {
-            "curso": "1º",
+            "curso": "3º",
             "mencion": null,
             "sesiones": [
                 {
@@ -405,7 +387,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Estructura de Moléculas Sólidos",
+                    "asignatura": "Electromagnetismo Óptica",
                     "aula": "AULA 2",
                     "dia": "JUEVES",
                     "hora_inicio": "11:30",
@@ -423,7 +405,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Estadística 2 de Sólidos 2",
+                    "asignatura": "Estadística 2 de Sólidos 2 Óptica 2",
                     "aula": "POR DETERMINAR",
                     "dia": "LUNES",
                     "hora_inicio": "10:30",
@@ -450,7 +432,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Molecular 2 Óptica 2",
+                    "asignatura": "Molecular 2 Óptica",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "11:30",
@@ -468,7 +450,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Electromagnetismo Óptica",
+                    "asignatura": "Estructura de Moléculas Sólidos",
                     "aula": "Aula 2",
                     "dia": "VIERNES",
                     "hora_inicio": "12:30",
@@ -479,47 +461,56 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "FÍSICA FUNDAMENTAL",
             "sesiones": [
                 {
                     "asignatura": "Advanced",
                     "aula": "POR DETERMINAR",
-                    "dia": "MARTES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "11:30",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Experimental AULA",
+                    "asignatura": "Advanc ed",
                     "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Advanced Experimental Techniques",
+                    "aula": "AULA 6",
+                    "dia": "MARTES",
                     "hora_inicio": "10:30",
                     "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PL 1"
                 },
                 {
-                    "asignatura": "Techniques 6",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "10:30",
-                    "hora_fin": "11:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
                     "asignatura": "Fisica de materiales",
                     "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "10:30",
                     "hora_fin": "11:30",
                     "tipo": "PRÁCTICA",
                     "grupo": "PL1"
                 },
                 {
-                    "asignatura": "Advanced Computatio",
+                    "asignatura": "Experiment al Techniques",
+                    "aula": "AULA 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL 2"
+                },
+                {
+                    "asignatura": "Advanced Computati",
                     "aula": "LSC 2",
                     "dia": "MIÉRCOLES",
                     "hora_inicio": "10:30",
@@ -528,13 +519,13 @@
                     "grupo": "PL1"
                 },
                 {
-                    "asignatura": "Fisica de materiales",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Experim ental Techniq ues",
+                    "aula": "AULA 6",
                     "dia": "VIERNES",
-                    "hora_inicio": "11:30",
+                    "hora_inicio": "10:30",
                     "hora_fin": "12:30",
                     "tipo": "PRÁCTICA",
-                    "grupo": "PL2"
+                    "grupo": "PL 1"
                 },
                 {
                     "asignatura": "Fisica de",
@@ -546,6 +537,33 @@
                     "grupo": null
                 },
                 {
+                    "asignatura": "Fisica de",
+                    "aula": "AULA 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "General 8",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Mecánica Cuántica",
+                    "aula": "AULA 8",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
                     "asignatura": "Mecánica AULA",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
@@ -555,8 +573,8 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Mecánica AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Cuántica",
+                    "aula": "AULA 8",
                     "dia": "VIERNES",
                     "hora_inicio": "14:30",
                     "hora_fin": "15:30",
@@ -564,17 +582,17 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "General 8 cuántica 8",
+                    "asignatura": "Cuántica 8",
                     "aula": "POR DETERMINAR",
                     "dia": "LUNES",
-                    "hora_inicio": "14:30",
+                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Física",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Física de Partículas Elementales",
+                    "aula": "AULA 8",
                     "dia": "MARTES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
@@ -582,44 +600,17 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Mecánica AULA de partículas AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "14:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "cuántica 8 elementales 8",
+                    "asignatura": "Física de Partículas AULA",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
-                    "hora_inicio": "14:30",
+                    "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "Astrofísica",
+                    "asignatura": "Partículas Elementales",
                     "aula": "AULA 8",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Física de partículas AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "15:30",
-                    "hora_fin": "16:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Física de elementales AULA",
-                    "aula": "POR DETERMINAR",
                     "dia": "VIERNES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
@@ -627,9 +618,27 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Fotónica AULA",
+                    "asignatura": "Fotónica",
+                    "aula": "AULA 8",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
                     "aula": "POR DETERMINAR",
                     "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Advanc",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
                     "hora_inicio": "16:30",
                     "hora_fin": "17:30",
                     "tipo": "CLASE",
@@ -645,8 +654,8 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Fotónica AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "Fotónica",
+                    "aula": "AULA 8",
                     "dia": "VIERNES",
                     "hora_inicio": "16:30",
                     "hora_fin": "17:30",
@@ -654,7 +663,7 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Física de partículas",
+                    "asignatura": "Física de partículas elementales",
                     "aula": "Aula 9",
                     "dia": "LUNES",
                     "hora_inicio": "16:30",
@@ -663,36 +672,9 @@
                     "grupo": "Grupo 2"
                 },
                 {
-                    "asignatura": "Relatividad AULA",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "General",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Advanced",
-                    "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
-                    "hora_inicio": "17:30",
-                    "hora_fin": "18:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "Computation",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
+                    "asignatura": "Relatividad General",
+                    "aula": "AULA 8",
+                    "dia": "MARTES",
                     "hora_inicio": "17:30",
                     "hora_fin": "18:30",
                     "tipo": "CLASE",
@@ -700,7 +682,7 @@
                 },
                 {
                     "asignatura": "Fotónica",
-                    "aula": "POR DETERMINAR",
+                    "aula": "AULA 8",
                     "dia": "JUEVES",
                     "hora_inicio": "17:30",
                     "hora_fin": "18:30",
@@ -708,8 +690,8 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Relatividad AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "General",
+                    "aula": "AULA 8",
                     "dia": "VIERNES",
                     "hora_inicio": "17:30",
                     "hora_fin": "18:30",
@@ -717,9 +699,18 @@
                     "grupo": null
                 },
                 {
+                    "asignatura": "Experim ental Techniq ues",
+                    "aula": "AULA 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
                     "asignatura": "LSC",
                     "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "18:30",
                     "hora_fin": "19:30",
                     "tipo": "CLASE",
@@ -728,11 +719,11 @@
             ]
         },
         {
-            "curso": "1º",
-            "mencion": null,
+            "curso": "4º",
+            "mencion": "FÍSICA APLICADA",
             "sesiones": [
                 {
-                    "asignatura": "F tierra",
+                    "asignatura": "F Tierra",
                     "aula": "POR DETERMINAR",
                     "dia": "LUNES",
                     "hora_inicio": "08:30",
@@ -741,8 +732,17 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "F AULA",
+                    "asignatura": "Radiofísica AULA",
                     "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "F Tierra",
+                    "aula": "AULA 12",
                     "dia": "MARTES",
                     "hora_inicio": "09:30",
                     "hora_fin": "10:30",
@@ -750,18 +750,9 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Radiofísica AULA tierra 12",
-                    "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
-                    "hora_inicio": "08:30",
-                    "hora_fin": "10:30",
-                    "tipo": "CLASE",
-                    "grupo": null
-                },
-                {
-                    "asignatura": "F tierra",
+                    "asignatura": "F Tierra",
                     "aula": "AULA 12",
-                    "dia": "VIERNES",
+                    "dia": "JUEVES",
                     "hora_inicio": "09:30",
                     "hora_fin": "10:30",
                     "tipo": "CLASE",
@@ -777,17 +768,26 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Advanced Experimental Techniques",
+                    "asignatura": "Experimentación",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Experimentación",
                     "aula": "POR DETERMINAR",
                     "dia": "JUEVES",
                     "hora_inicio": "10:30",
                     "hora_fin": "11:30",
-                    "tipo": "PRÁCTICA",
-                    "grupo": "PL 1"
+                    "tipo": "CLASE",
+                    "grupo": null
                 },
                 {
-                    "asignatura": "AULA",
-                    "aula": "POR DETERMINAR",
+                    "asignatura": "ATC",
+                    "aula": "AULA 12",
                     "dia": "MARTES",
                     "hora_inicio": "11:30",
                     "hora_fin": "12:30",
@@ -795,13 +795,22 @@
                     "grupo": null
                 },
                 {
-                    "asignatura": "Experimentación",
+                    "asignatura": "ATC",
                     "aula": "AULA 12",
-                    "dia": "VIERNES",
-                    "hora_inicio": "10:30",
+                    "dia": "JUEVES",
+                    "hora_inicio": "11:30",
                     "hora_fin": "12:30",
                     "tipo": "CLASE",
                     "grupo": null
+                },
+                {
+                    "asignatura": "Experimental Techniques",
+                    "aula": "AULA 6",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "12:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL 1"
                 },
                 {
                     "asignatura": "Advanced",
@@ -815,25 +824,25 @@
                 {
                     "asignatura": "Fuentes de AULA",
                     "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
+                    "dia": "MARTES",
                     "hora_inicio": "12:30",
                     "hora_fin": "13:30",
                     "tipo": "CLASE",
                     "grupo": null
                 },
                 {
-                    "asignatura": "energía",
-                    "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
-                    "hora_inicio": "12:30",
+                    "asignatura": "Experimental Techniques energía 12",
+                    "aula": "AULA 6",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "10:30",
                     "hora_fin": "13:30",
-                    "tipo": "CLASE",
-                    "grupo": null
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL 1"
                 },
                 {
                     "asignatura": "Prácticas de Grupo",
                     "aula": "POR DETERMINAR",
-                    "dia": "MIÉRCOLES",
+                    "dia": "MARTES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
@@ -842,7 +851,7 @@
                 {
                     "asignatura": "Radiofísica 2",
                     "aula": "POR DETERMINAR",
-                    "dia": "JUEVES",
+                    "dia": "MIÉRCOLES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "CLASE",
@@ -851,16 +860,25 @@
                 {
                     "asignatura": "Prácticas de Radiofísica",
                     "aula": "POR DETERMINAR",
-                    "dia": "VIERNES",
+                    "dia": "JUEVES",
                     "hora_inicio": "15:30",
                     "hora_fin": "16:30",
                     "tipo": "TEORÍA",
                     "grupo": "Grupo 1"
                 },
                 {
+                    "asignatura": "Experimental Techniques",
+                    "aula": "AULA 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL 2"
+                },
+                {
                     "asignatura": "Advanced Computation",
                     "aula": "LSC 2",
-                    "dia": "VIERNES",
+                    "dia": "JUEVES",
                     "hora_inicio": "17:30",
                     "hora_fin": "19:30",
                     "tipo": "CLASE",
@@ -872,8 +890,8 @@
     "metadata": {
         "parser_name": "GridParserV2.1",
         "parser_version": "2.1.0",
-        "parse_timestamp": "2025-12-07T18:34:26.697653",
-        "parse_duration": 0.002919,
+        "parse_timestamp": "2025-12-08T19:09:20.839094",
+        "parse_duration": 0.004102,
         "warnings": [],
         "errors": []
     }

@@ -37,7 +37,7 @@ STITCHING_CONFIG = {
 }
 
 # =============================================================================
-# 3. PATRONES DE REPARACIÓN (SEMANTIC REPAIR)
+# 3. PATRONES DE REPARACIÓN Y DETECCIÓN
 # =============================================================================
 
 REPAIRS_BROKEN_WORDS = [
@@ -68,12 +68,46 @@ REPAIRS_BROKEN_WORDS = [
 
 PATRONES_RADAR = {
     'titulo': r'(?:DOBLE )?GRADO\s+EN\s+[\w\s\.]+(?:PRIMER|SEGUNDO)\s+CUATRIMESTRE',
-    'curso': r'\b(?:[1-6]\s*º|PRIMER|SEGUNDO|TERCER|CUARTO|QUINTO|SEXTO)\s*(?:CURSO)?\b',
-    'mencion': r'MENCI[ÓO]N\s+EN\s+[\w\s\.]+',
+    
+    # --- REGEX DE CURSO (ESTRATEGIA DUAL) ---
+    # GRUPO 1: Palabras u ordinales (PRIMER, 1º) -> "CURSO" es opcional.
+    # GRUPO 2: Romanos (I, II, III) -> "CURSO" es OBLIGATORIO para no confundir con "Física II".
+    'curso': r'\b(?:(?:PRIMER|SEGUNDO|TERCER|CUARTO|QUINTO|SEXTO|SÉPTIMO|OCTAVO|[1-6](?:º|er|°)?)(?:\s*CURSO)?|(?:I{1,3}|IV|V|VI)\s+CURSO)\b(?!\s*CUATRIMESTRE)',
+    
+    'mencion': r'(?:MENCI[ÓO]N(?:ES)?|MECI[ÓO]N|ESPECIALIDAD|ITINERARIO)(?:\s+EN|\s+DE)?\s+([A-ZÁÉÍÓÚÑ\.\s]+)',
 }
 
 RX_CURSO = re.compile(PATRONES_RADAR['curso'], re.IGNORECASE)
 RX_MENCION = re.compile(PATRONES_RADAR['mencion'], re.IGNORECASE)
+
+MAPA_CURSOS = {
+    # Palabras clave
+    "PRIMER": "1º", "PRIMERO": "1º", "1ER": "1º",
+    "SEGUNDO": "2º",
+    "TERCER": "3º", "TERCERO": "3º",
+    "CUARTO": "4º",
+    "QUINTO": "5º",
+    "SEXTO": "6º",
+    
+    # Ordinales explícitos (la regex captura el símbolo º)
+    "1º": "1º", "1°": "1º", 
+    "2º": "2º", "2°": "2º",
+    "3º": "3º", "3°": "3º",
+    "4º": "4º", "4°": "4º",
+    "5º": "5º", "5°": "5º",
+    "6º": "6º", "6°": "6º",
+
+    # Romanos (Requieren contexto "CURSO" en la regex, así que son seguros)
+    "I": "1º", "II": "2º", "III": "3º", "IV": "4º", "V": "5º", "VI": "6º"
+}
+
+# Si una línea tiene esto, LA DESCARTAMOS para la búsqueda de curso.
+KEYWORDS_TABLE_CONTENT = [
+    "LUNES", "MARTES", "MIÉRCOLES", "MIERCOLES", "JUEVES", "VIERNES",
+    "08:", "09:", "10:", "11:", "12:", "13:", "14:", "15:", "16:", "17:", "18:", "19:", "20:",
+    "AULA", "LAB", "SEMANAS", "PÁGINA", "PAGE", "HOJA"
+]
+
 RX_HORA = re.compile(r'\b(?:[01]?\d|2[0-3])[:.]?[0-5]\d\b')
 
 DIAS_REGEX = {
@@ -95,3 +129,48 @@ DEFAULT_EXTRACTOR_CONFIG = {
     'min_tablas_por_pagina': 1,
     'log_level': 'INFO'
 }
+
+# =============================================================================
+# 4. CONFIGURACIÓN DE DETECCIÓN DE TÍTULOS Y PERIODOS
+# =============================================================================
+
+# Etiquetas de salida (Lo que se guarda en el JSON)
+LABEL_PERIODO_1 = "Primer Cuatrimestre"
+LABEL_PERIODO_2 = "Segundo Cuatrimestre"
+
+LABEL_GRADO_FISICA = "Grado en Física"
+LABEL_GRADO_MATEMATICAS = "Grado en Matemáticas"
+LABEL_GRADO_INFORMATICA = "Grado en Ingeniería Informática"
+LABEL_GRADO_DOBLE = "Doble Grado en Física y Matemáticas"
+LABEL_GRADO_UNKNOWN = "-"
+
+# Palabras clave para la detección (Debe estar en MAYÚSCULAS para coincidir con upper())
+KEYWORDS_PERIODO_1 = ["PRIMER CUATRIMESTRE", "1º CUATRIMESTRE"]
+KEYWORDS_PERIODO_2 = ["SEGUNDO CUATRIMESTRE", "2º CUATRIMESTRE"]
+
+KEYWORDS_FISICA = ["FÍSICA", "FISICA"]
+KEYWORDS_MATEMATICAS = ["MATEMÁTICAS", "MATEMATICAS"]
+KEYWORDS_DOBLE = ["DOBLE GRADO"]
+# Para informática buscamos la frase específica para no confundir con menciones
+KEYWORDS_INFORMATICA = ["GRADO EN INGENIERÍA INFORMÁTICA", "GRADO EN INGENIERIA INFORMATICA"]
+
+# =============================================================================
+# 6. CONFIGURACIÓN DE CORTE DE PIE DE PÁGINA (NOISE REMOVAL)
+# =============================================================================
+
+# Frases que indican inequívocamente el inicio del pie de página.
+# Si encontramos esto, ignoramos todo lo que haya visualmente debajo.
+FOOTER_CUTOFF_PATTERNS = [
+    r'Horas\s+reservadas\s+para',
+    r'La\s+programación\s+de\s+prácticas',
+    r'El\s+número\s+de\s+grupos\s+podría',
+    r'Las\s+prácticas\s+de\s+laboratorio',
+    r'Los\s+grupos\s+de\s+laboratorios',
+    r'^\s*\(\*\)\s*', # Líneas que empiezan por (*)
+    r'coordinadas\s+con\s+el\s+responsable',
+    r'Cada\s+alumno\s+sólo\s+tendrá',
+    r'se\s+unirán\s+los\s+grupos',
+    r'programación\s+estará\s+disponible'
+]
+
+RX_FOOTER_CUTOFF = [re.compile(p, re.IGNORECASE) for p in FOOTER_CUTOFF_PATTERNS]
