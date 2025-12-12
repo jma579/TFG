@@ -1,150 +1,190 @@
 'use client';
 
 import * as React from 'react';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import type { Room } from './data';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { createAula, updateAula, type AulaOut } from '@/lib/api/recursos/aulas';
+import { useToast } from '@/hooks/use-toast';
 
-type RoomFormValues = {
-  nombre: string;
-  codigo: string;
-  tipo: string;
-  capacidad: string;
-};
+const TIPOS_AULA = [
+  { value: 'teorica', label: 'Teórica' },
+  { value: 'laboratorio', label: 'Laboratorio' },
+  { value: 'informatica', label: 'Informática' },
+  { value: 'seminario', label: 'Seminario' },
+  { value: 'taller', label: 'Taller' },
+  { value: 'auditorio', label: 'Auditorio' },
+  { value: 'biblioteca', label: 'Biblioteca' },
+  { value: 'gimnasio', label: 'Gimnasio' },
+  { value: 'virtual', label: 'Virtual' },
+];
 
-type RoomFormDialogProps = {
+type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initial: Room | null;
-  onSubmit: (values: { nombre: string; codigo: string; tipo: string; capacidad: number | null }) => Promise<void> | void;
-  saving: boolean;
+  initialData?: AulaOut | null;
+  onSuccess?: (aula: AulaOut) => void;
 };
 
-export function RoomFormDialog({
-  open,
-  onOpenChange,
-  initial,
-  onSubmit,
-  saving,
-}: RoomFormDialogProps) {
-  const [form, setForm] = React.useState<RoomFormValues>({
+export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: Props) {
+  const { toast } = useToast();
+  const [loading, setLoading] = React.useState(false);
+
+  const [formData, setFormData] = React.useState({
     nombre: '',
     codigo: '',
-    tipo: '',
-    capacidad: '',
+    tipo: 'teorica',
+    capacidad: 40,
   });
 
   React.useEffect(() => {
-    if (initial) {
-      setForm({
-        nombre: initial.nombre,
-        codigo: initial.codigo,
-        tipo: initial.tipo,
-        capacidad:
-          initial.capacidad != null && !Number.isNaN(initial.capacidad)
-            ? String(initial.capacidad)
-            : '',
-      });
-    } else {
-      setForm({ nombre: '', codigo: '', tipo: '', capacidad: '' });
+    if (open) {
+      if (initialData) {
+        setFormData({
+          nombre: initialData.nombre,
+          codigo: initialData.codigo,
+          tipo: initialData.tipo,
+          capacidad: initialData.capacidad ?? 0,
+        });
+      } else {
+        setFormData({
+          nombre: '',
+          codigo: '',
+          tipo: 'teorica',
+          capacidad: 40,
+        });
+      }
     }
-  }, [initial, open]);
+  }, [open, initialData]);
 
-  const handleChange = (field: keyof RoomFormValues, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      let result: AulaOut;
+
+      if (initialData) {
+        result = await updateAula(initialData.id, formData);
+        toast({ title: 'Aula actualizada correctamente' });
+      } else {
+        result = await createAula(formData);
+        toast({ title: 'Aula creada correctamente' });
+      }
+
+      onSuccess?.(result);
+      onOpenChange(false);
+    } catch (error: unknown) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Error al guardar',
+        description: error instanceof Error ? error.message : 'Error desconocido',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const trimmedCap = form.capacidad.trim();
-    const numericCap = trimmedCap ? Number(trimmedCap) : null;
-
-    await onSubmit({
-      nombre: form.nombre.trim(),
-      codigo: form.codigo.trim(),
-      tipo: form.tipo.trim(),
-      capacidad: Number.isNaN(numericCap) ? null : numericCap,
-    });
-  };
-
-  const isEdit = initial != null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Editar aula' : 'Nueva aula'}</DialogTitle>
+          <DialogTitle>{initialData ? 'Editar Aula' : 'Nueva Aula'}</DialogTitle>
           <DialogDescription>
-            {isEdit
-              ? 'Modifica los datos del aula y guarda los cambios.'
-              : 'Introduce los datos para crear una nueva aula.'}
+            {initialData
+              ? 'Modifica los datos del aula existente.'
+              : 'Registra un nuevo espacio docente.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor="nombre">Nombre</Label>
-              <Input
-                id="nombre"
-                value={form.nombre}
-                onChange={(e) => handleChange('nombre', e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="codigo">Código</Label>
-              <Input
-                id="codigo"
-                value={form.codigo}
-                onChange={(e) => handleChange('codigo', e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="tipo">Tipo</Label>
+        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="nombre" className="text-right">
+              Nombre
+            </Label>
             <Input
-              id="tipo"
-              value={form.tipo}
-              onChange={(e) => handleChange('tipo', e.target.value)}
-              placeholder="teorica, laboratorio, informatica…"
+              id="nombre"
+              value={formData.nombre}
+              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+              className="col-span-3"
+              placeholder="Ej. Aula 1.1"
               required
             />
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="capacidad">Capacidad</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="codigo" className="text-right">
+              Código
+            </Label>
             <Input
-              id="capacidad"
-              type="number"
-              min={0}
-              value={form.capacidad}
-              onChange={(e) => handleChange('capacidad', e.target.value)}
-              placeholder="Número máximo de estudiantes"
+              id="codigo"
+              value={formData.codigo}
+              onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
+              className="col-span-3"
+              placeholder="Ej. A1.1"
+              required
             />
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear aula'}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="tipo" className="text-right">
+              Tipo
+            </Label>
+            <div className="col-span-3">
+              <Select
+                value={formData.tipo}
+                onValueChange={(val) => setFormData({ ...formData, tipo: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPOS_AULA.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="capacidad" className="text-right">
+              Capacidad
+            </Label>
+            <Input
+              id="capacidad"
+              type="number"
+              min={1}
+              value={formData.capacidad}
+              onChange={(e) => setFormData({ ...formData, capacidad: Number(e.target.value) })}
+              className="col-span-3"
+              required
+            />
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {initialData ? 'Guardar cambios' : 'Crear Aula'}
             </Button>
           </DialogFooter>
         </form>
