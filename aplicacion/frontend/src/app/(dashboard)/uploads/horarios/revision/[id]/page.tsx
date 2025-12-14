@@ -1,43 +1,39 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Pencil } from "lucide-react";
-import { InteractiveScheduleGrid } from "@/components/solver/interactive-schedule-grid";
-import type { Session } from "@/components/solver/schedule-mock";
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { Plus, Pencil } from 'lucide-react'; // Añadido Pencil
+import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
+import type { Session } from '@/components/solver/schedule-mock';
 import {
   useHorariosUploadsStore,
   type HorarioUploadItem,
-} from "@/stores/horarios-uploads";
-import { confirmHorario, type HorarioTemporalOut } from "@/lib/api/docencia/horarios";
-import { Button } from "@/components/ui/button";
+} from '@/stores/horarios-uploads';
+import { confirmHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 type RouteParams = { id: string };
 
 type Props = {
-  // En Next 15, params llega como Promise en componentes cliente
   params: Promise<RouteParams>;
 };
 
-/**
- * Tipo que refleja el JSON real que devuelve /docencia/horarios/extract.
- */
 export type HorarioExtraido = {
   titulo: string;
   plan: string;
@@ -66,7 +62,6 @@ export type HorarioExtraidoSesion = {
   [key: string]: unknown;
 };
 
-// Estado local del formulario de edición/creación de una sesión
 interface SesionFormState {
   asignatura: string;
   aula: string;
@@ -78,53 +73,46 @@ interface SesionFormState {
 }
 
 const DEFAULT_SESSION_FORM: SesionFormState = {
-  asignatura: "",
-  aula: "",
-  dia: "LUNES",
-  hora_inicio: "09:30",
-  hora_fin: "10:30",
-  tipo: "TEORÍA",
-  grupo: "",
+  asignatura: '',
+  aula: '',
+  dia: 'LUNES',
+  hora_inicio: '09:30',
+  hora_fin: '10:30',
+  tipo: 'TEORÍA',
+  grupo: '',
 };
 
 const TIPO_OPCIONES = [
-  "TEORÍA",
-  "PRÁCTICAS DE AULA",
-  "PRÁCTICAS DE LABORATORIO",
+  'TEORÍA',
+  'PRÁCTICAS DE AULA',
+  'PRÁCTICAS DE LABORATORIO',
 ] as const;
 
-const DIAS_SEMANA = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"] as const;
-
-/* -------------------------------------------------------------------------- */
-/* Componente principal                                                       */
-/* -------------------------------------------------------------------------- */
+const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
 
 export default function RevisionHorarioPage({ params }: Props) {
   const { id } = React.use(params);
   const router = useRouter();
   const { toast } = useToast();
 
-  // Selector tipado del store
   const item = useHorariosUploadsStore(
     React.useCallback(
       (state) => state.items.find((it) => it.id === id),
-      [id],
-    ),
+      [id]
+    )
   ) as HorarioUploadItem | undefined;
 
   const horarioTemporal: HorarioExtraido | undefined =
     item?.horarioTemporal as unknown as HorarioExtraido | undefined;
 
-  // Copia editable local del horario (para no mutar el store directamente)
   const [draftHorario, setDraftHorario] = React.useState<HorarioExtraido | null>(
-    null,
+    null
   );
 
   React.useEffect(() => {
     if (horarioTemporal) {
-      // Clonamos profundo para evitar mutaciones sobre el objeto del store
       const cloned = JSON.parse(
-        JSON.stringify(horarioTemporal),
+        JSON.stringify(horarioTemporal)
       ) as HorarioExtraido;
       setDraftHorario(cloned);
     }
@@ -137,12 +125,11 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const bloques = React.useMemo(
     () => (horario?.horarios ?? []) as HorarioExtraidoBloque[],
-    [horario],
+    [horario]
   );
 
   const [selectedBlockIndex, setSelectedBlockIndex] = React.useState(0);
 
-  // Si cambia el número de bloques, nos aseguramos de que el índice siga siendo válido
   React.useEffect(() => {
     if (selectedBlockIndex >= bloques.length) {
       setSelectedBlockIndex(0);
@@ -161,9 +148,36 @@ export default function RevisionHorarioPage({ params }: Props) {
     return mapBloqueToSessions(bloque, selectedBlockIndex);
   }, [bloques, horario, selectedBlockIndex]);
 
-  // Ahora consideramos que hay datos si existe al menos un bloque,
-  // aunque ese bloque tenga 0 sesiones (tabla vacía).
   const hasData = Boolean(horario && bloques.length > 0);
+
+  /* ------------------------------ NUEVO: Edición Info General ------------------------------ */
+  
+  const [isEditInfoOpen, setIsEditInfoOpen] = React.useState(false);
+  const [infoForm, setInfoForm] = React.useState({ plan: '', periodo: '' });
+
+  const openEditInfo = () => {
+    if (!horario) return;
+    // Rellenamos el formulario con los datos actuales o calculados
+    setInfoForm({
+      plan: horario.plan || horario.titulo?.split(' - ')[0] || '',
+      periodo: horario.periodo || horario.titulo?.split(' - ')[1] || '',
+    });
+    setIsEditInfoOpen(true);
+  };
+
+  const handleSaveInfo = () => {
+    setDraftHorario((prev) => {
+      if (!prev) return prev;
+      const cloned = { ...prev };
+      cloned.plan = infoForm.plan;
+      cloned.periodo = infoForm.periodo;
+      // Actualizamos el título también para mantener coherencia
+      cloned.titulo = `${infoForm.plan} - ${infoForm.periodo}`;
+      return cloned;
+    });
+    setIsEditInfoOpen(false);
+    toast({ title: 'Información actualizada' });
+  };
 
   /* ------------------------------ Edición sesión ------------------------------ */
 
@@ -173,13 +187,13 @@ export default function RevisionHorarioPage({ params }: Props) {
   } | null>(null);
 
   const [editingForm, setEditingForm] = React.useState<SesionFormState | null>(
-    null,
+    null
   );
 
   const openEditSesion = (session: Session) => {
     if (!horario) return;
 
-    const [blockStr, sesStr] = String(session.id).split("-");
+    const [blockStr, sesStr] = String(session.id).split('-');
     const blockIndex = Number(blockStr);
     const sessionIndex = Number(sesStr);
     if (Number.isNaN(blockIndex) || Number.isNaN(sessionIndex)) return;
@@ -190,13 +204,13 @@ export default function RevisionHorarioPage({ params }: Props) {
 
     setEditingLocation({ blockIndex, sessionIndex });
     setEditingForm({
-      asignatura: sesion.asignatura ?? "",
-      aula: sesion.aula ?? "",
-      dia: sesion.dia ?? "",
-      hora_inicio: sesion.hora_inicio ?? "",
-      hora_fin: sesion.hora_fin ?? "",
-      tipo: sesion.tipo ?? "TEORÍA",
-      grupo: sesion.grupo ?? "",
+      asignatura: sesion.asignatura ?? '',
+      aula: sesion.aula ?? '',
+      dia: sesion.dia ?? '',
+      hora_inicio: sesion.hora_inicio ?? '',
+      hora_fin: sesion.hora_fin ?? '',
+      tipo: sesion.tipo ?? 'TEORÍA',
+      grupo: sesion.grupo ?? '',
     });
   };
 
@@ -207,7 +221,7 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const handleEditFieldChange = <K extends keyof SesionFormState>(
     field: K,
-    value: SesionFormState[K],
+    value: SesionFormState[K]
   ) => {
     setEditingForm((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
@@ -242,30 +256,27 @@ export default function RevisionHorarioPage({ params }: Props) {
   /* ------------------------- Creación sesión / horario ------------------------ */
 
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
-  const [createTab, setCreateTab] = React.useState<"session" | "block">(
-    "session",
-  );
-  const [createSessionForm, setCreateSessionForm] =
-    React.useState<SesionFormState>(DEFAULT_SESSION_FORM);
+  const [createTab, setCreateTab] = React.useState<'session' | 'block'>('session');
+  const [createSessionForm, setCreateSessionForm] = React.useState<SesionFormState>(DEFAULT_SESSION_FORM);
   const [newBlockForm, setNewBlockForm] = React.useState<{
     curso: string;
     mencion: string;
-  }>({ curso: "", mencion: "" });
+  }>({ curso: '', mencion: '' });
 
   const [isEditBlockOpen, setIsEditBlockOpen] = React.useState(false);
   const [editBlockForm, setEditBlockForm] = React.useState<{
     curso: string;
     mencion: string;
-  }>({ curso: "", mencion: "" });
+  }>({ curso: '', mencion: '' });
 
   const canCreateSession = bloques.length > 0;
   const selectedBloque = bloques[selectedBlockIndex];
 
   const openCreateDialog = () => {
-    const initialTab: "session" | "block" = canCreateSession ? "session" : "block";
+    const initialTab: 'session' | 'block' = canCreateSession ? 'session' : 'block';
     setCreateTab(initialTab);
     setCreateSessionForm(DEFAULT_SESSION_FORM);
-    setNewBlockForm({ curso: "", mencion: "" });
+    setNewBlockForm({ curso: '', mencion: '' });
     setIsCreateOpen(true);
   };
 
@@ -275,7 +286,7 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const handleCreateFieldChange = <K extends keyof SesionFormState>(
     field: K,
-    value: SesionFormState[K],
+    value: SesionFormState[K]
   ) => {
     setCreateSessionForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -312,7 +323,6 @@ export default function RevisionHorarioPage({ params }: Props) {
       };
 
       bloque.sesiones.push(nuevaSesion);
-
       return cloned;
     });
 
@@ -344,7 +354,6 @@ export default function RevisionHorarioPage({ params }: Props) {
       };
 
       cloned.horarios.push(nuevoBloque);
-
       return cloned;
     });
 
@@ -357,7 +366,7 @@ export default function RevisionHorarioPage({ params }: Props) {
     if (!bloque) return;
     setEditBlockForm({
       curso: bloque.curso,
-      mencion: bloque.mencion || "",
+      mencion: bloque.mencion || '',
     });
     setIsEditBlockOpen(true);
   };
@@ -380,14 +389,14 @@ export default function RevisionHorarioPage({ params }: Props) {
   const handleSessionMove = (
     session: Session,
     newDayIndex: number,
-    newStartTime: string,
+    newStartTime: string
   ) => {
     setDraftHorario((prev) => {
       const source = prev ?? horario;
       if (!source) return prev;
 
       const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
-      const [blockStr, sesStr] = String(session.id).split("-");
+      const [blockStr, sesStr] = String(session.id).split('-');
       const blockIndex = Number(blockStr);
       const sessionIndex = Number(sesStr);
 
@@ -395,12 +404,10 @@ export default function RevisionHorarioPage({ params }: Props) {
       const sesion = bloque?.sesiones?.[sessionIndex];
       if (!bloque || !sesion) return prev;
 
-      // Calcular duración original
       const startMin = timeToMinutes(sesion.hora_inicio);
       const endMin = timeToMinutes(sesion.hora_fin);
       const duration = endMin - startMin;
 
-      // Calcular nuevos tiempos
       const newStartMin = timeToMinutes(newStartTime);
       const newEndMin = newStartMin + duration;
 
@@ -411,8 +418,6 @@ export default function RevisionHorarioPage({ params }: Props) {
       return cloned;
     });
   };
-
-  /* --------------------------- Confirmación horario --------------------------- */
 
   const handleConfirm = async () => {
     if (!horario || !item) return;
@@ -425,29 +430,27 @@ export default function RevisionHorarioPage({ params }: Props) {
       useHorariosUploadsStore.getState().confirm(item.id);
       
       toast({
-        title: "Horario confirmado",
-        description: "El horario se ha guardado correctamente en la base de datos.",
+        title: 'Horario confirmado',
+        description: 'El horario se ha guardado correctamente en la base de datos.',
       });
 
-      router.push("/app/datos/horarios");
+      router.push('/app/datos/horarios');
     } catch (error: unknown) {
       const message =
         error instanceof Error
           ? error.message
-          : "Error al confirmar el horario.";
+          : 'Error al confirmar el horario.';
       setConfirmError(message);
       
       toast({
-        title: "Error al guardar",
+        title: 'Error al guardar',
         description: message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setIsConfirming(false);
     }
   };
-
-  /* --------------------------------- Render --------------------------------- */
 
   if (!item) {
     return (
@@ -459,8 +462,6 @@ export default function RevisionHorarioPage({ params }: Props) {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               No se ha encontrado ningún archivo de horario asociado a esta URL.
-              Es posible que la lista de subidas se haya limpiado o que el
-              identificador no sea válido.
             </p>
           </CardContent>
         </Card>
@@ -477,9 +478,7 @@ export default function RevisionHorarioPage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              El archivo se ha registrado, pero no se dispone de datos de
-              extracción en memoria. Vuelve a la pantalla de subida de horarios
-              y lanza de nuevo el análisis.
+              El archivo se ha registrado, pero no se dispone de datos de extracción.
             </p>
           </CardContent>
         </Card>
@@ -502,15 +501,14 @@ export default function RevisionHorarioPage({ params }: Props) {
             Revisión de horario
           </h1>
           <p className="text-lg text-muted-foreground">
-            Revisa la información extraída del horario antes de confirmarla y
-            crear las sesiones en la base de datos.
+            Revisa la información extraída y corrige las asignaciones usando datos oficiales.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
           <Button
             variant="outline"
             type="button"
-            onClick={() => router.push("/app/uploads/horarios")}
+            onClick={() => router.push('/app/uploads/horarios')}
             disabled={isConfirming}
           >
             Volver a subidas
@@ -520,7 +518,7 @@ export default function RevisionHorarioPage({ params }: Props) {
             onClick={handleConfirm}
             disabled={isConfirming || !hasData}
           >
-            {isConfirming ? "Confirmando…" : "Confirmar horario"}
+            {isConfirming ? 'Confirmando…' : 'Confirmar horario'}
           </Button>
         </div>
       </div>
@@ -530,26 +528,39 @@ export default function RevisionHorarioPage({ params }: Props) {
         </p>
       )}
 
-      <Card>
+      {/* --- TARJETA RESUMEN INTERACTIVA (CLICK PARA EDITAR) --- */}
+      <Card 
+        className="cursor-pointer transition-colors hover:bg-muted/50 group relative"
+        onClick={openEditInfo}
+        title="Haz clic para editar la información general"
+      >
         <CardHeader>
-          <CardTitle>Resumen del horario</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            Resumen del horario
+            <Pencil className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground">Plan de estudios</p>
-              <p className="text-sm font-medium">{horario.plan}</p>
+              <p className="text-sm font-medium">
+                {/* Fallback de visualización */}
+                {horario.plan || horario.titulo?.split(' - ')[0] || 'Desconocido'}
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground">Periodo</p>
-              <p className="text-sm font-medium">{horario.periodo}</p>
+              <p className="text-sm font-medium capitalize">
+                {horario.periodo || horario.titulo?.split(' - ')[1] || '—'}
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground">Estadísticas</p>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold">{bloques.length}</span>
-                  <span className="text-muted-foreground">bloques</span>
+                  <span className="text-muted-foreground">horarios</span>
                 </div>
                 <div className="h-4 w-px bg-border" />
                 <div className="flex items-center gap-1.5">
@@ -566,12 +577,9 @@ export default function RevisionHorarioPage({ params }: Props) {
         {bloques.length > 0 ? (
           <div className="flex-1 rounded-md border bg-muted/40 px-4 py-3 text-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">{horario.titulo}</p>
-                <p className="text-xs text-muted-foreground">
-                  Selecciona el curso/mención del que quieres ver el horario.
-                </p>
-              </div>
+              <p className="font-medium text-muted-foreground">
+                Selecciona el curso o mención:
+              </p>
               <div className="flex flex-wrap gap-2">
                 {bloques.map((bloque, index) => {
                   const label = buildBloqueLabel(bloque);
@@ -581,7 +589,7 @@ export default function RevisionHorarioPage({ params }: Props) {
                       key={`${bloque.pagina}-${index}`}
                       type="button"
                       size="sm"
-                      variant={isActive ? "default" : "outline"}
+                      variant={isActive ? 'default' : 'outline'}
                       onClick={() => setSelectedBlockIndex(index)}
                     >
                       {label}
@@ -592,7 +600,6 @@ export default function RevisionHorarioPage({ params }: Props) {
             </div>
           </div>
         ) : (
-          // Cuando aún no hay bloques, dejamos espacio a la izquierda
           <div className="flex-1 rounded-md border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
             Crea un nuevo horario para comenzar a añadir sesiones.
           </div>
@@ -602,7 +609,6 @@ export default function RevisionHorarioPage({ params }: Props) {
           <Button
             type="button"
             onClick={openEditBlockDialog}
-            aria-label="Editar curso/mención actual"
             size="icon"
             variant="outline"
             disabled={!bloques.length}
@@ -612,7 +618,6 @@ export default function RevisionHorarioPage({ params }: Props) {
           <Button
             type="button"
             onClick={openCreateDialog}
-            aria-label="Añadir sesión u horario"
             size="icon"
           >
             <Plus className="h-4 w-4" />
@@ -635,200 +640,151 @@ export default function RevisionHorarioPage({ params }: Props) {
         </div>
       )}
 
-      {/* Diálogo de edición de bloque (curso/mención) */}
-      <Dialog
-        open={isEditBlockOpen}
-        onOpenChange={(open) => !open && setIsEditBlockOpen(false)}
-      >
+      {/* --- DIÁLOGOS --- */}
+
+      {/* NUEVO: Diálogo EDITAR INFO GENERAL */}
+      <Dialog open={isEditInfoOpen} onOpenChange={(open) => !open && setIsEditInfoOpen(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar horario</DialogTitle>
+            <DialogTitle>Editar información del horario</DialogTitle>
           </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="plan">Plan de estudios</Label>
+              <Input
+                id="plan"
+                value={infoForm.plan}
+                onChange={(e) => setInfoForm(prev => ({ ...prev, plan: e.target.value }))}
+                placeholder="Ej. Grado en Matemáticas"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="periodo">Periodo</Label>
+              <Input
+                id="periodo"
+                value={infoForm.periodo}
+                onChange={(e) => setInfoForm(prev => ({ ...prev, periodo: e.target.value }))}
+                placeholder="Ej. Primer Cuatrimestre"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditInfoOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveInfo}>Guardar cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      {/* Diálogo Editar Bloque */}
+      <Dialog open={isEditBlockOpen} onOpenChange={(open) => !open && setIsEditBlockOpen(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar horario (Curso/Mención)</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2 text-sm">
             <div className="grid gap-2">
               <Label htmlFor="edit-curso">Curso</Label>
               <Input
                 id="edit-curso"
                 value={editBlockForm.curso}
-                onChange={(e) =>
-                  setEditBlockForm((prev) => ({
-                    ...prev,
-                    curso: e.target.value,
-                  }))
-                }
+                onChange={(e) => setEditBlockForm((p) => ({ ...p, curso: e.target.value }))}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-mencion">Mención (opcional)</Label>
+              <Label htmlFor="edit-mencion">Mención</Label>
               <Input
                 id="edit-mencion"
                 value={editBlockForm.mencion}
-                onChange={(e) =>
-                  setEditBlockForm((prev) => ({
-                    ...prev,
-                    mencion: e.target.value,
-                  }))
-                }
+                onChange={(e) => setEditBlockForm((p) => ({ ...p, mencion: e.target.value }))}
               />
             </div>
           </div>
-
           <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setIsEditBlockOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleSaveBlock}>
-              Guardar cambios
-            </Button>
+            <Button variant="outline" onClick={() => setIsEditBlockOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveBlock}>Guardar cambios</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de edición de sesión */}
-      <Dialog
-        open={isEditOpen}
-        onOpenChange={(open) => !open && closeEditSesion()}
-      >
+      {/* Diálogo Editar Sesión (Con Input normales) */}
+      <Dialog open={isEditOpen} onOpenChange={(open) => !open && closeEditSesion()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Editar sesión
-              {editingBloque ? ` · ${editingBloque.curso}` : ""}
-            </DialogTitle>
+            <DialogTitle>Editar sesión {editingBloque ? ` · ${editingBloque.curso}` : ''}</DialogTitle>
           </DialogHeader>
-
           {editingForm && (
             <SessionFormFields
               form={editingForm}
               onChange={handleEditFieldChange}
             />
           )}
-
           <DialogFooter className="mt-4">
-            <Button variant="outline" type="button" onClick={closeEditSesion}>
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleSaveSesion}>
-              Guardar cambios
-            </Button>
+            <Button variant="outline" onClick={closeEditSesion}>Cancelar</Button>
+            <Button onClick={handleSaveSesion}>Guardar cambios</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de creación (nueva sesión / nuevo horario) */}
-      <Dialog
-        open={isCreateOpen}
-        onOpenChange={(open) => !open && closeCreateDialog()}
-      >
+      {/* Diálogo Crear */}
+      <Dialog open={isCreateOpen} onOpenChange={(open) => !open && closeCreateDialog()}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crear elemento</DialogTitle>
-          </DialogHeader>
-
+          <DialogHeader><DialogTitle>Crear elemento</DialogTitle></DialogHeader>
           <div className="mb-4 flex gap-2">
             <Button
-              type="button"
               size="sm"
-              variant={createTab === "session" ? "default" : "secondary"}
+              variant={createTab === 'session' ? 'default' : 'secondary'}
               disabled={!canCreateSession}
-              onClick={() => setCreateTab("session")}
+              onClick={() => setCreateTab('session')}
             >
               Nueva sesión
             </Button>
             <Button
-              type="button"
               size="sm"
-              variant={createTab === "block" ? "default" : "secondary"}
-              onClick={() => setCreateTab("block")}
+              variant={createTab === 'block' ? 'default' : 'secondary'}
+              onClick={() => setCreateTab('block')}
             >
               Nuevo horario
             </Button>
           </div>
 
-          {createTab === "session" && (
+          {createTab === 'session' && (
             <>
               {!canCreateSession ? (
-                <p className="text-sm text-muted-foreground">
-                  Primero crea un horario (curso/mención) antes de añadir
-                  sesiones.
-                </p>
+                <p className="text-sm text-muted-foreground">Primero crea un horario (curso).</p>
               ) : (
-                <>
-                  {selectedBloque && (
-                    <p className="mb-2 text-xs text-muted-foreground">
-                      La sesión se añadirá a:{" "}
-                      <span className="font-medium">
-                        {buildBloqueLabel(selectedBloque)}
-                      </span>
-                    </p>
-                  )}
-                  <SessionFormFields
-                    form={createSessionForm}
-                    onChange={handleCreateFieldChange}
-                  />
-                </>
+                <SessionFormFields
+                  form={createSessionForm}
+                  onChange={handleCreateFieldChange}
+                />
               )}
             </>
           )}
 
-          {createTab === "block" && (
-            <div className="space-y-3 py-2 text-sm">
+          {createTab === 'block' && (
+             <div className="space-y-3 py-2 text-sm">
               <div className="grid gap-2">
                 <Label htmlFor="nuevo-curso">Curso</Label>
                 <Input
                   id="nuevo-curso"
                   value={newBlockForm.curso}
-                  onChange={(e) =>
-                    setNewBlockForm((prev) => ({
-                      ...prev,
-                      curso: e.target.value,
-                    }))
-                  }
-                  placeholder="1º, PRIMER CURSO, 4º, ..."
+                  onChange={(e) => setNewBlockForm(p => ({ ...p, curso: e.target.value }))}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="nueva-mencion">Mención (opcional)</Label>
+                <Label htmlFor="nueva-mencion">Mención</Label>
                 <Input
                   id="nueva-mencion"
                   value={newBlockForm.mencion}
-                  onChange={(e) =>
-                    setNewBlockForm((prev) => ({
-                      ...prev,
-                      mencion: e.target.value,
-                    }))
-                  }
-                  placeholder="Mención en Computación, ..."
+                  onChange={(e) => setNewBlockForm(p => ({ ...p, mencion: e.target.value }))}
                 />
               </div>
             </div>
           )}
 
           <DialogFooter className="mt-4">
-            <Button variant="outline" type="button" onClick={closeCreateDialog}>
-              Cancelar
-            </Button>
-            {createTab === "session" ? (
-              <Button
-                type="button"
-                onClick={handleCreateSession}
-                disabled={!canCreateSession}
-              >
-                Crear sesión
-              </Button>
+            <Button variant="outline" onClick={closeCreateDialog}>Cancelar</Button>
+            {createTab === 'session' ? (
+              <Button onClick={handleCreateSession} disabled={!canCreateSession}>Crear sesión</Button>
             ) : (
-              <Button
-                type="button"
-                onClick={handleCreateBlock}
-                disabled={!newBlockForm.curso.trim()}
-              >
-                Crear horario
-              </Button>
+              <Button onClick={handleCreateBlock} disabled={!newBlockForm.curso.trim()}>Crear horario</Button>
             )}
           </DialogFooter>
         </DialogContent>
@@ -837,15 +793,12 @@ export default function RevisionHorarioPage({ params }: Props) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Formulario reutilizable de sesión                                          */
-/* -------------------------------------------------------------------------- */
-
+// Formulario de sesión clásico (Inputs de texto)
 type SessionFormFieldsProps = {
   form: SesionFormState;
   onChange: <K extends keyof SesionFormState>(
     field: K,
-    value: SesionFormState[K],
+    value: SesionFormState[K]
   ) => void;
 };
 
@@ -857,7 +810,7 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
         <Input
           id="asignatura"
           value={form.asignatura}
-          onChange={(e) => onChange("asignatura", e.target.value)}
+          onChange={(e) => onChange('asignatura', e.target.value)}
         />
       </div>
 
@@ -866,7 +819,7 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
         <Input
           id="aula"
           value={form.aula}
-          onChange={(e) => onChange("aula", e.target.value)}
+          onChange={(e) => onChange('aula', e.target.value)}
         />
       </div>
 
@@ -874,14 +827,12 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
         <Label htmlFor="dia">Día</Label>
         <select
           id="dia"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
           value={form.dia}
-          onChange={(e) => onChange("dia", e.target.value)}
+          onChange={(e) => onChange('dia', e.target.value)}
         >
           {DIAS_SEMANA.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
+            <option key={d} value={d}>{d}</option>
           ))}
         </select>
       </div>
@@ -893,7 +844,7 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
             id="hora_inicio"
             type="time"
             value={form.hora_inicio}
-            onChange={(e) => onChange("hora_inicio", e.target.value)}
+            onChange={(e) => onChange('hora_inicio', e.target.value)}
           />
         </div>
         <div className="grid gap-2">
@@ -902,7 +853,7 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
             id="hora_fin"
             type="time"
             value={form.hora_fin}
-            onChange={(e) => onChange("hora_fin", e.target.value)}
+            onChange={(e) => onChange('hora_fin', e.target.value)}
           />
         </div>
       </div>
@@ -911,14 +862,12 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
         <Label htmlFor="tipo">Tipo</Label>
         <select
           id="tipo"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
           value={form.tipo}
-          onChange={(e) => onChange("tipo", e.target.value)}
+          onChange={(e) => onChange('tipo', e.target.value)}
         >
           {TIPO_OPCIONES.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
+            <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
       </div>
@@ -928,49 +877,34 @@ function SessionFormFields({ form, onChange }: SessionFormFieldsProps) {
         <Input
           id="grupo"
           value={form.grupo}
-          onChange={(e) => onChange("grupo", e.target.value)}
-          placeholder="PL1, PL2, ... (opcional)"
+          onChange={(e) => onChange('grupo', e.target.value)}
+          placeholder="PL1, PL2..."
         />
       </div>
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Helpers de mapeo y etiquetas                                               */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Mapea todos los bloques a sesiones (para contar totales).
- */
+// Helpers
 function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
   const sessions: Session[] = [];
-
   const bloques = Array.isArray(horario.horarios) ? horario.horarios : [];
-
   bloques.forEach((bloque, bloqueIndex) => {
     const bloqueSessions = mapBloqueToSessions(bloque, bloqueIndex);
     sessions.push(...bloqueSessions);
   });
-
   return sessions;
 }
 
-/**
- * Mapea un bloque concreto a sesiones para el grid.
- */
 function mapBloqueToSessions(
   bloque: HorarioExtraidoBloque,
   bloqueIndex: number,
 ): Session[] {
   const sessions: Session[] = [];
-
   const sesiones = Array.isArray(bloque.sesiones) ? bloque.sesiones : [];
-
   sesiones.forEach((sesion, sesionIndex) => {
     const dayIndex = diaToDayIndex(sesion.dia);
     if (dayIndex < 0) return;
-
     const session: Session = {
       id: `${bloqueIndex}-${sesionIndex}`,
       courseId: buildCourseIdFromCurso(bloque.curso),
@@ -982,16 +916,11 @@ function mapBloqueToSessions(
       teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : "",
       color: "blue",
     };
-
     sessions.push(session);
   });
-
   return sessions;
 }
 
-/**
- * Normaliza "HH:MM:SS" → "HH:MM".
- */
 function normalizeTime(value: string): string {
   if (!value) return value;
   const parts = value.split(":");
@@ -1001,34 +930,12 @@ function normalizeTime(value: string): string {
   return value;
 }
 
-/**
- * Día backend → índice 0-4 (L–V) para el grid.
- */
 function diaToDayIndex(dia: string): number {
   const d = dia.trim().toUpperCase();
-
   const map: Record<string, number> = {
-    LUNES: 0,
-    L: 0,
-    MARTES: 1,
-    M: 1,
-    MIÉRCOLES: 2,
-    MIERCOLES: 2,
-    X: 2,
-    JUEVES: 3,
-    J: 3,
-    VIERNES: 4,
-    V: 4,
+    LUNES: 0, L: 0, MARTES: 1, M: 1, MIÉRCOLES: 2, MIERCOLES: 2, X: 2, JUEVES: 3, J: 3, VIERNES: 4, V: 4,
   };
-
   if (d in map) return map[d];
-
-  if (d.startsWith("L")) return 0;
-  if (d.startsWith("MA")) return 1;
-  if (d.startsWith("MI")) return 2;
-  if (d.startsWith("J")) return 3;
-  if (d.startsWith("V")) return 4;
-
   return -1;
 }
 
@@ -1046,80 +953,45 @@ function minutesToTimeLabel(totalMin: number): string {
   return `${hh}:${mm}`;
 }
 
-/**
- * Título del bloque: sólo el nombre de la asignatura.
- */
-function buildSessionTitle(
-  s: HorarioExtraidoSesion,
-  _bloque: HorarioExtraidoBloque,
-): string {
+function buildSessionTitle(s: HorarioExtraidoSesion, _bloque: HorarioExtraidoBloque): string {
   const asignatura = (s.asignatura ?? "").trim();
   return asignatura || "Sesión";
 }
 
-/**
- * Construye un id aproximado de curso a partir del texto de curso.
- */
 function buildCourseIdFromCurso(cursoTexto: string): string {
   const n = getCourseNumberFromTexto(cursoTexto);
   if (n === null) return cursoTexto || "DESCONOCIDO";
   return `${n}º`;
 }
 
-/**
- * Intenta obtener el número de curso (1-5) a partir de textos del estilo
- * "PRIMER CURSO", "SEGUNDO CURSO" o "1º".
- */
 function getCourseNumberFromTexto(cursoTexto: string): number | null {
   if (!cursoTexto) return null;
   const t = cursoTexto.toUpperCase();
-
   if (t.includes("PRIMER")) return 1;
   if (t.includes("SEGUNDO")) return 2;
   if (t.includes("TERCER")) return 3;
   if (t.includes("CUARTO")) return 4;
   if (t.includes("QUINTO")) return 5;
-
   const m = t.match(/[1-5]/);
   if (m) return parseInt(m[0], 10);
-
   return null;
 }
 
-/**
- * Devuelve una etiqueta amigable para el botón de selección de bloque.
- * Ejemplo: "1º", "4º - Mención en informática".
- */
 function buildBloqueLabel(bloque: HorarioExtraidoBloque): string {
   const n = getCourseNumberFromTexto(bloque.curso);
   const base = n ? `${n}º` : bloque.curso || "Curso";
-
   if (!bloque.mencion) return base;
-
   const niceMention = prettifyMention(bloque.mencion);
   return `${base} - ${niceMention}`;
 }
 
-/**
- * Limpia el texto de mención (elimina prefix "MENCIÓN EN" y lo pasa a
- * "Mención en …" con capitalización básica).
- */
 function prettifyMention(raw: string): string {
   if (!raw) return "Mención";
   let text = raw.trim();
-
   const m = text.match(/MENCI[ÓO]N\s+EN\s+(.+)/i);
   if (m) {
     text = m[1];
   }
-
-  // Pasamos a minúsculas y luego capitalizamos cada palabra
-  text = text
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => w[0].toUpperCase() + w.slice(1))
-    .join(" ");
-
+  text = text.toLowerCase().split(/\s+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
   return `Mención en ${text}`;
 }
