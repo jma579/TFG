@@ -23,8 +23,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { UploadItem } from './types';
 
+// 👇 TIPO CORREGIDO: Definimos un tipo extendido que incluye 'progress'
+type ExtendedUploadItem = UploadItem & { 
+  confirmed?: boolean; 
+  progress?: number; 
+};
+
 type Props = {
-  items: (UploadItem & { confirmed?: boolean })[];
+  items: ExtendedUploadItem[];
   onRemove: (id: string) => void;
 };
 
@@ -35,7 +41,7 @@ function humanSize(bytes: number) {
   return `${v.toFixed(v >= 10 ? 0 : 1)} ${units[i]}`;
 }
 
-function StatusBadge({ it }: { it: UploadItem & { confirmed?: boolean } }) {
+function StatusBadge({ it }: { it: ExtendedUploadItem }) {
   if (it.confirmed) {
     return (
       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1.5 font-normal">
@@ -146,6 +152,7 @@ export function FileListHorarios({ items, onRemove }: Props) {
               {/* Progreso individual */}
               <div className="mt-3">
                 {it.status === 'uploading' && (
+                  // 👇 Ahora TypeScript reconoce 'progress' gracias al tipo ExtendedUploadItem
                   <Progress value={it.progress} className="h-1" />
                 )}
                 {it.status === 'error' && it.errorMessage && (

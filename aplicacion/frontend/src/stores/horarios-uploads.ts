@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import type { UploadItem } from '@/components/uploads/types';
 import { uid } from '@/lib/id';
-import { extractHorario, type HorarioTemporalOut } from '@/lib/api/client';
+import { extractHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
 
 export type HorarioUploadItem = UploadItem & {
   progress: number;
@@ -26,6 +26,8 @@ type Actions = {
   setError: (id: string, msg: string) => void;
  
   confirm: (id: string) => void;
+  updateHorario: (id: string, data: HorarioTemporalOut) => void;
+  
   clear: () => void;
 };
 
@@ -41,7 +43,6 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
       status: 'pending',
       result: undefined,
       errorMessage: undefined,
-      // campos específicos de horarios
       progress: 0,
       confirmed: false,
       backendId: undefined,
@@ -61,13 +62,11 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
   startAnalyze: async () => {
     const { items } = get();
 
-    // Pr++ocesamos en serie para simplificar
     for (const item of items) {
       if (item.status !== 'pending') continue;
 
       const id = item.id;
 
-      // Marcamos como "subiendo/procesando"
       set((state) => ({
         items: state.items.map((i) =>
           i.id === id
@@ -79,8 +78,7 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
       try {
         const result = await extractHorario(item.file);
 
-        // 🔍 Normalizamos el nodo que realmente contiene el horario temporal.
-        // Ajusta esta lista de claves si tu backend usa otro nombre.
+        // Normalización de respuesta
         const maybeWrapped = result as unknown as {
           horario?: HorarioTemporalOut;
           horario_temporal?: HorarioTemporalOut;
@@ -91,12 +89,6 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
           maybeWrapped.horario_temporal ??
           (result as HorarioTemporalOut);
 
-        // Para depurar, puedes ver en consola qué llega realmente:
-        // eslint-disable-next-line no-console
-        console.log('Resultado extractHorario:', result);
-        // eslint-disable-next-line no-console
-        console.log('Nodo horarioTemporal usado:', horarioNode);
-
         set((state) => ({
           items: state.items.map((i) =>
             i.id === id
@@ -105,8 +97,6 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
                   status: 'done',
                   progress: 100,
                   errorMessage: undefined,
-                  // Si quieres seguir guardando también el wrapper completo, puedes añadir otra propiedad
-                  // rawResult: result,
                   horarioTemporal: horarioNode,
                 }
               : i,
@@ -160,6 +150,13 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
       items: state.items.map((i) =>
         i.id === id ? { ...i, confirmed: true } : i
       ),
+    })),
+
+  updateHorario: (id, data) => 
+    set((state) => ({
+      items: state.items.map((i) => 
+        i.id === id ? { ...i, horarioTemporal: data } : i
+      )
     })),
 
   clear: () => set({ items: [] }),

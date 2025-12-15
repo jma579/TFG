@@ -3,6 +3,8 @@ import { DataTable } from '@/components/conflicts/data-table';
 import { conflictsMock } from '@/components/conflicts/data';
 import { PageTitle } from '@/components/common/page-title';
 
+export const dynamic = 'force-dynamic';
+
 export default function ConflictosPage() {
   return (
     <div className="space-y-6">

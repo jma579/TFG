@@ -6,9 +6,9 @@ import { Loader2 } from 'lucide-react';
 import {
   getAsignatura,
   getAsignaturaProgramas,
-  getAsignaturaProfesores,
   type AsignaturaOut,
-} from '@/lib/api/client';
+} from '@/lib/api/catalogo/asignaturas';
+import { getAsignaturaProfesores } from '@/lib/api/recursos/profesores';
 
 type Props = {
   asignaturaId: number;
@@ -16,7 +16,10 @@ type Props = {
     success: boolean;
     errors?: string[] | null;
   };
-  onDataLoaded?: (data: { profesores: any[]; titulaciones: any[] }) => void;
+  onDataLoaded?: (data: { 
+    profesores: { nombre: string; apellidos: string }[]; 
+    titulaciones: { titulacion: string; tipo_asignatura: string; curso: string }[] 
+  }) => void;
 };
 
 type SubjectData = {
@@ -55,6 +58,15 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
     loading: true,
   });
 
+  // 1. TRUCO DE EXPERTO: Usamos un Ref para guardar la última versión de la función.
+  // Esto nos permite llamarla dentro del useEffect sin añadirla a las dependencias.
+  const onDataLoadedRef = React.useRef(onDataLoaded);
+
+  // 2. Mantenemos el ref siempre actualizado
+  React.useEffect(() => {
+    onDataLoadedRef.current = onDataLoaded;
+  }, [onDataLoaded]);
+
   React.useEffect(() => {
     let mounted = true;
 
@@ -86,8 +98,9 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
           loading: false,
         });
 
-        if (onDataLoaded) {
-          onDataLoaded({ profesores: teachers, titulaciones });
+        // 3. Llamamos a la función a través del Ref
+        if (onDataLoadedRef.current) {
+          onDataLoadedRef.current({ profesores: teachers, titulaciones });
         }
       } catch (err) {
         if (!mounted) return;
@@ -103,7 +116,7 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
     return () => {
       mounted = false;
     };
-  }, [asignaturaId]);
+  }, [asignaturaId]); 
 
   if (data.loading) {
     return (

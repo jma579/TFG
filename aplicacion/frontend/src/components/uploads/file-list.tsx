@@ -35,8 +35,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { UploadItem } from './types';
-import { cn } from '@/lib/utils';
-
 import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
 
 type Props = {
@@ -105,10 +103,20 @@ function StatusBadge({ it }: { it: UploadItem }) {
   );
 }
 
-function ExtractionSummary({ result }: { result: any }) {
+type ExtractionSummaryResult = {
+  asignatura_id?: number | string;
+  programas_asociados?: unknown[];
+  profesores_asociados?: unknown[];
+  created_entities?: {
+    asignaturas_creadas?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+};
+
+function ExtractionSummary({ result }: { result: ExtractionSummaryResult }) {
   if (!result) return null;
   
-  // Intentamos mostrar información relevante si existe en el JSON
   const { asignatura_id, programas_asociados, profesores_asociados, created_entities } = result;
 
   return (

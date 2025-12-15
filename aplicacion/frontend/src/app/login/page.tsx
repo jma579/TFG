@@ -1,12 +1,16 @@
 'use client';
 
+import * as React from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
-export default function LoginPage() {
+// 1. Movemos la lógica principal a un componente interno
+function LoginContent() {
   const sp = useSearchParams();
   const router = useRouter();
   const view = (sp.get('view') ?? 'signin') as 'signin' | 'accounts';
@@ -78,5 +82,18 @@ export default function LoginPage() {
       <div className="hidden md:block bg-[radial-gradient(60%_60%_at_70%_30%,hsl(var(--muted))_0%,transparent_70%)]">
       </div>
     </div>
+  );
+}
+
+// 2. Exportamos el componente Page envolviendo el contenido en Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-dvh grid place-items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
