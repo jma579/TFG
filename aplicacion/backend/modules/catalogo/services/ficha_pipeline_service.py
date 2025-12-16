@@ -351,40 +351,53 @@ class FichaPipelineService:
         profesores_ids: List[int] = []
 
         for prof in normalized.profesores:
-            # 1) Buscar profesor existente por nombre + apellidos
-            existing = self._profesor_repo.get_by_nombre_apellidos(
-                db,
-                nombre=prof.nombre,
-                apellidos=prof.apellidos,
-            )
-
-            if existing is None:
-                # Crear profesor nuevo con datos mínimos
-                prof_create = ProfesorCreate(
+            try:
+                # 1) Buscar profesor existente
+                existing = self._profesor_repo.get_by_nombre_apellidos(
+                    db,
                     nombre=prof.nombre,
                     apellidos=prof.apellidos,
-                    email=None,
-                    telefono=None,
-                    departamento=None,
-                    activo=True,
                 )
-                prof_out = self._profesor_service.create(db, prof_create)
-                profesor_id = prof_out.id
-                created_entities["profesores_creados"] += 1
-            else:
-                profesor_id = existing.id
 
-            if profesor_id not in profesores_ids:
-                profesores_ids.append(profesor_id)
+                if existing is None:
+                    # Crear nuevo
+                    prof_create = ProfesorCreate(
+                        nombre=prof.nombre,
+                        apellidos=prof.apellidos,
+                        email=None,
+                        telefono=None,
+                        departamento=None,
+                        activo=True,
+                    )
+                    prof_out = self._profesor_service.create(db, prof_create)
+                    profesor_id = prof_out.id
+                    created_entities["profesores_creados"] += 1
+                else:
+                    # Reactivar profesor si existe e inactivo
+                    profesor_id = existing.id
+                    if not existing.activo:
+                        existing.activo = True
+                        db.add(existing) # Marcar para ser actualizado
+                        
+                if profesor_id not in profesores_ids:
+                    profesores_ids.append(profesor_id)
 
-            # 2) Crear relación Profesor-Asignatura si no existe
-            if not self._profesor_asignatura_repo.exists(db, profesor_id, asignatura_id):
-                self._profesor_asignatura_repo.create(
-                    db,
-                    profesor_id=profesor_id,
-                    asignatura_id=asignatura_id,
-                )
-                created_entities["relaciones_profesor_asignatura_creadas"] += 1
+                # 2) Crear relación Profesor-Asignatura si no existe
+                if not self._profesor_asignatura_repo.exists(db, profesor_id, asignatura_id):
+                    self._profesor_asignatura_repo.create(
+                        db,
+                        profesor_id=profesor_id,
+                        asignatura_id=asignatura_id,
+                    )
+                    created_entities["relaciones_profesor_asignatura_creadas"] += 1
+
+            except Exception as e:
+                continue
+
+        try:
+             db.commit() 
+        except Exception as e:
+            db.rollback() # Si falla el commit, deshacemos todo lo que se hizo en esta transacción
 
         return profesores_ids
 
