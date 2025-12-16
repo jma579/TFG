@@ -7,7 +7,7 @@ import os
 import json
 from datetime import datetime
 from pathlib import Path
-from dataclasses import is_dataclass
+from dataclasses import is_dataclass, asdict
 
 # Ajustar path para imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
@@ -21,7 +21,7 @@ from core.extraccion.common.entities import ParserError
 #  CONFIGURACIÓN
 # ============================================================
 
-DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G651.pdf"
+DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G31.pdf"
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
 
 
@@ -139,9 +139,9 @@ def test_flujo_completo(pdf_path: str):
         )
         
         print_success("Parsing completado")
-        print_info("Asignatura", f"{parsed_data['codigo_plan']} - {parsed_data['nombre']}")
-        print_info("Titulaciones", len(parsed_data.get('titulaciones', [])))
-        print_info("Profesores", len(parsed_data.get('profesores', [])))
+        print_info("Asignatura", f"{parsed_data.codigo_plan} - {parsed_data.nombre}")
+        print_info("Titulaciones", len(parsed_data.titulaciones))
+        print_info("Profesores", len(parsed_data.profesores))
         
     except Exception as e:
         print_error(f"Error crítico en parsing: {e}")
@@ -155,38 +155,8 @@ def test_flujo_completo(pdf_path: str):
     try:
         normalizer = DataNormalizer()
         
-        from core.extraccion.fichas.entities import SubjectSheet, Titulacion, Teacher
-        
-        subject_sheet = SubjectSheet(
-            codigo_plan=parsed_data['codigo_plan'],
-            nombre=parsed_data['nombre'],
-            titulaciones=[
-                Titulacion(
-                    titulacion=t['titulacion'],
-                    tipo_asignatura=t['tipo_asignatura'],
-                    curso=t['curso']
-                )
-                for t in parsed_data.get('titulaciones', [])
-            ],
-            periodo=parsed_data.get('periodo'),
-            num_periodo=parsed_data.get('num_periodo'),
-            ects=parsed_data.get('ects'),
-            profesores=[
-                Teacher(
-                    nombre=p['nombre'],
-                    apellidos=p['apellidos']
-                )
-                for p in parsed_data.get('profesores', [])
-            ],
-            modalidad=parsed_data.get('modalidad'),
-            idioma=parsed_data.get('idioma'),
-            english_friendly=parsed_data.get('english_friendly', False),
-            centro=parsed_data.get('centro'),
-            departamento=parsed_data.get('departamento'),
-            raw_text=parsed_data.get('raw_text', '')
-        )
-        
-        normalized_data = normalizer.normalize_ficha(subject_sheet)
+        # parsed_data ya es un SubjectSheet, usarlo directamente
+        normalized_data = normalizer.normalize_ficha(parsed_data)
         
         print_success("Normalización completada")
         print_info("Código normalizado", normalized_data.asignatura.codigo_plan)
@@ -215,11 +185,7 @@ def test_flujo_completo(pdf_path: str):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     filename = Path(pdf_path).stem
     
-    # Guardar JSON parseado
-    parsed_json_path = os.path.join(OUTPUT_DIR, f"{filename}_parsed.json")
-    save_json(parsed_data, parsed_json_path)
-    
-    # Convertir y guardar JSON normalizado
+    # Convertir y guardar JSON normalizado (sin sufijo)
     print("   📋 Convirtiendo datos normalizados a dict...")
     normalized_dict = convert_to_dict(normalized_data)
     
@@ -227,11 +193,10 @@ def test_flujo_completo(pdf_path: str):
         print_error(f"Error: convert_to_dict() retornó {type(normalized_dict)}")
         return None
     
-    normalized_json_path = os.path.join(OUTPUT_DIR, f"{filename}_normalized.json")
+    normalized_json_path = os.path.join(OUTPUT_DIR, f"{filename}.json")
     save_json(normalized_dict, normalized_json_path)
     
-    print_success("Resultados guardados:")
-    print_info("JSON parseado", parsed_json_path)
+    print_success("Resultado guardado:")
     print_info("JSON normalizado", normalized_json_path)
     
     return {

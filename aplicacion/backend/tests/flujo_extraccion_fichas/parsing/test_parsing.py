@@ -21,6 +21,7 @@ import os
 import json
 from datetime import datetime
 from pathlib import Path
+from dataclasses import asdict
 
 # Ajustar path para imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
@@ -34,7 +35,7 @@ from core.extraccion.common.entities import ParserError
 # ============================================================
 
 # PDF por defecto
-DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G652.pdf"
+DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G31.pdf"
 
 # Directorio de salida
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
@@ -78,11 +79,22 @@ def print_warning(message):
     print(f"⚠️  {message}")
 
 
+def json_serializer(obj):
+    """Serializador personalizado para objetos no estándar en JSON."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if hasattr(obj, 'value'):  # Para Enums
+        return obj.value
+    if hasattr(obj, '__dict__'):
+        return obj.__dict__
+    return str(obj)
+
+
 def save_json(data: dict, filepath: str):
     """Guardar datos en formato JSON."""
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2, default=json_serializer)
 
 
 def test_flujo_completo(pdf_path: str):
@@ -134,19 +146,19 @@ def test_flujo_completo(pdf_path: str):
         )
         
         print_success("Parsing completado")
-        print(f"   Asignatura: {parsed_data['codigo_plan']} - {parsed_data['nombre']}")
-        print(f"   Profesores: {len(parsed_data.get('profesores', []))}")
+        print(f"   Asignatura: {parsed_data.codigo_plan} - {parsed_data.nombre}")
+        print(f"   Profesores: {len(parsed_data.profesores)}")
         
         # Mostrar warnings si existen
-        if parsed_data.get('parsing_metadata', {}).get('warnings'):
-            warnings = parsed_data['parsing_metadata']['warnings']
+        if parsed_data.parsing_metadata and parsed_data.parsing_metadata.warnings:
+            warnings = parsed_data.parsing_metadata.warnings
             print(f"\n⚠️  Warnings ({len(warnings)}):")
             for warning in warnings:
                 print(f"    - {warning}")
         
         # Mostrar errors si existen
-        if parsed_data.get('parsing_metadata', {}).get('errors'):
-            errors = parsed_data['parsing_metadata']['errors']
+        if parsed_data.parsing_metadata and parsed_data.parsing_metadata.errors:
+            errors = parsed_data.parsing_metadata.errors
             print(f"\n❌ Errores de parsing ({len(errors)}):")
             for error in errors:
                 print(f"    - {error}")
@@ -170,12 +182,19 @@ def test_flujo_completo(pdf_path: str):
     
     # Nombre base del archivo
     filename = Path(pdf_path).stem
-    json_path = os.path.join(OUTPUT_DIR, f"{filename}.json")
+    json_path = os.path.join(OUTPUT_DIR, f"{filename}_parsed.json")
+    
+    # Convertir SubjectSheet a diccionario usando asdict (dataclass helper)
+    try:
+        parsed_dict = asdict(parsed_data)
+    except Exception as e:
+        print_warning(f"No se pudo convertir a diccionario: {e}")
+        parsed_dict = parsed_data.__dict__ if hasattr(parsed_data, '__dict__') else {}
     
     # Guardar JSON
-    save_json(parsed_data, json_path)
+    save_json(parsed_dict, json_path)
     
-    print_success("Resultados guardados:")
+    print_success("Resultado guardado:")
     print(f"   📋 JSON: {json_path}")
     
     return parsed_data
