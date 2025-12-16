@@ -1,0 +1,32 @@
+{
+  "asignatura": {
+    "codigo_plan": "G33",
+    "nombre": "Física Básica Experimental III: La Materia Y Sus Propiedades",
+    "periodo": "segundo_cuatrimestre",
+    "ects": 6,
+    "modalidad": "presencial",
+    "idioma": "español",
+    "english_friendly": true
+  },
+  "titulaciones": [
+    {
+      "programa_nombre": "Grado En Física",
+      "tipo_asignatura": "basica",
+      "curso": 1
+    }
+  ],
+  "profesores": [
+    {
+      "nombre": "Luis",
+      "apellidos": "Fernandez Barquin"
+    },
+    {
+      "nombre": "Jonatan",
+      "apellidos": "Piedra Gomez"
+    },
+    {
+      "nombre": "Javier",
+      "apellidos": "Ruiz Fuertes"
+    }
+  ]
+}

@@ -324,21 +324,35 @@ class FichaParser:
             return []
         bloque_texto = bloque.group(1)
         patron_sufijos = re.compile('|'.join(PROFESOR_SUFIXES), re.IGNORECASE)
+        
         for linea in bloque_texto.splitlines():
             linea = linea.strip()
             if not linea or "PROFESOR" in linea.upper() or "TIPO" in linea.upper():
                 continue
-            # Elimina posibles columnas de tipo al principio (una o dos letras y espacio)
-            linea = re.sub(r'^[A-Z]{1,2}\s+', '', linea)
-            # Solo considera la parte antes de la universidad o de los números
-            linea = patron_sufijos.split(linea)[0]
-            linea = re.split(r'\s+\d+([,.]\d+)?\s*', linea)[0]
-            # Busca patrón "APELLIDOS, NOMBRE"
-            match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea, re.IGNORECASE)
+                
+            # 1. LIMPIEZA DEL PREFIJO SUCIO 
+            linea_limpia = re.sub(r"^(?:[\w\.]{1,4}\s+)", "", linea, count=1).strip()
+            
+            # 2. LIMPIEZA DE SUFIJOS (Universidad, totales, etc.)
+            linea_limpia = patron_sufijos.split(linea_limpia)[0]
+            
+            # 3. ELIMINAR COLUMNAS NUMÉRICAS DE HORAS
+            linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0]
+            linea_limpia = linea_limpia.strip()
+            
+            # 4. EXTRACCIÓN FINAL (APELLIDOS, NOMBRE)
+            match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea_limpia, re.IGNORECASE)
+            
             if match:
                 apellidos = match.group(1).title().strip()
                 nombre = match.group(2).title().strip()
+                
+                # Validación mínima de sanidad
+                if len(apellidos) < 2 and not apellidos.isalpha():
+                    continue
+                    
                 profesores.append(Teacher(nombre=nombre, apellidos=apellidos))
+                
         return profesores
 
     def _extract_centro(self, text: str) -> Optional[str]:

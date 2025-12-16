@@ -35,7 +35,7 @@ from core.extraccion.common.entities import ParserError
 # ============================================================
 
 # PDF por defecto
-DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G31.pdf"
+DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G33.pdf"
 
 # Directorio de salida
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
