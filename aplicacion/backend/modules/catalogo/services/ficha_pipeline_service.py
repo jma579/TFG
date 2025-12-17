@@ -336,70 +336,70 @@ class FichaPipelineService:
         asignatura_id: int,
         created_entities: Dict[str, int],
     ) -> List[int]:
-        """Crear/actualizar Profesores y relaciones Profesor-Asignatura.
-
-        Estrategia conservadora:
-        - Para cada profesor normalizado (nombre + apellidos):
-          - Buscar por nombre y apellidos (búsqueda normalizada en el repositorio)
-          - Si existe: reutilizar
-          - Si no existe: crear nuevo profesor con campos mínimos
-        - Crear relación Profesor-Asignatura si no existe.
-
-        Devuelve la lista de IDs de profesores asociados a la asignatura.
         """
+        Crea/actualiza profesores y sincroniza sus relaciones con la asignatura.
+        Elimina relaciones antiguas que ya no figuran en la nueva extracción (Limpieza G49).
+        """
+        import logging
+        logger = logging.getLogger(__name__)
 
-        profesores_ids: List[int] = []
+        # IDs de los profesores detectados en la extracción ACTUAL
+        profesores_ids_actuales: List[int] = []
 
+        # 1. Procesar profesores detectados ahora
         for prof in normalized.profesores:
             try:
-                # 1) Buscar profesor existente
+                # Buscar o crear profesor (con lógica de reactivación G31/G33)
                 existing = self._profesor_repo.get_by_nombre_apellidos(
-                    db,
-                    nombre=prof.nombre,
-                    apellidos=prof.apellidos,
+                    db, nombre=prof.nombre, apellidos=prof.apellidos
                 )
 
                 if existing is None:
-                    # Crear nuevo
                     prof_create = ProfesorCreate(
                         nombre=prof.nombre,
                         apellidos=prof.apellidos,
-                        email=None,
-                        telefono=None,
-                        departamento=None,
                         activo=True,
                     )
                     prof_out = self._profesor_service.create(db, prof_create)
                     profesor_id = prof_out.id
                     created_entities["profesores_creados"] += 1
                 else:
-                    # Reactivar profesor si existe e inactivo
                     profesor_id = existing.id
                     if not existing.activo:
                         existing.activo = True
-                        db.add(existing) # Marcar para ser actualizado
-                        
-                if profesor_id not in profesores_ids:
-                    profesores_ids.append(profesor_id)
+                        db.add(existing)
 
-                # 2) Crear relación Profesor-Asignatura si no existe
+                if profesor_id not in profesores_ids_actuales:
+                    profesores_ids_actuales.append(profesor_id)
+
+                # Crear relación N:M si no existe
                 if not self._profesor_asignatura_repo.exists(db, profesor_id, asignatura_id):
                     self._profesor_asignatura_repo.create(
-                        db,
-                        profesor_id=profesor_id,
-                        asignatura_id=asignatura_id,
+                        db, profesor_id=profesor_id, asignatura_id=asignatura_id
                     )
                     created_entities["relaciones_profesor_asignatura_creadas"] += 1
 
             except Exception as e:
+                logger.error(f"Error procesando profesor {prof.nombre} {prof.apellidos}: {e}")
                 continue
 
-        try:
-             db.commit() 
-        except Exception as e:
-            db.rollback() # Si falla el commit, deshacemos todo lo que se hizo en esta transacción
+        # Obtenemos todas las relaciones que existen actualmente en BD para esta asignatura
+        relaciones_en_db = self._profesor_asignatura_repo.get_by_asignatura(db, asignatura_id)
+        
+        for rel in relaciones_en_db:
+            # Si el profesor vinculado en la BD NO está en la lista de la nueva extracción
+            if rel.profesor_id not in profesores_ids_actuales:
+                logger.info(f"Eliminando relación obsoleta: Prof {rel.profesor_id} con Asig {asignatura_id}")
+                self._profesor_asignatura_repo.delete(db, rel.profesor_id, asignatura_id)
 
-        return profesores_ids
+        # Commit final para aplicar reactivaciones, nuevas relaciones y borrados
+        try:
+            db.commit()
+        except Exception as e:
+            logger.error(f"Error en commit final de sincronización de profesores: {e}")
+            db.rollback()
+
+        return profesores_ids_actuales
 
     # ------------------------------------------------------------------
     # Utilidades internas

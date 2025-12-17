@@ -331,7 +331,7 @@ class FichaParser:
                 continue
                 
             # 1. LIMPIEZA DEL PREFIJO SUCIO 
-            linea_limpia = re.sub(r"^(?:[\w\.]{1,4}\s+)", "", linea, count=1).strip()
+            linea_limpia = re.sub(r"^(?:[\w\.]{1,2}\s+)", "", linea, count=1).strip()
             
             # 2. LIMPIEZA DE SUFIJOS (Universidad, totales, etc.)
             linea_limpia = patron_sufijos.split(linea_limpia)[0]
