@@ -260,9 +260,6 @@ PROFESOR_SUFIXES = [
     r'\bCentro\b',
     r'\bS\b',
     r'\bN\b',
-    r'\bDe\b',
-    r'\bDel\b',
-    r'\bLa\b',
     r'\bCU\b'
 ]
 
