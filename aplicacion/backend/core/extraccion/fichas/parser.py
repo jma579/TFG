@@ -335,6 +335,8 @@ class FichaParser:
             
             # 2. LIMPIEZA DE SUFIJOS (Universidad, totales, etc.)
             linea_limpia = patron_sufijos.split(linea_limpia)[0]
+            linea_limpia = re.sub(r"(?i)hospital\s+universitario.*", "", linea_limpia).strip()
+            linea_limpia = re.sub(r"(?i)(?<=[a-z])hospital\s+universitario.*", "", linea_limpia).strip()
             
             # 3. ELIMINAR COLUMNAS NUMÉRICAS DE HORAS
             linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0]
