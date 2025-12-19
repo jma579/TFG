@@ -171,13 +171,12 @@ CLEANTEXT_CONFIG = {
 }
 
 # Regex para eliminar patrones de ruido con cleantext
-# Este regex se pasa al parámetro 'reg' de clean()
 CLEANTEXT_NOISE_REGEX = (
     r'('
     r'http[s]?://\S+|'                                          # URLs completas
     r'www\.\S+|'                                                # URLs sin protocolo
-    r'\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}|'  # Teléfonos internacionales
-    r'\b\d{9,}\b'                                               # 9+ dígitos consecutivos (teléfonos)
+    r'\b\d{9,}\b|'                                              # 9+ dígitos consecutivos (móviles/fijos sin espacios)
+    r'\+\d{1,3}\s\d{3,}'                                        # Teléfonos internacionales con prefijo explícito (+34 ...)
     r')'
 )
 

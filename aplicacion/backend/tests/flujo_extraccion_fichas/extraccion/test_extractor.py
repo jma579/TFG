@@ -33,7 +33,7 @@ from core.extraccion.fichas.extractor import FichaExtractor
 # ============================================================
 
 # PDF por defecto (cambiar según necesites)
-DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G80.pdf"
+DEFAULT_PDF = r"D:\TFG\Fichas\GRADO\G1662.pdf"
 
 # Directorio de salida (mismo directorio del script)
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "results")
