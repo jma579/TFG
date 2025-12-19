@@ -248,7 +248,24 @@ PATTERN_ENGLISH_FRIENDLY = r"\b(?:English\s*friendly|Docencia\s+en\s+ingl[eé]s)
 # Delimita bloque profesorado entre encabezado y secciones siguientes habituales
 PATTERN_PROFESORADO = r"DATOS\s+DEL\s+PROFESORADO(.*?)(?:DESGLOSE|TOTALES?|EVALUACI[ÓO]N|$)"
 
-# Lista de sufijos o palabras clave que suelen aparecer tras el nombre del profesor y que deben eliminarse
+# Tipos de profesor que aparecen al inicio de la línea (para corrección de pegado tipo "CUJUNQUERA")
+PROFESOR_PREFIXES = [
+    'CU', 'TU', 'CD', 'CE', 'AS', 'AY', 'I3', 'A3', 'EXT', 'PSN', 'PP'
+]
+
+# Instituciones que suelen aparecer pegadas al nombre o causan saltos de línea incorrectos
+PROFESOR_INSTITUTIONS = [
+    'Universidad', 
+    'Hospital', 
+    'CSIC', 
+    'Dpto', 
+    'Facultad', 
+    'Instituto', 
+    'Centro'
+]
+
+# Lista de sufijos o palabras clave para limpieza final de línea
+# Se mantiene con regex específicas para el split de limpieza
 PROFESOR_SUFIXES = [
     r'\bCSIC\b',
     r'\bCSIC N\b',
@@ -258,9 +275,9 @@ PROFESOR_SUFIXES = [
     r'\bFacultad\b',
     r'\bInstituto\b',
     r'\bCentro\b',
+    r'\bHospital\b', 
     r'\bS\b',
-    r'\bN\b',
-    r'\bCU\b'
+    r'\bN\b'
 ]
 
 MAP_PERIODO = {

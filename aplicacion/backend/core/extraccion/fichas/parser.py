@@ -10,7 +10,8 @@ from core.extraccion.common.entities import ExtractionMetadata, ParserError, Par
 from core.extraccion.fichas.constants import (
     BASE_PARSER_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_TITULACION, PATTERN_ECTS, PATTERN_PERIODO,
     PATTERN_MODALIDAD, PATTERN_IDIOMA, PATTERN_ENGLISH_FRIENDLY, PATTERN_PROFESORADO,
-    PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA
+    PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA,
+    PROFESOR_INSTITUTIONS, PROFESOR_PREFIXES
 )
 from core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
 
@@ -312,46 +313,61 @@ class FichaParser:
 
     def _extract_profesorado(self, text: str) -> List[Teacher]:
         """
-        Extrae la lista de profesores y sus tipos desde el bloque de profesorado.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Lista de objetos Teacher con nombre, apellidos y tipo.
+        Extrae la lista de profesores aplicando limpieza avanzada basada en constantes.
         """
         profesores = []
         bloque = re.search(PATTERN_PROFESORADO, text, re.DOTALL | re.IGNORECASE)
         if not bloque:
             return []
+        
         bloque_texto = bloque.group(1)
         patron_sufijos = re.compile('|'.join(PROFESOR_SUFIXES), re.IGNORECASE)
-        
+
+        # Construcción dinámica de Regex basada en constantes
+        institutions_regex = "|".join(PROFESOR_INSTITUTIONS)
+        prefixes_regex = "|".join(PROFESOR_PREFIXES)
+
+        # 1. Separar instituciones pegadas (Ej: "JAVIERUniversidad" -> "JAVIER Universidad")
+        bloque_texto = re.sub(
+            rf"([a-zñáéíóúü])({institutions_regex})", 
+            r"\1 \2", 
+            bloque_texto, 
+            flags=re.IGNORECASE
+        )
+
+        # 2. Reparar nombres divididos en dos líneas (Fix G80)
+        # Busca: coma + nombre + salto de línea + nombre + institución
+        bloque_texto = re.sub(
+            rf"(,\s*[A-ZÁÉÍÓÚÑÜ\s]+)\n\s*([A-ZÁÉÍÓÚÑÜ]+)\s+({institutions_regex})", 
+            r"\1 \2 \3", 
+            bloque_texto, 
+            flags=re.IGNORECASE
+        )
+
         for linea in bloque_texto.splitlines():
             linea = linea.strip()
             if not linea or "PROFESOR" in linea.upper() or "TIPO" in linea.upper():
                 continue
-                
-            # 1. LIMPIEZA DEL PREFIJO SUCIO 
+
+            # 3. Separar Prefijos pegados al apellido (Ej: "CUJUNQUERA" -> "CU JUNQUERA")
+            linea = re.sub(rf"^({prefixes_regex})([A-ZÁÉÍÓÚÑÜ])", r"\1 \2", linea)
+
+            # Limpieza de prefijos
             linea_limpia = re.sub(r"^(?:[\w\.]{1,3}\s+)", "", linea, count=1).strip()
-            
-            # 2. LIMPIEZA DE SUFIJOS (Universidad, totales, etc.)
+            # Limpieza de sufijos
             linea_limpia = patron_sufijos.split(linea_limpia)[0]
-            linea_limpia = re.sub(r"(?i)hospital\s+universitario.*", "", linea_limpia).strip()
-            linea_limpia = re.sub(r"(?i)(?<=[a-z])hospital\s+universitario.*", "", linea_limpia).strip()
-            
-            # 3. ELIMINAR COLUMNAS NUMÉRICAS DE HORAS
+            # Limpieza de horas/números
             linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0]
             linea_limpia = linea_limpia.strip()
             
-            # 4. EXTRACCIÓN FINAL (APELLIDOS, NOMBRE)
+            # Extracción Final
             match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea_limpia, re.IGNORECASE)
             
             if match:
                 apellidos = match.group(1).title().strip()
                 nombre = match.group(2).title().strip()
                 
-                # Validación mínima de sanidad
-                if len(apellidos) < 2 and not apellidos.isalpha():
-                    continue
+                if len(apellidos) < 2: continue
                     
                 profesores.append(Teacher(nombre=nombre, apellidos=apellidos))
                 
