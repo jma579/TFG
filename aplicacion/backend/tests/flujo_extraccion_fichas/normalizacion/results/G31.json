@@ -1,0 +1,36 @@
+{
+  "asignatura": {
+    "codigo_plan": "G31",
+    "nombre": "Física Básica Experimental I: Movimiento, Fuerza, Astronomía",
+    "periodo": "primer_cuatrimestre",
+    "ects": 6,
+    "modalidad": "presencial",
+    "idioma": "español",
+    "english_friendly": true
+  },
+  "titulaciones": [
+    {
+      "programa_nombre": "Grado En Física",
+      "tipo_asignatura": "basica",
+      "curso": 1
+    }
+  ],
+  "profesores": [
+    {
+      "nombre": "Marcos",
+      "apellidos": "Cruz Rodriguez"
+    },
+    {
+      "nombre": "David",
+      "apellidos": "Gonzalez Alonso"
+    },
+    {
+      "nombre": "Julio",
+      "apellidos": "Largo Maeso"
+    },
+    {
+      "nombre": "Rafael",
+      "apellidos": "Valiente Barroso"
+    }
+  ]
+}

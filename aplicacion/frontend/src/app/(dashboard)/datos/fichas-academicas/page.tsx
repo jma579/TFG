@@ -32,7 +32,7 @@ function mapAsignaturaToSubjectRow(a: AsignaturaOut): SubjectRow {
 
 export default async function FichasAcademicasPage() {
   // Puedes ajustar el limit según lo que esperes
-  const resp = await listAsignaturas();
+  const resp = await listAsignaturas({limit: 1000});
 
   const data: SubjectRow[] = resp.items.map(mapAsignaturaToSubjectRow);
 
