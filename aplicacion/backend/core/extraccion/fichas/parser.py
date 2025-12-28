@@ -313,7 +313,7 @@ class FichaParser:
 
     def _extract_profesorado(self, text: str) -> List[Teacher]:
         """
-        Extrae la lista de profesores aplicando limpieza avanzada basada en constantes.
+        Extrae la lista de profesores. Incluye lógica especial para 'Profesor Externo' con ID.
         """
         profesores = []
         bloque = re.search(PATTERN_PROFESORADO, text, re.DOTALL | re.IGNORECASE)
@@ -323,7 +323,7 @@ class FichaParser:
         bloque_texto = bloque.group(1)
         patron_sufijos = re.compile('|'.join(PROFESOR_SUFIXES), re.IGNORECASE)
 
-        # Construcción dinámica de Regex basada en constantes
+        # Usamos las constantes importadas (asegúrate de que constants.py las tenga)
         institutions_regex = "|".join(PROFESOR_INSTITUTIONS)
         prefixes_regex = "|".join(PROFESOR_PREFIXES)
 
@@ -335,8 +335,7 @@ class FichaParser:
             flags=re.IGNORECASE
         )
 
-        # 2. Reparar nombres divididos en dos líneas (Fix G80)
-        # Busca: coma + nombre + salto de línea + nombre + institución
+        # 2. Reparar nombres divididos en dos líneas
         bloque_texto = re.sub(
             rf"(,\s*[A-ZÁÉÍÓÚÑÜ\s]+)\n\s*([A-ZÁÉÍÓÚÑÜ]+)\s+({institutions_regex})", 
             r"\1 \2 \3", 
@@ -346,21 +345,38 @@ class FichaParser:
 
         for linea in bloque_texto.splitlines():
             linea = linea.strip()
-            if not linea or "PROFESOR" in linea.upper() or "TIPO" in linea.upper():
+            # Filtro básico para saltar encabezados de tabla
+            if not linea or ("PROFESOR" in linea.upper() and "APELLIDOS" in linea.upper()):
+                continue
+            if "TIPO" in linea.upper() and len(linea) < 10:
                 continue
 
             # 3. Separar Prefijos pegados al apellido (Ej: "CUJUNQUERA" -> "CU JUNQUERA")
             linea = re.sub(rf"^({prefixes_regex})([A-ZÁÉÍÓÚÑÜ])", r"\1 \2", linea)
 
-            # Limpieza de prefijos
-            linea_limpia = re.sub(r"^(?:[\w\.]{1,3}\s+)", "", linea, count=1).strip()
-            # Limpieza de sufijos
-            linea_limpia = patron_sufijos.split(linea_limpia)[0]
-            # Limpieza de horas/números
-            linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0]
-            linea_limpia = linea_limpia.strip()
+            # 4. Limpieza de prefijos estándar (Elimina 'EXT', 'CU', etc. del inicio)
+            # NOTA: Esto deja "PROFESOR EXTERNO 925147..." limpio al inicio
+            linea_limpia = re.sub(r"^(?:(?:[A-Z\d]{1,2}|EXT)\s+)", "", linea, count=1).strip()
             
-            # Extracción Final
+            # 5. Limpieza de sufijos (Corta 'Universidad de Cantabria' y lo que siga)
+            linea_limpia = patron_sufijos.split(linea_limpia)[0].strip()
+
+            # 🟢 6. DETECCIÓN DE PROFESOR EXTERNO CON ID (CRÍTICO: HACER AQUÍ)
+            # Buscamos explícitamente "PROFESOR EXTERNO" seguido de dígitos.
+            # Al hacerlo aquí, el número 925147 aún existe en la cadena.
+            match_externo = re.search(r"PROFESOR\s+EXTERNO[^\d]*(\d+)", linea_limpia, re.IGNORECASE)
+            
+            if match_externo:
+                id_externo = match_externo.group(1)
+                # ESTRATEGIA: Guardamos ID como Nombre para que la BD detecte unicidad
+                profesores.append(Teacher(nombre=id_externo, apellidos="Profesor Externo"))
+                continue # IMPORTANTE: Saltamos el resto para que no se procese como error
+
+            # 7. Limpieza de columnas numéricas (Horas, créditos...)
+            # ESTE PASO ES EL QUE BORRABA EL ID ANTES.
+            linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0].strip()
+            
+            # 8. Extracción Estándar (Apellidos, Nombre)
             match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea_limpia, re.IGNORECASE)
             
             if match:

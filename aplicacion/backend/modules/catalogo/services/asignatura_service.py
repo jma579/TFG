@@ -284,7 +284,6 @@ class AsignaturaService:
         
         Validaciones:
         1. El código de plan debe ser único
-        2. El nombre debe ser único
         
         Args:
             db: Sesión de base de datos
@@ -294,25 +293,18 @@ class AsignaturaService:
             AsignaturaOut: Asignatura creada con ID asignado
         
         Raises:
-            HTTPException 409: Si el código o nombre ya existen
+            HTTPException 409: Si el código ya existe
         
         Example:
             >>> data = AsignaturaCreate(codigo_plan="MAT101", nombre="Matemáticas I", ...)
             >>> service.create_asignatura(db, data)
             AsignaturaOut(id=1, codigo_plan="MAT101", ...)
         """
-        # Validación 1: Código único
+        # Validación: Código único
         if self.repo.exists_by_codigo(db, asignatura_in.codigo_plan):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Ya existe una asignatura con el código '{asignatura_in.codigo_plan}'"
-            )
-        
-        # Validación 2: Nombre único
-        if self.repo.exists_by_nombre(db, asignatura_in.nombre):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Ya existe una asignatura con el nombre '{asignatura_in.nombre}'"
             )
         
         # Crear asignatura
@@ -334,7 +326,6 @@ class AsignaturaService:
         Validaciones:
         1. La asignatura debe existir
         2. Si se cambia el código: debe ser único (excluyendo la asignatura actual)
-        3. Si se cambia el nombre: debe ser único (excluyendo la asignatura actual)
         
         Args:
             db: Sesión de base de datos
@@ -371,18 +362,6 @@ class AsignaturaService:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=f"Ya existe una asignatura con el código '{asignatura_in.codigo_plan}'"
-                )
-        
-        # Validación 3: Si se cambia el nombre, debe ser único
-        if asignatura_in.nombre is not None:
-            if self.repo.exists_by_nombre(
-                db,
-                asignatura_in.nombre,
-                exclude_id=asignatura_id
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Ya existe una asignatura con el nombre '{asignatura_in.nombre}'"
                 )
         
         # Actualizar asignatura (solo campos no-None)

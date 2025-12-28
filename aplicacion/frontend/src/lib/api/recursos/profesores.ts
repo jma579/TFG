@@ -28,9 +28,8 @@ export type ProfesorCreateInput = {
 
 export type ProfesorUpdateInput = Partial<ProfesorCreateInput>;
 
-// Nota: listProfesores en tu código original no aceptaba parámetros, pero es fácil añadirlos si los necesitas
-export async function listProfesores(): Promise<ProfesorListResponse> {
-  return api.get('/v0/recursos/profesores');
+export async function listProfesores(params?: { limit?: number; skip?: number }): Promise<ProfesorListResponse> {
+  return api.get('/v0/recursos/profesores', { params });
 }
 
 export async function getAsignaturaProfesores(asignaturaId: number): Promise<ProfesorAPI[]> {

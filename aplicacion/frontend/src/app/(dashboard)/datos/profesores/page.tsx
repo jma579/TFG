@@ -6,7 +6,7 @@ import { PageTitle } from '@/components/common/page-title';
 export const dynamic = 'force-dynamic';
 
 export default async function ProfesoresPage() {
-  const resp = await listProfesores();
+  const resp = await listProfesores({ limit:1000 });
 
   const data: Professor[] = resp.items.map((p) => ({
     id: String(p.id),

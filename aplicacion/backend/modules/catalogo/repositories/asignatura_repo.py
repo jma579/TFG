@@ -375,46 +375,6 @@ class AsignaturaRepository:
         return db.query(query.exists()).scalar()
     
     
-    def exists_by_nombre(
-        self,
-        db: Session,
-        nombre: str,
-        exclude_id: Optional[int] = None
-    ) -> bool:
-        """
-        Verificar si existe una asignatura con el nombre dado.
-        
-        Útil para validar unicidad antes de crear/actualizar.
-        
-        Args:
-            db: Sesión de base de datos
-            nombre: Nombre a verificar
-            exclude_id: ID de asignatura a excluir de la búsqueda
-                       (útil en updates para no comparar consigo mismo)
-            
-        Returns:
-            True si existe otra asignatura con ese nombre,
-            False si no existe
-            
-        Example:
-            >>> # Al crear (no excluir ningún ID)
-            >>> if asignatura_repository.exists_by_nombre(db, "Matemáticas I"):
-            >>>     print("Error: Nombre ya existe")
-            
-            >>> # Al actualizar (excluir ID actual)
-            >>> if asignatura_repository.exists_by_nombre(db, "Matemáticas I", exclude_id=5):
-            >>>     print("Error: Nombre ya usado por otra asignatura")
-        """
-        query = db.query(Asignatura).filter(
-            Asignatura.nombre == nombre
-        )
-        
-        # Excluir ID si se proporciona (para updates)
-        if exclude_id is not None:
-            query = query.filter(Asignatura.id != exclude_id)
-        
-        return db.query(query.exists()).scalar()
-
 
 # ============================================================
 #  SINGLETON: Instancia única compartida
