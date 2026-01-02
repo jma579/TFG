@@ -22,6 +22,9 @@ pdfplumber==0.11.7
 pdfminer.six==20250506
 pypdfium2==4.30.0
 
+
+rapidfuzz==3.14.3
+
 # --- Limpieza de texto ---
 cleantext==1.1.4
 Unidecode==1.4.0
