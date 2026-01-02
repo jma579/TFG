@@ -1,7 +1,9 @@
-import { listAsignaturas, AsignaturaOut } from '@/lib/api/client';
+import { listAsignaturas, AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
 import { SubjectsScreen } from '@/components/subjects/subjects-screen';
 import type { SubjectRow } from '@/components/subjects/data';
 import { PageTitle } from '@/components/common/page-title';
+
+export const dynamic = 'force-dynamic';
 
 function mapAsignaturaToSubjectRow(a: AsignaturaOut): SubjectRow {
   return {
@@ -30,7 +32,7 @@ function mapAsignaturaToSubjectRow(a: AsignaturaOut): SubjectRow {
 
 export default async function FichasAcademicasPage() {
   // Puedes ajustar el limit según lo que esperes
-  const resp = await listAsignaturas();
+  const resp = await listAsignaturas({limit: 1000});
 
   const data: SubjectRow[] = resp.items.map(mapAsignaturaToSubjectRow);
 

@@ -1,4 +1,4 @@
-import type { FichaPipelineResult } from '@/lib/api/client';
+import type { FichaPipelineResult } from '@/lib/api/catalogo/fichas';
 
 export type UploadStatus = 'pending' | 'uploading' | 'done' | 'error';
 export type UploadResult = 'ok' | 'incidencias';

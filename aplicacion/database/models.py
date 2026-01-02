@@ -46,7 +46,7 @@ class Asignatura(Base):
     __tablename__ = "asignaturas"
     id = Column(Integer, primary_key=True)
     codigo_plan = Column(String(6), nullable=False, unique=True)
-    nombre = Column(String(250), nullable=False, unique=True)
+    nombre = Column(String(250), nullable=False)
     periodo = Column(Enum(Periodo), nullable=False)
     ects = Column(Integer)
     modalidad = Column(Enum(ModalidadAsignatura), nullable=False)

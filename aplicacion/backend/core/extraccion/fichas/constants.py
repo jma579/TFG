@@ -171,13 +171,12 @@ CLEANTEXT_CONFIG = {
 }
 
 # Regex para eliminar patrones de ruido con cleantext
-# Este regex se pasa al parámetro 'reg' de clean()
 CLEANTEXT_NOISE_REGEX = (
     r'('
     r'http[s]?://\S+|'                                          # URLs completas
     r'www\.\S+|'                                                # URLs sin protocolo
-    r'\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}|'  # Teléfonos internacionales
-    r'\b\d{9,}\b'                                               # 9+ dígitos consecutivos (teléfonos)
+    r'\b\d{9,}\b|'                                              # 9+ dígitos consecutivos (móviles/fijos sin espacios)
+    r'\+\d{1,3}\s\d{3,}'                                        # Teléfonos internacionales con prefijo explícito (+34 ...)
     r')'
 )
 
@@ -248,7 +247,24 @@ PATTERN_ENGLISH_FRIENDLY = r"\b(?:English\s*friendly|Docencia\s+en\s+ingl[eé]s)
 # Delimita bloque profesorado entre encabezado y secciones siguientes habituales
 PATTERN_PROFESORADO = r"DATOS\s+DEL\s+PROFESORADO(.*?)(?:DESGLOSE|TOTALES?|EVALUACI[ÓO]N|$)"
 
-# Lista de sufijos o palabras clave que suelen aparecer tras el nombre del profesor y que deben eliminarse
+# Tipos de profesor que aparecen al inicio de la línea (para corrección de pegado tipo "CUJUNQUERA")
+PROFESOR_PREFIXES = [
+    'CU', 'TU', 'CD', 'CE', 'AS', 'AY', 'I3', 'A3', 'EXT', 'PSN', 'PP'
+]
+
+# Instituciones que suelen aparecer pegadas al nombre o causan saltos de línea incorrectos
+PROFESOR_INSTITUTIONS = [
+    'Universidad', 
+    'Hospital', 
+    'CSIC', 
+    'Dpto', 
+    'Facultad', 
+    'Instituto', 
+    'Centro'
+]
+
+# Lista de sufijos o palabras clave para limpieza final de línea
+# Se mantiene con regex específicas para el split de limpieza
 PROFESOR_SUFIXES = [
     r'\bCSIC\b',
     r'\bCSIC N\b',
@@ -258,12 +274,9 @@ PROFESOR_SUFIXES = [
     r'\bFacultad\b',
     r'\bInstituto\b',
     r'\bCentro\b',
+    r'\bHospital\b', 
     r'\bS\b',
-    r'\bN\b',
-    r'\bDe\b',
-    r'\bDel\b',
-    r'\bLa\b',
-    r'\bCU\b'
+    r'\bN\b'
 ]
 
 MAP_PERIODO = {

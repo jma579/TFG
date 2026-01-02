@@ -1,10 +1,12 @@
-import { listProfesores } from '@/lib/api/client';
+import { listProfesores } from '@/lib/api/recursos/profesores';
 import { ProfessorsScreen } from '@/components/professors/professors-screen';
 import type { Professor } from '@/components/professors/data';
 import { PageTitle } from '@/components/common/page-title';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfesoresPage() {
-  const resp = await listProfesores();
+  const resp = await listProfesores({ limit:1000 });
 
   const data: Professor[] = resp.items.map((p) => ({
     id: String(p.id),

@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { DropzoneFichas } from './dropzone-fichas';
 import { FileList } from './file-list';
 import type { UploadItem } from './types';
-import { processFicha } from '@/lib/api/client';
+import { processFicha } from '@/lib/api/catalogo/fichas';
 import { useToast } from '@/hooks/use-toast';
 
 export function UploadFichasScreen() {

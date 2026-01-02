@@ -1,0 +1,24 @@
+{
+  "asignatura": {
+    "codigo_plan": "G68",
+    "nombre": "Mecánica Cuántica",
+    "periodo": "primer_cuatrimestre",
+    "ects": 6,
+    "modalidad": "presencial",
+    "idioma": "español",
+    "english_friendly": true
+  },
+  "titulaciones": [
+    {
+      "programa_nombre": "Grado En Física",
+      "tipo_asignatura": "optativa",
+      "curso": 4
+    }
+  ],
+  "profesores": [
+    {
+      "nombre": "Diego Santiago",
+      "apellidos": "Pazo Bueno"
+    }
+  ]
+}

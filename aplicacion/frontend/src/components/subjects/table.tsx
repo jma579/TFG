@@ -18,9 +18,7 @@ import {
   ChevronRight,
   MoreHorizontal,
   Search,
-  Settings2,
   ArrowUpDown,
-  Filter,
   X
 } from 'lucide-react';
 
@@ -28,7 +26,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -42,7 +39,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -54,7 +50,7 @@ import {
 
 import type { SubjectRow } from '@/components/subjects/data';
 import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
-import type { ProgramaOut } from '@/lib/api/client';
+import type { ProgramaOut } from '@/lib/api/catalogo/programas';
 
 // ------- Filtros personalizados -------
 
@@ -97,11 +93,18 @@ function StatusBadge({ active }: { active: boolean }) {
 
 // ------- Tabla Principal -------
 
+// 👇 TIPO CORREGIDO: Estructura estricta para onDataUpdate
 export type SubjectsTableProps = {
   data: SubjectRow[];
   onEdit: (row: SubjectRow) => void;
   onDelete: (row: SubjectRow) => void;
-  onDataUpdate: (id: string, data: { profesores: any[]; titulaciones: any[] }) => void;
+  onDataUpdate: (
+    id: string, 
+    data: { 
+      profesores: { nombre: string; apellidos: string }[]; 
+      titulaciones: { titulacion: string; tipo_asignatura: string; curso: string }[] 
+    }
+  ) => void;
   titulacionesDisponibles?: ProgramaOut[];
 };
 
@@ -181,7 +184,7 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
             </span>
           </div>
         ),
-        filterFn: multiColumnFilterFn, // Usamos filtro personalizado para buscar en nombre y código
+        filterFn: multiColumnFilterFn,
       },
       {
         accessorKey: 'periodo',
@@ -227,10 +230,9 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
         },
       },
       {
-        // Columna virtual para filtrar por titulación
         id: 'titulacionFilter',
         accessorFn: (row) => row.titulaciones?.map(t => t.titulacion).join(' '),
-        header: 'Titulación', // Oculta visualmente pero usada para filtro
+        header: 'Titulación',
         enableHiding: true,
         filterFn: (row, id, value) => {
           if (!value) return true;
@@ -296,17 +298,14 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
     },
   });
 
-  // Ocultar columna de filtro de titulación visualmente
   React.useEffect(() => {
     table.getColumn('titulacionFilter')?.toggleVisibility(false);
   }, [table]);
 
   return (
     <div className="w-full space-y-4">
-      {/* Toolbar de filtros */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
-          {/* Buscador Global */}
           <div className="relative w-full md:max-w-xs">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -317,7 +316,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
             />
           </div>
 
-          {/* Filtro Periodo */}
           <Select
             value={(table.getColumn('periodo')?.getFilterValue() as string) ?? 'all'}
             onValueChange={(value) => table.getColumn('periodo')?.setFilterValue(value)}
@@ -333,7 +331,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
             </SelectContent>
           </Select>
 
-          {/* Filtro Estado */}
           <Select
             value={(table.getColumn('activo')?.getFilterValue() as string) ?? 'active'}
             onValueChange={(value) => table.getColumn('activo')?.setFilterValue(value)}
@@ -348,7 +345,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
             </SelectContent>
           </Select>
 
-           {/* Filtro Titulación (Select) */}
            <Select
             value={(table.getColumn('titulacionFilter')?.getFilterValue() as string) ?? 'all'}
             onValueChange={(value) => table.getColumn('titulacionFilter')?.setFilterValue(value === 'all' ? '' : value)}
@@ -366,8 +362,7 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
             </SelectContent>
           </Select>
           
-          {/* Botón limpiar filtros */}
-          {(globalFilter || columnFilters.length > 1) && ( // >1 porque 'activo' siempre está
+          {(globalFilter || columnFilters.length > 1) && (
             <Button
               variant="ghost"
               onClick={() => {
@@ -384,7 +379,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
         </div>
       </div>
 
-      {/* Tabla con Scroll Interno */}
       <div className="rounded-md border h-[600px] overflow-auto relative">
         <table className="w-full caption-bottom text-sm">
           <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
@@ -450,7 +444,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
         </table>
       </div>
       
-      {/* Contador final */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} asignaturas.

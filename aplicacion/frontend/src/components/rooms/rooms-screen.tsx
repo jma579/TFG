@@ -1,23 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RoomsTable } from './table';
 import { RoomFormDialog } from './room-form-dialog';
 import type { Room } from './data';
 import {
-  createAula,
-  updateAula,
   deleteAula,
   type AulaOut,
-} from '@/lib/api/client';
+} from '@/lib/api/recursos/aulas';
 import { useToast } from '@/hooks/use-toast';
 
 export type RoomsScreenProps = {
   initialData: Room[];
 };
 
+// Convierte de API (AulaOut) a Vista (Room)
 function mapAulaToRoom(aula: AulaOut): Room {
   return {
     id: String(aula.id),
@@ -28,13 +26,23 @@ function mapAulaToRoom(aula: AulaOut): Room {
   };
 }
 
+// Convierte de Vista (Room) a API (AulaOut) para pasar al formulario
+function mapRoomToAulaOut(room: Room): AulaOut {
+  return {
+    id: Number(room.id),
+    nombre: room.nombre,
+    codigo: room.codigo,
+    tipo: room.tipo,
+    capacidad: room.capacidad
+  };
+}
+
 export function RoomsScreen({ initialData }: RoomsScreenProps) {
   const { toast } = useToast();
 
   const [rows, setRows] = React.useState<Room[]>(initialData);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Room | null>(null);
-  const [saving, setSaving] = React.useState(false);
 
   const openNew = () => {
     setEditing(null);
@@ -64,60 +72,19 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
     }
   };
 
-  type RoomFormValues = {
-    nombre: string;
-    codigo: string;
-    tipo: string;
-    capacidad: number | null;
-  };
-
-  const handleSubmit = async (values: RoomFormValues) => {
-    setSaving(true);
-    try {
-      if (editing) {
-        const updated = await updateAula(Number(editing.id), {
-          nombre: values.nombre,
-          codigo: values.codigo,
-          tipo: values.tipo,
-          capacidad: values.capacidad,
-        });
-
-        setRows((prev) =>
-          prev.map((r) => (r.id === String(updated.id) ? mapAulaToRoom(updated) : r)),
-        );
-
-        toast({
-          title: 'Aula actualizada',
-          description: 'Los cambios se han guardado correctamente.',
-        });
-      } else {
-        const created = await createAula({
-          nombre: values.nombre,
-          codigo: values.codigo,
-          tipo: values.tipo,
-          capacidad: values.capacidad,
-        });
-
-        setRows((prev) => [...prev, mapAulaToRoom(created)]);
-
-        toast({
-          title: 'Aula creada',
-          description: 'El aula se ha creado correctamente.',
-        });
+  // ✅ NUEVO: Manejador de éxito que actualiza la tabla
+  const handleSuccess = (aula: AulaOut) => {
+    const newRoom = mapAulaToRoom(aula);
+    
+    setRows((prev) => {
+      // Comprobamos si ya existe (edición) o es nueva (creación)
+      const exists = prev.some((r) => r.id === newRoom.id);
+      
+      if (exists) {
+        return prev.map((r) => (r.id === newRoom.id ? newRoom : r));
       }
-
-      setDialogOpen(false);
-      setEditing(null);
-    } catch (error: unknown) {
-      toast({
-        variant: 'destructive',
-        title: 'Error al guardar',
-        description:
-          error instanceof Error ? error.message : 'No se ha podido guardar el aula.',
-      });
-    } finally {
-      setSaving(false);
-    }
+      return [...prev, newRoom];
+    });
   };
 
   return (
@@ -141,9 +108,8 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
             setEditing(null);
           }
         }}
-        initial={editing}
-        onSubmit={handleSubmit}
-        saving={saving}
+        initialData={editing ? mapRoomToAulaOut(editing) : null}
+        onSuccess={handleSuccess}
       />
     </div>
   );

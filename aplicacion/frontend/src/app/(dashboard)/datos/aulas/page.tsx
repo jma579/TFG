@@ -1,7 +1,9 @@
 import { RoomsScreen } from '@/components/rooms/rooms-screen';
-import { listAulas, type AulaOut } from '@/lib/api/client';
+import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
 import type { Room } from '@/components/rooms/data';
 import { PageTitle } from '@/components/common/page-title';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AulasPage() {
   const resp = await listAulas();

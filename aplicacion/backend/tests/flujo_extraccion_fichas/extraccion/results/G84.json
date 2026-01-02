@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "source_file": "G84.pdf",
+    "source_path": "D:\\TFG\\Fichas\\GRADO\\G84.pdf",
+    "extraction_date": "2025-12-23T20:31:06.253312",
+    "test_script": "test_extractor.py"
+  },
+  "extraction_result": {
+    "text": "ESPACIO EUROPEO DE EDUCACIÓN SUPERIOR : PLAN DOCENTE ANUAL DEL CURSO 2025/ 2026\nIMPRESO Nº 1: DATOS GENERALES\nDATOS DEL TITULO\nDENOMINACIÓN DEL TÍTULO Tipo Curso\nGrado en Matemáticas OBLIGATORIA 2\nDATOS DE LA ASIGNATURA\nCENTRO RESPONSABLE : 32 FACULTAD DE CIENCIAS\nCODIGO Y DENOMINACION : G84 AMPLIACIÓN DE CÁLCULO DIFERENCIAL\nDEPARTAMENTO RESPONSABLE : 21 DPTO. MATEMATICAS, ESTADISTICA Y COMPUTACION\nIMPARTICIÓN: Presencial Nº CRÉDITOS ECTS: 6,00SECUENCIA: Cuatrimestral Nº: 1ALUMNOS: 0\nDATOS DEL IDIOMA\nIDIOMA DE IMPARTICIÓN : ESPAÑOL 100%\nASIGNATURA ENGLISH FRIENDLY : Sí\nAsignaturas English Friendly: El profesorado adquiere el compromiso de:\n− Facilitar el acceso a los contenidos de la asignatura mediante referencias bibliográficas para el seguimiento de la asignatura en inglés.\n− Atender en inglés las tutorías cuando los estudiantes de intercambio lo soliciten.\n− Permitir que los estudiantes de intercambio que así lo soliciten realicen la evaluación en lengua inglesa.\nMODALIDADES ORGANIZATIVAS Y MÉTODOS DOCENTES\nPRESENCIALES NO PRESENCIALES\nTOTALCLASES SEGUIMIENTOTOTAL TGTATU−NP EV−NP TOTAL\nTEPAPLEPLO CLTOTAL TUEVTOTAL\nHORAS PROGRAMA 35,0025,00 0,000,000,00 60,0010,00 5,0015,0075,00 0,0075,00 0,00 0,00 75,00 150,00\nHORAS IMPARTIDAS 70,0050,00 0,000,000,00 120,00\n\nESPACIO EUROPEO DE EDUCACIÓN SUPERIOR : PLAN DOCENTE ANUAL DEL CURSO 2025/ 2026\nIMPRESO Nº 1: DATOS GENERALES\nASIGNATURA G84 Ampliación de Cálculo Diferencial\nDATOS DEL PROFESORADO\nTIPO\nPROFESORAPELLIDOS Y NOMBRE UNIVERSIDAD RTE PA PLE PLO CLTOTAL%\nSEGU.\nCU BELTRAN ALVAREZ, CARLOS Universidad de Cantabria N 10,00 10,00 0,00 0,00 0,00 20,0016,00\nEXT PROFESOR EXTERNO 925147 Universidad de Cantabria N 35,00 25,00 0,00 0,00 0,00 60,0050,00\nPP STAN , DIANA Universidad de Cantabria S 25,00 15,00 0,00 0,00 0,00 40,0034,00\nTOTAL 120,00100,00\nDESGLOSE DE LA ASIGNATURA\nTIPO PARTE / PRÁCTICA HORAS Nº GRUPOS Nº PROFESORES X GRUPO HORAS IMPARTIDAS\nA A01 25,00 2 1 50,00\nT T01 35,00 2 1 70,00\nTOTALES: 60,00 120,00\nJUSTIFICACIÓN DE LA PROGRAMACIÓN (en caso de no ajustarse a la normativa vigente de formación de grupos)\nSe recomienda desde la Comisión de Calidad al preveerse un numero alto de alumnos matriculados.\nFecha de acuerdo del Consejo de Departamento: 14−05−2025 Fecha de acuerdo de la Junta de Centro:\nC\nVº Bº El/La Decano/a − Director/a del centro\nFdo:",
+    "text_length": 2341,
+    "has_error": false,
+    "error_message": null,
+    "error_type": null
+  },
+  "extraction_metadata": {
+    "status": "completed",
+    "quality": "excellent",
+    "confidence": 0.9273004371105776,
+    "processing_time_seconds": 0.0691,
+    "page_count": 2,
+    "file_size_mb": 0.0463,
+    "has_embedded_text": true,
+    "char_count": 2341,
+    "word_count": 348,
+    "pages_with_text": 2
+  }
+}
