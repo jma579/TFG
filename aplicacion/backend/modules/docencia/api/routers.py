@@ -1055,8 +1055,9 @@ def eliminar_sesion(
     summary="Subir un PDF de horario y obtener un horario temporal editable",
     description="""
     Subir un horario académico en PDF y obtener un horario temporal editable.
+    Validación previa de asignaturas mediante Fuzzy Matching.
 
-    Este endpoint ejecuta el **pipeline de extracción y parsing** del módulo
+    Este endpoint ejecuta el **pipeline de extracción, parsing y fuzzy matching** del módulo
     de horarios y devuelve un objeto `HorarioTemporalOut` con:
 
     - Información global del horario (`titulo`, `plan`, `periodo`)
@@ -1106,6 +1107,11 @@ async def extract_horario(
         ...,
         description="Archivo PDF de horario a procesar",
     ),
+    db: Session = Depends(
+        ...,
+        get_db,
+        description="Sesión de base de datos para operaciones del pipeline",
+    ),
 ):
     """
     Extraer un horario académico a partir de un PDF.
@@ -1120,7 +1126,7 @@ async def extract_horario(
         HTTPException 400: Si el archivo no es un PDF.
         HTTPException 500: Si ocurre un error en la extracción/parsing.
     """
-    # 1) Validar tipo de contenido (check básico para evitar errores comunes)
+    # 1) Validar tipo de contenido
     if file.content_type not in ("application/pdf", "application/x-pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1136,21 +1142,20 @@ async def extract_horario(
             tmp_path = PathlibPath(tmp.name)
             contenido = await file.read()
             tmp.write(contenido)
-    except Exception as exc:  # pragma: no cover - error poco frecuente de IO
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No se ha podido almacenar temporalmente el PDF de horario",
         ) from exc
 
-    # 3) Ejecutar el pipeline extractor + parser
+    # 3) Ejecutar el pipeline (Pasando DB y PATH)
     try:
-        horario_temporal = horarios_pipeline_service.extraer_horario(tmp_path)
+        horario_temporal = horarios_pipeline_service.extraer_horario(db=db, pdf_path=tmp_path)
     finally:
-        # 4) Limpiar el archivo temporal en cualquier caso
+        # 4) Limpiar el archivo temporal
         try:
             tmp_path.unlink(missing_ok=True)
         except Exception:
-            # Si falla el borrado no consideramos que sea un error fatal
             pass
 
     return horario_temporal

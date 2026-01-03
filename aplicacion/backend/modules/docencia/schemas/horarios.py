@@ -194,6 +194,21 @@ class HorarioSesionTemporal(BaseModel):
         description="Código textual del grupo (PL1, PA2, T1, ...)",
         examples=["PL1", "T1"],
     )
+    match_confidence: Optional[float] = Field(
+        None, 
+        description="Puntuación de similitud (0-100). Útil para que el frontend coloree alertas.",
+        examples=[95.0, 45.5]
+    )
+    match_status: Optional[str] = Field(
+        None, 
+        description="Código de estado: 'EXACT', 'ALIAS_DB', 'FUZZY_AUTO', 'FUZZY_LOW_CONFIDENCE', 'NO_MATCH'",
+        examples=["FUZZY_LOW_CONFIDENCE"]
+    )
+    asignatura_sugerida: Optional[str] = Field(
+        None, 
+        description="Nombre oficial sugerido si hubo match (aunque sea de baja confianza).",
+        examples=["Física I"]
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -205,6 +220,9 @@ class HorarioSesionTemporal(BaseModel):
                 "hora_fin": "10:30",
                 "tipo": "TEORÍA",
                 "grupo": "T1",
+                "match_confidence": 65.0,
+                "match_status": "FUZZY_LOW_CONFIDENCE",
+                "asignatura_sugerida": "Física Básica I",
             }
         }
     )
