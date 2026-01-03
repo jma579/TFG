@@ -26,6 +26,8 @@ from modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
 
+from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
+
 
 class HorariosPipelineService:
     """Servicio de orquestación del flujo de horarios.
@@ -49,30 +51,41 @@ class HorariosPipelineService:
     # ---------------------------------------------------------------------
     # API pública
     # ---------------------------------------------------------------------
-    def extraer_horario(self, pdf_path: Union[str, Path]) -> HorarioTemporalOut:
+    def extraer_horario(self, db: Session, pdf_path: Union[str, Path]) -> HorarioTemporalOut:
         """Ejecuta el pipeline de extracción+parsing y devuelve un horario temporal.
 
         Args:
             pdf_path: Ruta al archivo PDF de horario a procesar.
+            db: Sesión de base de datos.
 
         Returns:
             HorarioTemporalOut: objeto Pydantic que representa el horario
             temporal editable, listo para ser enviado al frontend.
         """
-        # Aseguramos que trabajamos siempre con una cadena de texto
+        # 1) Extracción y Parsing (Igual que antes)
         path_str = str(pdf_path)
-
-        # 1) Extracción de tablas y metadatos a partir del PDF
         extraction_result = self._extractor.extract(path_str)
-
-        # 2) Parsing de las tablas extraídas para construir sesiones temporales
-        #    y serialización a un dict alineado con los DTOs de horarios.
         parsed_dict = self._parser.parse(extraction_result)
+        horario_out = HorarioTemporalOut(**parsed_dict)
 
-        # 3) Construcción del DTO Pydantic. Pydantic se encarga de mapear
-        #    los dicts anidados de metadatos a ExtractionMetadataOut y
-        #    ParsingMetadataOut automáticamente.
-        return HorarioTemporalOut(**parsed_dict)
+        # 2) Enriquecimiento con Fuzzy Match (Datos Puros)
+        matcher = AsignaturaMatcher(db)
+
+        for tabla in horario_out.horarios:
+            for sesion in tabla.sesiones:
+                if not sesion.asignatura:
+                    continue
+                # Consultamos al matcher sin guardar nada (modo solo lectura)
+                asig_obj, metodo, score = matcher.match(sesion.asignatura)
+
+                # Inyectamos los metadatos puros
+                sesion.match_confidence = score
+                sesion.match_status = metodo
+                
+                if asig_obj:
+                    sesion.asignatura_sugerida = asig_obj.nombre
+
+        return horario_out
 
     def confirmar_horario(
         self,

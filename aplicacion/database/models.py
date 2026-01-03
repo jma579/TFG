@@ -59,10 +59,27 @@ class Asignatura(Base):
     programa_asignaturas = relationship("ProgramaAsignatura", back_populates="asignatura", passive_deletes=True)
     asignatura_menciones = relationship("AsignaturaMencion", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
+    aliases = relationship("AsignaturaAlias", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
 
     # Conveniencia (solo lectura)
     programas = relationship("Programa", secondary="programas_asignaturas", viewonly=True, overlaps="programa_asignaturas,asignaturas")
     menciones = relationship("Mencion", secondary="asignaturas_menciones", viewonly=True, overlaps="asignatura_menciones,asignaturas")
+
+class AsignaturaAlias(Base):
+    __tablename__ = "asignaturas_aliases"
+    id = Column(Integer, primary_key=True)
+    asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
+    alias = Column(String(250), nullable=False)
+    origen = Column(String(50), default="MANUAL")
+    veces_usado = Column(Integer, default=0)
+    creado_en = Column(DateTime, default=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("alias", name="uq_asignatura_alias_texto"),
+        Index("ix_asignatura_alias_lookup", "alias"),
+    )
+
+    asignatura = relationship("Asignatura", back_populates="aliases", passive_deletes=True)
 
 
 class Mencion(Base):
