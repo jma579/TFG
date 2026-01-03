@@ -1107,11 +1107,7 @@ async def extract_horario(
         ...,
         description="Archivo PDF de horario a procesar",
     ),
-    db: Session = Depends(
-        ...,
-        get_db,
-        description="Sesión de base de datos para operaciones del pipeline",
-    ),
+    db: Session = Depends(get_db)
 ):
     """
     Extraer un horario académico a partir de un PDF.
