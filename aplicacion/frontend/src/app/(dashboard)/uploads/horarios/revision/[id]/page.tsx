@@ -2,12 +2,11 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil, Sparkles, CheckCircle2, AlertTriangle, XCircle, ArrowRight } from 'lucide-react';
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
 import type { Session } from '@/components/solver/schedule-mock';
 import {
   useHorariosUploadsStore,
-  type HorarioUploadItem,
 } from '@/stores/horarios-uploads';
 import { confirmHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
 import { Button } from '@/components/ui/button';
@@ -58,13 +57,19 @@ export type HorarioExtraidoBloque = {
 };
 
 export type HorarioExtraidoSesion = {
-  asignatura: string;
+  asignatura: string; // Nombre original (RAW) del PDF
   aula: string;
   dia: string;
   hora_inicio: string;
   hora_fin: string;
   tipo: string;
   grupo: string | null;
+  
+  // Metadatos de Matcher (Backend)
+  match_confidence?: number;
+  match_status?: string;       // 'EXACT', 'ALIAS_DB', 'FUZZY_AUTO', 'NO_MATCH', etc.
+  asignatura_sugerida?: string; // Nombre oficial en BD
+  
   [key: string]: unknown;
 };
 
@@ -95,6 +100,115 @@ const TIPO_OPCIONES = [
 ] as const;
 
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
+
+// --- COMPONENTE: MatchInfoCard ---
+// Muestra contexto sobre por qué el sistema eligió esa asignatura
+function MatchInfoCard({ 
+  status, 
+  originalName, 
+  suggestedName 
+}: { 
+  status?: string, 
+  originalName: string, 
+  suggestedName?: string 
+}) {
+  if (!status) return null;
+
+  switch (status) {
+    case 'EXACT':
+      return (
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              <p className="font-semibold">Asignatura Validada</p>
+              <p className="text-blue-700/80">
+                El nombre detectado coincide exactamente con la base de datos.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'ALIAS_DB':
+      return (
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              <p className="font-semibold">Alias Reconocido</p>
+              <div className="flex flex-wrap items-center gap-1 text-blue-700/90">
+                <span>Original: <strong>"{originalName}"</strong></span>
+                <ArrowRight className="h-3 w-3" />
+                <span>Oficial: <strong>"{suggestedName}"</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'FUZZY_AUTO':
+      return (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          <div className="flex items-start gap-3">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              <p className="font-semibold">Predicción Automática</p>
+              <div className="flex flex-wrap items-center gap-1 text-green-700/90">
+                <span>PDF: <strong>"{originalName}"</strong></span>
+                <ArrowRight className="h-3 w-3" />
+                <span>Asignado a: <strong>"{suggestedName}"</strong></span>
+              </div>
+              <p className="mt-1 text-xs text-green-600">
+                El sistema ha corregido el nombre automáticamente.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'FUZZY_LOW_CONFIDENCE':
+      return (
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              <p className="font-semibold">Revisión Recomendada</p>
+              <div className="flex flex-wrap items-center gap-1 text-amber-700/90">
+                <span>Detectado: <strong>"{originalName}"</strong></span>
+                <ArrowRight className="h-3 w-3" />
+                <span>Sugerencia: <strong>"{suggestedName}"</strong></span>
+              </div>
+              <p className="mt-1 text-xs text-amber-600">
+                Confirma si esta suposición es correcta.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'NO_MATCH':
+      return (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <div className="flex items-start gap-3">
+            <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              <p className="font-semibold">Asignatura Desconocida</p>
+              <p className="text-red-700/90">
+                No se encontró coincidencia para: <strong>"{originalName}"</strong>.
+              </p>
+              <p className="mt-1 text-xs text-red-600">
+                Busca y selecciona la asignatura correcta abajo.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
 
 export default function RevisionHorarioPage({ params }: Props) {
   const { id } = React.use(params);
@@ -305,8 +419,14 @@ export default function RevisionHorarioPage({ params }: Props) {
     if (!bloque || !sesion) return;
 
     setEditingLocation({ blockIndex, sessionIndex });
+    
+    // LÓGICA DE PRE-RELLENADO DEL FORMULARIO:
+    // 1. Si hay sugerencia oficial (Match), usamos esa.
+    // 2. Si no (Rojo), usamos el original para que sirva de referencia al borrarlo.
+    const nombrePreCargado = sesion.asignatura_sugerida || sesion.asignatura || '';
+
     setEditingForm({
-      asignatura: sesion.asignatura ?? '',
+      asignatura: nombrePreCargado,
       aula: sesion.aula ?? '',
       dia: sesion.dia ?? '',
       hora_inicio: sesion.hora_inicio ?? '',
@@ -315,6 +435,7 @@ export default function RevisionHorarioPage({ params }: Props) {
       grupo: sesion.grupo ?? '',
     });
   };
+
   const closeEditSesion = () => {
     setEditingLocation(null);
     setEditingForm(null);
@@ -326,6 +447,7 @@ export default function RevisionHorarioPage({ params }: Props) {
   ) => {
     setEditingForm((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
+
   const handleSaveSesion = () => {
     if (!editingLocation || !editingForm) return;
 
@@ -339,7 +461,12 @@ export default function RevisionHorarioPage({ params }: Props) {
 
       if (!sesion) return prev;
 
-      sesion.asignatura = editingForm.asignatura;
+      // Actualizamos los datos. Importante:
+      // Si el usuario cambia el nombre, el match ya no es válido (o se asume manual).
+      // Limpiamos los metadatos de match para que no salga la tarjeta antigua.
+      const haCambiadoNombre = editingForm.asignatura !== sesion.asignatura_sugerida && editingForm.asignatura !== sesion.asignatura;
+      
+      sesion.asignatura = editingForm.asignatura; // Ahora esto tendrá el nombre oficial si eligió del combo
       sesion.aula = editingForm.aula;
       sesion.dia = editingForm.dia;
       sesion.hora_inicio = editingForm.hora_inicio;
@@ -347,10 +474,18 @@ export default function RevisionHorarioPage({ params }: Props) {
       sesion.tipo = editingForm.tipo;
       sesion.grupo = editingForm.grupo || null;
 
+      if (haCambiadoNombre) {
+        // Al editar manualmente, "aceptamos" ese nombre como sugerido final
+        sesion.asignatura_sugerida = editingForm.asignatura;
+        // Podríamos poner un status especial tipo 'MANUAL_FIX' si quisiéramos
+        // sesion.match_status = 'MANUAL_FIX'; 
+      }
+
       return cloned;
     });
     closeEditSesion();
   };
+
   const openCreateDialog = () => {
     setCreateTab(canCreateSession ? 'session' : 'block');
     setCreateSessionForm(DEFAULT_SESSION_FORM);
@@ -364,6 +499,7 @@ export default function RevisionHorarioPage({ params }: Props) {
     f: K,
     v: SesionFormState[K]
   ) => setCreateSessionForm((p) => ({ ...p, [f]: v }));
+
   const handleCreateSession = () => {
     if (!canCreateSession) return;
 
@@ -379,6 +515,8 @@ export default function RevisionHorarioPage({ params }: Props) {
       bloque.sesiones.push({
         ...createSessionForm,
         grupo: createSessionForm.grupo || null,
+        // Las nuevas sesiones manuales no tienen match info
+        match_status: 'MANUAL',
       });
 
       return cloned;
@@ -663,11 +801,22 @@ export default function RevisionHorarioPage({ params }: Props) {
         </DialogContent>
       </Dialog>
 
+      {/* --- DIALOGO 2: EDITAR SESIÓN (CON TARJETA INFO) --- */}
       <Dialog open={isEditOpen} onOpenChange={(open) => !open && closeEditSesion()}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Editar sesión</DialogTitle>
           </DialogHeader>
+
+          {/* Tarjeta de contexto (solo si editamos un bloque existente) */}
+          {editingBloque && editingLocation && (
+            <MatchInfoCard 
+              status={editingBloque.sesiones[editingLocation.sessionIndex].match_status}
+              originalName={editingBloque.sesiones[editingLocation.sessionIndex].asignatura}
+              suggestedName={editingBloque.sesiones[editingLocation.sessionIndex].asignatura_sugerida}
+            />
+          )}
+
           {editingForm && (
             <SessionFormFieldsSmart
               form={editingForm}
@@ -913,6 +1062,8 @@ function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
   );
   return sessions;
 }
+
+// 🔥 FUNCIÓN CLAVE: MAPEO DE COLORES Y NOMBRES
 function mapBloqueToSessions(
   bloque: HorarioExtraidoBloque,
   bloqueIndex: number
@@ -922,20 +1073,67 @@ function mapBloqueToSessions(
     const dayIndex = diaToDayIndex(sesion.dia);
     if (dayIndex < 0) return;
 
+    // 1. Determinar el color según el Status del Matcher
+    let color: Session['color'] = 'blue';
+
+    switch (sesion.match_status) {
+      case 'EXACT':
+      case 'ALIAS_DB':
+        // Azul: Confirmado (Exacto o Alias conocido)
+        color = 'blue'; 
+        break;
+      
+      case 'FUZZY_AUTO':
+        // Verde: Predicción Alta Confianza
+        color = 'green'; 
+        break;
+
+      case 'FUZZY_LOW_CONFIDENCE':
+        // Naranja: Revisión
+        color = 'orange';
+        break;
+
+      case 'NO_MATCH':
+      default:
+        // Rojo: Error / No encontrado
+        color = 'red';
+        break;
+    }
+
+    // 2. Determinar el título a mostrar en el Grid
+    // - Si es ROJO (Error), mostramos el nombre RAW para que sepas qué es.
+    // - Si es AZUL/VERDE/NARANJA, mostramos la SUGERENCIA OFICIAL (limpia).
+    const isError = color === 'red';
+    const dbName = sesion.asignatura_sugerida;
+    const rawName = sesion.asignatura;
+    
+    // Fallback: si por algún motivo no hay dbName en un verde, usamos el raw.
+    const displayTitle = isError ? rawName : (dbName || rawName || 'Sin nombre');
+
+    // 3. Crear el objeto sesión con casting seguro
     sessions.push({
       id: `${bloqueIndex}-${sesionIndex}`,
       courseId: buildCourseIdFromCurso(bloque.curso),
       dayIndex,
       start: normalizeTime(sesion.hora_inicio),
       end: normalizeTime(sesion.hora_fin),
-      title: sesion.asignatura || 'Sesión',
+      
+      title: displayTitle, 
       room: sesion.aula ?? '—',
       teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : '',
-      color: 'blue',
-    });
+      
+      color: color,
+      
+      // Pasamos metadatos para la tarjeta de info (MatchInfoCard)
+      originalName: sesion.asignatura,
+      suggestedName: sesion.asignatura_sugerida,
+      matchStatus: sesion.match_status,
+
+    } as unknown as Session); 
   });
   return sessions;
 }
+
 function diaToDayIndex(dia: string): number {
   const d = dia.trim().toUpperCase();
   if (d.startsWith('L')) return 0;

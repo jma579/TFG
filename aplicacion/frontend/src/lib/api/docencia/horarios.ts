@@ -1,61 +1,93 @@
 import { api } from '@/lib/api/config';
 
-// --- Tipos ---
+// ==========================================
+// Tipos Sincronizados con Backend (Pydantic)
+// ==========================================
+
+export type MatchStatus = 
+  | 'EXACT' 
+  | 'ALIAS_DB' 
+  | 'FUZZY_AUTO' 
+  | 'FUZZY_LOW_CONFIDENCE' 
+  | 'NO_MATCH';
+
 export type HorarioTemporalSesion = {
-  asignatura: string;
+  // Datos originales del PDF
+  asignatura?: string | null;
   aula?: string | null;
-  dia: string;
-  hora_inicio: string;
-  hora_fin: string;
+  dia?: string | null;
+  hora_inicio?: string | null;
+  hora_fin?: string | null;
   tipo?: string | null;
   grupo?: string | null;
+
+  // --- NUEVOS CAMPOS: Fuzzy Match Metadata ---
+  match_confidence?: number | null;     // 0 - 100
+  match_status?: MatchStatus | string | null; 
+  asignatura_sugerida?: string | null;  // Nombre oficial sugerido
+  
   [key: string]: unknown;
 };
 
-export type HorarioTemporalGrupo = {
-  id: number;
-  codigo: string;
-  tipo: string;
-  curso: number;
-  turno?: string | null;
-  asignatura_id: number;
+export type HorarioTemporalTabla = {
+  curso?: string | null;
+  periodo?: string | null;
+  mencion?: string | null;
+  pagina?: number | null;
   sesiones: HorarioTemporalSesion[];
   [key: string]: unknown;
 };
 
 export type HorarioTemporalOut = {
-  id: number;
-  grado: string;
-  curso_academico: string;
-  grupos: HorarioTemporalGrupo[];
+  // Metadatos globales del documento
+  titulo?: string | null;
+  plan?: string | null;
+  periodo?: string | null;
+  
+  // Lista de tablas detectadas
+  horarios: HorarioTemporalTabla[];
+  
+  // SOLUCIÓN LINT: Usamos 'Record<string, unknown>' en lugar de 'any'
+  extraction_metadata?: Record<string, unknown>;
+  parsing_metadata?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
+// Payload para confirmar
 export type HorarioTemporalConfirmIn = HorarioTemporalOut;
 
 export type HorarioConfirmResponse = {
-  success?: boolean;
-  warnings?: string[];
-  errors?: string[];
+  // SOLUCIÓN LINT: Usamos 'unknown[]' en lugar de 'any[]' por ahora
+  // (Más adelante podrás importar los tipos reales GrupoDocenteOut y SesionOut)
+  grupos: unknown[];    
+  sesiones: unknown[];
+  created_entities: Record<string, number>;
+  warnings: string[];
+  errors: string[];
   [key: string]: unknown;
 };
 
-// --- Funciones ---
+// ==========================================
+// Funciones API (Corregidas y Tipadas)
+// ==========================================
 
 export async function extractHorario(file: File): Promise<HorarioTemporalOut> {
   const form = new FormData();
   form.append('file', file);
 
-  return api.post('/v0/docencia/horarios/extract', form, {
-    headers: {
-      // Importante: Sobrescribimos el 'application/json' global
-      'Content-Type': 'multipart/form-data',
-    },
+  // Volvemos a capturar la respuesta entera por si tu interceptor ya devolvía 'data'
+  const response = await api.post<HorarioTemporalOut>('/v0/docencia/horarios/extract', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
+  
+  // Verificamos si response tiene .data o es directamente la data
+  return response.data ?? response; 
 }
 
 export async function confirmHorario(
   payload: HorarioTemporalConfirmIn
 ): Promise<HorarioConfirmResponse> {
-  return api.post('/v0/docencia/horarios/confirm', payload);
+  // Usamos destructuración { data }
+  const { data } = await api.post<HorarioConfirmResponse>('/v0/docencia/horarios/confirm', payload);
+  return data;
 }

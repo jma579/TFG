@@ -70,13 +70,21 @@ class HorariosPipelineService:
 
         # 2) Enriquecimiento con Fuzzy Match (Datos Puros)
         matcher = AsignaturaMatcher(db)
+        contexto_plan = horario_out.plan or horario_out.titulo or ""
+        texto_para_periodo = f"{horario_out.periodo or ''} {horario_out.titulo or ''}"
 
         for tabla in horario_out.horarios:
+            contexto_curso = tabla.curso or ""
             for sesion in tabla.sesiones:
                 if not sesion.asignatura:
                     continue
                 # Consultamos al matcher sin guardar nada (modo solo lectura)
-                asig_obj, metodo, score = matcher.match(sesion.asignatura)
+                asig_obj, metodo, score = matcher.match(
+                    texto_sucio=sesion.asignatura, 
+                    plan_context=contexto_plan,
+                    periodo_context=texto_para_periodo,
+                    curso_context=contexto_curso
+                )
 
                 # Inyectamos los metadatos puros
                 sesion.match_confidence = score
