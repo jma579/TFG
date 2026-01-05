@@ -2,13 +2,14 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Sparkles, CheckCircle2, AlertTriangle, XCircle, ArrowRight } from 'lucide-react';
+import { Plus, Pencil, Sparkles, CheckCircle2, AlertTriangle, XCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
 import type { Session } from '@/components/solver/schedule-mock';
 import {
   useHorariosUploadsStore,
 } from '@/stores/horarios-uploads';
-import { confirmHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
+// 👇 AÑADIDO: Importamos refineHorario
+import { confirmHorario, refineHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -57,7 +58,7 @@ export type HorarioExtraidoBloque = {
 };
 
 export type HorarioExtraidoSesion = {
-  asignatura: string; // Nombre original (RAW) del PDF
+  asignatura: string;
   aula: string;
   dia: string;
   hora_inicio: string;
@@ -65,10 +66,10 @@ export type HorarioExtraidoSesion = {
   tipo: string;
   grupo: string | null;
   
-  // Metadatos de Matcher (Backend)
+  // Metadatos de Matcher
   match_confidence?: number;
-  match_status?: string;       // 'EXACT', 'ALIAS_DB', 'FUZZY_AUTO', 'NO_MATCH', etc.
-  asignatura_sugerida?: string; // Nombre oficial en BD
+  match_status?: string;       
+  asignatura_sugerida?: string; 
   
   [key: string]: unknown;
 };
@@ -102,7 +103,6 @@ const TIPO_OPCIONES = [
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
 
 // --- COMPONENTE: MatchInfoCard ---
-// Muestra contexto sobre por qué el sistema eligió esa asignatura
 function MatchInfoCard({ 
   status, 
   originalName, 
@@ -349,6 +349,8 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   // --- DIÁLOGOS ---
   const [isEditInfoOpen, setIsEditInfoOpen] = React.useState(false);
+  // 👇 NUEVO ESTADO: Controla si estamos recalculando los matches
+  const [isRefining, setIsRefining] = React.useState(false);
   const [infoForm, setInfoForm] = React.useState({ plan: '', periodo: '' });
 
   const [editingLocation, setEditingLocation] = React.useState<{ blockIndex: number; sessionIndex: number } | null>(null);
@@ -386,17 +388,47 @@ export default function RevisionHorarioPage({ params }: Props) {
     setIsEditInfoOpen(true);
   };
 
-  const handleSaveInfo = () => {
-    setDraftHorario((prev) => {
-      if (!prev) return prev;
-      const cloned = { ...prev };
-      cloned.plan = infoForm.plan;
-      cloned.periodo = infoForm.periodo;
-      cloned.titulo = `${infoForm.plan} - ${infoForm.periodo}`;
-      return cloned;
-    });
-    setIsEditInfoOpen(false);
-    toast({ title: 'Actualizado', description: 'Guardado temporalmente.' });
+  // 👇 FUNCIÓN ACTUALIZADA: RE-MATCHING
+  const handleSaveInfo = async () => {
+    // 1. Construimos el objeto con los nuevos metadatos
+    const horarioActualizado = JSON.parse(JSON.stringify(draftHorario ?? horarioTemporal));
+    horarioActualizado.plan = infoForm.plan;
+    horarioActualizado.periodo = infoForm.periodo;
+    // Combinamos título para asegurar que el Matcher recibe toda la info necesaria
+    horarioActualizado.titulo = `${infoForm.plan} - ${infoForm.periodo}`;
+
+    setIsRefining(true);
+    try {
+        toast({ title: 'Recalculando coincidencias...', description: 'Aplicando nuevo contexto...' });
+        
+        // 2. LLAMADA AL BACKEND: Recalcular Fuzzy Matches
+        const nuevoHorario = await refineHorario(horarioActualizado as unknown as HorarioTemporalOut);
+
+        // 3. Actualizamos el estado local con las nuevas sugerencias
+        setDraftHorario(nuevoHorario as unknown as HorarioExtraido);
+        
+        // 4. Actualizamos el store global
+        if (item) {
+            updateHorario(item.id, nuevoHorario);
+        }
+
+        setIsEditInfoOpen(false);
+        toast({ title: 'Horario Actualizado', description: 'Se han recalculado las sugerencias de asignaturas.' });
+
+    } catch (error) {
+        console.error(error);
+        toast({ 
+            title: 'Error', 
+            description: 'No se pudieron recalcular las asignaturas. Se han guardado los cambios básicos.', 
+            variant: 'destructive' 
+        });
+        
+        // Fallback: Si falla el server, guardamos al menos los textos localmente
+        setDraftHorario(horarioActualizado);
+        setIsEditInfoOpen(false);
+    } finally {
+        setIsRefining(false);
+    }
   };
 
   const currentPlanId = React.useMemo(
@@ -420,9 +452,7 @@ export default function RevisionHorarioPage({ params }: Props) {
 
     setEditingLocation({ blockIndex, sessionIndex });
     
-    // LÓGICA DE PRE-RELLENADO DEL FORMULARIO:
-    // 1. Si hay sugerencia oficial (Match), usamos esa.
-    // 2. Si no (Rojo), usamos el original para que sirva de referencia al borrarlo.
+    // PRE-RELLENADO INTELIGENTE
     const nombrePreCargado = sesion.asignatura_sugerida || sesion.asignatura || '';
 
     setEditingForm({
@@ -461,12 +491,10 @@ export default function RevisionHorarioPage({ params }: Props) {
 
       if (!sesion) return prev;
 
-      // Actualizamos los datos. Importante:
-      // Si el usuario cambia el nombre, el match ya no es válido (o se asume manual).
-      // Limpiamos los metadatos de match para que no salga la tarjeta antigua.
+      // Detectar cambio manual
       const haCambiadoNombre = editingForm.asignatura !== sesion.asignatura_sugerida && editingForm.asignatura !== sesion.asignatura;
       
-      sesion.asignatura = editingForm.asignatura; // Ahora esto tendrá el nombre oficial si eligió del combo
+      sesion.asignatura = editingForm.asignatura;
       sesion.aula = editingForm.aula;
       sesion.dia = editingForm.dia;
       sesion.hora_inicio = editingForm.hora_inicio;
@@ -475,10 +503,7 @@ export default function RevisionHorarioPage({ params }: Props) {
       sesion.grupo = editingForm.grupo || null;
 
       if (haCambiadoNombre) {
-        // Al editar manualmente, "aceptamos" ese nombre como sugerido final
         sesion.asignatura_sugerida = editingForm.asignatura;
-        // Podríamos poner un status especial tipo 'MANUAL_FIX' si quisiéramos
-        // sesion.match_status = 'MANUAL_FIX'; 
       }
 
       return cloned;
@@ -515,7 +540,6 @@ export default function RevisionHorarioPage({ params }: Props) {
       bloque.sesiones.push({
         ...createSessionForm,
         grupo: createSessionForm.grupo || null,
-        // Las nuevas sesiones manuales no tienen match info
         match_status: 'MANUAL',
       });
 
@@ -742,7 +766,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         />
       )}
 
-      {/* --- DIALOGO 1: EDITAR INFO --- */}
+      {/* --- DIALOGO 1: EDITAR INFO (CON LOADING) --- */}
       <Dialog open={isEditInfoOpen} onOpenChange={setIsEditInfoOpen}>
         <DialogContent className="overflow-visible">
           <DialogHeader>
@@ -796,7 +820,16 @@ export default function RevisionHorarioPage({ params }: Props) {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleSaveInfo}>Guardar cambios</Button>
+            <Button onClick={handleSaveInfo} disabled={isRefining}>
+                {isRefining ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Recalculando asignaturas...
+                    </>
+                ) : (
+                    'Guardar y Recalcular'
+                )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -808,7 +841,6 @@ export default function RevisionHorarioPage({ params }: Props) {
             <DialogTitle>Editar sesión</DialogTitle>
           </DialogHeader>
 
-          {/* Tarjeta de contexto (solo si editamos un bloque existente) */}
           {editingBloque && editingLocation && (
             <MatchInfoCard 
               status={editingBloque.sesiones[editingLocation.sessionIndex].match_status}
@@ -825,6 +857,7 @@ export default function RevisionHorarioPage({ params }: Props) {
               aulaOptions={aulaOptions}
             />
           )}
+          
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={closeEditSesion}>
               Cancelar
@@ -1063,7 +1096,7 @@ function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
   return sessions;
 }
 
-// 🔥 FUNCIÓN CLAVE: MAPEO DE COLORES Y NOMBRES
+// 🔥 FUNCIÓN IMPRESCINDIBLE PARA VER LOS COLORES RECALCULADOS
 function mapBloqueToSessions(
   bloque: HorarioExtraidoBloque,
   bloqueIndex: number
@@ -1101,16 +1134,13 @@ function mapBloqueToSessions(
     }
 
     // 2. Determinar el título a mostrar en el Grid
-    // - Si es ROJO (Error), mostramos el nombre RAW para que sepas qué es.
-    // - Si es AZUL/VERDE/NARANJA, mostramos la SUGERENCIA OFICIAL (limpia).
     const isError = color === 'red';
     const dbName = sesion.asignatura_sugerida;
     const rawName = sesion.asignatura;
     
-    // Fallback: si por algún motivo no hay dbName en un verde, usamos el raw.
+    // Si hay sugerencia (verde/naranja/azul), usamos esa.
     const displayTitle = isError ? rawName : (dbName || rawName || 'Sin nombre');
 
-    // 3. Crear el objeto sesión con casting seguro
     sessions.push({
       id: `${bloqueIndex}-${sesionIndex}`,
       courseId: buildCourseIdFromCurso(bloque.curso),

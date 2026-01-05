@@ -87,7 +87,18 @@ export async function extractHorario(file: File): Promise<HorarioTemporalOut> {
 export async function confirmHorario(
   payload: HorarioTemporalConfirmIn
 ): Promise<HorarioConfirmResponse> {
-  // Usamos destructuración { data }
-  const { data } = await api.post<HorarioConfirmResponse>('/v0/docencia/horarios/confirm', payload);
-  return data;
+  const response = await api.post<HorarioConfirmResponse>('/v0/docencia/horarios/confirm', payload);
+  return response.data ?? response;
+}
+
+// 👇 CORRECCIÓN AQUI: Manejo robusto de la respuesta
+export async function refineHorario(
+  payload: HorarioTemporalConfirmIn
+): Promise<HorarioTemporalOut> {
+  // Llamamos al nuevo endpoint de re-matching
+  const response = await api.post<HorarioTemporalOut>('/v0/docencia/horarios/refine', payload);
+  
+  // Si tu interceptor devuelve la data directa, response es la data. 
+  // Si devuelve el objeto AxiosResponse, response.data es la data.
+  return response.data ?? response;
 }

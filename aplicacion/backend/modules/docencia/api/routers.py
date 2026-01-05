@@ -1157,6 +1157,34 @@ async def extract_horario(
     return horario_temporal
 
 @router.post(
+    "/horarios/refine",
+    response_model=HorarioTemporalOut,
+    status_code=status.HTTP_200_OK,
+    summary="Refinar matching de asignaturas (recalcular sugerencias)",
+    description="""
+    Recibe un horario temporal con metadatos actualizados (ej: usuario corrigió el Plan de Estudios o el Periodo)
+    y **recalcula las sugerencias de asignaturas** (Fuzzy Match) usando este nuevo contexto.
+
+    **Caso de uso:**
+    1. Usuario sube PDF. El sistema no detecta bien la titulación. Muchas asignaturas salen en rojo.
+    2. Usuario edita manualmente el "Plan de Estudios" en el frontend.
+    3. Frontend llama a este endpoint.
+    4. El sistema re-ejecuta el matcher sabiendo ahora que es "Grado en Matemáticas".
+    5. Devuelve el horario con las asignaturas en verde (matches encontrados).
+    """,
+    tags=["Horarios"],
+)
+async def refine_horario_matching(
+    payload: HorarioTemporalConfirmIn,
+    db: Session = Depends(get_db),
+):
+    """
+    Recalcular sugerencias de asignaturas basándose en cambios del usuario.
+    """
+    # Reutilizamos el servicio, que tiene la lógica de 'refinar_matching'
+    return horarios_pipeline_service.refinar_matching(db, payload)
+
+@router.post(
     "/horarios/confirm",
     response_model=HorarioConfirmResponse,
     status_code=status.HTTP_200_OK,

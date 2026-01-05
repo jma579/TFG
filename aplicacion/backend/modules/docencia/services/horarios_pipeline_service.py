@@ -94,6 +94,45 @@ class HorariosPipelineService:
                     sesion.asignatura_sugerida = asig_obj.nombre
 
         return horario_out
+    
+    def refinar_matching(self, db: Session, horario: HorarioTemporalOut) -> HorarioTemporalOut:
+        """
+        Recalcula las sugerencias de asignaturas (Fuzzy Match) basándose en los
+        metadatos actualizados (plan, periodo) que ha editado el usuario.
+        """
+        matcher = AsignaturaMatcher(db)
+        
+        # 1. Extraer los NUEVOS contextos del objeto recibido
+        contexto_plan = horario.plan or horario.titulo or ""
+        texto_para_periodo = f"{horario.periodo or ''} {horario.titulo or ''}"
+
+        # 2. Recorrer y re-evaluar
+        for tabla in horario.horarios:
+            contexto_curso = tabla.curso or ""
+
+            for sesion in tabla.sesiones:
+                # Si no hay texto original, saltamos
+                if not sesion.asignatura:
+                    continue
+                
+                # RE-MATCHING con la inteligencia contextual actualizada
+                asig_obj, metodo, score = matcher.match(
+                    texto_sucio=sesion.asignatura, 
+                    plan_context=contexto_plan,      
+                    periodo_context=texto_para_periodo,
+                    curso_context=contexto_curso
+                )
+
+                # Actualizamos la sugerencia
+                sesion.match_confidence = score
+                sesion.match_status = metodo
+                
+                if asig_obj:
+                    sesion.asignatura_sugerida = asig_obj.nombre
+                else:
+                    sesion.asignatura_sugerida = None
+
+        return horario
 
     def confirmar_horario(
         self,
