@@ -25,6 +25,8 @@ export type HorarioTemporalSesion = {
   match_confidence?: number | null;     // 0 - 100
   match_status?: MatchStatus | string | null; 
   asignatura_sugerida?: string | null;  // Nombre oficial sugerido
+
+  manual_validated?: boolean;
   
   [key: string]: unknown;
 };

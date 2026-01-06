@@ -2,44 +2,44 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Sparkles, CheckCircle2, AlertTriangle, XCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { 
+  Pencil, Loader2, CheckCircle2, AlertTriangle, 
+  Sparkles, XCircle, ArrowRight, ChevronDown, 
+  ChevronUp, Check, Edit, Trash2, Info, Plus
+} from 'lucide-react';
+
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
 import type { Session } from '@/components/solver/schedule-mock';
-import {
-  useHorariosUploadsStore,
-} from '@/stores/horarios-uploads';
-// 👇 AÑADIDO: Importamos refineHorario
+
+import { useHorariosUploadsStore } from '@/stores/horarios-uploads';
 import { confirmHorario, refineHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
+
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
 import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
 import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
 import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
 import { PERIODOS } from '@/lib/constants/periodos';
 
+// 👇 Importamos tu nuevo componente modular
+import { ReviewDashboard, ReviewBlock } from '@/components/solver/review-dashboard';
+
 type RouteParams = { id: string };
+type Props = { params: Promise<RouteParams> };
 
-type Props = {
-  params: Promise<RouteParams>;
-};
-
-// --- Tipos ---
+// --- TIPOS ---
 export type HorarioExtraido = {
   titulo: string;
   plan: string;
@@ -66,10 +66,10 @@ export type HorarioExtraidoSesion = {
   tipo: string;
   grupo: string | null;
   
-  // Metadatos de Matcher
   match_confidence?: number;
   match_status?: string;       
-  asignatura_sugerida?: string; 
+  asignatura_sugerida?: string;
+  manual_validated?: boolean;
   
   [key: string]: unknown;
 };
@@ -94,12 +94,7 @@ const DEFAULT_SESSION_FORM: SesionFormState = {
   grupo: '',
 };
 
-const TIPO_OPCIONES = [
-  'TEORÍA',
-  'PRÁCTICAS DE AULA',
-  'PRÁCTICAS DE LABORATORIO',
-] as const;
-
+const TIPO_OPCIONES = ['TEORÍA', 'PRÁCTICAS DE AULA', 'PRÁCTICAS DE LABORATORIO'] as const;
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
 
 // --- COMPONENTE: MatchInfoCard ---
@@ -349,12 +344,12 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   // --- DIÁLOGOS ---
   const [isEditInfoOpen, setIsEditInfoOpen] = React.useState(false);
-  // 👇 NUEVO ESTADO: Controla si estamos recalculando los matches
   const [isRefining, setIsRefining] = React.useState(false);
   const [infoForm, setInfoForm] = React.useState({ plan: '', periodo: '' });
 
   const [editingLocation, setEditingLocation] = React.useState<{ blockIndex: number; sessionIndex: number } | null>(null);
   const [editingForm, setEditingForm] = React.useState<SesionFormState | null>(null);
+  const [isEditOpen, setIsEditOpen] = React.useState(false);
 
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [createTab, setCreateTab] = React.useState<'session' | 'block'>('session');
@@ -367,6 +362,11 @@ export default function RevisionHorarioPage({ params }: Props) {
   const canCreateSession = bloques.length > 0;
 
   // --- HANDLERS ---
+
+  const handleUpdateDraft = (newHorario: HorarioExtraido) => {
+    setDraftHorario(newHorario);
+    if (item) updateHorario(item.id, newHorario as unknown as HorarioTemporalOut);
+  };
 
   const handleBack = () => {
     if (item && draftHorario) {
@@ -388,48 +388,75 @@ export default function RevisionHorarioPage({ params }: Props) {
     setIsEditInfoOpen(true);
   };
 
-  // 👇 FUNCIÓN ACTUALIZADA: RE-MATCHING
   const handleSaveInfo = async () => {
-    // 1. Construimos el objeto con los nuevos metadatos
     const horarioActualizado = JSON.parse(JSON.stringify(draftHorario ?? horarioTemporal));
     horarioActualizado.plan = infoForm.plan;
     horarioActualizado.periodo = infoForm.periodo;
-    // Combinamos título para asegurar que el Matcher recibe toda la info necesaria
     horarioActualizado.titulo = `${infoForm.plan} - ${infoForm.periodo}`;
 
     setIsRefining(true);
     try {
         toast({ title: 'Recalculando coincidencias...', description: 'Aplicando nuevo contexto...' });
-        
-        // 2. LLAMADA AL BACKEND: Recalcular Fuzzy Matches
         const nuevoHorario = await refineHorario(horarioActualizado as unknown as HorarioTemporalOut);
-
-        // 3. Actualizamos el estado local con las nuevas sugerencias
-        setDraftHorario(nuevoHorario as unknown as HorarioExtraido);
-        
-        // 4. Actualizamos el store global
-        if (item) {
-            updateHorario(item.id, nuevoHorario);
-        }
-
+        handleUpdateDraft(nuevoHorario as unknown as HorarioExtraido);
         setIsEditInfoOpen(false);
         toast({ title: 'Horario Actualizado', description: 'Se han recalculado las sugerencias de asignaturas.' });
-
     } catch (error) {
         console.error(error);
-        toast({ 
-            title: 'Error', 
-            description: 'No se pudieron recalcular las asignaturas. Se han guardado los cambios básicos.', 
-            variant: 'destructive' 
-        });
-        
-        // Fallback: Si falla el server, guardamos al menos los textos localmente
-        setDraftHorario(horarioActualizado);
+        toast({ title: 'Error', description: 'No se pudieron recalcular las asignaturas.', variant: 'destructive' });
+        handleUpdateDraft(horarioActualizado);
         setIsEditInfoOpen(false);
     } finally {
         setIsRefining(false);
     }
   };
+
+  // --- DASHBOARD HANDLERS ---
+  const toggleSessionValidation = (sesIndex: number, isValid: boolean) => {
+    if (!draftHorario) return;
+    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
+    const sesion = cloned.horarios[selectedBlockIndex]?.sesiones?.[sesIndex];
+    if (sesion) {
+      sesion.manual_validated = isValid;
+      if (isValid && sesion.asignatura_sugerida) {
+          sesion.asignatura = sesion.asignatura_sugerida;
+      }
+      handleUpdateDraft(cloned);
+    }
+  };
+
+  const handleDeleteSession = (sesIndex: number) => {
+    if (!draftHorario) return;
+    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
+    const bloque = cloned.horarios[selectedBlockIndex];
+    if (bloque && bloque.sesiones) {
+        bloque.sesiones.splice(sesIndex, 1);
+        handleUpdateDraft(cloned);
+        toast({ title: 'Eliminada', description: 'Sesión eliminada del horario.' });
+    }
+  };
+
+  const confirmAllSuggestionsInBlock = () => {
+    if (!draftHorario) return;
+    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
+    const bloque = cloned.horarios[selectedBlockIndex];
+    let count = 0;
+    bloque.sesiones.forEach(sesion => {
+      // Solo confirmamos las Fuzzy pendientes.
+      if (!sesion.manual_validated && sesion.asignatura_sugerida && sesion.match_status !== 'EXACT' && sesion.match_status !== 'ALIAS_DB') {
+        sesion.manual_validated = true;
+        sesion.asignatura = sesion.asignatura_sugerida;
+        count++;
+      }
+    });
+    if (count > 0) {
+      handleUpdateDraft(cloned);
+      toast({ title: 'Confirmación masiva', description: `${count} sesiones validadas automáticamente.` });
+    } else {
+        toast({ title: 'Nada que confirmar', description: 'No hay sugerencias pendientes en este curso.' });
+    }
+  };
+  // -------------------------
 
   const currentPlanId = React.useMemo(
     () => listaProgramas.find((p) => p.nombre === infoForm.plan)?.id,
@@ -452,7 +479,6 @@ export default function RevisionHorarioPage({ params }: Props) {
 
     setEditingLocation({ blockIndex, sessionIndex });
     
-    // PRE-RELLENADO INTELIGENTE
     const nombrePreCargado = sesion.asignatura_sugerida || sesion.asignatura || '';
 
     setEditingForm({
@@ -464,11 +490,13 @@ export default function RevisionHorarioPage({ params }: Props) {
       tipo: sesion.tipo ?? 'TEORÍA',
       grupo: sesion.grupo ?? '',
     });
+    setIsEditOpen(true);
   };
 
   const closeEditSesion = () => {
     setEditingLocation(null);
     setEditingForm(null);
+    setIsEditOpen(false);
   };
 
   const handleEditFieldChange = <K extends keyof SesionFormState>(
@@ -481,19 +509,11 @@ export default function RevisionHorarioPage({ params }: Props) {
   const handleSaveSesion = () => {
     if (!editingLocation || !editingForm) return;
 
-    setDraftHorario((prev) => {
-      const source = prev ?? horario;
-      if (!source) return prev;
+    const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
+    const { blockIndex, sessionIndex } = editingLocation;
+    const sesion = cloned.horarios[blockIndex]?.sesiones?.[sessionIndex];
 
-      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
-      const { blockIndex, sessionIndex } = editingLocation;
-      const sesion = cloned.horarios[blockIndex]?.sesiones?.[sessionIndex];
-
-      if (!sesion) return prev;
-
-      // Detectar cambio manual
-      const haCambiadoNombre = editingForm.asignatura !== sesion.asignatura_sugerida && editingForm.asignatura !== sesion.asignatura;
-      
+    if (sesion) {
       sesion.asignatura = editingForm.asignatura;
       sesion.aula = editingForm.aula;
       sesion.dia = editingForm.dia;
@@ -502,12 +522,12 @@ export default function RevisionHorarioPage({ params }: Props) {
       sesion.tipo = editingForm.tipo;
       sesion.grupo = editingForm.grupo || null;
 
-      if (haCambiadoNombre) {
-        sesion.asignatura_sugerida = editingForm.asignatura;
-      }
-
-      return cloned;
-    });
+      // ACTUALIZADO: Marcar como validado al guardar manualmente
+      sesion.manual_validated = true;
+      sesion.asignatura_sugerida = editingForm.asignatura;
+    }
+    
+    handleUpdateDraft(cloned);
     closeEditSesion();
   };
 
@@ -528,46 +548,37 @@ export default function RevisionHorarioPage({ params }: Props) {
   const handleCreateSession = () => {
     if (!canCreateSession) return;
 
-    setDraftHorario((prev) => {
-      const source = prev ?? horario;
-      if (!source) return prev;
+    const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
+    const bloque = cloned.horarios[selectedBlockIndex];
 
-      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
-      const bloque = cloned.horarios[selectedBlockIndex];
+    if (!bloque.sesiones) bloque.sesiones = [];
 
-      if (!bloque.sesiones) bloque.sesiones = [];
-
-      bloque.sesiones.push({
-        ...createSessionForm,
-        grupo: createSessionForm.grupo || null,
-        match_status: 'MANUAL',
-      });
-
-      return cloned;
+    bloque.sesiones.push({
+      ...createSessionForm,
+      grupo: createSessionForm.grupo || null,
+      match_status: 'MANUAL',
+      manual_validated: true // Creado a mano es validado
     });
+
+    handleUpdateDraft(cloned);
     setIsCreateOpen(false);
   };
   const handleCreateBlock = () => {
     const curso = newBlockForm.curso.trim();
     if (!curso) return;
 
-    setDraftHorario((prev) => {
-      const source = prev ?? horario;
-      if (!source) return prev;
+    const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
+    if (!cloned.horarios) cloned.horarios = [];
 
-      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
-      if (!cloned.horarios) cloned.horarios = [];
-
-      cloned.horarios.push({
-        curso,
-        periodo: cloned.periodo,
-        mencion: newBlockForm.mencion || null,
-        pagina: cloned.horarios.length,
-        sesiones: [],
-      });
-
-      return cloned;
+    cloned.horarios.push({
+      curso,
+      periodo: cloned.periodo,
+      mencion: newBlockForm.mencion || null,
+      pagina: cloned.horarios.length,
+      sesiones: [],
     });
+
+    handleUpdateDraft(cloned);
     setIsCreateOpen(false);
   };
   const openEditBlockDialog = () => {
@@ -581,20 +592,15 @@ export default function RevisionHorarioPage({ params }: Props) {
     setIsEditBlockOpen(true);
   };
   const handleSaveBlock = () => {
-    setDraftHorario((prev) => {
-      const source = prev ?? horario;
-      if (!source) return prev;
+    const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
+    const bloque = cloned.horarios[selectedBlockIndex];
 
-      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
-      const bloque = cloned.horarios[selectedBlockIndex];
+    if (bloque) {
+      bloque.curso = editBlockForm.curso;
+      bloque.mencion = editBlockForm.mencion || null;
+    }
 
-      if (bloque) {
-        bloque.curso = editBlockForm.curso;
-        bloque.mencion = editBlockForm.mencion || null;
-      }
-
-      return cloned;
-    });
+    handleUpdateDraft(cloned);
     setIsEditBlockOpen(false);
   };
   const handleSessionMove = (
@@ -602,16 +608,11 @@ export default function RevisionHorarioPage({ params }: Props) {
     newDayIndex: number,
     newStartTime: string
   ) => {
-    setDraftHorario((prev) => {
-      const source = prev ?? horario;
-      if (!source) return prev;
+    const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
+    const [blockStr, sesStr] = String(session.id).split('-');
+    const sesion = cloned.horarios[Number(blockStr)]?.sesiones?.[Number(sesStr)];
 
-      const cloned = JSON.parse(JSON.stringify(source)) as HorarioExtraido;
-      const [blockStr, sesStr] = String(session.id).split('-');
-      const sesion = cloned.horarios[Number(blockStr)]?.sesiones?.[Number(sesStr)];
-
-      if (!sesion) return prev;
-
+    if (sesion) {
       const duration = timeToMinutes(sesion.hora_fin) - timeToMinutes(sesion.hora_inicio);
       const startMin = timeToMinutes(newStartTime);
 
@@ -619,8 +620,8 @@ export default function RevisionHorarioPage({ params }: Props) {
       sesion.hora_inicio = newStartTime;
       sesion.hora_fin = minutesToTimeLabel(startMin + duration);
 
-      return cloned;
-    });
+      handleUpdateDraft(cloned);
+    }
   };
 
   const handleConfirm = async () => {
@@ -665,7 +666,6 @@ export default function RevisionHorarioPage({ params }: Props) {
   const editingBloque = editingLocation && horario?.horarios
     ? horario.horarios[editingLocation.blockIndex]
     : null;
-  const isEditOpen = Boolean(editingLocation && editingForm && editingBloque);
 
   return (
     <div className="space-y-6">
@@ -757,6 +757,30 @@ export default function RevisionHorarioPage({ params }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* 👇 INTEGRACIÓN DEL COMPONENTE */}
+      {hasData && (
+        <ReviewDashboard 
+           bloque={bloques[selectedBlockIndex] as unknown as ReviewBlock}
+           onConfirmSession={toggleSessionValidation}
+           onEditSession={(idx) => {
+               setEditingLocation({ blockIndex: selectedBlockIndex, sessionIndex: idx });
+               const sesion = bloques[selectedBlockIndex].sesiones[idx];
+               setEditingForm({
+                   asignatura: sesion.asignatura_sugerida || sesion.asignatura,
+                   aula: sesion.aula || '',
+                   dia: sesion.dia || '',
+                   hora_inicio: sesion.hora_inicio || '',
+                   hora_fin: sesion.hora_fin || '',
+                   tipo: sesion.tipo || 'TEORÍA',
+                   grupo: sesion.grupo || ''
+               });
+               setIsEditOpen(true);
+           }}
+           onDeleteSession={handleDeleteSession}
+           onConfirmAllSuggestions={confirmAllSuggestionsInBlock}
+        />
+      )}
 
       {hasData && (
         <InteractiveScheduleGrid
@@ -1096,7 +1120,7 @@ function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
   return sessions;
 }
 
-// 🔥 FUNCIÓN IMPRESCINDIBLE PARA VER LOS COLORES RECALCULADOS
+// 🔥 FUNCIÓN ACTUALIZADA: COLORES Y TÍTULOS
 function mapBloqueToSessions(
   bloque: HorarioExtraidoBloque,
   bloqueIndex: number
@@ -1106,40 +1130,30 @@ function mapBloqueToSessions(
     const dayIndex = diaToDayIndex(sesion.dia);
     if (dayIndex < 0) return;
 
-    // 1. Determinar el color según el Status del Matcher
     let color: Session['color'] = 'blue';
 
-    switch (sesion.match_status) {
-      case 'EXACT':
-      case 'ALIAS_DB':
-        // Azul: Confirmado (Exacto o Alias conocido)
-        color = 'blue'; 
-        break;
-      
-      case 'FUZZY_AUTO':
-        // Verde: Predicción Alta Confianza
-        color = 'green'; 
-        break;
-
-      case 'FUZZY_LOW_CONFIDENCE':
-        // Naranja: Revisión
-        color = 'orange';
-        break;
-
-      case 'NO_MATCH':
-      default:
-        // Rojo: Error / No encontrado
-        color = 'red';
-        break;
+    // 1. Detectar MATCH EXACTO automático
+    const isExactMatch = sesion.match_status === 'EXACT' || sesion.match_status === 'ALIAS_DB';
+    
+    // 2. Lógica de colores estricta
+    if (sesion.manual_validated || isExactMatch) {
+        color = 'blue'; // Validado por humano O por sistema (match exacto)
+    } else if (sesion.asignatura_sugerida) {
+        color = 'orange'; // Sugerencia "Fuzzy" (Antes Verde/Amarillo)
+    } else {
+        color = 'red'; // No hay match
     }
 
-    // 2. Determinar el título a mostrar en el Grid
-    const isError = color === 'red';
-    const dbName = sesion.asignatura_sugerida;
-    const rawName = sesion.asignatura;
+    // 3. Título a mostrar
+    let displayTitle = sesion.asignatura;
     
-    // Si hay sugerencia (verde/naranja/azul), usamos esa.
-    const displayTitle = isError ? rawName : (dbName || rawName || 'Sin nombre');
+    if (sesion.manual_validated || isExactMatch) {
+        // Si está validado, usamos el nombre oficial sugerido/guardado
+        displayTitle = sesion.asignatura_sugerida || sesion.asignatura;
+    } else if (sesion.asignatura_sugerida) {
+        // Si es sugerencia fuzzy, mostramos la sugerencia SIN interrogación
+        displayTitle = sesion.asignatura_sugerida;
+    }
 
     sessions.push({
       id: `${bloqueIndex}-${sesionIndex}`,
@@ -1147,14 +1161,12 @@ function mapBloqueToSessions(
       dayIndex,
       start: normalizeTime(sesion.hora_inicio),
       end: normalizeTime(sesion.hora_fin),
-      
-      title: displayTitle, 
+      title: displayTitle,
       room: sesion.aula ?? '—',
       teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : '',
-      
       color: color,
       
-      // Pasamos metadatos para la tarjeta de info (MatchInfoCard)
+      // Metadatos
       originalName: sesion.asignatura,
       suggestedName: sesion.asignatura_sugerida,
       matchStatus: sesion.match_status,
