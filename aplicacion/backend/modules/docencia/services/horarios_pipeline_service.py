@@ -27,6 +27,7 @@ from modules.docencia.services.horarios_normalization_models import (
 )
 
 from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
+from modules.recursos.services.aula_matcher import aula_matcher
 from constants.enums import TipoGrupoDocente
 
 
@@ -60,7 +61,7 @@ class HorariosPipelineService:
         parsed_dict = self._parser.parse(extraction_result)
         horario_out = HorarioTemporalOut(**parsed_dict)
 
-        # 2) Enriquecimiento (Fuzzy Match + Inferencia Tipos + Expansión Grupos)
+        # 2) Enriquecimiento
         matcher = AsignaturaMatcher(db)
         contexto_plan = horario_out.plan or horario_out.titulo or ""
         texto_para_periodo = f"{horario_out.periodo or ''} {horario_out.titulo or ''}"
@@ -68,12 +69,10 @@ class HorariosPipelineService:
         for tabla in horario_out.horarios:
             contexto_curso = tabla.curso or ""
             
-            # --- NUEVA LÓGICA DE EXPANSIÓN ---
-            # Creamos una lista temporal para guardar las sesiones (posiblemente expandidas)
             nuevas_sesiones = []
             
             for sesion in tabla.sesiones:
-                # A) Fuzzy Match de Asignatura (Se hace sobre la sesión original)
+                # A) Match de Asignatura
                 if sesion.asignatura:
                     asig_obj, metodo, score = matcher.match(
                         texto_sucio=sesion.asignatura, 
@@ -86,26 +85,31 @@ class HorariosPipelineService:
                     if asig_obj:
                         sesion.asignatura_sugerida = asig_obj.nombre
 
-                # B) División de Grupos ("PA1yPA2" -> ["PA1", "PA2"])
+                # B) División de Grupos
                 grupos_detectados = horario_data_normalizer.detectar_y_dividir_grupos(sesion.grupo)
                 
-                # C) Creación de sesiones individuales
                 for grupo_item in grupos_detectados:
-                    # Clonamos la sesión base (usando model_copy si es Pydantic, o copy manual)
-                    # Al ser Pydantic (parsing result), usamos model_copy
                     sesion_clonada = sesion.model_copy()
                     
-                    # 1. Asignamos el grupo individual limpio
-                    # La limpieza estricta ("Grupo PA 1" -> "PA1") se hace dentro de infer_grupo_y_tipo
-                    # pero necesitamos asignar el valor limpio al objeto.
-                    aula_raw = sesion_clonada.aula or ""
-                    aula_norm = horario_data_normalizer._normalize_aula(aula_raw)
+                    # C) MATCH DE AULA (Lógica de Autocorrección)
+                    texto_aula_original = sesion_clonada.aula or ""
+                    match_aula = aula_matcher.match(db, texto_aula_original)
+                    
+                    if match_aula:
+                        # ¡ÉXITO! Usamos el nombre oficial de la BD
+                        sesion_clonada.aula = match_aula.nombre
+                    else:
+                        # FALLO: Forzamos "POR DETERMINAR" para activar el estado ROJO en frontend
+                        sesion_clonada.aula = "POR DETERMINAR"
+
+                    # D) Inferencia de Tipo (usando el aula ya corregida)
+                    aula_para_inferencia = sesion_clonada.aula
+                    aula_norm = horario_data_normalizer._normalize_aula(aula_para_inferencia)
                     
                     grupo_limpio, tipo_detectado = horario_data_normalizer.infer_grupo_y_tipo(grupo_item, aula_norm)
                     
                     sesion_clonada.grupo = grupo_limpio
                     
-                    # 2. Asignamos el tipo detectado (Backend Enum -> Frontend String)
                     if tipo_detectado == TipoGrupoDocente.LABORATORIO:
                         sesion_clonada.tipo = "PRÁCTICAS DE LABORATORIO"
                     elif tipo_detectado == TipoGrupoDocente.PRACTICA:
@@ -115,7 +119,6 @@ class HorariosPipelineService:
                     
                     nuevas_sesiones.append(sesion_clonada)
             
-            # Reemplazamos la lista original con la lista expandida
             tabla.sesiones = nuevas_sesiones
 
         return horario_out
