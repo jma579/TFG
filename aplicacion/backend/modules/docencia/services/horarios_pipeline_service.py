@@ -27,6 +27,7 @@ from modules.docencia.services.horarios_normalization_models import (
 )
 
 from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
+from constants.enums import TipoGrupoDocente
 
 
 class HorariosPipelineService:
@@ -52,46 +53,70 @@ class HorariosPipelineService:
     # API pública
     # ---------------------------------------------------------------------
     def extraer_horario(self, db: Session, pdf_path: Union[str, Path]) -> HorarioTemporalOut:
-        """Ejecuta el pipeline de extracción+parsing y devuelve un horario temporal.
-
-        Args:
-            pdf_path: Ruta al archivo PDF de horario a procesar.
-            db: Sesión de base de datos.
-
-        Returns:
-            HorarioTemporalOut: objeto Pydantic que representa el horario
-            temporal editable, listo para ser enviado al frontend.
-        """
-        # 1) Extracción y Parsing (Igual que antes)
+        """Ejecuta el pipeline de extracción+parsing y devuelve un horario temporal."""
+        # 1) Extracción y Parsing
         path_str = str(pdf_path)
         extraction_result = self._extractor.extract(path_str)
         parsed_dict = self._parser.parse(extraction_result)
         horario_out = HorarioTemporalOut(**parsed_dict)
 
-        # 2) Enriquecimiento con Fuzzy Match (Datos Puros)
+        # 2) Enriquecimiento (Fuzzy Match + Inferencia Tipos + Expansión Grupos)
         matcher = AsignaturaMatcher(db)
         contexto_plan = horario_out.plan or horario_out.titulo or ""
         texto_para_periodo = f"{horario_out.periodo or ''} {horario_out.titulo or ''}"
 
         for tabla in horario_out.horarios:
             contexto_curso = tabla.curso or ""
+            
+            # --- NUEVA LÓGICA DE EXPANSIÓN ---
+            # Creamos una lista temporal para guardar las sesiones (posiblemente expandidas)
+            nuevas_sesiones = []
+            
             for sesion in tabla.sesiones:
-                if not sesion.asignatura:
-                    continue
-                # Consultamos al matcher sin guardar nada (modo solo lectura)
-                asig_obj, metodo, score = matcher.match(
-                    texto_sucio=sesion.asignatura, 
-                    plan_context=contexto_plan,
-                    periodo_context=texto_para_periodo,
-                    curso_context=contexto_curso
-                )
+                # A) Fuzzy Match de Asignatura (Se hace sobre la sesión original)
+                if sesion.asignatura:
+                    asig_obj, metodo, score = matcher.match(
+                        texto_sucio=sesion.asignatura, 
+                        plan_context=contexto_plan,
+                        periodo_context=texto_para_periodo,
+                        curso_context=contexto_curso
+                    )
+                    sesion.match_confidence = score
+                    sesion.match_status = metodo
+                    if asig_obj:
+                        sesion.asignatura_sugerida = asig_obj.nombre
 
-                # Inyectamos los metadatos puros
-                sesion.match_confidence = score
-                sesion.match_status = metodo
+                # B) División de Grupos ("PA1yPA2" -> ["PA1", "PA2"])
+                grupos_detectados = horario_data_normalizer.detectar_y_dividir_grupos(sesion.grupo)
                 
-                if asig_obj:
-                    sesion.asignatura_sugerida = asig_obj.nombre
+                # C) Creación de sesiones individuales
+                for grupo_item in grupos_detectados:
+                    # Clonamos la sesión base (usando model_copy si es Pydantic, o copy manual)
+                    # Al ser Pydantic (parsing result), usamos model_copy
+                    sesion_clonada = sesion.model_copy()
+                    
+                    # 1. Asignamos el grupo individual limpio
+                    # La limpieza estricta ("Grupo PA 1" -> "PA1") se hace dentro de infer_grupo_y_tipo
+                    # pero necesitamos asignar el valor limpio al objeto.
+                    aula_raw = sesion_clonada.aula or ""
+                    aula_norm = horario_data_normalizer._normalize_aula(aula_raw)
+                    
+                    grupo_limpio, tipo_detectado = horario_data_normalizer.infer_grupo_y_tipo(grupo_item, aula_norm)
+                    
+                    sesion_clonada.grupo = grupo_limpio
+                    
+                    # 2. Asignamos el tipo detectado (Backend Enum -> Frontend String)
+                    if tipo_detectado == TipoGrupoDocente.LABORATORIO:
+                        sesion_clonada.tipo = "PRÁCTICAS DE LABORATORIO"
+                    elif tipo_detectado == TipoGrupoDocente.PRACTICA:
+                        sesion_clonada.tipo = "PRÁCTICAS DE AULA"
+                    else:
+                        sesion_clonada.tipo = "TEORÍA"
+                    
+                    nuevas_sesiones.append(sesion_clonada)
+            
+            # Reemplazamos la lista original con la lista expandida
+            tabla.sesiones = nuevas_sesiones
 
         return horario_out
     
