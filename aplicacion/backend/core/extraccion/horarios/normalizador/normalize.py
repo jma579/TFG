@@ -8,6 +8,7 @@ import re
 import logging
 from typing import List, Optional, Tuple, Dict
 from datetime import time
+import copy
 
 # Entidades del Pipeline
 from core.extraccion.horarios.entities import (
@@ -63,7 +64,8 @@ class HorarioDataNormalizer:
                     logger.warning(f"Tabla descartada (sin sesiones válidas): Pág {horario.pagina}")
                     
             except Exception as e:
-                logger.error(f"Error normalizando tabla Pág {horario.pagina}: {e}")
+                pag = getattr(horario, 'pagina', '?')
+                logger.error(f"Error normalizando tabla Pág {pag}: {e}")
                 continue
 
         return resultados
@@ -102,14 +104,16 @@ class HorarioDataNormalizer:
                 for grupo_individual in grupos_detectados:
                     # Creamos una copia virtual de la sesión para cada grupo
                     # Ojo: Parseamos la sesión original pero inyectando el grupo individual
-                    sesion_clonada = sesion.model_copy(update={"grupo": grupo_individual})
+                    sesion_clonada = copy.deepcopy(sesion)
+                    sesion_clonada.grupo = grupo_individual
                     
                     s_norm = self._normalize_sesion(sesion_clonada)
                     if s_norm:
                         sesiones_norm.append(s_norm)
                         
             except Exception as e:
-                logger.debug(f"Sesión descartada en pág {horario.pagina}: {e}")
+                pag = getattr(horario, 'pagina', '?')
+                logger.debug(f"Sesión descartada en pág {pag}: {e}")
                 continue
 
         return NormalizedHorarioTablaData(

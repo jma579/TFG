@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union
 from pathlib import Path
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+import logging
 
 from database.models import Asignatura, Aula
 from modules.docencia.schemas.horarios import (
@@ -14,10 +15,10 @@ from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteOut,
 )
 from modules.docencia.schemas.sesion import SesionCreate, SesionOut
-from modules.docencia.services.grupo_docente_service import (
-    grupo_docente_service,
-)
+# ✅ USAMOS LOS SERVICIOS OFICIALES
+from modules.docencia.services.grupo_docente_service import grupo_docente_service
 from modules.docencia.services.sesion_service import sesion_service
+
 from core.extraccion.horarios.extractor.extractor import HorarioExtractor
 from core.extraccion.horarios.parser.parser import HorarioParser
 
@@ -26,35 +27,50 @@ from modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
 
+from database.models import (
+    Asignatura, 
+    Aula, 
+    Programa, 
+    Mencion, 
+    AsignaturaMencion,
+    GrupoDocente,
+    Sesion,
+    AsignaturaAlias
+)
+
 from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
 from modules.recursos.services.aula_matcher import aula_matcher
-from constants.enums import TipoGrupoDocente
+# ✅ Importamos DiaSemana para el mapeo correcto
+from constants.enums import TipoGrupoDocente, DiaSemana
 
+
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# MAPEO ESTÁTICO DE TEXTO -> ENUM
+# Soluciona el error "unable to parse string as an integer" asegurando que
+# al servicio le llega el objeto Enum correcto, no un string.
+# =============================================================================
+TEXTO_A_DIA_ENUM = {
+    "LUNES": DiaSemana.LUNES,
+    "MARTES": DiaSemana.MARTES,
+    "MIERCOLES": DiaSemana.MIERCOLES,
+    "MIÉRCOLES": DiaSemana.MIERCOLES,
+    "JUEVES": DiaSemana.JUEVES,
+    "VIERNES": DiaSemana.VIERNES,
+    "SABADO": DiaSemana.SABADO,
+    "SÁBADO": DiaSemana.SABADO,
+    "DOMINGO": DiaSemana.DOMINGO
+}
 
 class HorariosPipelineService:
-    """Servicio de orquestación del flujo de horarios.
-
-    Esta implementación de `confirmar_horario`:
-    - Recibe el horario confirmado desde el frontend.
-    - Reconstruye un resultado de parsing sintético.
-    - Normaliza las tablas/sesiones a dominio.
-    - Resuelve asignaturas, grupos y aulas contra la BD.
-    - Crea sesiones usando la capa de servicio de docencia.
-    - Devuelve los grupos/sesiones creados y métricas de apoyo.
-    """
+    """Servicio de orquestación del flujo de horarios."""
 
     def __init__(self) -> None:
-        # En esta versión inicial instanciamos extractor y parser directamente.
-        # Si en el futuro necesitas inyección de dependencias, se puede adaptar
-        # para recibirlos desde fuera.
         self._extractor = HorarioExtractor()
         self._parser = HorarioParser()
 
-    # ---------------------------------------------------------------------
-    # API pública
-    # ---------------------------------------------------------------------
     def extraer_horario(self, db: Session, pdf_path: Union[str, Path]) -> HorarioTemporalOut:
-        """Ejecuta el pipeline de extracción+parsing y devuelve un horario temporal."""
         # 1) Extracción y Parsing
         path_str = str(pdf_path)
         extraction_result = self._extractor.extract(path_str)
@@ -68,7 +84,6 @@ class HorariosPipelineService:
 
         for tabla in horario_out.horarios:
             contexto_curso = tabla.curso or ""
-            
             nuevas_sesiones = []
             
             for sesion in tabla.sesiones:
@@ -91,18 +106,16 @@ class HorariosPipelineService:
                 for grupo_item in grupos_detectados:
                     sesion_clonada = sesion.model_copy()
                     
-                    # C) MATCH DE AULA (Lógica de Autocorrección)
+                    # C) Match de Aula (Extractor)
                     texto_aula_original = sesion_clonada.aula or ""
                     match_aula = aula_matcher.match(db, texto_aula_original)
                     
                     if match_aula:
-                        # ¡ÉXITO! Usamos el nombre oficial de la BD
                         sesion_clonada.aula = match_aula.nombre
                     else:
-                        # FALLO: Forzamos "POR DETERMINAR" para activar el estado ROJO en frontend
                         sesion_clonada.aula = "POR DETERMINAR"
 
-                    # D) Inferencia de Tipo (usando el aula ya corregida)
+                    # D) Inferencia de Tipo
                     aula_para_inferencia = sesion_clonada.aula
                     aula_norm = horario_data_normalizer._normalize_aula(aula_para_inferencia)
                     
@@ -124,42 +137,27 @@ class HorariosPipelineService:
         return horario_out
     
     def refinar_matching(self, db: Session, horario: HorarioTemporalOut) -> HorarioTemporalOut:
-        """
-        Recalcula las sugerencias de asignaturas (Fuzzy Match) basándose en los
-        metadatos actualizados (plan, periodo) que ha editado el usuario.
-        """
         matcher = AsignaturaMatcher(db)
-        
-        # 1. Extraer los NUEVOS contextos del objeto recibido
         contexto_plan = horario.plan or horario.titulo or ""
         texto_para_periodo = f"{horario.periodo or ''} {horario.titulo or ''}"
 
-        # 2. Recorrer y re-evaluar
         for tabla in horario.horarios:
             contexto_curso = tabla.curso or ""
-
             for sesion in tabla.sesiones:
-                # Si no hay texto original, saltamos
                 if not sesion.asignatura:
                     continue
-                
-                # RE-MATCHING con la inteligencia contextual actualizada
                 asig_obj, metodo, score = matcher.match(
                     texto_sucio=sesion.asignatura, 
                     plan_context=contexto_plan,      
                     periodo_context=texto_para_periodo,
                     curso_context=contexto_curso
                 )
-
-                # Actualizamos la sugerencia
                 sesion.match_confidence = score
                 sesion.match_status = metodo
-                
                 if asig_obj:
                     sesion.asignatura_sugerida = asig_obj.nombre
                 else:
                     sesion.asignatura_sugerida = None
-
         return horario
 
     def confirmar_horario(
@@ -167,194 +165,213 @@ class HorariosPipelineService:
         db: Session,
         data: HorarioTemporalConfirmIn,
     ) -> HorarioConfirmResponse:
-        """Confirmar un horario temporal y persistirlo en BD.
+        
+        # --- 1. GATEKEEPER Y VALIDACIONES INICIALES ---
+        nombre_plan = (data.plan or "").strip()
+        if not nombre_plan and data.titulo:
+            parts = data.titulo.split('-')
+            if len(parts) > 0:
+                nombre_plan = parts[0].strip()
 
-        Pasos principales:
-        1. Métricas de entrada.
-        2. Reconstrucción del resultado de parsing para el normalizador.
-        3. Normalización de las tablas/sesiones.
-        4. Resolución de asignaturas, grupos y aulas.
-        5. Creación de sesiones vía capa de servicio.
-        6. Construcción de la respuesta con métricas y advertencias.
-        """
+        programa_db = db.query(Programa).filter(Programa.nombre.ilike(nombre_plan)).first()
+        if not programa_db:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"ERROR BLOQUEANTE: El plan de estudios '{nombre_plan}' no existe en la base de datos."
+            )
 
-        # 1) Métricas de lo que llega del frontend
-        num_tablas_recibidas = len(data.horarios)
-        num_sesiones_recibidas = sum(len(t.sesiones or []) for t in data.horarios)
+        # --- 2. AUTO-APRENDIZAJE DE ALIASES (Auto-Learning) ---
+        aliases_procesados_request = set()
+        for tabla in data.horarios:
+            for sesion in tabla.sesiones:
+                texto_original = (sesion.asignatura or "").strip()
+                texto_sugerido = (sesion.asignatura_sugerida or "").strip()
 
-        # 2) Reconstruir ParsingResult sintético para el normalizador
+                if texto_sugerido and texto_original and texto_original != texto_sugerido:
+                    clave_unica = (texto_original, texto_sugerido)
+                    if clave_unica in aliases_procesados_request: continue 
+
+                    asig_padre = db.query(Asignatura).filter(Asignatura.nombre == texto_sugerido).first()
+                    if asig_padre:
+                        alias_existente = db.query(AsignaturaAlias).filter_by(alias=texto_original, asignatura_id=asig_padre.id).first()
+                        if not alias_existente:
+                            nuevo_alias = AsignaturaAlias(
+                                asignatura_id=asig_padre.id,
+                                alias=texto_original,
+                                origen="AUTO_CONFIRMACION",
+                                veces_usado=1
+                            )
+                            db.add(nuevo_alias)
+                            logger.info(f"🎓 APRENDIZAJE: Nuevo alias creado: '{texto_original}' -> '{texto_sugerido}'")
+                        else:
+                            alias_existente.veces_usado += 1
+                            db.add(alias_existente)
+                    aliases_procesados_request.add(clave_unica)
+        
+        db.flush()
+
+        # --- 3. APLICAR SUGERENCIAS (CORRECCIÓN DE DATOS) ---
+        for tabla in data.horarios:
+            for sesion in tabla.sesiones:
+                if sesion.asignatura_sugerida:
+                    sesion.asignatura = sesion.asignatura_sugerida
+
+        # --- 4. NORMALIZACIÓN ---
         parsed_for_normalizer = build_parsing_result_for_normalization(data)
+        normalized_tablas = horario_data_normalizer.normalize_horarios(parsed_for_normalizer)
+        
+        # Validaciones de integridad antes de intentar guardar
+        for idx_t, tabla in enumerate(normalized_tablas):
+            for idx_s, ses in enumerate(tabla.sesiones or []):
+                nombre_sesion = ses.asignatura_nombre or f"Sesión {idx_s+1}"
+                if not ses.asignatura_nombre:
+                    raise HTTPException(status_code=400, detail=f"ERROR BLOQUEANTE: Sesión sin asignatura en {ses.dia_semana}.")
+                if not ses.aula_nombre or ses.aula_nombre == "POR DETERMINAR":
+                    raise HTTPException(status_code=400, detail=f"ERROR BLOQUEANTE: Asignatura '{nombre_sesion}' tiene aula 'POR DETERMINAR'.")
 
-        # 3) Normalizar
-        normalized_tablas = horario_data_normalizer.normalize_horarios(
-            parsed_for_normalizer
-        )
-
-        num_tablas_normalizadas = len(normalized_tablas)
-        num_sesiones_normalizadas = sum(
-            len(t.sesiones or []) for t in normalized_tablas
-        )
-
-        warnings: List[str] = []
-        errors: List[str] = []
-
-        # Caches en memoria para evitar queries repetidas
-        asignatura_cache: Dict[str, Optional[Asignatura]] = {}
-        aula_cache: Dict[str, Optional[Aula]] = {}
-        grupos_cache: Dict[tuple[int, str], GrupoDocenteOut] = {}
-
-        # Resultados a devolver
+        # --- 5. PERSISTENCIA USANDO SERVICIOS (CORE LOGIC) ---
         grupos_resultado: Dict[int, GrupoDocenteOut] = {}
         sesiones_resultado: List[SesionOut] = []
-
+        
         grupos_creados = 0
         grupos_reutilizados = 0
         sesiones_creadas = 0
+        
+        asignatura_cache: Dict[str, Asignatura] = {}
+        aula_cache: Dict[str, Aula] = {}
+        mencion_cache: Dict[str, Optional[Mencion]] = {}
 
-        # 4) Recorrer tablas y sesiones normalizadas
-        for idx_tabla, tabla in enumerate(normalized_tablas):
-            sesiones_tabla = tabla.sesiones or []
+        # Precarga de menciones del programa para evitar queries repetidas
+        for m in programa_db.menciones:
+            mencion_cache[m.nombre.upper()] = m
 
-            for idx_sesion, sesion_norm in enumerate(sesiones_tabla):
-                # -----------------------------
-                # 4.1) Resolver asignatura por nombre
-                # -----------------------------
-                asignatura_nombre = sesion_norm.asignatura_nombre
+        try:
+            for tabla in normalized_tablas:
+                
+                # Gestión de Mención del Bloque
+                mencion_bloque_db: Optional[Mencion] = None
+                if tabla.mencion:
+                    m_limpia = tabla.mencion.strip().upper().replace("MENCIÓN EN ", "").replace("MENCION EN ", "").strip()
+                    if m_limpia in mencion_cache:
+                        mencion_bloque_db = mencion_cache[m_limpia]
 
-                if not asignatura_nombre:
-                    warnings.append(
-                        f"Sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1}: "
-                        "sin nombre de asignatura normalizado; no se persiste."
-                    )
-                    continue
+                for sesion_norm in (tabla.sesiones or []):
+                    
+                    # 5.1 Asignatura
+                    asig_name = sesion_norm.asignatura_nombre.strip()
+                    if asig_name in asignatura_cache:
+                        asignatura = asignatura_cache[asig_name]
+                    else:
+                        asignatura = db.query(Asignatura).filter(Asignatura.nombre.ilike(asig_name)).first()
+                        if not asignatura:
+                            raise HTTPException(status_code=400, detail=f"Asignatura no encontrada en BD: {asig_name}")
+                        asignatura_cache[asig_name] = asignatura
 
-                asignatura_key = asignatura_nombre.strip().lower()
-
-                if asignatura_key in asignatura_cache:
-                    asignatura = asignatura_cache[asignatura_key]
-                else:
-                    asignatura = (
-                        db.query(Asignatura)
-                        .filter(Asignatura.nombre.ilike(asignatura_nombre.strip()))
-                        .one_or_none()
-                    )
-                    asignatura_cache[asignatura_key] = asignatura
-
-                if asignatura is None:
-                    warnings.append(
-                        "No se encontró la asignatura "
-                        f"'{asignatura_nombre}' en el catálogo; "
-                        f"sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
-                        "no se ha persistido."
-                    )
-                    continue
-
-                # -----------------------------
-                # 4.2) Resolver / crear grupo docente
-                # -----------------------------
-                grupo_codigo_norm = sesion_norm.grupo_codigo.strip().upper()
-                grupo_key = (asignatura.id, grupo_codigo_norm)
-
-                grupo_out = grupos_cache.get(grupo_key)
-
-                if grupo_out is None:
-                    # Intentar recuperar un grupo existente para (asignatura, codigo)
-                    try:
-                        grupo_out = grupo_docente_service.get_by_asignatura_codigo(
-                            db=db,
+                    # Vincular Mención (si aplica)
+                    if mencion_bloque_db:
+                        exists_rel = db.query(AsignaturaMencion).filter_by(
                             asignatura_id=asignatura.id,
-                            codigo=grupo_codigo_norm,
-                        )
-                        grupos_reutilizados += 1
-                    except HTTPException as exc:  # grupo no encontrado u otro error
-                        if exc.status_code == status.HTTP_404_NOT_FOUND:
-                            # Crear un grupo nuevo
-                            grupo_in = GrupoDocenteCreate(
+                            mencion_id=mencion_bloque_db.id
+                        ).first()
+                        if not exists_rel:
+                            new_rel = AsignaturaMencion(
                                 asignatura_id=asignatura.id,
-                                codigo=grupo_codigo_norm,
-                                tipo=sesion_norm.tipo_grupo,
-                                curso=tabla.curso,
-                                turno=None,
+                                mencion_id=mencion_bloque_db.id
                             )
-                            grupo_out = grupo_docente_service.create(db, grupo_in)
-                            grupos_creados += 1
-                        else:
-                            # Para otros errores (409, etc.) dejamos propagar
-                            raise
+                            db.add(new_rel)
+                            db.flush()
 
-                    grupos_cache[grupo_key] = grupo_out
-                    grupos_resultado[grupo_out.id] = grupo_out
+                    # 5.2 Grupo Docente (Usando Service)
+                    grupo_cod = sesion_norm.grupo_codigo.strip().upper() or "UNICO"
+                    
+                    # Verificar existencia para evitar error 409 del service si ya existe
+                    grupo_db = db.query(GrupoDocente).filter_by(
+                        asignatura_id=asignatura.id, 
+                        codigo=grupo_cod
+                    ).first()
 
-                # -----------------------------
-                # 4.3) Resolver aula
-                # -----------------------------
-                aula_nombre = sesion_norm.aula_nombre
+                    if not grupo_db:
+                        grupo_in = GrupoDocenteCreate(
+                            asignatura_id=asignatura.id,
+                            codigo=grupo_cod,
+                            tipo=sesion_norm.tipo_grupo,
+                            curso=tabla.curso,
+                            turno=None
+                        )
+                        # Usamos el servicio oficial para crear
+                        grupo_out = grupo_docente_service.create(db, grupo_in)
+                        
+                        # Recuperamos el objeto ORM fresco
+                        grupo_db = db.query(GrupoDocente).filter(GrupoDocente.id == grupo_out.id).first()
+                        
+                        grupos_creados += 1
+                        if grupo_db.id not in grupos_resultado:
+                            grupos_resultado[grupo_db.id] = grupo_out
+                    else:
+                        grupos_reutilizados += 1
+                        if grupo_db.id not in grupos_resultado:
+                            grupos_resultado[grupo_db.id] = GrupoDocenteOut.model_validate(grupo_db)
 
-                if not aula_nombre:
-                    warnings.append(
-                        "Sesión para asignatura "
-                        f"'{asignatura_nombre}' sin aula normalizada; "
-                        f"tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
-                        "no se ha persistido."
+                    # 5.3 Aula (Con Fuzzy Matcher)
+                    aula_name = sesion_norm.aula_nombre.strip()
+                    if aula_name in aula_cache:
+                        aula = aula_cache[aula_name]
+                    else:
+                        aula = db.query(Aula).filter(Aula.nombre.ilike(aula_name)).first()
+                        if not aula:
+                            aula = aula_matcher.match(db, aula_name)
+
+                        if not aula:
+                            raise HTTPException(status_code=400, detail=f"Aula no encontrada en BD: {aula_name}")
+                        
+                        aula_cache[aula_name] = aula
+
+                    # 5.4 Crear Sesión USANDO SERVICIO
+                    # CORRECCIÓN DE TIPOS: Convertir string a Enum explícitamente
+                    dia_limpio = sesion_norm.dia_semana.upper().replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
+                    dia_enum = TEXTO_A_DIA_ENUM.get(dia_limpio)
+
+                    if not dia_enum:
+                        logger.error(f"Error convirtiendo día: '{sesion_norm.dia_semana}' no es válido.")
+                        raise HTTPException(status_code=400, detail=f"Día de la semana inválido: {sesion_norm.dia_semana}")
+
+                    # DTO para el servicio
+                    sesion_in = SesionCreate(
+                        grupo_docente_id=grupo_db.id,
+                        aula_id=aula.id,
+                        modalidad=sesion_norm.modalidad,
+                        tipo_recurrencia=sesion_norm.tipo_recurrencia,
+                        dia_semana=dia_enum,  # ✅ Pasamos el Enum, no el string
+                        hora_inicio=sesion_norm.hora_inicio,
+                        hora_fin=sesion_norm.hora_fin,
+                        profesores=[]
                     )
-                    continue
+                    
+                    # Llamada al servicio
+                    # Devuelve SesionWithConflictosOut (sesion + conflictos)
+                    resultado_servicio = sesion_service.create(db, sesion_in)
+                    
+                    # Extraemos la sesión limpia para la respuesta
+                    sesiones_resultado.append(resultado_servicio.sesion)
+                    sesiones_creadas += 1
 
-                aula_key = aula_nombre.strip().lower()
+            # Commit final de todas las operaciones
+            db.commit()
 
-                if aula_key in aula_cache:
-                    aula = aula_cache[aula_key]
-                else:
-                    aula = (
-                        db.query(Aula)
-                        .filter(Aula.nombre.ilike(aula_nombre.strip()))
-                        .one_or_none()
-                    )
-                    aula_cache[aula_key] = aula
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error confirmando horario: {e}")
+            if isinstance(e, HTTPException): raise e
+            raise HTTPException(status_code=500, detail=f"Error interno guardando horario: {str(e)}")
 
-                if aula is None:
-                    warnings.append(
-                        f"No se encontró el aula normalizada '{aula_nombre}'; "
-                        f"sesión en tabla {idx_tabla + 1}, índice {idx_sesion + 1} "
-                        "no se ha persistido."
-                    )
-                    continue
-
-                # -----------------------------
-                # 4.4) Construir SesionCreate a partir del modelo normalizado
-                # -----------------------------
-                sesion_in = SesionCreate(
-                    grupo_docente_id=grupo_out.id,
-                    aula_id=aula.id,
-                    modalidad=sesion_norm.modalidad,
-                    tipo_recurrencia=sesion_norm.tipo_recurrencia,
-                    dia_semana=sesion_norm.dia_semana,
-                    hora_inicio=sesion_norm.hora_inicio,
-                    hora_fin=sesion_norm.hora_fin,
-                    inicio=None,  # el normalizador actual no maneja sesiones puntuales
-                    fin=None,
-                    profesores=[],  # el flujo de horarios no asigna profesores todavía
-                )
-
-                sesion_out = sesion_service.create(db, sesion_in)
-                sesiones_resultado.append(sesion_out)
-                sesiones_creadas += 1
-
-        # 5) Construir métricas de entidades creadas / procesadas
-        created_entities = {
-            "horarios_recibidos": num_tablas_recibidas,
-            "sesiones_recibidas": num_sesiones_recibidas,
-            "horarios_normalizados": num_tablas_normalizadas,
-            "sesiones_normalizadas": num_sesiones_normalizadas,
-            "grupos_creados": grupos_creados,
-            "grupos_reutilizados": grupos_reutilizados,
-            "sesiones_creadas": sesiones_creadas,
-        }
-
-        # 6) Construir respuesta
         return HorarioConfirmResponse(
             grupos=list(grupos_resultado.values()),
             sesiones=sesiones_resultado,
-            created_entities=created_entities,
-            warnings=warnings,
-            errors=errors,
+            created_entities={
+                "grupos_creados": grupos_creados,
+                "grupos_reutilizados": grupos_reutilizados,
+                "sesiones_creadas": sesiones_creadas,
+            },
+            warnings=[],
+            errors=[]
         )

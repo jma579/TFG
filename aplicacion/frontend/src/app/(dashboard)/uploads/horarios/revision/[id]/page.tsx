@@ -4,8 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Pencil, Loader2, CheckCircle2, AlertTriangle, 
-  Sparkles, XCircle, ArrowRight, ChevronDown, 
-  ChevronUp, Check, Edit, Trash2, Info, Plus
+  Sparkles, XCircle, ArrowRight, Plus, AlertCircle, Trash2
 } from 'lucide-react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
@@ -21,19 +20,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 
 import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
 import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
 import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
 import { PERIODOS } from '@/lib/constants/periodos';
 
-// 👇 Importamos tu nuevo componente modular
+// Importamos el componente de revisión
 import { ReviewDashboard, ReviewBlock } from '@/components/solver/review-dashboard';
 
 type RouteParams = { id: string };
@@ -97,112 +90,63 @@ const DEFAULT_SESSION_FORM: SesionFormState = {
 const TIPO_OPCIONES = ['TEORÍA', 'PRÁCTICAS DE AULA', 'PRÁCTICAS DE LABORATORIO'] as const;
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
 
-// --- COMPONENTE: MatchInfoCard ---
-function MatchInfoCard({ 
-  status, 
-  originalName, 
-  suggestedName 
-}: { 
-  status?: string, 
-  originalName: string, 
-  suggestedName?: string 
-}) {
+// --- COMPONENTE: MatchInfoCard (Tipado) ---
+interface MatchInfoCardProps {
+  status?: string;
+  originalName: string;
+  suggestedName?: string;
+}
+
+function MatchInfoCard({ status, originalName, suggestedName }: MatchInfoCardProps) {
   if (!status) return null;
 
-  switch (status) {
-    case 'EXACT':
+  const isExact = status === 'EXACT' || status === 'ALIAS_DB';
+  
+  if (isExact) {
       return (
         <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="space-y-1">
-              <p className="font-semibold">Asignatura Validada</p>
-              <p className="text-blue-700/80">
-                El nombre detectado coincide exactamente con la base de datos.
-              </p>
+              <p className="font-semibold">Coincidencia Exacta</p>
+              <p className="text-blue-700/80">Nombre validado en BD.</p>
             </div>
           </div>
         </div>
       );
+  }
 
-    case 'ALIAS_DB':
+  if (suggestedName) {
       return (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-semibold">Alias Reconocido</p>
-              <div className="flex flex-wrap items-center gap-1 text-blue-700/90">
-                <span>Original: <strong>"{originalName}"</strong></span>
-                <ArrowRight className="h-3 w-3" />
-                <span>Oficial: <strong>"{suggestedName}"</strong></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-
-    case 'FUZZY_AUTO':
-      return (
-        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+        <div className="mb-4 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-800">
           <div className="flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="space-y-1">
-              <p className="font-semibold">Predicción Automática</p>
-              <div className="flex flex-wrap items-center gap-1 text-green-700/90">
-                <span>PDF: <strong>"{originalName}"</strong></span>
+              <p className="font-semibold">Sugerencia Automática</p>
+              <div className="flex flex-wrap items-center gap-1 text-indigo-700/90">
+                <span>PDF: <strong>{`"${originalName}"`}</strong></span>
                 <ArrowRight className="h-3 w-3" />
-                <span>Asignado a: <strong>"{suggestedName}"</strong></span>
+                <span>Sugerencia: <strong>{`"${suggestedName}"`}</strong></span>
               </div>
-              <p className="mt-1 text-xs text-green-600">
-                El sistema ha corregido el nombre automáticamente.
-              </p>
             </div>
           </div>
         </div>
       );
-
-    case 'FUZZY_LOW_CONFIDENCE':
-      return (
-        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-semibold">Revisión Recomendada</p>
-              <div className="flex flex-wrap items-center gap-1 text-amber-700/90">
-                <span>Detectado: <strong>"{originalName}"</strong></span>
-                <ArrowRight className="h-3 w-3" />
-                <span>Sugerencia: <strong>"{suggestedName}"</strong></span>
-              </div>
-              <p className="mt-1 text-xs text-amber-600">
-                Confirma si esta suposición es correcta.
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-
-    case 'NO_MATCH':
-      return (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          <div className="flex items-start gap-3">
-            <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-semibold">Asignatura Desconocida</p>
-              <p className="text-red-700/90">
-                No se encontró coincidencia para: <strong>"{originalName}"</strong>.
-              </p>
-              <p className="mt-1 text-xs text-red-600">
-                Busca y selecciona la asignatura correcta abajo.
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-
-    default:
-      return null;
   }
+
+  return (
+    <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+      <div className="flex items-start gap-3">
+        <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="space-y-1">
+          <p className="font-semibold">Sin Coincidencia</p>
+          <p className="text-red-700/90">
+             Original: <strong>{`"${originalName}"`}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function RevisionHorarioPage({ params }: Props) {
@@ -225,10 +169,8 @@ export default function RevisionHorarioPage({ params }: Props) {
   const [listaAulas, setListaAulas] = React.useState<AulaOut[]>([]);
   const [listaProgramas, setListaProgramas] = React.useState<ProgramaOut[]>([]);
 
-  // Carga inicial
   React.useEffect(() => {
     let mounted = true;
-
     async function loadData() {
       try {
         const [resProgramas, resAsig, resAulas] = await Promise.all([
@@ -246,14 +188,10 @@ export default function RevisionHorarioPage({ params }: Props) {
         console.error('Error cargando catálogo', error);
       }
     }
-
     loadData();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  // --- OPCIONES ---
   const programasOptions = React.useMemo<AutocompleteOption[]>(
     () => listaProgramas.map((p) => ({
       value: p.id,
@@ -265,13 +203,10 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const asignaturaOptions = React.useMemo<AutocompleteOption[]>(() => {
     if (!horarioTemporal) return [];
-
     const planHorario = normalizeText(
       horarioTemporal.plan ||
-      (horarioTemporal.titulo ? horarioTemporal.titulo.split(' - ')[0] : '') ||
-      ''
+      (horarioTemporal.titulo ? horarioTemporal.titulo.split(' - ')[0] : '') || ''
     );
-
     const filtradas = listaAsignaturas.filter((asig) => {
       const match = asig.titulaciones?.some((t) => {
         const nombreProg = normalizeText(t.programa.nombre);
@@ -279,9 +214,7 @@ export default function RevisionHorarioPage({ params }: Props) {
       });
       return match;
     });
-
     const listaFinal = filtradas.length > 0 ? filtradas : listaAsignaturas;
-
     return listaFinal.map((a) => ({
       value: a.id,
       label: a.nombre,
@@ -298,8 +231,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     [listaAulas]
   );
 
-
-  // --- ESTADO LOCAL DEL HORARIO ---
   const [draftHorario, setDraftHorario] = React.useState<HorarioExtraido | null>(null);
 
   React.useEffect(() => {
@@ -338,11 +269,9 @@ export default function RevisionHorarioPage({ params }: Props) {
   }, [bloques, horario, selectedBlockIndex]);
 
   const hasData = Boolean(horario && bloques.length > 0);
-
   const displayPlan = horario?.plan || horario?.titulo?.split(' - ')[0] || "Desconocido";
   const displayPeriodo = horario?.periodo || horario?.titulo?.split(' - ')[1] || "—";
 
-  // --- DIÁLOGOS ---
   const [isEditInfoOpen, setIsEditInfoOpen] = React.useState(false);
   const [isRefining, setIsRefining] = React.useState(false);
   const [infoForm, setInfoForm] = React.useState({ plan: '', periodo: '' });
@@ -361,8 +290,6 @@ export default function RevisionHorarioPage({ params }: Props) {
   
   const canCreateSession = bloques.length > 0;
 
-  // --- HANDLERS ---
-
   const handleUpdateDraft = (newHorario: HorarioExtraido) => {
     setDraftHorario(newHorario);
     if (item) updateHorario(item.id, newHorario as unknown as HorarioTemporalOut);
@@ -371,10 +298,6 @@ export default function RevisionHorarioPage({ params }: Props) {
   const handleBack = () => {
     if (item && draftHorario) {
       updateHorario(item.id, draftHorario as unknown as HorarioTemporalOut);
-      toast({
-        title: 'Borrador guardado',
-        description: 'Puedes continuar editando más tarde.',
-      });
     }
     router.push('/uploads/horarios');
   };
@@ -396,14 +319,11 @@ export default function RevisionHorarioPage({ params }: Props) {
 
     setIsRefining(true);
     try {
-        toast({ title: 'Recalculando coincidencias...', description: 'Aplicando nuevo contexto...' });
         const nuevoHorario = await refineHorario(horarioActualizado as unknown as HorarioTemporalOut);
         handleUpdateDraft(nuevoHorario as unknown as HorarioExtraido);
         setIsEditInfoOpen(false);
-        toast({ title: 'Horario Actualizado', description: 'Se han recalculado las sugerencias de asignaturas.' });
+        toast({ title: 'Horario Actualizado', description: 'Contexto actualizado.' });
     } catch (error) {
-        console.error(error);
-        toast({ title: 'Error', description: 'No se pudieron recalcular las asignaturas.', variant: 'destructive' });
         handleUpdateDraft(horarioActualizado);
         setIsEditInfoOpen(false);
     } finally {
@@ -411,17 +331,36 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
-  // --- DASHBOARD HANDLERS ---
+  // --- HANDLERS INTERACTIVOS DE REVISIÓN ---
+
   const toggleSessionValidation = (sesIndex: number, isValid: boolean) => {
     if (!draftHorario) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
     const sesion = cloned.horarios[selectedBlockIndex]?.sesiones?.[sesIndex];
     if (sesion) {
-      sesion.manual_validated = isValid;
-      if (isValid && sesion.asignatura_sugerida) {
-          sesion.asignatura = sesion.asignatura_sugerida;
-      }
-      handleUpdateDraft(cloned);
+        sesion.manual_validated = isValid;
+        handleUpdateDraft(cloned);
+    }
+  };
+
+  const confirmAllSuggestionsInBlock = () => {
+    if (!draftHorario) return;
+    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
+    const bloque = cloned.horarios[selectedBlockIndex];
+    if (bloque && bloque.sesiones) {
+        let count = 0;
+        bloque.sesiones.forEach(s => {
+            // Si tiene sugerencia y no es exacto ni validado -> Validar
+            const isExact = s.match_status === 'EXACT' || s.match_status === 'ALIAS_DB';
+            if (s.asignatura_sugerida && !isExact && !s.manual_validated) {
+                s.manual_validated = true;
+                count++;
+            }
+        });
+        if (count > 0) {
+            handleUpdateDraft(cloned);
+            toast({ title: 'Sugerencias confirmadas', description: `${count} sesiones validadas.` });
+        }
     }
   };
 
@@ -432,57 +371,24 @@ export default function RevisionHorarioPage({ params }: Props) {
     if (bloque && bloque.sesiones) {
         bloque.sesiones.splice(sesIndex, 1);
         handleUpdateDraft(cloned);
-        toast({ title: 'Eliminada', description: 'Sesión eliminada del horario.' });
+        toast({ title: 'Eliminada', description: 'Sesión eliminada.' });
     }
   };
-
-  const confirmAllSuggestionsInBlock = () => {
-    if (!draftHorario) return;
-    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
-    const bloque = cloned.horarios[selectedBlockIndex];
-    let count = 0;
-    bloque.sesiones.forEach(sesion => {
-      // Solo confirmamos las Fuzzy pendientes.
-      if (!sesion.manual_validated && sesion.asignatura_sugerida && sesion.match_status !== 'EXACT' && sesion.match_status !== 'ALIAS_DB') {
-        sesion.manual_validated = true;
-        sesion.asignatura = sesion.asignatura_sugerida;
-        count++;
-      }
-    });
-    if (count > 0) {
-      handleUpdateDraft(cloned);
-      toast({ title: 'Confirmación masiva', description: `${count} sesiones validadas automáticamente.` });
-    } else {
-        toast({ title: 'Nada que confirmar', description: 'No hay sugerencias pendientes en este curso.' });
-    }
-  };
-  // -------------------------
-
-  const currentPlanId = React.useMemo(
-    () => listaProgramas.find((p) => p.nombre === infoForm.plan)?.id,
-    [listaProgramas, infoForm.plan]
-  );
 
   const openEditSesion = (session: Session) => {
     if (!horario) return;
-
     const [blockStr, sesStr] = String(session.id).split('-');
     const blockIndex = Number(blockStr);
     const sessionIndex = Number(sesStr);
-
     if (Number.isNaN(blockIndex) || Number.isNaN(sessionIndex)) return;
 
     const bloque = horario.horarios[blockIndex];
     const sesion = bloque?.sesiones?.[sessionIndex];
-
     if (!bloque || !sesion) return;
 
     setEditingLocation({ blockIndex, sessionIndex });
-    
-    const nombrePreCargado = sesion.asignatura_sugerida || sesion.asignatura || '';
-
     setEditingForm({
-      asignatura: nombrePreCargado,
+      asignatura: sesion.asignatura_sugerida || sesion.asignatura || '',
       aula: sesion.aula ?? '',
       dia: sesion.dia ?? '',
       hora_inicio: sesion.hora_inicio ?? '',
@@ -499,34 +405,29 @@ export default function RevisionHorarioPage({ params }: Props) {
     setIsEditOpen(false);
   };
 
-  const handleEditFieldChange = <K extends keyof SesionFormState>(
-    field: K,
-    value: SesionFormState[K]
-  ) => {
+  const handleEditFieldChange = <K extends keyof SesionFormState>(field: K, value: SesionFormState[K]) => {
     setEditingForm((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   const handleSaveSesion = () => {
     if (!editingLocation || !editingForm) return;
-
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     const { blockIndex, sessionIndex } = editingLocation;
     const sesion = cloned.horarios[blockIndex]?.sesiones?.[sessionIndex];
 
     if (sesion) {
-      sesion.asignatura = editingForm.asignatura;
-      sesion.aula = editingForm.aula;
-      sesion.dia = editingForm.dia;
-      sesion.hora_inicio = editingForm.hora_inicio;
-      sesion.hora_fin = editingForm.hora_fin;
-      sesion.tipo = editingForm.tipo;
-      sesion.grupo = editingForm.grupo || null;
-
-      // ACTUALIZADO: Marcar como validado al guardar manualmente
-      sesion.manual_validated = true;
-      sesion.asignatura_sugerida = editingForm.asignatura;
+      Object.assign(sesion, {
+        asignatura: editingForm.asignatura,
+        aula: editingForm.aula,
+        dia: editingForm.dia,
+        hora_inicio: editingForm.hora_inicio,
+        hora_fin: editingForm.hora_fin,
+        tipo: editingForm.tipo,
+        grupo: editingForm.grupo || null,
+        manual_validated: true,
+        asignatura_sugerida: editingForm.asignatura
+      });
     }
-    
     handleUpdateDraft(cloned);
     closeEditSesion();
   };
@@ -537,39 +438,28 @@ export default function RevisionHorarioPage({ params }: Props) {
     setNewBlockForm({ curso: '', mencion: '' });
     setIsCreateOpen(true);
   };
-
   const closeCreateDialog = () => setIsCreateOpen(false);
-
-  const handleCreateFieldChange = <K extends keyof SesionFormState>(
-    f: K,
-    v: SesionFormState[K]
-  ) => setCreateSessionForm((p) => ({ ...p, [f]: v }));
-
+  const handleCreateFieldChange = <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => setCreateSessionForm((p) => ({ ...p, [f]: v }));
+  
   const handleCreateSession = () => {
     if (!canCreateSession) return;
-
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     const bloque = cloned.horarios[selectedBlockIndex];
-
     if (!bloque.sesiones) bloque.sesiones = [];
-
     bloque.sesiones.push({
       ...createSessionForm,
       grupo: createSessionForm.grupo || null,
       match_status: 'MANUAL',
-      manual_validated: true // Creado a mano es validado
+      manual_validated: true
     });
-
     handleUpdateDraft(cloned);
     setIsCreateOpen(false);
   };
   const handleCreateBlock = () => {
     const curso = newBlockForm.curso.trim();
     if (!curso) return;
-
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     if (!cloned.horarios) cloned.horarios = [];
-
     cloned.horarios.push({
       curso,
       periodo: cloned.periodo,
@@ -577,192 +467,163 @@ export default function RevisionHorarioPage({ params }: Props) {
       pagina: cloned.horarios.length,
       sesiones: [],
     });
-
     handleUpdateDraft(cloned);
     setIsCreateOpen(false);
   };
+
   const openEditBlockDialog = () => {
     const bloque = bloques[selectedBlockIndex];
     if (!bloque) return;
-
-    setEditBlockForm({
-      curso: bloque.curso,
-      mencion: bloque.mencion || '',
-    });
+    setEditBlockForm({ curso: bloque.curso, mencion: bloque.mencion || '' });
     setIsEditBlockOpen(true);
   };
   const handleSaveBlock = () => {
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     const bloque = cloned.horarios[selectedBlockIndex];
-
     if (bloque) {
       bloque.curso = editBlockForm.curso;
       bloque.mencion = editBlockForm.mencion || null;
     }
-
     handleUpdateDraft(cloned);
     setIsEditBlockOpen(false);
   };
-  const handleSessionMove = (
-    session: Session,
-    newDayIndex: number,
-    newStartTime: string
-  ) => {
+
+  const handleSessionMove = (session: Session, newDayIndex: number, newStartTime: string) => {
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     const [blockStr, sesStr] = String(session.id).split('-');
     const sesion = cloned.horarios[Number(blockStr)]?.sesiones?.[Number(sesStr)];
-
     if (sesion) {
       const duration = timeToMinutes(sesion.hora_fin) - timeToMinutes(sesion.hora_inicio);
       const startMin = timeToMinutes(newStartTime);
-
       sesion.dia = DIAS_SEMANA[newDayIndex];
       sesion.hora_inicio = newStartTime;
       sesion.hora_fin = minutesToTimeLabel(startMin + duration);
-
       handleUpdateDraft(cloned);
     }
   };
 
+  // --- 🔥 HANDLE CONFIRM CON GATEKEEPER ---
   const handleConfirm = async () => {
     if (!horario || !item) return;
 
     setIsConfirming(true);
-    setConfirmError(null);
+    setConfirmError(null); 
 
     try {
-      await confirmHorario(horario as unknown as HorarioTemporalOut);
+      // Aseguramos que el campo 'plan' tenga valor antes de enviar.
+      // Usamos la misma lógica que usas para 'displayPlan'.
+      const planAEnviar = horario.plan || horario.titulo?.split(' - ')[0] || "";
+      
+      // Creamos una copia del horario asegurando que el plan está relleno
+      const payload = {
+        ...horario,
+        plan: planAEnviar
+      };
+
+      await confirmHorario(payload as unknown as HorarioTemporalOut);
+      
+      // Si todo OK:
       confirm(item.id);
-      toast({ title: 'Horario confirmado', description: 'Guardado en BD.' });
-      router.push('/datos/horarios');
+      toast({ title: '¡Éxito!', description: 'El horario se ha guardado correctamente.' });
+      router.push('/datos/horarios'); 
+      
     } catch (error: unknown) {
-      setConfirmError(error instanceof Error ? error.message : 'Error al confirmar');
-      toast({ title: 'Error', variant: 'destructive' });
+      // Capturamos error 400 del Gatekeeper
+      const msg = (error as { response?: { data?: { detail?: string } }; message?: string })?.response?.data?.detail 
+        || (error as { message?: string })?.message 
+        || 'Error desconocido al confirmar.';
+      
+      setConfirmError(msg); 
+      
+      toast({ 
+        title: 'No se puede guardar', 
+        description: 'Hay errores bloqueantes. Revisa la alerta en pantalla.', 
+        variant: 'destructive' 
+      });
     } finally {
       setIsConfirming(false);
     }
   };
 
-  if (!item) {
-    return (
-      <div className="p-8">
-        <Card>
-          <CardContent className="p-6">Horario no encontrado</CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const currentPlanId = React.useMemo(() => listaProgramas.find((p) => p.nombre === infoForm.plan)?.id, [listaProgramas, infoForm.plan]);
 
-  if (!horario) {
-    return (
-      <div className="p-8">
-        <Card>
-          <CardContent className="p-6">Sin datos</CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (!item || !horario) return <div className="p-8"><Card><CardContent className="p-6">Cargando...</CardContent></Card></div>;
 
-  const editingBloque = editingLocation && horario?.horarios
-    ? horario.horarios[editingLocation.blockIndex]
-    : null;
+  const editingBloque = editingLocation && horario?.horarios ? horario.horarios[editingLocation.blockIndex] : null;
 
   return (
     <div className="space-y-6">
+      {/* HEADER */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Revisión de horario
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Revisa la información extraída del horario.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Revisión de horario</h1>
+          <p className="text-lg text-muted-foreground">Verifica los datos extraídos antes de confirmar.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleBack}>
-            Volver a subidas
-          </Button>
+          <Button variant="outline" onClick={handleBack}>Volver</Button>
           <Button onClick={handleConfirm} disabled={isConfirming || !hasData}>
             {isConfirming ? 'Guardando...' : 'Confirmar horario'}
           </Button>
         </div>
       </div>
+
+      {/* 🔥 ALERTA DE ERROR BLOQUEANTE */}
       {confirmError && (
-        <p className="text-right text-sm text-destructive">{confirmError}</p>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 animate-in slide-in-from-top-2">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900 mb-1">No se pudo confirmar el horario</h3>
+              <p className="text-sm text-red-700 leading-relaxed">
+                {confirmError}
+              </p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-red-500 hover:text-red-700 hover:bg-red-100"
+              onClick={() => setConfirmError(null)}
+            >
+              Cerrar
+            </Button>
+          </div>
+        </div>
       )}
 
-      <Card
-        className="cursor-pointer transition-colors hover:bg-muted/50 group"
-        onClick={openEditInfo}
-      >
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            Resumen del horario
-            <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </CardTitle>
-        </CardHeader>
+      {/* INFO CARD */}
+      <Card className="cursor-pointer hover:bg-muted/50 group" onClick={openEditInfo}>
+        <CardHeader><CardTitle className="flex justify-between">Resumen <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100" /></CardTitle></CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Plan de estudios</p>
-              <p className="text-sm font-medium">{displayPlan}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Periodo</p>
-              <p className="text-sm font-medium capitalize">
-                {displayPeriodo.replace(/_/g, ' ')}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Estadísticas</p>
-              <p className="text-sm font-medium">
-                {bloques.length} horarios · {totalSessions} sesiones
-              </p>
-            </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div><p className="text-xs text-muted-foreground">Plan</p><p className="font-medium">{displayPlan}</p></div>
+            <div><p className="text-xs text-muted-foreground">Periodo</p><p className="font-medium capitalize">{displayPeriodo.replace(/_/g, ' ')}</p></div>
+            <div><p className="text-xs text-muted-foreground">Total</p><p className="font-medium">{bloques.length} cursos · {totalSessions} sesiones</p></div>
           </div>
         </CardContent>
       </Card>
 
+      {/* SELECTOR BLOQUES */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex-1 rounded-md border bg-muted/40 px-4 py-3 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="font-medium text-muted-foreground">
-              Selecciona el curso/mención:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {bloques.map((b, i) => (
-                <Button
-                  key={i}
-                  size="sm"
-                  variant={i === selectedBlockIndex ? 'default' : 'outline'}
-                  onClick={() => setSelectedBlockIndex(i)}
-                >
-                  {buildBloqueLabel(b)}
-                </Button>
-              ))}
-            </div>
+        <div className="flex-1 rounded-md border bg-muted/40 px-4 py-3 text-sm flex flex-wrap gap-3 items-center">
+          <p className="font-medium text-muted-foreground">Curso:</p>
+          <div className="flex flex-wrap gap-2">
+            {bloques.map((b, i) => (
+              <Button key={i} size="sm" variant={i === selectedBlockIndex ? 'default' : 'outline'} onClick={() => setSelectedBlockIndex(i)}>
+                {buildBloqueLabel(b)}
+              </Button>
+            ))}
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={openEditBlockDialog}
-            disabled={!bloques.length}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button size="icon" onClick={openCreateDialog}>
-            <Plus className="h-4 w-4" />
-          </Button>
+          <Button size="icon" variant="outline" onClick={openEditBlockDialog} disabled={!bloques.length}><Pencil className="h-4 w-4" /></Button>
+          <Button size="icon" onClick={openCreateDialog}><Plus className="h-4 w-4" /></Button>
         </div>
       </div>
 
-      {/* 👇 INTEGRACIÓN DEL COMPONENTE */}
+      {/* COMPONENTE DE REVISIÓN */}
       {hasData && (
         <ReviewDashboard 
            bloque={bloques[selectedBlockIndex] as unknown as ReviewBlock}
-           onConfirmSession={toggleSessionValidation}
            onEditSession={(idx) => {
                setEditingLocation({ blockIndex: selectedBlockIndex, sessionIndex: idx });
                const sesion = bloques[selectedBlockIndex].sesiones[idx];
@@ -778,10 +639,10 @@ export default function RevisionHorarioPage({ params }: Props) {
                setIsEditOpen(true);
            }}
            onDeleteSession={handleDeleteSession}
-           onConfirmAllSuggestions={confirmAllSuggestionsInBlock}
         />
       )}
 
+      {/* CALENDARIO */}
       {hasData && (
         <InteractiveScheduleGrid
           sessions={sessions}
@@ -790,81 +651,33 @@ export default function RevisionHorarioPage({ params }: Props) {
         />
       )}
 
-      {/* --- DIALOGO 1: EDITAR INFO (CON LOADING) --- */}
+      {/* EDIT INFO DIALOG */}
       <Dialog open={isEditInfoOpen} onOpenChange={setIsEditInfoOpen}>
         <DialogContent className="overflow-visible">
-          <DialogHeader>
-            <DialogTitle>Editar información</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Editar información</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>Plan de estudios</Label>
-              <SimpleAutocomplete
-                options={programasOptions}
-                value={currentPlanId}
-                initialValue={infoForm.plan}
-                onChange={(val) => {
-                  const selected = programasOptions.find((p) => p.value === val);
-                  if (selected) {
-                    setInfoForm({ ...infoForm, plan: selected.label });
-                  }
-                }}
-                placeholder="Buscar grado/máster..."
-                emptyText="No se encontraron titulaciones"
-              />
-              {!currentPlanId && infoForm.plan && (
-                <p className="text-xs text-amber-600">
-                  Valor actual: "{infoForm.plan}" (No registrado en BD)
-                </p>
-              )}
+              <Label>Plan</Label>
+              <SimpleAutocomplete options={programasOptions} value={currentPlanId} initialValue={infoForm.plan} onChange={(val) => {
+                  const sel = programasOptions.find((p) => p.value === val);
+                  if (sel) setInfoForm({ ...infoForm, plan: sel.label });
+              }} placeholder="Buscar..." />
             </div>
-
             <div className="grid gap-2">
               <Label>Periodo</Label>
-              <select
-                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                value={infoForm.periodo}
-                onChange={(e) =>
-                  setInfoForm({ ...infoForm, periodo: e.target.value })
-                }
-              >
-                <option value="" disabled>
-                  Seleccionar periodo...
-                </option>
-                {PERIODOS.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-                {infoForm.periodo &&
-                  !PERIODOS.some((p) => p.value === infoForm.periodo) && (
-                    <option value={infoForm.periodo}>{infoForm.periodo}</option>
-                  )}
+              <select className="h-9 rounded-md border px-3" value={infoForm.periodo} onChange={(e) => setInfoForm({ ...infoForm, periodo: e.target.value })}>
+                {PERIODOS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={handleSaveInfo} disabled={isRefining}>
-                {isRefining ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Recalculando asignaturas...
-                    </>
-                ) : (
-                    'Guardar y Recalcular'
-                )}
-            </Button>
-          </DialogFooter>
+          <DialogFooter><Button onClick={handleSaveInfo} disabled={isRefining}>{isRefining ? 'Calculando...' : 'Guardar'}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* --- DIALOGO 2: EDITAR SESIÓN (CON TARJETA INFO) --- */}
+      {/* EDIT SESION DIALOG */}
       <Dialog open={isEditOpen} onOpenChange={(open) => !open && closeEditSesion()}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Editar sesión</DialogTitle>
-          </DialogHeader>
-
+          <DialogHeader><DialogTitle>Editar sesión</DialogTitle></DialogHeader>
           {editingBloque && editingLocation && (
             <MatchInfoCard 
               status={editingBloque.sesiones[editingLocation.sessionIndex].match_status}
@@ -872,124 +685,58 @@ export default function RevisionHorarioPage({ params }: Props) {
               suggestedName={editingBloque.sesiones[editingLocation.sessionIndex].asignatura_sugerida}
             />
           )}
-
           {editingForm && (
-            <SessionFormFieldsSmart
-              form={editingForm}
-              onChange={handleEditFieldChange}
-              asignaturaOptions={asignaturaOptions}
-              aulaOptions={aulaOptions}
-            />
+            <SessionFormFieldsSmart form={editingForm} onChange={handleEditFieldChange} asignaturaOptions={asignaturaOptions} aulaOptions={aulaOptions} />
           )}
-          
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={closeEditSesion}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveSesion}>Guardar cambios</Button>
+            <Button variant="outline" onClick={closeEditSesion}>Cancelar</Button>
+            <Button onClick={handleSaveSesion}>Guardar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
+      {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && closeCreateDialog()}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crear elemento</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Crear elemento</DialogTitle></DialogHeader>
           <div className="mb-4 flex gap-2">
-            <Button
-              size="sm"
-              variant={createTab === 'session' ? 'default' : 'secondary'}
-              disabled={!canCreateSession}
-              onClick={() => setCreateTab('session')}
-            >
-              Nueva sesión
-            </Button>
-            <Button
-              size="sm"
-              variant={createTab === 'block' ? 'default' : 'secondary'}
-              onClick={() => setCreateTab('block')}
-            >
-              Nuevo horario
-            </Button>
+            <Button size="sm" variant={createTab === 'session' ? 'default' : 'secondary'} disabled={!canCreateSession} onClick={() => setCreateTab('session')}>Nueva sesión</Button>
+            <Button size="sm" variant={createTab === 'block' ? 'default' : 'secondary'} onClick={() => setCreateTab('block')}>Nuevo horario</Button>
           </div>
-          {createTab === 'session' && (
-            <SessionFormFieldsSmart
-              form={createSessionForm}
-              onChange={handleCreateFieldChange}
-              asignaturaOptions={asignaturaOptions}
-              aulaOptions={aulaOptions}
-            />
-          )}
+          {createTab === 'session' && <SessionFormFieldsSmart form={createSessionForm} onChange={handleCreateFieldChange} asignaturaOptions={asignaturaOptions} aulaOptions={aulaOptions} />}
           {createTab === 'block' && (
             <div className="space-y-3 py-2 text-sm">
-              <div className="grid gap-2">
-                <Label>Curso</Label>
-                <Input
-                  value={newBlockForm.curso}
-                  onChange={(e) =>
-                    setNewBlockForm({ ...newBlockForm, curso: e.target.value })
-                  }
-                  placeholder="1º, 2º..."
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Mención</Label>
-                <Input
-                  value={newBlockForm.mencion}
-                  onChange={(e) =>
-                    setNewBlockForm({ ...newBlockForm, mencion: e.target.value })
-                  }
-                />
-              </div>
+              <div className="grid gap-2"><Label>Curso</Label><Input value={newBlockForm.curso} onChange={(e) => setNewBlockForm({ ...newBlockForm, curso: e.target.value })} /></div>
+              <div className="grid gap-2"><Label>Mención</Label><Input value={newBlockForm.mencion} onChange={(e) => setNewBlockForm({ ...newBlockForm, mencion: e.target.value })} /></div>
             </div>
           )}
           <DialogFooter className="mt-4">
-            {createTab === 'session' ? (
-              <Button onClick={handleCreateSession} disabled={!canCreateSession}>
-                Crear sesión
-              </Button>
-            ) : (
-              <Button onClick={handleCreateBlock} disabled={!newBlockForm.curso}>
-                Crear horario
-              </Button>
-            )}
+            {createTab === 'session' ? <Button onClick={handleCreateSession} disabled={!canCreateSession}>Crear</Button> : <Button onClick={handleCreateBlock} disabled={!newBlockForm.curso}>Crear</Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* EDIT BLOCK DIALOG */}
       <Dialog open={isEditBlockOpen} onOpenChange={setIsEditBlockOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar horario</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Editar curso</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2 text-sm">
-            <div className="grid gap-2">
-              <Label>Curso</Label>
-              <Input
-                value={editBlockForm.curso}
-                onChange={(e) =>
-                  setEditBlockForm({ ...editBlockForm, curso: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Mención</Label>
-              <Input
-                value={editBlockForm.mencion}
-                onChange={(e) =>
-                  setEditBlockForm({ ...editBlockForm, mencion: e.target.value })
-                }
-              />
-            </div>
+            <div className="grid gap-2"><Label>Curso</Label><Input value={editBlockForm.curso} onChange={(e) => setEditBlockForm({ ...editBlockForm, curso: e.target.value })} /></div>
+            <div className="grid gap-2"><Label>Mención</Label><Input value={editBlockForm.mencion} onChange={(e) => setEditBlockForm({ ...editBlockForm, mencion: e.target.value })} /></div>
           </div>
-          <DialogFooter>
-            <Button onClick={handleSaveBlock}>Guardar</Button>
-          </DialogFooter>
+          <DialogFooter><Button onClick={handleSaveBlock}>Guardar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
+}
+
+// CORRECCIÓN: Definición de tipos explícita en lugar de 'any'
+interface SessionFormFieldsProps {
+  form: SesionFormState;
+  onChange: <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => void;
+  asignaturaOptions: AutocompleteOption[];
+  aulaOptions: AutocompleteOption[];
 }
 
 function SessionFormFieldsSmart({
@@ -997,163 +744,76 @@ function SessionFormFieldsSmart({
   onChange,
   asignaturaOptions,
   aulaOptions,
-}: {
-  form: SesionFormState;
-  onChange: <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => void;
-  asignaturaOptions: AutocompleteOption[];
-  aulaOptions: AutocompleteOption[];
-}) {
-  const selectedAsigId = React.useMemo(
-    () => asignaturaOptions.find((opt) => opt.label === form.asignatura)?.value,
-    [asignaturaOptions, form.asignatura]
-  );
-  const selectedAulaId = React.useMemo(
-    () => aulaOptions.find((opt) => opt.label === form.aula)?.value,
-    [aulaOptions, form.aula]
-  );
+}: SessionFormFieldsProps) {
+  const selectedAsigId = React.useMemo(() => asignaturaOptions.find((opt) => opt.label === form.asignatura)?.value, [asignaturaOptions, form.asignatura]);
+  const selectedAulaId = React.useMemo(() => aulaOptions.find((opt) => opt.label === form.aula)?.value, [aulaOptions, form.aula]);
 
   return (
     <div className="space-y-3 py-2 text-sm">
       <div className="grid gap-2">
         <Label>Asignatura</Label>
-        <SimpleAutocomplete
-          options={asignaturaOptions}
-          value={selectedAsigId}
-          initialValue={form.asignatura}
-          onChange={(val) => {
+        <SimpleAutocomplete options={asignaturaOptions} value={selectedAsigId} initialValue={form.asignatura} onChange={(val) => {
             const selected = asignaturaOptions.find((o) => o.value === val);
             if (selected) onChange('asignatura', selected.label);
-          }}
-          placeholder="Introducir asignatura..."
-          emptyText="No encontrada en este plan"
-        />
-        {!selectedAsigId && form.asignatura && (
-          <p className="text-xs text-amber-600">
-            Valor actual: "{form.asignatura}" (No está en la BD)
-          </p>
-        )}
+          }} placeholder="Buscar..." emptyText="No encontrada" />
       </div>
       <div className="grid gap-2">
         <Label>Aula</Label>
-        <SimpleAutocomplete
-          options={aulaOptions}
-          value={selectedAulaId}
-          initialValue={form.aula}
-          onChange={(val) => {
+        <SimpleAutocomplete options={aulaOptions} value={selectedAulaId} initialValue={form.aula} onChange={(val) => {
             const selected = aulaOptions.find((o) => o.value === val);
             if (selected) onChange('aula', selected.label);
-          }}
-          placeholder="Introducir aula..."
-        />
+          }} placeholder="Buscar..." />
       </div>
       <div className="grid gap-2">
         <Label>Día</Label>
-        <select
-          className="h-9 rounded-md border px-3"
-          value={form.dia}
-          onChange={(e) => onChange('dia', e.target.value)}
-        >
-          {DIAS_SEMANA.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
+        <select className="h-9 rounded-md border px-3" value={form.dia} onChange={(e) => onChange('dia', e.target.value)}>
+          {DIAS_SEMANA.map((d) => <option key={d} value={d}>{d}</option>)}
         </select>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="grid gap-2">
-          <Label>Inicio</Label>
-          <Input
-            type="time"
-            value={form.hora_inicio}
-            onChange={(e) => onChange('hora_inicio', e.target.value)}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label>Fin</Label>
-          <Input
-            type="time"
-            value={form.hora_fin}
-            onChange={(e) => onChange('hora_fin', e.target.value)}
-          />
-        </div>
+        <div className="grid gap-2"><Label>Inicio</Label><Input type="time" value={form.hora_inicio} onChange={(e) => onChange('hora_inicio', e.target.value)} /></div>
+        <div className="grid gap-2"><Label>Fin</Label><Input type="time" value={form.hora_fin} onChange={(e) => onChange('hora_fin', e.target.value)} /></div>
       </div>
       <div className="grid gap-2">
         <Label>Tipo</Label>
-        <select
-          className="h-9 rounded-md border px-3"
-          value={form.tipo}
-          onChange={(e) => onChange('tipo', e.target.value)}
-        >
-          {TIPO_OPCIONES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
+        <select className="h-9 rounded-md border px-3" value={form.tipo} onChange={(e) => onChange('tipo', e.target.value)}>
+          {TIPO_OPCIONES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
-      <div className="grid gap-2">
-        <Label>Grupo</Label>
-        <Input
-          value={form.grupo}
-          onChange={(e) => onChange('grupo', e.target.value)}
-          placeholder="PL1, PA..."
-        />
-      </div>
+      <div className="grid gap-2"><Label>Grupo</Label><Input value={form.grupo} onChange={(e) => onChange('grupo', e.target.value)} placeholder="Ej: PL1" /></div>
     </div>
   );
 }
 
-// Helpers
+// --- HELPERS ---
+
 function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
   const sessions: Session[] = [];
-  (horario.horarios || []).forEach((b, i) =>
-    sessions.push(...mapBloqueToSessions(b, i))
-  );
+  (horario.horarios || []).forEach((b, i) => sessions.push(...mapBloqueToSessions(b, i)));
   return sessions;
 }
 
-// 🔥 FUNCIÓN ACTUALIZADA: COLORES Y TÍTULOS
-function mapBloqueToSessions(
-  bloque: HorarioExtraidoBloque,
-  bloqueIndex: number
-): Session[] {
+function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number): Session[] {
   const sessions: Session[] = [];
   (bloque.sesiones || []).forEach((sesion, sesionIndex) => {
     const dayIndex = diaToDayIndex(sesion.dia);
     if (dayIndex < 0) return;
 
     let color: Session['color'] = 'blue';
+    const hasAsignatura = sesion.asignatura_sugerida || sesion.manual_validated || sesion.match_status === 'EXACT' || sesion.match_status === 'ALIAS_DB';
+    const hasAula = sesion.aula && sesion.aula !== 'POR DETERMINAR';
 
-    // 1. Detectar MATCH EXACTO automático
-    const isExactMatch = sesion.match_status === 'EXACT' || sesion.match_status === 'ALIAS_DB';
-    
-    // 2. Lógica de colores estricta
-    if (sesion.manual_validated || isExactMatch) {
-        color = 'blue'; // Validado por humano O por sistema (match exacto)
-    } else if (sesion.asignatura_sugerida) {
-        color = 'orange'; // Sugerencia "Fuzzy" (Antes Verde/Amarillo)
+    if (!hasAsignatura || !hasAula) {
+        color = 'red';
     } else {
-        color = 'red'; // No hay match
+        color = 'blue';
     }
 
-    // 3. Título a mostrar
-    let displayTitle = sesion.asignatura;
-    
-    if (sesion.manual_validated || isExactMatch) {
-        // Si está validado, usamos el nombre oficial sugerido/guardado
-        displayTitle = sesion.asignatura_sugerida || sesion.asignatura;
-    } else if (sesion.asignatura_sugerida) {
-        // Si es sugerencia fuzzy, mostramos la sugerencia SIN interrogación
-        displayTitle = sesion.asignatura_sugerida;
-    }
+    const displayName = sesion.asignatura_sugerida || sesion.asignatura;
 
     sessions.push({
       id: `${bloqueIndex}-${sesionIndex}`,
@@ -1161,16 +821,14 @@ function mapBloqueToSessions(
       dayIndex,
       start: normalizeTime(sesion.hora_inicio),
       end: normalizeTime(sesion.hora_fin),
-      title: displayTitle,
+      title: displayName, 
       room: sesion.aula ?? '—',
       teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : '',
       color: color,
       
-      // Metadatos
       originalName: sesion.asignatura,
       suggestedName: sesion.asignatura_sugerida,
       matchStatus: sesion.match_status,
-
     } as unknown as Session); 
   });
   return sessions;
@@ -1189,9 +847,7 @@ function diaToDayIndex(dia: string): number {
 function normalizeTime(value: string): string {
   if (!value) return value;
   const parts = value.split(':');
-  return parts.length >= 2
-    ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`
-    : value;
+  return parts.length >= 2 ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` : value;
 }
 
 function timeToMinutes(value: string): number {
@@ -1205,19 +861,12 @@ function minutesToTimeLabel(totalMin: number): string {
   const m = totalMin % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
+
 function buildCourseIdFromCurso(cursoTexto: string): string {
-  if (cursoTexto.includes('1') || cursoTexto.toLowerCase().includes('primer')) {
-    return '1º';
-  }
-  if (cursoTexto.includes('2') || cursoTexto.toLowerCase().includes('segundo')) {
-    return '2º';
-  }
-  if (cursoTexto.includes('3') || cursoTexto.toLowerCase().includes('tercer')) {
-    return '3º';
-  }
-  if (cursoTexto.includes('4') || cursoTexto.toLowerCase().includes('cuarto')) {
-    return '4º';
-  }
+  if (cursoTexto.includes('1') || cursoTexto.toLowerCase().includes('primer')) return '1º';
+  if (cursoTexto.includes('2') || cursoTexto.toLowerCase().includes('segundo')) return '2º';
+  if (cursoTexto.includes('3') || cursoTexto.toLowerCase().includes('tercer')) return '3º';
+  if (cursoTexto.includes('4') || cursoTexto.toLowerCase().includes('cuarto')) return '4º';
   return cursoTexto;
 }
 
