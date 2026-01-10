@@ -15,7 +15,7 @@ Responsabilidades:
 
 from fastapi import APIRouter, Depends, Query, Path, Body, status, File, UploadFile, HTTPException
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 from pathlib import Path as PathlibPath
 import tempfile
 
@@ -26,8 +26,12 @@ from modules.docencia.schemas.grupo_docente import (
 from modules.docencia.schemas.sesion import (
     SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut
 )
+from modules.docencia.schemas.dashboard import (
+    ResumenHorarioOut, DashboardFiltros
+)
 from modules.docencia.services.grupo_docente_service import grupo_docente_service
 from modules.docencia.services.sesion_service import sesion_service
+from modules.docencia.services.dashboard_service import dashboard_service
 from constants.enums import (
     TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana
 )
@@ -1157,6 +1161,34 @@ async def extract_horario(
     return horario_temporal
 
 @router.post(
+    "/horarios/refine",
+    response_model=HorarioTemporalOut,
+    status_code=status.HTTP_200_OK,
+    summary="Refinar matching de asignaturas (recalcular sugerencias)",
+    description="""
+    Recibe un horario temporal con metadatos actualizados (ej: usuario corrigió el Plan de Estudios o el Periodo)
+    y **recalcula las sugerencias de asignaturas** (Fuzzy Match) usando este nuevo contexto.
+
+    **Caso de uso:**
+    1. Usuario sube PDF. El sistema no detecta bien la titulación. Muchas asignaturas salen en rojo.
+    2. Usuario edita manualmente el "Plan de Estudios" en el frontend.
+    3. Frontend llama a este endpoint.
+    4. El sistema re-ejecuta el matcher sabiendo ahora que es "Grado en Matemáticas".
+    5. Devuelve el horario con las asignaturas en verde (matches encontrados).
+    """,
+    tags=["Horarios"],
+)
+async def refine_horario_matching(
+    payload: HorarioTemporalConfirmIn,
+    db: Session = Depends(get_db),
+):
+    """
+    Recalcular sugerencias de asignaturas basándose en cambios del usuario.
+    """
+    # Reutilizamos el servicio, que tiene la lógica de 'refinar_matching'
+    return horarios_pipeline_service.refinar_matching(db, payload)
+
+@router.post(
     "/horarios/confirm",
     response_model=HorarioConfirmResponse,
     status_code=status.HTTP_200_OK,
@@ -1203,3 +1235,74 @@ async def confirm_horario(
         HorarioConfirmResponse (por ahora vacío, sin grupos ni sesiones reales).
     """
     return horarios_pipeline_service.confirmar_horario(db, payload)
+
+
+# ============================================================
+#  ENDPOINTS DE DASHBOARD (VISTA AGREGADA)
+# ============================================================
+
+@router.get(
+    "/dashboard/resumen",
+    response_model=List[ResumenHorarioOut],
+    summary="Obtener resumen del dashboard de horarios",
+    description="""
+    Obtener una vista agregada de los horarios activos, organizados por:
+    - Programa (Grado)
+    - Curso
+    - Cuatrimestre
+    - Mención (Itinerario)
+
+    **Este endpoint alimenta las tarjetas de la pantalla principal "Consulta de Horarios".**
+
+    El sistema agrupa automáticamente todas las sesiones individuales almacenadas
+    en base de datos y calcula:
+    - Estado de salud (OK / CONFLICTO)
+    - Estadísticas (Total sesiones, total asignaturas)
+    - Fecha de última actualización
+
+    **Filtros Opcionales:**
+    - `programa_id`: Filtrar por una titulación específica.
+    - `curso`: Filtrar por un curso académico concreto.
+    
+    **Ejemplo de Respuesta:**
+    ```json
+    [
+      {
+        "programa_id": 1,
+        "programa_nombre": "Grado en Matemáticas",
+        "curso": 3,
+        "cuatrimestre": 1,
+        "menciones": ["Computación"],
+        "total_asignaturas": 5,
+        "total_sesiones": 42,
+        "estado": "CONFLICTO",
+        "conflictos_count": 2,
+        "ultima_actualizacion": "2024-01-20T10:00:00"
+      }
+    ]
+    ```
+    """,
+    tags=["Dashboard"]
+)
+def get_dashboard_resumen(
+    programa_id: Optional[int] = Query(
+        None,
+        gt=0,
+        description="Filtrar por ID de Programa (Titulación)"
+    ),
+    curso: Optional[int] = Query(
+        None,
+        ge=1,
+        le=6,
+        description="Filtrar por curso académico (1, 2, 3...)"
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener resumen agrupado de horarios para el Dashboard.
+    """
+    filtros = DashboardFiltros(
+        programa_id=programa_id,
+        curso=curso
+    )
+    return dashboard_service.get_resumen(db, filtros)

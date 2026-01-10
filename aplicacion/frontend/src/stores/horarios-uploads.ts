@@ -76,19 +76,15 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
       }));
 
       try {
+        // 1. Llamada API (Ya devuelve HorarioTemporalOut directamente)
         const result = await extractHorario(item.file);
 
-        // Normalización de respuesta
-        const maybeWrapped = result as unknown as {
-          horario?: HorarioTemporalOut;
-          horario_temporal?: HorarioTemporalOut;
-        };
+        // 2. Validación de seguridad básica
+        if (!result || !result.horarios) {
+            throw new Error("La respuesta del servidor no contiene tablas de horarios.");
+        }
 
-        const horarioNode: HorarioTemporalOut =
-          maybeWrapped.horario ??
-          maybeWrapped.horario_temporal ??
-          (result as HorarioTemporalOut);
-
+        // 3. Asignación directa (Eliminamos la lógica de normalización antigua)
         set((state) => ({
           items: state.items.map((i) =>
             i.id === id
@@ -97,12 +93,13 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
                   status: 'done',
                   progress: 100,
                   errorMessage: undefined,
-                  horarioTemporal: horarioNode,
+                  horarioTemporal: result, // <--- DIRECTO
                 }
               : i,
           ),
         }));
       } catch (error: unknown) {
+        console.error("Error en análisis:", error);
         const message =
           error instanceof Error
             ? error.message

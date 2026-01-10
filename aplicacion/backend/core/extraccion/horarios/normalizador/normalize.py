@@ -8,6 +8,7 @@ import re
 import logging
 from typing import List, Optional, Tuple, Dict
 from datetime import time
+import copy
 
 # Entidades del Pipeline
 from core.extraccion.horarios.entities import (
@@ -63,7 +64,8 @@ class HorarioDataNormalizer:
                     logger.warning(f"Tabla descartada (sin sesiones válidas): Pág {horario.pagina}")
                     
             except Exception as e:
-                logger.error(f"Error normalizando tabla Pág {horario.pagina}: {e}")
+                pag = getattr(horario, 'pagina', '?')
+                logger.error(f"Error normalizando tabla Pág {pag}: {e}")
                 continue
 
         return resultados
@@ -77,10 +79,7 @@ class HorarioDataNormalizer:
         
         # 1. Curso
         curso_int = self._parse_curso(horario.curso)
-        if not curso_int:
-            logger.warning(f"No se pudo determinar el curso para la tabla en pág {horario.pagina}")
-            return None
-
+        
         # 2. Periodo
         periodo_enum = periodo_fallback
         if horario.periodo:
@@ -90,20 +89,31 @@ class HorarioDataNormalizer:
         
         if not periodo_enum:
             periodo_enum = Periodo.PRIMER_CUATRIMESTRE 
-            logger.warning(f"Periodo no detectado en pág {horario.pagina}, usando default: {periodo_enum}")
 
         # 3. Mención
         mencion_norm = self._normalize_nombre(horario.mencion) if horario.mencion else None
 
-        # 4. Sesiones
+        # 4. Sesiones (EXPANSIÓN DE GRUPOS)
+        # Aquí también aplicamos la división para el guardado en BD
         sesiones_norm: List[NormalizedSesionHorarioData] = []
         for sesion in horario.sesiones:
             try:
-                s_norm = self._normalize_sesion(sesion)
-                if s_norm:
-                    sesiones_norm.append(s_norm)
+                # Paso previo: Detectar si hay múltiples grupos
+                grupos_detectados = self.detectar_y_dividir_grupos(sesion.grupo)
+                
+                for grupo_individual in grupos_detectados:
+                    # Creamos una copia virtual de la sesión para cada grupo
+                    # Ojo: Parseamos la sesión original pero inyectando el grupo individual
+                    sesion_clonada = copy.deepcopy(sesion)
+                    sesion_clonada.grupo = grupo_individual
+                    
+                    s_norm = self._normalize_sesion(sesion_clonada)
+                    if s_norm:
+                        sesiones_norm.append(s_norm)
+                        
             except Exception as e:
-                logger.debug(f"Sesión descartada en pág {horario.pagina}: {e}")
+                pag = getattr(horario, 'pagina', '?')
+                logger.debug(f"Sesión descartada en pág {pag}: {e}")
                 continue
 
         return NormalizedHorarioTablaData(
@@ -128,7 +138,8 @@ class HorarioDataNormalizer:
         aula_nom = self._normalize_aula(sesion.aula)
         aula_tipo = self._infer_aula_tipo(aula_nom)
 
-        grupo_cod, tipo_grupo = self._infer_grupo_y_tipo(sesion.grupo, sesion.tipo, aula_nom)
+        # Inferencia
+        grupo_cod, tipo_grupo = self.infer_grupo_y_tipo(sesion.grupo, aula_nom)
 
         return NormalizedSesionHorarioData(
             asignatura_nombre=asignatura_nom,
@@ -188,32 +199,68 @@ class HorarioDataNormalizer:
                     return tipo
         return TipoAula.TEORICA
 
-    def _infer_grupo_y_tipo(self, grupo_str: Optional[str], tipo_parsed: Optional[str], aula_str: str) -> Tuple[str, TipoGrupoDocente]:
-        grupo_limpio = (grupo_str or "UNICO").strip().upper()
-        tipo_final = TipoGrupoDocente.TEORIA
-        
-        es_practica = False
-        es_lab = False
-        
-        if tipo_parsed == 'PRÁCTICA':
-            es_practica = True
-        
-        if any(x in grupo_limpio for x in ['PL', 'LAB', 'PRACTICA']):
-            es_practica = True
-            if 'LAB' in grupo_limpio or 'PL' in grupo_limpio:
-                es_lab = True
-        elif 'PA' in grupo_limpio:
-            es_practica = True
+    def detectar_y_dividir_grupos(self, grupo_raw: Optional[str]) -> List[str]:
+        """
+        Divide un string de grupo compuesto en una lista de grupos individuales.
+        Ejemplos:
+        - "PA1yPA2" -> ["PA1", "PA2"]
+        - "Grupo 1 y 2" -> ["Grupo 1", "2"]
+        - "PL1, PL2" -> ["PL1", "PL2"]
+        - "AULA 14" -> ["AULA 14"]
+        """
+        if not grupo_raw:
+            return [""] # Retornamos uno vacío para que el bucle procese la sesión sin grupo
 
-        if 'LAB' in aula_str or 'LSC' in aula_str:
-            es_lab = True
+        text = grupo_raw.strip()
+        
+        # Regex Explicación:
+        # 1. \s*[,/&+]\s* -> Separadores explícitos: coma, barra, ampersand, más (+).
+        # 2. \s+(?:y|e)\s+     -> Conjunción separada por espacios: " y ", " e ".
+        # 3. y(?=(?:PA|PL|Gr|G\.|[0-9])) -> La "y" pegada (caso PA1yPA2).
+        #    Solo separa si lo que sigue parece un inicio de grupo (PA, PL, Gr, G., o un número).
+        
+        pattern = r'\s*[,/&+]\s*|\s+(?:y|e)\s+|y(?=(?:PA|PL|GR|G\.|[0-9]))'
+        
+        partes = re.split(pattern, text, flags=re.IGNORECASE)
+        
+        # Filtramos vacíos y limpiamos espacios
+        return [p.strip() for p in partes if p.strip()]
 
-        if es_lab:
-            tipo_final = TipoGrupoDocente.LABORATORIO
-        elif es_practica:
-            tipo_final = TipoGrupoDocente.PRACTICA
-            
-        return grupo_limpio, tipo_final
+    def infer_grupo_y_tipo(self, grupo_str: Optional[str], aula_str: str) -> Tuple[str, TipoGrupoDocente]:
+        """
+        Deduce el tipo y limpia el código de un UNICO grupo.
+        """
+        grupo_raw = (grupo_str or "").strip()
+        
+        # 1. LIMPIEZA: "Grupo PL 3" -> "PL3"
+        grupo_limpio = re.sub(r'^(GRUPO|GR\.|G\.)\s*', '', grupo_raw, flags=re.IGNORECASE)
+        grupo_limpio = grupo_limpio.replace(" ", "").strip()
+        
+        grupo_upper = grupo_limpio.upper()
+        aula_upper = (aula_str or "").strip().upper()
+        
+        # CASO 0: Sin grupo
+        if not grupo_limpio:
+            return "", TipoGrupoDocente.TEORIA
+
+        # CASO 1: PA
+        if "PA" in grupo_upper:
+            return grupo_limpio, TipoGrupoDocente.PRACTICA
+
+        # Preparar entorno Lab
+        keywords_lab = KEYWORDS_AULA.get(TipoAula.LABORATORIO, []) + KEYWORDS_AULA.get(TipoAula.INFORMATICA, [])
+        es_entorno_lab = any(kw in aula_upper for kw in keywords_lab)
+
+        # CASO 2: Entorno Lab
+        if es_entorno_lab:
+            return grupo_limpio, TipoGrupoDocente.LABORATORIO
+        
+        # CASO 3: Entorno Normal + PL
+        if "PL" in grupo_upper:
+            return grupo_limpio, TipoGrupoDocente.LABORATORIO
+
+        # CASO 4: Teoría
+        return grupo_limpio, TipoGrupoDocente.TEORIA
 
 
 # Instancia singleton

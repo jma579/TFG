@@ -36,6 +36,12 @@ class HorarioExtractor:
     
     def __init__(self, config: Optional[Dict] = None):
         self.logger = logging.getLogger(__name__)
+
+        # Configuración de silencio para librerías ruidosas
+        logging.getLogger("pdfminer").setLevel(logging.ERROR)
+        logging.getLogger("python_multipart").setLevel(logging.WARNING)
+        logging.getLogger("multipart").setLevel(logging.WARNING)
+        
         self.config = DEFAULT_EXTRACTOR_CONFIG.copy()
         if config:
             self.config.update(config)
