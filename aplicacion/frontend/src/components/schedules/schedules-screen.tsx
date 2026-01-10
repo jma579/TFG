@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+// ✅ NUEVO: Importamos useRouter para navegar
+import { useRouter } from 'next/navigation';
 import { Search, BookOpen, Loader2, Filter, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,15 +23,15 @@ import type { ScheduleSummary } from '@/components/schedules/data';
 
 // APIs
 import { getDashboardResumen } from '@/lib/api/docencia/dashboard';
-// ✅ CORRECCIÓN: Usamos tu tipo real 'ProgramaOut'
 import type { ProgramaOut } from '@/lib/api/catalogo/programas';
 
 type SchedulesScreenProps = {
-  programas: ProgramaOut[]; // ✅ Actualizado
+  programas: ProgramaOut[];
 };
 
 export function SchedulesScreen({ programas }: SchedulesScreenProps) {
   const { toast } = useToast();
+  const router = useRouter(); // ✅ Hook de navegación
 
   const [data, setData] = React.useState<ScheduleSummary[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -75,9 +77,30 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
     );
   }, [data, searchTerm]);
 
-  // Handlers
-  const handleView = (item: ScheduleSummary) => console.log("Ver", item);
-  const handleSolve = (item: ScheduleSummary) => console.log("Resolver", item);
+  // ✅ LOGICA DE NAVEGACIÓN IMPLEMENTADA
+  const handleView = (item: ScheduleSummary) => {
+    // Construimos la URL con los parámetros necesarios
+    const params = new URLSearchParams();
+    params.set('programa_id', String(item.programa_id));
+    params.set('curso', String(item.curso));
+    
+    // Si el resumen tiene menciones específicas, usamos la primera por defecto para filtrar
+    // (Opcional: Si es un curso común, no enviamos mención)
+    if (item.menciones && item.menciones.length > 0) {
+        // Simple heurística: Si solo hay una mención, la pasamos. 
+        // Si hay varias, quizás quieras ver el "común" primero o dejar que el usuario filtre en la vista detalle.
+        // Por ahora pasamos la primera para ser específicos.
+        params.set('mencion', item.menciones[0]);
+    }
+
+    router.push(`/datos/horarios/detalle?${params.toString()}`);
+  };
+
+  const handleSolve = (item: ScheduleSummary) => {
+      // Futuro: Navegar al solver
+      console.log("Resolver conflictos para:", item);
+      toast({ description: "Funcionalidad de resolución automática próximamente." });
+  };
 
   return (
     <div className="space-y-6">

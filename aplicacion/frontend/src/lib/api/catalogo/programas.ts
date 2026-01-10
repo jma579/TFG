@@ -23,3 +23,7 @@ export async function listProgramas(
     params: { page, size, activo },
   });
 }
+
+export async function getPrograma(id: number): Promise<ProgramaOut> {
+  return api.get(`/v0/catalogo/programas/${id}`);
+}
