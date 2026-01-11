@@ -1,26 +1,24 @@
-"""Servicio de orquestación para el flujo de fichas académicas.
+"""
+Servicio de Pipeline para Ingesta de Fichas Académicas.
 
-Este servicio coordina las distintas fases del pipeline de fichas:
-- extracción de texto a partir de un PDF de ficha (FichaExtractor)
-- parsing del texto en una ficha estructurada (FichaParser)
-- normalización de los datos (DataNormalizer)
-- persistencia en base de datos (asignatura + programas + relación programa-asignatura)
+Este servicio actúa como ORQUESTADOR del proceso End-to-End.
+Integra los componentes del Core (Extracción, Parsing, Normalización) con
+la capa de Persistencia, garantizando la integridad transaccional (ACID).
 
-En esta primera versión **no** se persisten profesores ni menciones.
-Los profesores se dejan como posible evolución futura del pipeline
-cuando se acuerde la estrategia de modelado con la tutora del TFG.
+Principios de Diseño:
+- Atomicidad: El procesamiento de un archivo es "todo o nada".
+- Idempotencia: Permite re-procesar el mismo archivo actualizando los datos existentes.
+- Fuente de Verdad: El PDF se considera la fuente autoritativa; la BD se sincroniza con él.
 """
 
 from __future__ import annotations
-
+import logging
 from pathlib import Path
 from typing import Dict, List, Union
 
 from sqlalchemy.orm import Session
 
-from constants.enums import TipoPrograma
-
-# Core de extracción de fichas
+# Core Imports (Lógica de Dominio Puro)
 from core.extraccion.fichas.extractor import FichaExtractor
 from core.extraccion.fichas.parser import FichaParser
 from core.extraccion.fichas.normalize import DataNormalizer
@@ -28,402 +26,271 @@ from core.extraccion.fichas.entities import (
     NormalizedFichaData,
     PipelineResult,
 )
+from constants.enums import TipoPrograma
 
-# Servicios y repositorios de catálogo
-from modules.catalogo.schemas.asignatura import (
-    AsignaturaCreate,
-    AsignaturaUpdate,
-)
-from modules.catalogo.schemas.programa import ProgramaCreate
-from modules.catalogo.services.asignatura_service import AsignaturaService
-from modules.catalogo.services.programa_service import ProgramaService
+# Repositorios (Acceso Directo a Datos - Bypass de Servicios API)
 from modules.catalogo.repositories.asignatura_repo import asignatura_repository
 from modules.catalogo.repositories.programa_repo import programa_repository
-from modules.catalogo.repositories.programa_asignatura_repo import (
-    programa_asignatura_repository,
-)
-from modules.recursos.schemas.profesor import ProfesorCreate
-from modules.recursos.services.profesor_service import ProfesorService
+from modules.catalogo.repositories.programa_asignatura_repo import programa_asignatura_repository
 from modules.recursos.repositories.profesor_repo import profesor_repository
-from modules.recursos.repositories.profesor_asignatura_repo import (
-    profesor_asignatura_repository,
-)
+from modules.recursos.repositories.profesor_asignatura_repo import profesor_asignatura_repository
 
 
 class FichaPipelineService:
-    """Servicio de alto nivel para el flujo de fichas académicas.
-
-    Responsable de exponer una API de Python sencilla para los routers FastAPI,
-    escondiendo los detalles de extractor, parser, normalizador y persistencia.
-
-    Uso típico desde un endpoint:
-
-        service = FichaPipelineService()
-        result = service.procesar_ficha(pdf_path, db)
-
-    El output es un ``PipelineResult`` definido en
-    ``core.extraccion.fichas.entities`` que resume el resultado global
-    del procesamiento y las entidades creadas/actualizadas.
+    """
+    Coordinador del flujo de procesamiento de fichas académicas.
+    Gestiona el ciclo de vida completo desde la lectura del archivo hasta la confirmación en BD.
     """
 
-    # ------------------------------------------------------------------
-    # Inicialización
-    # ------------------------------------------------------------------
-
     def __init__(self) -> None:
-
-        import logging
-        logging.basicConfig(level=logging.DEBUG)
-        logger = logging.getLogger(__name__)
-        # Componentes del pipeline de extracción/parseo/normalización
+        self.logger = logging.getLogger(__name__)
+        
+        # Inicialización de componentes del Core
         self._extractor = FichaExtractor()
         self._parser = FichaParser()
         self._normalizer = DataNormalizer()
 
-        # Servicios de dominio
-        self._asignatura_service = AsignaturaService()
-        self._programa_service = ProgramaService()
-        self._profesor_service = ProfesorService()
-
-        # Repositorios auxiliares
+        # Inyección de dependencias de Repositorios
         self._asignatura_repo = asignatura_repository
         self._programa_repo = programa_repository
         self._programa_asignatura_repo = programa_asignatura_repository
         self._profesor_repo = profesor_repository
         self._profesor_asignatura_repo = profesor_asignatura_repository
 
-    # ------------------------------------------------------------------
-    # API pública
-    # ------------------------------------------------------------------
-
     def procesar_ficha(
         self,
         pdf_path: Union[str, Path],
         db: Session,
     ) -> PipelineResult:
-        """Ejecuta el pipeline completo de fichas y persiste en BD.
+        """
+        Ejecuta el pipeline de procesamiento de manera atómica.
 
-        Flujo:
-        1) Extraer texto y metadatos del PDF (FichaExtractor)
-        2) Parsear el texto a ``SubjectSheet`` (FichaParser)
-        3) Normalizar a ``NormalizedFichaData`` (DataNormalizer)
-        4) Crear/actualizar Asignatura
-        5) Crear/actualizar Programas
-        6) Crear relaciones Programa-Asignatura
+        Realiza las siguientes fases:
+        1. Extracción: Obtención del texto crudo desde el PDF.
+        2. Parsing: Estructuración del texto en objetos de dominio.
+        3. Normalización: Limpieza y estandarización de datos.
+        4. Persistencia: Sincronización con la base de datos bajo una única transacción.
 
-        En esta versión **no** se persisten profesores ni menciones.
+        Si ocurre cualquier error durante el proceso, se realiza un ROLLBACK automático
+        para asegurar que la base de datos no quede en un estado inconsistente.
 
         Args:
-            pdf_path: Ruta al archivo PDF de la ficha a procesar.
+            pdf_path: Ruta al archivo PDF fuente.
             db: Sesión de base de datos activa.
 
         Returns:
-            PipelineResult con información sobre la asignatura creada/actualizada,
-            programas asociados y contadores de entidades creadas.
+            PipelineResult: Objeto con el estado final, estadísticas y posibles errores.
         """
-
-        # Aseguramos que trabajamos siempre con una cadena de texto
         path_str = str(pdf_path)
 
-        # ------------------------------------------------------------------
-        # 1) Extracción de texto a partir del PDF
-        # ------------------------------------------------------------------
-        extraction_result = self._extractor.extract_from_pdf(path_str)
+        # ---------------------------------------------------------
+        # FASE 1-3: Procesamiento en Memoria (Core)
+        # ---------------------------------------------------------
+        try:
+            # 1. Extracción
+            extraction_result = self._extractor.extract_from_pdf(path_str)
+            if not extraction_result.success or not extraction_result.is_usable:
+                return PipelineResult(
+                    success=False,
+                    errors=[extraction_result.error_message or "Calidad de PDF insuficiente para procesamiento"],
+                    metadata={"extraction_metadata": extraction_result.metadata},
+                )
 
-        if not extraction_result.success or not extraction_result.is_usable:
-            # Error en extracción: devolvemos un PipelineResult fallido.
-            # El router podrá decidir si mapearlo a un HTTP 4xx/5xx.
-            return PipelineResult(
-                success=False,
-                asignatura_id=None,
-                programas_asociados=[],
-                profesores_asociados=[],
-                created_entities={},
-                errors=[
-                    extraction_result.error_message
-                    or "Error en la extracción de la ficha (PDF no usable)"
-                ],
-                metadata={
-                    "extraction_metadata": extraction_result.metadata,
-                },
+            # 2. Parsing
+            ficha_raw = self._parser.parse_text(
+                extraction_result.text,
+                extraction_metadata=extraction_result.metadata,
             )
 
-        # ------------------------------------------------------------------
-        # 2) Parsing del texto a entidad semántica (SubjectSheet)
-        # ------------------------------------------------------------------
-        ficha = self._parser.parse_text(
-            extraction_result.text,
-            extraction_metadata=extraction_result.metadata,
-        )
+            # 3. Normalización
+            normalized_data = self._normalizer.normalize_ficha(ficha_raw)
 
-        # ------------------------------------------------------------------
-        # 3) Normalización (tipos correctos, enums, limpieza de strings...)
-        # ------------------------------------------------------------------
-        normalized: NormalizedFichaData = self._normalizer.normalize_ficha(ficha)
+        except Exception as e:
+            self.logger.error(f"Error en fases de procesamiento (Extracción/Parsing): {e}", exc_info=True)
+            return PipelineResult(
+                success=False,
+                errors=[f"Error procesando el archivo: {str(e)}"],
+            )
 
-        # ------------------------------------------------------------------
-        # 4) Persistencia en BD
-        # ------------------------------------------------------------------
-        created_entities: Dict[str, int] = {
+        # ---------------------------------------------------------
+        # FASE 4: Persistencia Transaccional (DAL)
+        # ---------------------------------------------------------
+        created_stats: Dict[str, int] = {
             "asignaturas_creadas": 0,
             "asignaturas_actualizadas": 0,
             "programas_creados": 0,
-            "relaciones_programa_asignatura_creadas": 0,
+            "relaciones_creadas": 0,
             "profesores_creados": 0,
-            "relaciones_profesor_asignatura_creadas": 0,
         }
 
-        # 4.1) Crear o actualizar Asignatura
-        asignatura_id = self._persist_asignatura(db, normalized, created_entities)
+        try:
+            # 4.1 Persistir Asignatura (Estrategia Upsert)
+            asignatura_id = self._upsert_asignatura(db, normalized_data, created_stats)
 
-        # 4.2) Crear o actualizar Programas + relación Programa-Asignatura
-        programas_asociados = self._persist_programas_y_relaciones(
-            db, normalized, asignatura_id, created_entities
-        )
+            # 4.2 Sincronizar Programas y Vinculaciones
+            programas_ids = self._sync_programas(db, normalized_data, asignatura_id, created_stats)
 
-        # 4.3) Crear o asociar Profesores + relación Profesor-Asignatura
-        profesores_asociados = self._persist_profesores_y_relaciones(
-            db, normalized, asignatura_id, created_entities
-        )
+            # 4.3 Sincronizar Profesores (Estrategia Wipe & Replace para relaciones)
+            profesores_ids = self._sync_profesores(db, normalized_data, asignatura_id, created_stats)
 
-        # ------------------------------------------------------------------
-        # 5) Construir PipelineResult final
-        # ------------------------------------------------------------------
-        metadata = {
-            "codigo_plan": normalized.asignatura.codigo_plan,
-            "nombre_asignatura": normalized.asignatura.nombre,
-            "programa_nombres": [
-                t.programa_nombre for t in normalized.titulaciones
-            ],
-        }
+            # === COMMIT DE TRANSACCIÓN ===
+            # Punto de sincronización final. Solo se guardan los cambios si todo ha sido exitoso.
+            db.commit()
+            
+            # Construcción de metadatos de respuesta
+            metadata = {
+                "codigo": normalized_data.asignatura.codigo_plan,
+                "nombre": normalized_data.asignatura.nombre,
+                "extraction_quality": extraction_result.metadata.quality,
+            }
 
-        return PipelineResult(
-            success=True,
-            asignatura_id=asignatura_id,
-            programas_asociados=programas_asociados,
-            profesores_asociados=profesores_asociados,
-            created_entities=created_entities,
-            errors=[],
-            metadata=metadata,
-        )
+            return PipelineResult(
+                success=True,
+                asignatura_id=asignatura_id,
+                programas_asociados=programas_ids,
+                profesores_asociados=profesores_ids,
+                created_entities=created_stats,
+                metadata=metadata,
+            )
 
-    # ------------------------------------------------------------------
-    # Métodos internos de persistencia
-    # ------------------------------------------------------------------
+        except Exception as e:
+            # === ROLLBACK DE TRANSACCIÓN ===
+            # Ante cualquier fallo en la persistencia, revertimos al estado original.
+            db.rollback()
+            self.logger.error(f"Error de base de datos durante persistencia. Rollback ejecutado: {e}", exc_info=True)
+            return PipelineResult(
+                success=False,
+                errors=[f"Error de integridad de datos: {str(e)}"],
+                created_entities=created_stats, # Estadísticas de intento (no persistidas)
+            )
 
-    def _persist_asignatura(
-        self,
-        db: Session,
-        normalized: NormalizedFichaData,
-        created_entities: Dict[str, int],
+    # ---------------------------------------------------------
+    # Métodos Auxiliares de Sincronización
+    # ---------------------------------------------------------
+
+    def _upsert_asignatura(
+        self, db: Session, data: NormalizedFichaData, stats: Dict[str, int]
     ) -> int:
-        """Crear o actualizar la Asignatura a partir de los datos normalizados.
-
-        Estrategia:
-        - Buscar por ``codigo_plan`` en el repositorio
-        - Si existe → actualizar usando ``AsignaturaUpdate``
-        - Si no existe → crear usando ``AsignaturaCreate``
-
-        Devuelve el ``id`` de la asignatura en BD.
         """
+        Crea o actualiza la asignatura basándose en su código único.
+        Prioriza la información del PDF sobre la existente en BD.
+        """
+        asig_data = data.asignatura.model_dump()
+        codigo = asig_data["codigo_plan"]
 
-        asig = normalized.asignatura
+        existing = self._asignatura_repo.get_by_codigo(db, codigo)
 
-        # ¿Existe ya una asignatura con este código de plan?
-        existing = self._asignatura_repo.get_by_codigo(db, asig.codigo_plan)
+        if existing:
+            self._asignatura_repo.update(db, existing.id, asig_data)
+            stats["asignaturas_actualizadas"] += 1
+            return existing.id
+        else:
+            new_asig = self._asignatura_repo.create(db, asig_data)
+            stats["asignaturas_creadas"] += 1
+            return new_asig.id
 
-        if existing is None:
-            # Crear nueva asignatura
-            asig_create = AsignaturaCreate(
-                codigo_plan=asig.codigo_plan,
-                nombre=asig.nombre,
-                periodo=asig.periodo,
-                ects=asig.ects,
-                modalidad=asig.modalidad,
-                idioma=asig.idioma,
-                english_friendly=asig.english_friendly,
-                activo=True,
-            )
-
-            asig_out = self._asignatura_service.create_asignatura(db, asig_create)
-            created_entities["asignaturas_creadas"] += 1
-            return asig_out.id
-
-        # Actualizar asignatura existente (idempotente)
-        asig_update = AsignaturaUpdate(
-            codigo_plan=asig.codigo_plan,
-            nombre=asig.nombre,
-            periodo=asig.periodo,
-            ects=asig.ects,
-            modalidad=asig.modalidad,
-            idioma=asig.idioma,
-            english_friendly=asig.english_friendly,
-            activo=True,
-        )
-
-        asig_out = self._asignatura_service.update_asignatura(
-            db,
-            asignatura_id=existing.id,
-            asignatura_in=asig_update,
-        )
-        created_entities["asignaturas_actualizadas"] += 1
-        return asig_out.id
-
-    def _persist_programas_y_relaciones(
-        self,
-        db: Session,
-        normalized: NormalizedFichaData,
-        asignatura_id: int,
-        created_entities: Dict[str, int],
+    def _sync_programas(
+        self, db: Session, data: NormalizedFichaData, asignatura_id: int, stats: Dict[str, int]
     ) -> List[int]:
-        """Crear/actualizar Programas y relaciones Programa-Asignatura.
-
-        Para cada titulación normalizada:
-        - Determinar el tipo de programa a partir del nombre (heurística sencilla)
-        - Buscar Programa por (nombre, tipo)
-        - Crear si no existe
-        - Crear relación Programa-Asignatura si no existe
-
-        Devuelve la lista de IDs de programas asociados a la asignatura.
         """
+        Asegura que la asignatura esté vinculada a los programas detectados.
+        Si un programa no existe, se crea automáticamente bajo demanda.
+        """
+        programas_ids = []
 
-        programas_ids: List[int] = []
-
-        for tit in normalized.titulaciones:
-            # 1) Inferir tipo de programa a partir del nombre
-            programa_tipo = self._infer_program_type(tit.programa_nombre)
-
-            # 2) Buscar programa existente por (nombre, tipo)
+        for tit in data.titulaciones:
+            # 1. Resolución del Programa
+            tipo_inferido = self._infer_program_type(tit.programa_nombre)
             programa = self._programa_repo.get_by_nombre_tipo(
-                db,
-                nombre=tit.programa_nombre,
-                tipo=programa_tipo,
+                db, tit.programa_nombre, tipo_inferido
             )
 
-            if programa is None:
-                # Crear nuevo programa
-                prog_create = ProgramaCreate(
-                    nombre=tit.programa_nombre,
-                    tipo=programa_tipo,
-                    activo=True,
-                )
-                prog_out = self._programa_service.create_programa(db, prog_create)
-                programa_id = prog_out.id
-                created_entities["programas_creados"] += 1
-            else:
-                programa_id = programa.id
+            if not programa:
+                # Creación bajo demanda (Lazy creation)
+                prog_data = {
+                    "nombre": tit.programa_nombre,
+                    "tipo": tipo_inferido,
+                    "activo": True
+                }
+                programa = self._programa_repo.create(db, prog_data)
+                stats["programas_creados"] += 1
+            
+            programas_ids.append(programa.id)
 
-            if programa_id not in programas_ids:
-                programas_ids.append(programa_id)
+            # 2. Gestión de la Vinculación
+            rel = self._programa_asignatura_repo.get_by_programa_and_asignatura(
+                db, programa.id, asignatura_id
+            )
 
-            # 3) Crear relación Programa-Asignatura si no existe
-            if not self._programa_asignatura_repo.exists(db, programa_id, asignatura_id):
+            if not rel:
                 self._programa_asignatura_repo.create(
                     db,
-                    programa_id=programa_id,
+                    programa_id=programa.id,
                     asignatura_id=asignatura_id,
                     curso=tit.curso,
-                    tipo_asignatura=tit.tipo_asignatura,
+                    tipo_asignatura=tit.tipo_asignatura
                 )
-                created_entities["relaciones_programa_asignatura_creadas"] += 1
+                stats["relaciones_creadas"] += 1
+            else:
+                # Actualización de metadatos de la relación si difieren
+                if rel.curso != tit.curso or rel.tipo_asignatura != tit.tipo_asignatura:
+                    self._programa_asignatura_repo.update_tipo_curso(
+                        db, programa.id, asignatura_id, tit.curso, tit.tipo_asignatura
+                    )
 
         return programas_ids
 
-    def _persist_profesores_y_relaciones(
-        self,
-        db: Session,
-        normalized: NormalizedFichaData,
-        asignatura_id: int,
-        created_entities: Dict[str, int],
+    def _sync_profesores(
+        self, db: Session, data: NormalizedFichaData, asignatura_id: int, stats: Dict[str, int]
     ) -> List[int]:
         """
-        Crea/actualiza profesores y sincroniza sus relaciones con la asignatura.
-        Elimina relaciones antiguas que ya no figuran en la nueva extracción (Limpieza G49).
+        Sincroniza la asignación docente.
+        Aplica una estrategia diferencial: añade los nuevos y elimina los que ya no figuran en el PDF.
         """
-        import logging
-        logger = logging.getLogger(__name__)
+        profesores_pdf_ids = []
 
-        # IDs de los profesores detectados en la extracción ACTUAL
-        profesores_ids_actuales: List[int] = []
+        # A. Procesamiento de Profesores Entrantes
+        for prof_data in data.profesores:
+            profesor = self._profesor_repo.get_by_nombre_apellidos(
+                db, prof_data.nombre, prof_data.apellidos
+            )
 
-        # 1. Procesar profesores detectados ahora
-        for prof in normalized.profesores:
-            try:
-                # Buscar o crear profesor (con lógica de reactivación G31/G33)
-                existing = self._profesor_repo.get_by_nombre_apellidos(
-                    db, nombre=prof.nombre, apellidos=prof.apellidos
-                )
+            if not profesor:
+                new_prof_data = {
+                    "nombre": prof_data.nombre,
+                    "apellidos": prof_data.apellidos,
+                    "activo": True,
+                }
+                profesor = self._profesor_repo.create(db, new_prof_data)
+                stats["profesores_creados"] += 1
+            elif not profesor.activo:
+                self._profesor_repo.update(db, profesor.id, {"activo": True})
 
-                if existing is None:
-                    prof_create = ProfesorCreate(
-                        nombre=prof.nombre,
-                        apellidos=prof.apellidos,
-                        activo=True,
-                    )
-                    prof_out = self._profesor_service.create(db, prof_create)
-                    profesor_id = prof_out.id
-                    created_entities["profesores_creados"] += 1
-                else:
-                    profesor_id = existing.id
-                    if not existing.activo:
-                        existing.activo = True
-                        db.add(existing)
+            profesores_pdf_ids.append(profesor.id)
 
-                if profesor_id not in profesores_ids_actuales:
-                    profesores_ids_actuales.append(profesor_id)
+            # Asegurar existencia de la relación
+            if not self._profesor_asignatura_repo.exists(db, profesor.id, asignatura_id):
+                self._profesor_asignatura_repo.create(db, profesor.id, asignatura_id)
+                stats["relaciones_creadas"] += 1
 
-                # Crear relación N:M si no existe
-                if not self._profesor_asignatura_repo.exists(db, profesor_id, asignatura_id):
-                    self._profesor_asignatura_repo.create(
-                        db, profesor_id=profesor_id, asignatura_id=asignatura_id
-                    )
-                    created_entities["relaciones_profesor_asignatura_creadas"] += 1
-
-            except Exception as e:
-                logger.error(f"Error procesando profesor {prof.nombre} {prof.apellidos}: {e}")
-                continue
-
-        # Obtenemos todas las relaciones que existen actualmente en BD para esta asignatura
-        relaciones_en_db = self._profesor_asignatura_repo.get_by_asignatura(db, asignatura_id)
+        # B. Limpieza de Relaciones Obsoletas
+        relaciones_db = self._profesor_asignatura_repo.get_by_asignatura(db, asignatura_id)
         
-        for rel in relaciones_en_db:
-            # Si el profesor vinculado en la BD NO está en la lista de la nueva extracción
-            if rel.profesor_id not in profesores_ids_actuales:
-                logger.info(f"Eliminando relación obsoleta: Prof {rel.profesor_id} con Asig {asignatura_id}")
+        for rel in relaciones_db:
+            if rel.profesor_id not in profesores_pdf_ids:
+                # El profesor existe en el sistema, pero ya no imparte esta asignatura según el PDF actual
                 self._profesor_asignatura_repo.delete(db, rel.profesor_id, asignatura_id)
 
-        # Commit final para aplicar reactivaciones, nuevas relaciones y borrados
-        try:
-            db.commit()
-        except Exception as e:
-            logger.error(f"Error en commit final de sincronización de profesores: {e}")
-            db.rollback()
-
-        return profesores_ids_actuales
-
-    # ------------------------------------------------------------------
-    # Utilidades internas
-    # ------------------------------------------------------------------
+        return profesores_pdf_ids
 
     @staticmethod
     def _infer_program_type(nombre_programa: str) -> TipoPrograma:
-        """Inferir TipoPrograma a partir del nombre del programa.
-
-        Heurística sencilla basada en palabras clave típicas de la facultad:
-        - Si contiene "doble" → DOBLE_GRADO
-        - Si contiene "máster" o "master" → MASTER
-        - En otro caso → GRADO
-
-        Esta lógica se puede refinar más adelante si se incorporan
-        nuevos tipos de programas o convenciones de nomenclatura.
         """
-
+        Determina el tipo de programa basándose en convenciones de nomenclatura.
+        """
         nombre_lower = nombre_programa.lower()
-
         if "doble" in nombre_lower:
             return TipoPrograma.DOBLE_GRADO
-
         if "máster" in nombre_lower or "master" in nombre_lower:
             return TipoPrograma.MASTER
-
         return TipoPrograma.GRADO
