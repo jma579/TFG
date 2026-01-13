@@ -31,9 +31,9 @@ from database.models import (
     Aula, 
     Programa, 
     Mencion, 
-    AsignaturaMencion,
-    GrupoDocente,
-    Sesion,
+    AsignaturaMencion, 
+    GrupoDocente, 
+    Sesion, 
     AsignaturaAlias
 )
 
@@ -45,9 +45,9 @@ from modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
 
-# Matchers
+# Matchers (Importamos las CLASES para instanciar con la sesión actual)
 from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
-from modules.recursos.services.aula_matcher import aula_matcher
+from modules.recursos.services.aula_matcher import AulaMatcher
 
 # Enums
 from constants.enums import TipoGrupoDocente, DiaSemana
@@ -74,98 +74,125 @@ class HorariosPipelineService:
     """
 
     def __init__(self) -> None:
+        """Inicializa los componentes del pipeline."""
         self._extractor = HorarioExtractor()
         self._parser = HorarioParser()
 
     def extraer_horario(self, db: Session, pdf_path: Union[str, Path]) -> HorarioTemporalOut:
-        # 1) Extracción y Parsing
+        """
+        Procesa el PDF y utiliza el matcher inteligente para contextualizar los resultados.
+        """
+        # 1. Extracción y Parsing
         path_str = str(pdf_path)
         extraction_result = self._extractor.extract(path_str)
         parsed_dict = self._parser.parse(extraction_result)
         horario_out = HorarioTemporalOut(**parsed_dict)
 
-        # 2) Enriquecimiento con Matchers
-        matcher = AsignaturaMatcher(db)
-        contexto_plan = horario_out.plan or horario_out.titulo or ""
-        texto_para_periodo = f"{horario_out.periodo or ''} {horario_out.titulo or ''}"
+        # 2. Inicializar Matchers
+        asig_matcher = AsignaturaMatcher(db)
+        aula_matcher_srv = AulaMatcher(db) 
+
+        # Delegamos en el matcher la detección del Programa (usando caché y fuzzy)
+        prog_id = asig_matcher.infer_program_id(horario_out.plan or horario_out.titulo)
 
         for tabla in horario_out.horarios:
-            contexto_curso = tabla.curso or ""
+            # Obtener curso numérico
+            curso_int = 0
+            if tabla.curso:
+                digits = "".join(filter(str.isdigit, str(tabla.curso)))
+                if digits:
+                    curso_int = int(digits)
+
             nuevas_sesiones = []
             
             for sesion in tabla.sesiones:
-                # Match Asignatura
+                sesion.texto_original = sesion.asignatura
+
+                # A. Match Asignatura
                 if sesion.asignatura:
-                    asig_obj, metodo, score = matcher.match(
-                        texto_sucio=sesion.asignatura, 
-                        plan_context=contexto_plan,
-                        periodo_context=texto_para_periodo,
-                        curso_context=contexto_curso
+                    asig_obj, metodo, score = asig_matcher.match(
+                        texto_raw=sesion.asignatura, 
+                        prog_id=prog_id,  # Contexto inyectado
+                        curso=curso_int
                     )
+                    
                     sesion.match_confidence = score
                     sesion.match_status = metodo
                     if asig_obj:
+                        sesion.asignatura_id = asig_obj.id
                         sesion.asignatura_sugerida = asig_obj.nombre
 
-                # División de Grupos
+                # B. División de Grupos (Negocio)
                 grupos_detectados = horario_data_normalizer.detectar_y_dividir_grupos(sesion.grupo)
                 
                 for grupo_item in grupos_detectados:
                     sesion_clonada = sesion.model_copy()
                     
-                    # Match Aula
-                    texto_aula_original = sesion_clonada.aula or ""
-                    match_aula = aula_matcher.match(db, texto_aula_original)
+                    # C. Match Aula
+                    texto_aula = sesion_clonada.aula or ""
+                    match_aula = aula_matcher_srv.match(texto_aula)
                     
                     if match_aula:
-                        sesion_clonada.aula = match_aula.nombre
+                        sesion_clonada.aula_id = match_aula.id
+                        sesion_clonada.aula_nombre = match_aula.nombre
                     else:
-                        sesion_clonada.aula = "POR DETERMINAR"
+                        sesion_clonada.aula_nombre = texto_aula or "POR DETERMINAR"
 
-                    # Inferencia Tipo
-                    aula_para_inferencia = sesion_clonada.aula
-                    aula_norm = horario_data_normalizer._normalize_aula(aula_para_inferencia)
+                    # D. Inferencia Tipo
+                    aula_norm = horario_data_normalizer._normalize_aula(sesion_clonada.aula_nombre)
                     grupo_limpio, tipo_detectado = horario_data_normalizer.infer_grupo_y_tipo(grupo_item, aula_norm)
                     
-                    sesion_clonada.grupo = grupo_limpio
-                    
-                    if tipo_detectado == TipoGrupoDocente.LABORATORIO:
-                        sesion_clonada.tipo = "PRÁCTICAS DE LABORATORIO"
-                    elif tipo_detectado == TipoGrupoDocente.PRACTICA:
-                        sesion_clonada.tipo = "PRÁCTICAS DE AULA"
-                    else:
-                        sesion_clonada.tipo = "TEORÍA"
+                    sesion_clonada.grupo_codigo = grupo_limpio
+                    if tipo_detectado:
+                        sesion_clonada.tipo_grupo = tipo_detectado.value 
+                        if tipo_detectado == TipoGrupoDocente.LABORATORIO:
+                            sesion_clonada.tipo = "PRÁCTICAS DE LABORATORIO"
+                        elif tipo_detectado == TipoGrupoDocente.PRACTICA:
+                            sesion_clonada.tipo = "PRÁCTICAS DE AULA"
+                        else:
+                            sesion_clonada.tipo = "TEORÍA"
                     
                     nuevas_sesiones.append(sesion_clonada)
             
             tabla.sesiones = nuevas_sesiones
 
         return horario_out
-    
+
     def refinar_matching(self, db: Session, horario: HorarioTemporalOut) -> HorarioTemporalOut:
-        matcher = AsignaturaMatcher(db)
-        contexto_plan = horario.plan or horario.titulo or ""
-        texto_para_periodo = f"{horario.periodo or ''} {horario.titulo or ''}"
+        """
+        Solo actualiza los matches de asignaturas usando el nuevo motor.
+        """
+        asig_matcher = AsignaturaMatcher(db)
+        
+        # También usamos la inferencia inteligente aquí
+        prog_id = asig_matcher.infer_program_id(horario.plan)
 
         for tabla in horario.horarios:
-            contexto_curso = tabla.curso or ""
+            curso_int = 0
+            if tabla.curso:
+                digits = "".join(filter(str.isdigit, str(tabla.curso)))
+                if digits: curso_int = int(digits)
+
             for sesion in tabla.sesiones:
-                if not sesion.asignatura:
-                    continue
-                asig_obj, metodo, score = matcher.match(
-                    texto_sucio=sesion.asignatura, 
-                    plan_context=contexto_plan,      
-                    periodo_context=texto_para_periodo,
-                    curso_context=contexto_curso
+                if not sesion.asignatura: continue
+                
+                asig_obj, metodo, score = asig_matcher.match(
+                    texto_raw=sesion.asignatura, 
+                    prog_id=prog_id,      
+                    curso=curso_int
                 )
+                
                 sesion.match_confidence = score
                 sesion.match_status = metodo
                 if asig_obj:
+                    sesion.asignatura_id = asig_obj.id
                     sesion.asignatura_sugerida = asig_obj.nombre
                 else:
                     sesion.asignatura_sugerida = None
+                    sesion.asignatura_id = None
+                    
         return horario
-
+    
     def confirmar_horario(
         self,
         db: Session,
@@ -181,7 +208,7 @@ class HorariosPipelineService:
         if not nombre_plan and data.titulo:
             nombre_plan = data.titulo.split('-')[0].strip()
 
-        # FIX 1: Usar ilike para evitar problemas de mayúsculas/tildes en el nombre del programa
+        # Validación insensible a mayúsculas/tildes (SQLite ILIKE emulation)
         programa_db = db.query(Programa).filter(Programa.nombre.ilike(nombre_plan)).first()
         if not programa_db:
             raise HTTPException(
@@ -190,7 +217,6 @@ class HorariosPipelineService:
             )
 
         # --- 2. AUTO-APRENDIZAJE Y APLICACIÓN DE SUGERENCIAS ---
-        
         asig_cache_aprendizaje: Dict[str, int] = {} 
         aliases_to_create: Dict[str, int] = {}
 
@@ -207,7 +233,6 @@ class HorariosPipelineService:
                     # B) Preparar alias para aprendizaje
                     asig_id = asig_cache_aprendizaje.get(texto_sugerido)
                     if not asig_id:
-                        # FIX 2: Usar ilike en aprendizaje también
                         asig_db = db.query(Asignatura).filter(Asignatura.nombre.ilike(texto_sugerido)).first()
                         if asig_db:
                             asig_id = asig_db.id
@@ -216,7 +241,7 @@ class HorariosPipelineService:
                     if asig_id:
                         aliases_to_create[texto_original] = asig_id
 
-        # Procesar alias
+        # Procesar alias (Upsert manual)
         for alias_texto, asignatura_id in aliases_to_create.items():
             alias_existe = db.query(AsignaturaAlias).filter_by(
                 asignatura_id=asignatura_id, 
@@ -238,7 +263,7 @@ class HorariosPipelineService:
         # --- 3. NORMALIZACIÓN ---
         parsed_for_normalizer = build_parsing_result_for_normalization(data)
         
-        # Inyectar 'pagina' si falta para evitar crash del normalizador
+        # Inyectar 'pagina' si falta
         if hasattr(parsed_for_normalizer, 'horarios'):
             for idx, h_tabla in enumerate(parsed_for_normalizer.horarios):
                 if not hasattr(h_tabla, 'pagina'):
@@ -254,6 +279,9 @@ class HorariosPipelineService:
         asignatura_cache: Dict[str, Asignatura] = {}
         mencion_cache: Dict[str, Mencion] = {}
         grupos_limpiados_ids: Set[int] = set()
+        
+        # Instanciar AulaMatcher para uso en el loop de persistencia
+        aula_matcher_srv = AulaMatcher(db)
 
         try:
             for tabla in normalized_tablas:
@@ -266,7 +294,6 @@ class HorariosPipelineService:
                     if m_nombre_limpio in mencion_cache:
                         mencion_db = mencion_cache[m_nombre_limpio]
                     else:
-                        # FIX 3: ilike en búsqueda de Mención
                         mencion_db = db.query(Mencion).filter(
                             Mencion.programa_id == programa_db.id,
                             Mencion.nombre.ilike(m_nombre_limpio)
@@ -289,19 +316,18 @@ class HorariosPipelineService:
                     if nombre_asig in asignatura_cache:
                         asignatura = asignatura_cache[nombre_asig]
                     else:
-                        # FIX 4 (CRÍTICO): Usar ilike en lugar de func.lower() para soportar tildes en SQLite
                         asignatura = db.query(Asignatura).filter(
                             Asignatura.nombre.ilike(nombre_asig)
                         ).first()
                         
                         if not asignatura:
-                            # Intento extra: alias no detectado antes
                             alias_db = db.query(AsignaturaAlias).filter(
                                 AsignaturaAlias.alias.ilike(nombre_asig)
                             ).first()
                             if alias_db:
                                 asignatura = alias_db.asignatura
                             else:
+                                # Si no existe, lanzamos error (el usuario debió corregirlo en el paso anterior)
                                 raise HTTPException(
                                     status_code=400, 
                                     detail=f"Asignatura no encontrada: '{nombre_asig}'. Verifica que existe en el catálogo."
@@ -318,7 +344,7 @@ class HorariosPipelineService:
                             db.add(AsignaturaMencion(asignatura_id=asignatura.id, mencion_id=mencion_db.id))
                             db.flush()
 
-                    # 4.4 Grupo Docente (Clean & Fill)
+                    # 4.4 Grupo Docente
                     codigo_grupo = sesion_norm.grupo_codigo.strip().upper() or "UNICO"
                     
                     grupo_db = grupo_docente_repository.get_by_asignatura_codigo(db, asignatura.id, codigo_grupo)
@@ -337,6 +363,7 @@ class HorariosPipelineService:
                         grupos_limpiados_ids.add(grupo_db.id)
                     else:
                         stats["grupos_reutilizados"] += 1
+                        # Limpiar sesiones antiguas del grupo solo una vez por proceso
                         if grupo_db.id not in grupos_limpiados_ids:
                             db.query(Sesion).filter(Sesion.grupo_docente_id == grupo_db.id).delete()
                             grupos_limpiados_ids.add(grupo_db.id)
@@ -346,11 +373,13 @@ class HorariosPipelineService:
 
                     # 4.5 Aula
                     nombre_aula = sesion_norm.aula_nombre.strip()
+                    # Intentamos buscar directo primero
                     aula_db = aula_repository.get_by_nombre(db, nombre_aula) or \
                               aula_repository.get_by_codigo(db, nombre_aula)
                     
                     if not aula_db:
-                        aula_db = aula_matcher.match(db, nombre_aula)
+                        # Usamos el matcher optimizado
+                        aula_db = aula_matcher_srv.match(nombre_aula)
                         if not aula_db:
                             raise HTTPException(
                                 status_code=400,
@@ -358,7 +387,7 @@ class HorariosPipelineService:
                             )
 
                     # 4.6 Crear Sesión
-                    dia_str_norm = sesion_norm.dia_semana.upper().replace("Á","A").replace("É","E").replace("Í","I")
+                    dia_str_norm = sesion_norm.dia_semana.upper().replace("Á","A").replace("É","E").replace("Í","I").replace("Ó","O").replace("Ú","U")
                     dia_enum = TEXTO_A_DIA_ENUM.get(dia_str_norm)
                     
                     if not dia_enum: continue
