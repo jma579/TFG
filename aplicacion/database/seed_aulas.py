@@ -28,38 +28,36 @@ from backend.constants.enums import TipoAula
 # Formato: (Nombre, Código, Tipo, Capacidad)
 AULAS_DATA = [
     # --- AULAS DE TEORÍA (Imagen de lista azul) ---
-    ("AULA 1", "A1", TipoAula.TEORICA, 132),
-    ("AULA 2", "A2", TipoAula.TEORICA, 126),
-    ("AULA 3", "A3", TipoAula.TEORICA, 30),
-    ("AULA 4", "A4", TipoAula.TEORICA, 80),
-    ("AULA 5", "A5", TipoAula.TEORICA, 32),
-    ("AULA 6", "A6", TipoAula.TEORICA, 40),
-    ("AULA 7", "A7", TipoAula.TEORICA, 60),
-    ("AULA 8", "A8", TipoAula.TEORICA, 58),
-    ("AULA 9", "A9", TipoAula.TEORICA, 40),
-    ("AULA 10", "A10", TipoAula.TEORICA, 24),
-    ("AULA 11", "A11", TipoAula.TEORICA, 32),
-    ("AULA 12", "A12", TipoAula.TEORICA, 32),
-    ("AULA 13", "A13", TipoAula.TEORICA, 60),
-    ("AULA 14", "A14", TipoAula.TEORICA, 92),
-    ("AULA 15", "A15", TipoAula.TEORICA, 16),
-    ("AULA L4", "AL4", TipoAula.TEORICA, 51),
+    ("AULA 1", "Ciencias-A1", TipoAula.TEORICA, 132),
+    ("AULA 2", "Ciencias-A2", TipoAula.TEORICA, 126),
+    ("AULA 3", "Ciencias-A3", TipoAula.TEORICA, 30),
+    ("AULA 4", "Ciencias-A4", TipoAula.TEORICA, 80),
+    ("AULA 5", "Ciencias-A5", TipoAula.TEORICA, 32),
+    ("AULA 6", "Ciencias-A6", TipoAula.TEORICA, 40),
+    ("AULA 7", "Ciencias-A7", TipoAula.TEORICA, 60),
+    ("AULA 8", "Ciencias-A8", TipoAula.TEORICA, 58),
+    ("AULA 9", "Ciencias-A9", TipoAula.TEORICA, 40),
+    ("AULA 10", "Ciencias-A10", TipoAula.TEORICA, 24),
+    ("AULA 11", "Ciencias-A11", TipoAula.TEORICA, 32),
+    ("AULA 12", "Ciencias-A12", TipoAula.TEORICA, 32),
+    ("AULA 13", "Ciencias-A13", TipoAula.TEORICA, 60),
+    ("AULA 14", "Ciencias-A14", TipoAula.TEORICA, 92),
+    ("AULA 15", "Ciencias-A15", TipoAula.TEORICA, 16),
+    ("AULA L4", "Ciencias-AL4", TipoAula.TEORICA, 51),
     
     # --- AULA MAGNA ---
-    ("Aula Magna", "MAGNA", TipoAula.TEORICA, 297),
+    ("Aula Magna", "Ciencias-MAGNA", TipoAula.TEORICA, 297),
 
     # --- LABORATORIOS (Simulación, ATC, Tiempo Real) ---
-    ("Laboratorio de Simulación 1", "LAB_SIM1", TipoAula.LABORATORIO, 42),
-    ("Laboratorio de Simulación 2", "LAB_SIM2", TipoAula.LABORATORIO, 25),
-    ("Laboratorio de Simulación 3", "LAB_SIM3", TipoAula.LABORATORIO, 42),
-    ("Laboratorio ATC", "LAB_ATC", TipoAula.LABORATORIO, 24),
-    ("Laboratorio en Tiempo Real", "LAB_TR", TipoAula.LABORATORIO, 20), # Capacidad estimada
-
+    ("Laboratorio de Simulación 1", "Ciencias-LSC1", TipoAula.LABORATORIO, 42),
+    ("Laboratorio de Simulación 2", "Ciencias-LSC2", TipoAula.LABORATORIO, 25),
+    ("Laboratorio de Simulación 3", "Ciencias-LSC3", TipoAula.LABORATORIO, 42),
+    ("Laboratorio ATC", "Ciencias-LATC", TipoAula.LABORATORIO, 24),
+    ("Laboratorio en Tiempo Real", "Ciencias-LTR", TipoAula.LABORATORIO, 20), # Capacidad estimada
     # --- LABORATORIOS (Física, Electrónica, Mecánica) ---
-    ("Laboratorio de Física Experimental", "LAB_FIS", TipoAula.LABORATORIO, 38),
-    ("Laboratorio de Electrónica Básica", "LAB_ELEC", TipoAula.LABORATORIO, 20),
-    ("Laboratorio de Mecánica", "LAB_MEC", TipoAula.LABORATORIO, 16), # 8 puestos dobles estimados
-
+    ("Laboratorio de Física Experimental", "Ciencias-LFIS", TipoAula.LABORATORIO, 38),
+    ("Laboratorio de Electrónica Básica", "Ciencias-LELEC", TipoAula.LABORATORIO, 20),
+    ("Laboratorio de Mecánica", "Ciencias-LMEC", TipoAula.LABORATORIO, 16), # 8 puestos dobles estimados
     # --- SEMINARIOS (Mapeados desde Sala de Grados) ---
     # Nota: Usamos capacidad 42 (Sala de Grados) para estos 3 según instrucciones.
     ("Seminario de Informática", "SEM_INF", TipoAula.SEMINARIO, 42), 

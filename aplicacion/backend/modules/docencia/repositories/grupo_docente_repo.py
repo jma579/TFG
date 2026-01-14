@@ -7,7 +7,7 @@ Responsabilidades:
 - WIPE: Borrado masivo por asignatura (para regeneración de horarios).
 """
 
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -65,17 +65,33 @@ class GrupoDocenteRepository:
     # ESCRITURA (Sin Commit)
     # ==========================
 
-    def create(self, db: Session, data: dict) -> GrupoDocente:
+    def create(self, db: Session, data: Union[dict, Any]) -> GrupoDocente:
         """Crea un grupo. El commit es responsabilidad del servicio."""
-        db_grupo = GrupoDocente(**data)
+        # Conversión segura Pydantic -> Dict
+        if hasattr(data, "model_dump"):
+            data_dict = data.model_dump(exclude_unset=True)
+        elif hasattr(data, "dict"):
+            data_dict = data.dict(exclude_unset=True)
+        else:
+            data_dict = data
+
+        db_grupo = GrupoDocente(**data_dict)
         db.add(db_grupo)
         db.flush()
         db.refresh(db_grupo)
         return db_grupo
 
-    def update(self, db: Session, db_obj: GrupoDocente, data: dict) -> GrupoDocente:
+    def update(self, db: Session, db_obj: GrupoDocente, data: Union[dict, Any]) -> GrupoDocente:
         """Actualiza un grupo. El commit es responsabilidad del servicio."""
-        for field, value in data.items():
+        # Conversión segura Pydantic -> Dict
+        if hasattr(data, "model_dump"):
+            data_dict = data.model_dump(exclude_unset=True)
+        elif hasattr(data, "dict"):
+            data_dict = data.dict(exclude_unset=True)
+        else:
+            data_dict = data
+
+        for field, value in data_dict.items():
             setattr(db_obj, field, value)
         db.flush()
         db.refresh(db_obj)

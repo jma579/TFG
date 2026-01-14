@@ -7,7 +7,7 @@ Responsabilidades:
 
 """
 
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Optional, Tuple, List, Dict, Any, Union
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 from datetime import datetime, time
@@ -76,21 +76,37 @@ class SesionRepository:
     # ESCRITURA (Sin Commit)
     # ==========================
 
-    def create(self, db: Session, data: dict) -> Sesion:
+    def create(self, db: Session, data: Union[dict, Any]) -> Sesion:
         """
         Crea una sesión.
         Nota: Los profesores se deben añadir posteriormente o mediante lógica en el service.
         """
-        # Extraer campos que no pertenecen al modelo Sesion directo (si los hubiera)
-        db_sesion = Sesion(**data)
+        if hasattr(data, "model_dump"):
+            # Excluimos profesores porque es una relación M:N que se gestiona aparte o después
+            data_dict = data.model_dump(exclude={'profesores'}, exclude_unset=True)
+        elif hasattr(data, "dict"):
+            data_dict = data.dict(exclude={'profesores'}, exclude_unset=True)
+        else:
+            data_dict = data.copy()
+            if 'profesores' in data_dict:
+                del data_dict['profesores']
+
+        db_sesion = Sesion(**data_dict)
         db.add(db_sesion)
         db.flush()
         db.refresh(db_sesion)
         return db_sesion
 
-    def update(self, db: Session, db_obj: Sesion, data: dict) -> Sesion:
+    def update(self, db: Session, db_obj: Sesion, data: Union[dict, Any]) -> Sesion:
         """Actualiza campos escalares de la sesión."""
-        for field, value in data.items():
+        if hasattr(data, "model_dump"):
+            data_dict = data.model_dump(exclude={'profesores'}, exclude_unset=True)
+        elif hasattr(data, "dict"):
+            data_dict = data.dict(exclude={'profesores'}, exclude_unset=True)
+        else:
+            data_dict = data
+
+        for field, value in data_dict.items():
             setattr(db_obj, field, value)
         
         db.flush()
