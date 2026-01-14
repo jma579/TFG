@@ -44,7 +44,8 @@ class GrupoDocenteRepository:
         limit: int = 100,
         asignatura_id: Optional[int] = None,
         tipo: Optional[TipoGrupoDocente] = None,
-        curso: Optional[int] = None
+        curso: Optional[int] = None,
+        turno: Optional[str] = None
     ) -> Tuple[List[GrupoDocente], int]:
         """Obtiene múltiples grupos con filtros opcionales y paginación."""
         query = db.query(GrupoDocente)
@@ -55,6 +56,8 @@ class GrupoDocenteRepository:
             query = query.filter(GrupoDocente.tipo == tipo)
         if curso:
             query = query.filter(GrupoDocente.curso == curso)
+        if turno:
+            query = query.filter(GrupoDocente.turno == turno)
             
         total = query.count()
         query = query.order_by(GrupoDocente.curso, GrupoDocente.codigo)

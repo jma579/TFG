@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 from datetime import datetime, time
 
-from database.models import Sesion, ProfesorSesion
+from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, AsignaturaMencion, Mencion
 from modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
 from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
 
@@ -45,30 +45,62 @@ class SesionRepository:
         grupo_docente_id: Optional[int] = None,
         aula_id: Optional[int] = None,
         profesor_id: Optional[int] = None,
-        dia_semana: Optional[DiaSemana] = None
+        dia_semana: Optional[DiaSemana] = None,
+        modalidad: Optional[ModalidadSesion] = None,
+        tipo_recurrencia: Optional[TipoRecurrencia] = None,
+        curso: Optional[int] = None,
+        mencion_id: Optional[int] = None,
+        mencion_nombre: Optional[str] = None
     ) -> Tuple[List[Sesion], int]:
         """Listar sesiones con filtros múltiples."""
         query = db.query(Sesion)
+        
+        need_grupo_join = (curso is not None) or (mencion_id is not None) or (mencion_nombre is not None)
+        if need_grupo_join:
+            query = query.join(Sesion.grupo_docente)
+        
+        need_mencion_join = (mencion_id is not None) or (mencion_nombre is not None)
+        if need_mencion_join:
+            query = query.join(GrupoDocente.asignatura)\
+                         .join(Asignatura.asignatura_menciones)
 
+        # Si filtramos por NOMBRE, necesitamos un salto más hasta la tabla Mencion
+        if mencion_nombre:
+             query = query.join(AsignaturaMencion.mencion)
+
+        # --- Aplicación de Filtros ---
         if grupo_docente_id:
             query = query.filter(Sesion.grupo_docente_id == grupo_docente_id)
         if aula_id:
             query = query.filter(Sesion.aula_id == aula_id)
         if dia_semana:
             query = query.filter(Sesion.dia_semana == dia_semana)
+        if modalidad:
+            query = query.filter(Sesion.modalidad == modalidad)
+        if tipo_recurrencia:
+            query = query.filter(Sesion.tipo_recurrencia == tipo_recurrencia)
         if profesor_id:
-            # Join explícito para filtrar por relación M:N
             query = query.join(Sesion.profesores_sesiones).filter(
                 ProfesorSesion.profesor_id == profesor_id
             )
+        
+        # Filtros jerárquicos
+        if curso is not None:
+            query = query.filter(GrupoDocente.curso == curso)
+        
+        if mencion_id is not None:
+            query = query.filter(AsignaturaMencion.mencion_id == mencion_id)
+            
+        if mencion_nombre is not None:
+            # ilike para que sea insensible a mayúsculas/minúsculas (robusto)
+            query = query.filter(Mencion.nombre.ilike(mencion_nombre))
+
+        # DISTINCT es vital cuando hacemos joins de 1:N (asignatura -> menciones)
+        # para evitar que una sesión salga duplicada si la asignatura tiene varias menciones.
+        query = query.distinct()
 
         total = query.count()
-        
-        # Ordenar por día y hora para coherencia visual
-        # Nota: La ordenación de DiaSemana (Enum) en BD depende del motor, 
-        # aquí asumimos orden de inserción o alfabético. Idealmente usar CASE o int.
         query = query.order_by(Sesion.dia_semana, Sesion.hora_inicio)
-        
         items = query.offset(skip).limit(limit).all()
         return items, total
 

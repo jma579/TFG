@@ -41,6 +41,7 @@ from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repos
 from modules.recursos.repositories.aula_repo import aula_repository
 from modules.recursos.repositories.profesor_repo import profesor_repository
 
+from database.models import Sesion
 
 class SesionService:
     """
@@ -231,7 +232,10 @@ class SesionService:
         aula_id: Optional[int] = None,
         modalidad: Optional[ModalidadSesion] = None,
         tipo_recurrencia: Optional[TipoRecurrencia] = None,
-        dia_semana: Optional[DiaSemana] = None
+        dia_semana: Optional[DiaSemana] = None,
+        curso: Optional[int] = None,
+        mencion_id: Optional[int] = None,
+        mencion: Optional[str] = None
     ) -> Tuple[List[SesionOut], int]:
         """
         Listar sesiones con filtros y paginación.
@@ -245,7 +249,9 @@ class SesionService:
             modalidad: Filtrar por modalidad
             tipo_recurrencia: Filtrar por tipo de recurrencia
             dia_semana: Filtrar por día de la semana
-            
+            curso: Filtrar por curso académico
+            mencion_id: Filtrar por mención
+
         Returns:
             Tupla (lista_sesiones_out, total)
         """
@@ -258,7 +264,10 @@ class SesionService:
             aula_id=aula_id,
             modalidad=modalidad,
             tipo_recurrencia=tipo_recurrencia,
-            dia_semana=dia_semana
+            dia_semana=dia_semana,
+            curso=curso,
+            mencion_id=mencion_id,
+            mencion_nombre=mencion
         )
         
         # Convertir modelos a schemas Pydantic

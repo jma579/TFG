@@ -1,15 +1,12 @@
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any, Set
 from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func
 
 from database.models import (
     GrupoDocente,
     Asignatura,
     Programa,
-    AsignaturaMencion,
-    Mencion,
-    Conflicto
+    AsignaturaMencion
 )
 from modules.docencia.schemas.dashboard import (
     ResumenHorarioOut,
@@ -19,9 +16,13 @@ from modules.docencia.schemas.dashboard import (
 
 class DashboardService:
     def get_resumen(self, db: Session, filtros: DashboardFiltros) -> List[ResumenHorarioOut]:
-        # 1. Query Base
+        """
+        Genera el resumen de tarjetas para el dashboard.
+        Optimizado para Mención Única y sin cálculo de conflictos.
+        """
+        # 1. Query Optimizada (Eager Loading)
+        # Traemos solo lo necesario para evitar N+1 queries
         query = db.query(GrupoDocente)\
-            .join(GrupoDocente.sesiones)\
             .join(GrupoDocente.asignatura)\
             .join(Asignatura.programas)\
             .options(
@@ -32,79 +33,66 @@ class DashboardService:
                 joinedload(GrupoDocente.asignatura).joinedload(Asignatura.programas)
             )
 
-        # 2. Aplicar Filtros
+        # 2. Aplicar Filtros Básicos en BD
         if filtros.programa_id:
             query = query.filter(Programa.id == filtros.programa_id)
         if filtros.curso:
             query = query.filter(GrupoDocente.curso == filtros.curso)
 
-        raw_rows = query.all()
+        # Ejecutamos consulta
+        grupos_db = query.all()
 
-        # Deduplicación
-        grupos_unicos_map = {grupo.id: grupo for grupo in raw_rows}
-        grupos_activos = list(grupos_unicos_map.values())
-
+        # 3. Agregación en Memoria
+        # Estructura Clave -> Datos Agregados
+        # Clave: (programa_id, curso, cuatrimestre, nombre_mencion_o_none)
         agrupacion: Dict[tuple, Dict[str, Any]] = {}
         now = datetime.now()
 
-        print(f"\n--- [DEBUG] INICIO PROCESAMIENTO DASHBOARD ({len(grupos_activos)} grupos) ---")
+        for grupo in grupos_db:
+            asignatura = grupo.asignatura
+            
+            nombres_menciones = []
+            if asignatura.asignatura_menciones:
+                for am in asignatura.asignatura_menciones:
+                    if am.mencion:
+                        nombres_menciones.append(am.mencion.nombre)
+            
+            # Si no tiene menciones, es Troncal (None)
+            if not nombres_menciones:
+                nombres_menciones = [None]
 
-        for grupo in grupos_activos:
-            lista_programas = grupo.asignatura.programas
-
-            # DEBUG: Imprimir info de asignaturas de 4º curso para ver si detecta menciones
-            if grupo.curso == 4:
-                print(f"[DEBUG] Analizando Grupo ID {grupo.id} - Asignatura: {grupo.asignatura.nombre}")
-
-            for programa in lista_programas:
-                if filtros.programa_id and programa.id != filtros.programa_id:
-                    continue
-
-                curso = grupo.curso
-                cuatrimestre = getattr(grupo.asignatura, 'cuatrimestre', 1) 
+            # Iteramos sobre CADA mención (o None) para asignar el grupo a la tarjeta correcta
+            for nombre_mencion in nombres_menciones:
                 
-                # Obtener menciones explícitas
-                mencion_nombres = []
-                asoc_menciones = grupo.asignatura.asignatura_menciones
-                
-                if asoc_menciones:
-                    for assoc in asoc_menciones:
-                        if assoc.mencion:
-                            mencion_nombres.append(assoc.mencion.nombre)
-                
-                # DEBUG: Ver qué encontró
-                if grupo.curso == 4:
-                    print(f"   -> Menciones encontradas en DB: {mencion_nombres}")
+                for programa in asignatura.programas:
+                    if filtros.programa_id and programa.id != filtros.programa_id:
+                        continue
 
-                iterador_menciones = mencion_nombres if mencion_nombres else [None]
-
-                for nombre_mencion in iterador_menciones:
-                    key = (programa.id, curso, cuatrimestre, nombre_mencion)
+                    cuatrimestre = getattr(asignatura, 'cuatrimestre', 1) or 1
+                    
+                    # La clave incluye el nombre de la mención específica
+                    key = (programa.id, grupo.curso, cuatrimestre, nombre_mencion)
 
                     if key not in agrupacion:
                         agrupacion[key] = {
                             "programa_id": programa.id,
                             "programa_nombre": programa.nombre,
-                            "curso": curso,
+                            "curso": grupo.curso,
                             "cuatrimestre": cuatrimestre,
                             "mencion_str": nombre_mencion,
                             "asignaturas_ids": set(),
                             "total_sesiones": 0,
-                            "conflictos_count": 0,
                             "ultima_actualizacion": now
                         }
 
                     stats = agrupacion[key]
-                    stats["asignaturas_ids"].add(grupo.asignatura_id)
+                    stats["asignaturas_ids"].add(asignatura.id)
                     stats["total_sesiones"] += len(grupo.sesiones)
 
-        print("--- [DEBUG] FIN PROCESAMIENTO ---\n")
-
-        # 4. Convertir a Lista
+        # 4. Transformación a Esquema de Salida
         resultados = []
-        for key, stats in agrupacion.items():
-            c_count = stats["conflictos_count"]
-            estado = EstadoHorario.CONFLICTO if c_count > 0 else EstadoHorario.OK
+        for stats in agrupacion.values():
+            # Formateo de mención para el frontend (Lista de strings)
             menciones_out = [stats["mencion_str"]] if stats["mencion_str"] else []
 
             resumen = ResumenHorarioOut(
@@ -115,17 +103,18 @@ class DashboardService:
                 menciones=menciones_out,
                 total_asignaturas=len(stats["asignaturas_ids"]),
                 total_sesiones=stats["total_sesiones"],
-                estado=estado,
-                conflictos_count=c_count,
+                estado=EstadoHorario.OK, # Siempre OK por ahora
+                conflictos_count=0,      # Siempre 0 por ahora
                 ultima_actualizacion=stats["ultima_actualizacion"]
             )
             resultados.append(resumen)
 
+        # 5. Ordenación (Programa -> Curso -> Cuatrimestre -> Troncales primero -> Menciones A-Z)
         resultados.sort(key=lambda x: (
             x.programa_id, 
             x.curso, 
             x.cuatrimestre, 
-            0 if not x.menciones else 1, 
+            0 if not x.menciones else 1, # Troncales (0) antes que menciones (1)
             x.menciones[0] if x.menciones else ""
         ))
         

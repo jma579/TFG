@@ -1,8 +1,8 @@
 // src/lib/api/docencia/sesiones.ts
 import { api } from '@/lib/api/config';
-import { ConflictoOut } from '@/lib/api/conflictos'; // Asegúrate que este tipo existe o defínelo
+import { ConflictoOut } from '@/lib/api/conflictos';
 
-// --- Tipos alineados con tu Backend (sesion.py) ---
+// --- Tipos alineados con tu Backend ---
 
 export type SesionOut = {
   id: number;
@@ -16,7 +16,7 @@ export type SesionOut = {
   hora_fin?: string | null;
   inicio?: string | null;
   fin?: string | null;
-  // Profesores (según SesionOut en backend)
+  // Profesores
   profesores: Array<{
     profesor_id: number;
     rol_en_sesion?: string;
@@ -42,35 +42,34 @@ export type SesionUpdateInput = {
   dia_semana?: string;
   hora_inicio?: string;
   hora_fin?: string;
-  // Agrega otros campos si tu SesionUpdate en backend lo permite
 };
 
+// --- [FIX] AÑADIMOS LOS NUEVOS FILTROS ---
 export type SesionFilters = {
   grupo_docente_id?: number;
   aula_id?: number;
+  curso?: number;       // <--- Nuevo
+  mencion?: string;     // <--- Nuevo (Nombre de la mención)
   page?: number;
   size?: number;
 };
 
 // --- Funciones ---
 
-// 1. FALTABA: Listar sesiones (Necesario para pintar el horario completo)
 export async function listSesiones(filters: SesionFilters = {}): Promise<SesionListResponse> {
   const { page = 1, size = 100, ...rest } = filters;
   const params = {
     skip: (page - 1) * size,
     limit: size,
-    ...rest,
+    ...rest, // Aquí se incluirán automágicamente curso y mencion
   };
   return api.get('/v0/docencia/sesiones', { params });
 }
 
-// 2. Obtener una sola sesión
 export async function getSesionConConflictos(id: number): Promise<SesionWithConflictosOut> {
-  return api.get(`/v0/docencia/sesiones/${id}`); // Ojo: Verifica si tu backend devuelve SesionOut o SesionWithConflictosOut en el GET simple
+  return api.get(`/v0/docencia/sesiones/${id}`);
 }
 
-// 3. CORRECCIÓN: El backend define @router.put, no patch
 export async function updateSesion(
   id: number,
   data: SesionUpdateInput

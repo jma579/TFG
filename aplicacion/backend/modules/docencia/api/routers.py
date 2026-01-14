@@ -579,6 +579,8 @@ def eliminar_grupo_docente(
     - `modalidad`: Filtrar por modalidad (presencial, online, hibrida)
     - `tipo_recurrencia`: Filtrar por tipo (semanal, quincenal, mensual, puntual)
     - `dia_semana`: Filtrar por día de la semana (solo para recurrentes)
+    - `curso`: Filtrar por curso académico (1, 2, 3...)
+    - `mencion_id`: Filtrar por Mención específica (cruza tablas Asignatura -> Mención)
     
     **Paginación:**
     - `skip`: Número de registros a saltar (default: 0)
@@ -654,6 +656,23 @@ def listar_sesiones(
         description="Filtrar por día de la semana (solo recurrentes)",
         examples=["lunes", "martes", "miercoles"]
     ),
+    curso: Optional[int] = Query(
+        None,
+        ge=1,
+        le=6,
+        description="Filtrar por curso académico (1, 2, 3...)",
+        examples=[1, 3, 4]
+    ),
+    mencion_id: Optional[int] = Query(
+        None,
+        gt=0,
+        description="Filtrar por ID de mención para itinerarios específicos",
+        examples=[1, 5]
+    ),
+    mencion: Optional[str] = Query(
+        None, 
+        description="Nombre de la mención (ej: 'Computación', 'Informática'). Case-insensitive."
+    ),
     db: Session = Depends(get_db)
 ):
     """
@@ -671,7 +690,10 @@ def listar_sesiones(
         aula_id=aula_id,
         modalidad=modalidad,
         tipo_recurrencia=tipo_recurrencia,
-        dia_semana=dia_semana
+        dia_semana=dia_semana,
+        curso=curso,
+        mencion_id=mencion_id,
+        mencion=mencion
     )
     
     # Calcular número de página actual
