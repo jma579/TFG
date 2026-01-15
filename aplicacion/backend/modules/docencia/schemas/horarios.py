@@ -159,70 +159,41 @@ class HorarioSesionTemporal(BaseModel):
         - grupo: Código de grupo textual ("PL1", "PA2", "T1", ...)
     """
 
-    asignatura: Optional[str] = Field(
-        None,
-        description="Nombre de la asignatura según aparece en el horario",
-        examples=["Física Básica I", "Estructura de la Materia"],
-    )
-    aula: Optional[str] = Field(
-        None,
-        description="Nombre del aula donde se imparte la sesión",
-        examples=["AULA 4", "LAB 2", "LSC 1"],
-    )
-    dia: Optional[str] = Field(
-        None,
-        description="Día de la semana en texto (LUNES, MARTES, ...)",
-        examples=["LUNES", "MIÉRCOLES"],
-    )
-    hora_inicio: Optional[str] = Field(
-        None,
-        description="Hora de inicio de la sesión en formato HH:MM",
-        examples=["08:30", "10:00"],
-    )
-    hora_fin: Optional[str] = Field(
-        None,
-        description="Hora de fin de la sesión en formato HH:MM",
-        examples=["10:30", "12:00"],
-    )
-    tipo: Optional[str] = Field(
-        None,
-        description="Tipo textual de la sesión (TEORÍA, PRÁCTICA, PRÁCTICA_AULA, ...)",
-        examples=["TEORÍA", "PRÁCTICA"],
-    )
-    grupo: Optional[str] = Field(
-        None,
-        description="Código textual del grupo (PL1, PA2, T1, ...)",
-        examples=["PL1", "T1"],
-    )
-    match_confidence: Optional[float] = Field(
-        None, 
-        description="Puntuación de similitud (0-100). Útil para que el frontend coloree alertas.",
-        examples=[95.0, 45.5]
-    )
-    match_status: Optional[str] = Field(
-        None, 
-        description="Código de estado: 'EXACT', 'ALIAS_DB', 'FUZZY_AUTO', 'FUZZY_LOW_CONFIDENCE', 'NO_MATCH'",
-        examples=["FUZZY_LOW_CONFIDENCE"]
-    )
-    asignatura_sugerida: Optional[str] = Field(
-        None, 
-        description="Nombre oficial sugerido si hubo match (aunque sea de baja confianza).",
-        examples=["Física I"]
-    )
+    # --- Datos Crudos (Tal cual vienen del PDF) ---
+    asignatura: Optional[str] = Field(None, description="Nombre asignatura (PDF)")
+    aula: Optional[str] = Field(None, description="Nombre aula (PDF)")
+    dia: Optional[str] = Field(None, description="Día texto")
+    hora_inicio: Optional[str] = Field(None, description="HH:MM")
+    hora_fin: Optional[str] = Field(None, description="HH:MM")
+    tipo: Optional[str] = Field(None, description="Tipo visual")
+    grupo: Optional[str] = Field(None, description="Grupo texto")
+
+    # --- Campos Técnicos de Matching (NECESARIOS PARA EL NUEVO MOTOR) ---
+    # Asignatura
+    asignatura_id: Optional[int] = Field(None, description="ID sugerido por Matcher")
+    asignatura_sugerida: Optional[str] = Field(None, description="Nombre oficial sugerido")
+    match_confidence: Optional[float] = Field(0.0, description="Confianza del matching")
+    match_status: Optional[str] = Field("NO_MATCH", description="Estado del matching")
+    
+    # Aula
+    aula_id: Optional[int] = Field(None, description="ID aula encontrada")
+    aula_nombre: Optional[str] = Field(None, description="Nombre oficial aula")
+
+    # Normalización (Para no perder el trabajo del normalizador)
+    grupo_codigo: Optional[str] = Field(None, description="Código de grupo normalizado")
+    tipo_grupo: Optional[str] = Field(None, description="Tipo de grupo normalizado")
+    
+    # Aprendizaje
+    texto_original: Optional[str] = Field(None, description="Para aprender alias futuros")
 
     model_config = ConfigDict(
+        extra="ignore", # Ignora campos extra si el parser antiguo enviara basura
         json_schema_extra={
             "example": {
-                "asignatura": "Física Básica I",
-                "aula": "AULA 4",
-                "dia": "LUNES",
-                "hora_inicio": "08:30",
-                "hora_fin": "10:30",
-                "tipo": "TEORÍA",
-                "grupo": "T1",
-                "match_confidence": 65.0,
-                "match_status": "FUZZY_LOW_CONFIDENCE",
-                "asignatura_sugerida": "Física Básica I",
+                "asignatura": "Fisica I",
+                "asignatura_id": 15,
+                "aula": "AULA 1",
+                "match_confidence": 95.0
             }
         }
     )

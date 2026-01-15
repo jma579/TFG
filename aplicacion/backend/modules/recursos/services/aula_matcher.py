@@ -1,100 +1,149 @@
+"""
+Servicio de emparejamiento de Aulas (Entity Resolution).
+
+Responsabilidades:
+- Identificar el aula de la base de datos que corresponde a un texto extraído del PDF.
+- Manejar variaciones comunes de escritura (espacios, guiones, ceros a la izquierda).
+- Optimizar el rendimiento mediante caché en memoria y estrategias de búsqueda jerárquica.
+
+Estrategia Técnica:
+1. Cache Singleton: Carga masiva al inicio para evitar N+1 consultas a BD.
+2. Match Exacto (O(1)): Búsqueda instantánea en hashmap (incluyendo variantes sin espacios).
+3. Fuzzy Match (O(N)): Algoritmo probabilístico como último recurso.
+"""
+
 import logging
 import re
-from typing import Optional
+from typing import Optional, Dict, List
 from sqlalchemy.orm import Session
-
-# Intentamos importar rapidfuzz
-try:
-    from rapidfuzz import process, fuzz
-except ImportError:
-    print("❌ ERROR: 'rapidfuzz' no instalado.")
-    raise
+from rapidfuzz import process, fuzz
 
 from database.models import Aula
 
 logger = logging.getLogger(__name__)
 
+
 class AulaMatcher:
     """
-    Servicio para emparejar aulas usando lógica Fuzzy insensible a mayúsculas
-    y tolerante a diferencias de espaciado (LSC1 vs LSC 1).
+    Motor de resolución de entidades para Aulas.
     """
 
-    # Mantenemos el umbral en 80, que es seguro.
+    # Umbral de similitud para aceptar un match difuso.
     MIN_SCORE_THRESHOLD = 80
 
-    def match(self, db: Session, texto_aula: str) -> Optional[Aula]:
+    def __init__(self, db: Session):
+        self.db = db
+        
+        # Estructuras de datos en memoria (Caché)
+        self._map_lookup: Dict[str, Aula] = {}
+        self._keys_fuzzy: List[str] = []
+        
+        # [NUEVO] Lista plana de aulas para iteración secuencial (Suffix Match)
+        self._cached_aulas: List[Aula] = []
+        
+        self.refresh_cache()
+
+    def refresh_cache(self):
+        """
+        Carga masiva de aulas en memoria.
+        """
+        logger.info("Iniciando carga de caché de Aulas...")
+        
+        self._map_lookup = {}
+        self._keys_fuzzy = []
+        self._cached_aulas = []
+        
+        # Consulta eficiente: solo aulas activas
+        aulas = self.db.query(Aula).filter(Aula.activo == True).all()
+        self._cached_aulas = aulas # Guardamos la lista pura
+        
+        count_indexed = 0
+        for aula in aulas:
+            # 1. Indexar Nombre oficial
+            if aula.nombre:
+                self._indexar_termino(aula.nombre, aula)
+                self._indexar_termino(aula.nombre.replace(" ", ""), aula)
+            
+            # 2. Indexar Código oficial
+            if aula.codigo:
+                self._indexar_termino(aula.codigo, aula)
+                self._indexar_termino(aula.codigo.replace(" ", ""), aula)
+            
+            count_indexed += 1
+
+        self._keys_fuzzy = list(self._map_lookup.keys())
+        
+        logger.info(
+            f"AulaMatcher Cache: {count_indexed} aulas cargadas, "
+            f"{len(self._keys_fuzzy)} variantes indexadas."
+        )
+
+    def _indexar_termino(self, texto: str, aula: Aula):
+        key = self._normalize(texto)
+        if not key or len(key) < 2: return
+        self._map_lookup[key] = aula
+
+    def match(self, texto_aula: str) -> Optional[Aula]:
+        """
+        Busca la mejor coincidencia de aula.
+        Jerarquía: Exacto -> Variante -> Sufijo Código -> Fuzzy.
+        """
         if not texto_aula or len(texto_aula.strip()) < 2:
             return None
 
-        # 1. Traer aulas
-        aulas = db.query(Aula).all()
-        if not aulas:
-            logger.warning("⚠️ AulaMatcher: BD vacía de aulas.")
-            return None
-
-        # 2. Preparar candidatos (Normalización en origen)
-        choices = {}
-        for aula in aulas:
-            # A) Nombre en Mayúsculas
-            if aula.nombre:
-                nombre_upper = aula.nombre.upper().strip()
-                choices[nombre_upper] = aula
-            
-            # B) Código en Mayúsculas y variantes
-            if aula.codigo:
-                codigo_upper = aula.codigo.upper().strip()
-                choices[codigo_upper] = aula
-                
-                # Opción Expandida: "LSC1" -> "LSC 1"
-                codigo_expandido = re.sub(r'([A-Z])(\d)', r'\1 \2', codigo_upper)
-                codigo_expandido = codigo_expandido.replace("-", " ").replace("_", " ")
-                choices[codigo_expandido] = aula
-
-        # 3. Normalizar Input (PDF)
         query_norm = self._normalize(texto_aula)
+        
+        # --- PASO 1: MATCH EXACTO ---
+        if query_norm in self._map_lookup:
+            return self._map_lookup[query_norm]
 
-        # 4. Fuzzy Match
+        # --- PASO 2: MATCH EXACTO COMPRIMIDO ---
+        query_compressed = query_norm.replace(" ", "")
+        if query_compressed in self._map_lookup:
+            return self._map_lookup[query_compressed]
+
+        # --- PASO 3: MATCH POR SUFIJO DE CÓDIGO (SMART MATCH) ---
+        # Limpiamos alfanuméricos para comparar esqueletos
+        query_alnum = "".join(filter(str.isalnum, query_norm)).upper()
+        
+        # Solo aplicamos si la query tiene suficiente entidad (evitar match con "1" o "A")
+        if len(query_alnum) >= 2:
+            for aula in self._cached_aulas:
+                if not aula.codigo: continue
+                
+                # Limpiamos el código de la BD también
+                code_alnum = "".join(filter(str.isalnum, aula.codigo)).upper()
+                
+                if code_alnum.endswith(query_alnum):
+                    logger.info(
+                        f"🔗 Smart Suffix Match: '{texto_aula}' coincide con final de código '{aula.codigo}'"
+                    )
+                    return aula
+
+        # --- PASO 4: FUZZY MATCH ---
         resultado = process.extractOne(
             query=query_norm,
-            choices=choices.keys(),
-            scorer=fuzz.token_set_ratio
+            choices=self._keys_fuzzy,
+            scorer=fuzz.token_sort_ratio, 
+            score_cutoff=self.MIN_SCORE_THRESHOLD
         )
 
-        if not resultado:
-            return None
+        if resultado:
+            match_key, score, _ = resultado
+            logger.info(
+                f"🔍 Fuzzy Aula Match: '{texto_aula}' -> '{match_key}' (Score: {score:.1f})"
+            )
+            return self._map_lookup[match_key]
 
-        match_text, score, _ = resultado
-
-        # --- LOGS ACTIVADOS ---
-        # Solo mostramos si hay una mínima similitud (>40) para no ensuciar con ruido total
-        if score > 40:
-            if score >= self.MIN_SCORE_THRESHOLD:
-                # ÉXITO
-                logger.info(f"✅ MATCH AULA: '{query_norm}' -> '{match_text}' (Oficial: {choices[match_text].nombre}) | Score: {score}")
-            else:
-                # FALLO (Casi, pero no)
-                logger.warning(f"❌ AULA RECHAZADA: '{query_norm}' se parece a '{match_text}' pero Score {score} < {self.MIN_SCORE_THRESHOLD}")
-
-        if score >= self.MIN_SCORE_THRESHOLD:
-            return choices[match_text]
-        
         return None
 
-    def _normalize(self, text: str) -> str:
-        """Mayúsculas, sin tildes y separando números (AULA14 -> AULA 14)."""
+    @staticmethod
+    def _normalize(text: str) -> str:
         if not text: return ""
         text = text.upper().strip()
-        
-        # Quitar tildes
         replacements = (('Á', 'A'), ('É', 'E'), ('Í', 'I'), ('Ó', 'O'), ('Ú', 'U'))
         for a, b in replacements:
             text = text.replace(a, b)
-            
-        # Separar números pegados
         text = re.sub(r'([A-Z])(\d)', r'\1 \2', text)
-        
+        text = " ".join(text.split())
         return text
-
-# Instancia Singleton
-aula_matcher = AulaMatcher()

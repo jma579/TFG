@@ -137,6 +137,7 @@ class Aula(Base):
     codigo = Column(String(50), nullable=False, unique=True)
     tipo = Column(Enum(TipoAula), nullable=False)
     capacidad = Column(Integer)
+    activo = Column(Boolean, default=True, nullable=False)
 
     __table_args__ = (
         CheckConstraint("capacidad > 0", name="ck_aula_capacidad_positiva"),

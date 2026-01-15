@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union, Set
+from typing import Dict, List, Optional, Union, Set, Tuple
 from pathlib import Path
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -31,9 +31,9 @@ from database.models import (
     Aula, 
     Programa, 
     Mencion, 
-    AsignaturaMencion,
-    GrupoDocente,
-    Sesion,
+    AsignaturaMencion, 
+    GrupoDocente, 
+    Sesion, 
     AsignaturaAlias
 )
 
@@ -45,9 +45,9 @@ from modules.docencia.services.horarios_normalization_models import (
     build_parsing_result_for_normalization,
 )
 
-# Matchers
+# Matchers (Importamos las CLASES para instanciar con la sesión actual)
 from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
-from modules.recursos.services.aula_matcher import aula_matcher
+from modules.recursos.services.aula_matcher import AulaMatcher
 
 # Enums
 from constants.enums import TipoGrupoDocente, DiaSemana
@@ -74,106 +74,140 @@ class HorariosPipelineService:
     """
 
     def __init__(self) -> None:
+        """Inicializa los componentes del pipeline."""
         self._extractor = HorarioExtractor()
         self._parser = HorarioParser()
 
     def extraer_horario(self, db: Session, pdf_path: Union[str, Path]) -> HorarioTemporalOut:
-        # 1) Extracción y Parsing
+        """
+        Procesa el PDF y utiliza el matcher inteligente para contextualizar los resultados.
+        """
+        # 1. Extracción y Parsing
         path_str = str(pdf_path)
         extraction_result = self._extractor.extract(path_str)
         parsed_dict = self._parser.parse(extraction_result)
         horario_out = HorarioTemporalOut(**parsed_dict)
 
-        # 2) Enriquecimiento con Matchers
-        matcher = AsignaturaMatcher(db)
-        contexto_plan = horario_out.plan or horario_out.titulo or ""
-        texto_para_periodo = f"{horario_out.periodo or ''} {horario_out.titulo or ''}"
+        # 2. Inicializar Matchers
+        asig_matcher = AsignaturaMatcher(db)
+        aula_matcher_srv = AulaMatcher(db) 
+
+        # Delegamos en el matcher la detección del Programa (usando caché y fuzzy)
+        prog_id = asig_matcher.infer_program_id(horario_out.plan or horario_out.titulo)
 
         for tabla in horario_out.horarios:
-            contexto_curso = tabla.curso or ""
+            # Obtener curso numérico
+            curso_int = 0
+            if tabla.curso:
+                digits = "".join(filter(str.isdigit, str(tabla.curso)))
+                if digits:
+                    curso_int = int(digits)
+
             nuevas_sesiones = []
             
             for sesion in tabla.sesiones:
-                # Match Asignatura
+                sesion.texto_original = sesion.asignatura
+
+                # A. Match Asignatura
                 if sesion.asignatura:
-                    asig_obj, metodo, score = matcher.match(
-                        texto_sucio=sesion.asignatura, 
-                        plan_context=contexto_plan,
-                        periodo_context=texto_para_periodo,
-                        curso_context=contexto_curso
+                    asig_obj, metodo, score = asig_matcher.match(
+                        texto_raw=sesion.asignatura, 
+                        prog_id=prog_id,  # Contexto inyectado
+                        curso=curso_int
                     )
+                    
                     sesion.match_confidence = score
                     sesion.match_status = metodo
                     if asig_obj:
+                        sesion.asignatura_id = asig_obj.id
                         sesion.asignatura_sugerida = asig_obj.nombre
 
-                # División de Grupos
+                # B. División de Grupos (Negocio)
                 grupos_detectados = horario_data_normalizer.detectar_y_dividir_grupos(sesion.grupo)
                 
                 for grupo_item in grupos_detectados:
                     sesion_clonada = sesion.model_copy()
-                    
-                    # Match Aula
                     texto_aula_original = sesion_clonada.aula or ""
-                    match_aula = aula_matcher.match(db, texto_aula_original)
+                    
+                    # C. Match Aula
+                    texto_aula = sesion_clonada.aula or ""
+                    match_aula = aula_matcher_srv.match(texto_aula)
                     
                     if match_aula:
+                        sesion_clonada.aula_id = match_aula.id
+                        sesion_clonada.aula_nombre = match_aula.nombre
                         sesion_clonada.aula = match_aula.nombre
                     else:
-                        sesion_clonada.aula = "POR DETERMINAR"
+                        sesion_clonada.aula_nombre = texto_aula or "POR DETERMINAR"
 
-                    # Inferencia Tipo
-                    aula_para_inferencia = sesion_clonada.aula
-                    aula_norm = horario_data_normalizer._normalize_aula(aula_para_inferencia)
+                    # D. Inferencia Tipo
+                    nombre_para_inferencia = sesion_clonada.aula_nombre if match_aula else texto_aula_original
+                    aula_norm = horario_data_normalizer._normalize_aula(nombre_para_inferencia)
                     grupo_limpio, tipo_detectado = horario_data_normalizer.infer_grupo_y_tipo(grupo_item, aula_norm)
                     
-                    sesion_clonada.grupo = grupo_limpio
-                    
-                    if tipo_detectado == TipoGrupoDocente.LABORATORIO:
-                        sesion_clonada.tipo = "PRÁCTICAS DE LABORATORIO"
-                    elif tipo_detectado == TipoGrupoDocente.PRACTICA:
-                        sesion_clonada.tipo = "PRÁCTICAS DE AULA"
-                    else:
-                        sesion_clonada.tipo = "TEORÍA"
+                    sesion_clonada.grupo_codigo = grupo_limpio
+                    if tipo_detectado:
+                        sesion_clonada.tipo_grupo = tipo_detectado.value 
+                        if tipo_detectado == TipoGrupoDocente.LABORATORIO:
+                            sesion_clonada.tipo = "PRÁCTICAS DE LABORATORIO"
+                        elif tipo_detectado == TipoGrupoDocente.PRACTICA:
+                            sesion_clonada.tipo = "PRÁCTICAS DE AULA"
+                        else:
+                            sesion_clonada.tipo = "TEORÍA"
                     
                     nuevas_sesiones.append(sesion_clonada)
             
             tabla.sesiones = nuevas_sesiones
 
         return horario_out
-    
+
     def refinar_matching(self, db: Session, horario: HorarioTemporalOut) -> HorarioTemporalOut:
-        matcher = AsignaturaMatcher(db)
-        contexto_plan = horario.plan or horario.titulo or ""
-        texto_para_periodo = f"{horario.periodo or ''} {horario.titulo or ''}"
+        """
+        Solo actualiza los matches de asignaturas usando el nuevo motor.
+        """
+        asig_matcher = AsignaturaMatcher(db)
+        
+        # También usamos la inferencia inteligente aquí
+        prog_id = asig_matcher.infer_program_id(horario.plan)
 
         for tabla in horario.horarios:
-            contexto_curso = tabla.curso or ""
+            curso_int = 0
+            if tabla.curso:
+                digits = "".join(filter(str.isdigit, str(tabla.curso)))
+                if digits: curso_int = int(digits)
+
             for sesion in tabla.sesiones:
-                if not sesion.asignatura:
-                    continue
-                asig_obj, metodo, score = matcher.match(
-                    texto_sucio=sesion.asignatura, 
-                    plan_context=contexto_plan,      
-                    periodo_context=texto_para_periodo,
-                    curso_context=contexto_curso
+                if not sesion.asignatura: continue
+                
+                asig_obj, metodo, score = asig_matcher.match(
+                    texto_raw=sesion.asignatura, 
+                    prog_id=prog_id,      
+                    curso=curso_int
                 )
+                
                 sesion.match_confidence = score
                 sesion.match_status = metodo
                 if asig_obj:
+                    sesion.asignatura_id = asig_obj.id
                     sesion.asignatura_sugerida = asig_obj.nombre
                 else:
                     sesion.asignatura_sugerida = None
+                    sesion.asignatura_id = None
+                    
         return horario
-
+    
     def confirmar_horario(
         self,
         db: Session,
         data: HorarioTemporalConfirmIn,
     ) -> HorarioConfirmResponse:
         """
-        Persiste el horario validado.
-        Incluye lógica de auto-aprendizaje de alias y limpieza de sesiones previas.
+        Persiste el horario validado usando estrategia 'Wipe & Replace'.
+        
+        Garantiza la integridad de los datos mediante:
+        1. Transacción Atómica: Un único commit al final.
+        2. Limpieza Profunda (Wipe): Borra grupos previos de las asignaturas afectadas para evitar "zombis".
+        3. Reemplazo (Replace): Crea la nueva estructura de grupos y sesiones.
         """
         
         # --- 1. VALIDACIÓN DE CONTEXTO ---
@@ -181,7 +215,6 @@ class HorariosPipelineService:
         if not nombre_plan and data.titulo:
             nombre_plan = data.titulo.split('-')[0].strip()
 
-        # FIX 1: Usar ilike para evitar problemas de mayúsculas/tildes en el nombre del programa
         programa_db = db.query(Programa).filter(Programa.nombre.ilike(nombre_plan)).first()
         if not programa_db:
             raise HTTPException(
@@ -189,56 +222,15 @@ class HorariosPipelineService:
                 detail=f"ERROR: El plan de estudios '{nombre_plan}' no existe en la base de datos."
             )
 
-        # --- 2. AUTO-APRENDIZAJE Y APLICACIÓN DE SUGERENCIAS ---
-        
-        asig_cache_aprendizaje: Dict[str, int] = {} 
-        aliases_to_create: Dict[str, int] = {}
-
-        for tabla in data.horarios:
-            for sesion in tabla.sesiones:
-                texto_original = (sesion.asignatura or "").strip()
-                texto_sugerido = (sesion.asignatura_sugerida or "").strip()
-
-                if texto_sugerido and texto_original and texto_original != texto_sugerido:
-                    
-                    # A) Aplicar la corrección
-                    sesion.asignatura = texto_sugerido
-                    
-                    # B) Preparar alias para aprendizaje
-                    asig_id = asig_cache_aprendizaje.get(texto_sugerido)
-                    if not asig_id:
-                        # FIX 2: Usar ilike en aprendizaje también
-                        asig_db = db.query(Asignatura).filter(Asignatura.nombre.ilike(texto_sugerido)).first()
-                        if asig_db:
-                            asig_id = asig_db.id
-                            asig_cache_aprendizaje[texto_sugerido] = asig_id
-                    
-                    if asig_id:
-                        aliases_to_create[texto_original] = asig_id
-
-        # Procesar alias
-        for alias_texto, asignatura_id in aliases_to_create.items():
-            alias_existe = db.query(AsignaturaAlias).filter_by(
-                asignatura_id=asignatura_id, 
-                alias=alias_texto
-            ).first()
-            
-            if not alias_existe:
-                logger.info(f"🧠 APRENDIENDO: '{alias_texto}' es alias de ID {asignatura_id}")
-                nuevo_alias = AsignaturaAlias(
-                    asignatura_id=asignatura_id,
-                    alias=alias_texto,
-                    origen="AUTO_CONFIRMACION",
-                    veces_usado=1
-                )
-                db.add(nuevo_alias)
-
-        db.flush()
+        # --- 2. APRENDIZAJE DE ALIAS ---
+        # Registramos nuevos alias detectados (sin hacer commit aún)
+        self._procesar_aprendizaje_alias(db, data)
 
         # --- 3. NORMALIZACIÓN ---
+        # Convertimos el input del frontend a estructuras normalizadas
         parsed_for_normalizer = build_parsing_result_for_normalization(data)
         
-        # Inyectar 'pagina' si falta para evitar crash del normalizador
+        # Parche de seguridad: asegurar que 'pagina' existe
         if hasattr(parsed_for_normalizer, 'horarios'):
             for idx, h_tabla in enumerate(parsed_for_normalizer.horarios):
                 if not hasattr(h_tabla, 'pagina'):
@@ -246,84 +238,97 @@ class HorariosPipelineService:
         
         normalized_tablas = horario_data_normalizer.normalize_horarios(parsed_for_normalizer)
         
-        # --- 4. PERSISTENCIA ---
-        stats = {"grupos_creados": 0, "grupos_reutilizados": 0, "sesiones_creadas": 0}
+        # --- 4. TRANSACCIÓN PRINCIPAL (WIPE & REPLACE) ---
+        stats = {"grupos_creados": 0, "sesiones_creadas": 0}
         grupos_resultado_map: Dict[int, GrupoDocenteOut] = {}
         sesiones_resultado: List[SesionOut] = []
         
+        # Caches locales para optimizar la transacción
         asignatura_cache: Dict[str, Asignatura] = {}
         mencion_cache: Dict[str, Mencion] = {}
-        grupos_limpiados_ids: Set[int] = set()
+        
+        # Cache de Grupos Creados EN ESTA TRANSACCIÓN para evitar duplicados
+        # Clave: (asignatura_id, codigo_grupo) -> Objeto GrupoDocente
+        grupos_nuevos_cache: Dict[Tuple[int, str], GrupoDocente] = {}
+        
+        # Set para controlar qué asignaturas ya han sido limpiadas (Wiped)
+        asignaturas_limpiadas: Set[int] = set()
+
+        # Instancia del matcher para aulas desconocidas
+        aula_matcher_srv = AulaMatcher(db)
 
         try:
             for tabla in normalized_tablas:
                 
-                # 4.1 Mención
+                # 4.1 Gestión de Mención (Get or Create)
                 mencion_db: Optional[Mencion] = None
                 if tabla.mencion:
-                    m_nombre_limpio = tabla.mencion.replace("Mención en ", "").replace("MENCION EN ", "").strip()
+                    m_nombre = tabla.mencion.replace("Mención en ", "").replace("MENCION EN ", "").strip()
                     
-                    if m_nombre_limpio in mencion_cache:
-                        mencion_db = mencion_cache[m_nombre_limpio]
+                    if m_nombre in mencion_cache:
+                        mencion_db = mencion_cache[m_nombre]
                     else:
-                        # FIX 3: ilike en búsqueda de Mención
                         mencion_db = db.query(Mencion).filter(
                             Mencion.programa_id == programa_db.id,
-                            Mencion.nombre.ilike(m_nombre_limpio)
+                            Mencion.nombre.ilike(m_nombre)
                         ).first()
                         
                         if not mencion_db:
-                            mencion_db = Mencion(programa_id=programa_db.id, nombre=m_nombre_limpio, activo=True)
+                            mencion_db = Mencion(programa_id=programa_db.id, nombre=m_nombre, activo=True)
                             db.add(mencion_db)
-                            db.commit()
-                            db.refresh(mencion_db)
+                            db.flush() # Necesario para obtener ID, pero no commitea
                         
-                        mencion_cache[m_nombre_limpio] = mencion_db
+                        mencion_cache[m_nombre] = mencion_db
 
                 for sesion_norm in (tabla.sesiones or []):
                     
-                    # 4.2 Asignatura
+                    # 4.2 Resolver Asignatura
                     nombre_asig = sesion_norm.asignatura_nombre.strip()
                     if not nombre_asig: continue
 
                     if nombre_asig in asignatura_cache:
                         asignatura = asignatura_cache[nombre_asig]
                     else:
-                        # FIX 4 (CRÍTICO): Usar ilike en lugar de func.lower() para soportar tildes en SQLite
-                        asignatura = db.query(Asignatura).filter(
-                            Asignatura.nombre.ilike(nombre_asig)
-                        ).first()
-                        
+                        # Búsqueda robusta: Nombre exacto o Alias
+                        asignatura = db.query(Asignatura).filter(Asignatura.nombre.ilike(nombre_asig)).first()
                         if not asignatura:
-                            # Intento extra: alias no detectado antes
-                            alias_db = db.query(AsignaturaAlias).filter(
-                                AsignaturaAlias.alias.ilike(nombre_asig)
-                            ).first()
+                            alias_db = db.query(AsignaturaAlias).filter(AsignaturaAlias.alias.ilike(nombre_asig)).first()
                             if alias_db:
                                 asignatura = alias_db.asignatura
-                            else:
-                                raise HTTPException(
-                                    status_code=400, 
-                                    detail=f"Asignatura no encontrada: '{nombre_asig}'. Verifica que existe en el catálogo."
-                                )
                         
+                        if not asignatura:
+                            raise HTTPException(
+                                status_code=400, 
+                                detail=f"Asignatura desconocida: '{nombre_asig}'. Verifica el catálogo."
+                            )
                         asignatura_cache[nombre_asig] = asignatura
 
-                    # 4.3 Vincular Mención
+                    # 4.3 ESTRATEGIA WIPE: Limpieza preventiva
+                    # Si es la primera vez que vemos esta asignatura en este proceso, borramos sus datos viejos.
+                    if asignatura.id not in asignaturas_limpiadas:
+                        #
+                        grupo_docente_repository.delete_by_asignatura(db, asignatura.id)
+                        asignaturas_limpiadas.add(asignatura.id)
+                        logger.info(f"🧹 WIPE: Eliminados grupos previos de Asignatura ID {asignatura.id}")
+
+                    # 4.4 Vincular Mención (si aplica)
                     if mencion_db:
                         link_existe = db.query(AsignaturaMencion).filter_by(
                             asignatura_id=asignatura.id, mencion_id=mencion_db.id
                         ).first()
                         if not link_existe:
                             db.add(AsignaturaMencion(asignatura_id=asignatura.id, mencion_id=mencion_db.id))
-                            db.flush()
+                            # No flush necesario aquí, se guardará al final
 
-                    # 4.4 Grupo Docente (Clean & Fill)
+                    # 4.5 Gestión de Grupo (REPLACE)
                     codigo_grupo = sesion_norm.grupo_codigo.strip().upper() or "UNICO"
+                    grupo_key = (asignatura.id, codigo_grupo)
                     
-                    grupo_db = grupo_docente_repository.get_by_asignatura_codigo(db, asignatura.id, codigo_grupo)
-
-                    if not grupo_db:
+                    # Verificamos si ya hemos creado este grupo EN ESTA CARGA
+                    if grupo_key in grupos_nuevos_cache:
+                        grupo_db = grupos_nuevos_cache[grupo_key]
+                    else:
+                        # Creamos el grupo nuevo (ya que hicimos Wipe, no existen colisiones en BD)
                         grupo_in = GrupoDocenteCreate(
                             asignatura_id=asignatura.id,
                             codigo=codigo_grupo,
@@ -332,35 +337,34 @@ class HorariosPipelineService:
                             turno=None
                         )
                         grupo_out = grupo_docente_service.create(db, grupo_in)
+                        
+                        # Recargamos el objeto ORM para tenerlo disponible en la sesión
                         grupo_db = db.query(GrupoDocente).filter(GrupoDocente.id == grupo_out.id).first()
+                        grupos_nuevos_cache[grupo_key] = grupo_db
                         stats["grupos_creados"] += 1
-                        grupos_limpiados_ids.add(grupo_db.id)
-                    else:
-                        stats["grupos_reutilizados"] += 1
-                        if grupo_db.id not in grupos_limpiados_ids:
-                            db.query(Sesion).filter(Sesion.grupo_docente_id == grupo_db.id).delete()
-                            grupos_limpiados_ids.add(grupo_db.id)
 
                     if grupo_db.id not in grupos_resultado_map:
                         grupos_resultado_map[grupo_db.id] = GrupoDocenteOut.model_validate(grupo_db)
 
-                    # 4.5 Aula
+                    # 4.6 Resolver Aula
                     nombre_aula = sesion_norm.aula_nombre.strip()
+                    # Intento 1: Búsqueda directa (rápida)
                     aula_db = aula_repository.get_by_nombre(db, nombre_aula) or \
                               aula_repository.get_by_codigo(db, nombre_aula)
                     
                     if not aula_db:
-                        aula_db = aula_matcher.match(db, nombre_aula)
+                        # Intento 2: Matcher inteligente
+                        aula_db = aula_matcher_srv.match(nombre_aula)
+                        
                         if not aula_db:
                             raise HTTPException(
                                 status_code=400,
                                 detail=f"Aula no encontrada: '{nombre_aula}'."
                             )
 
-                    # 4.6 Crear Sesión
-                    dia_str_norm = sesion_norm.dia_semana.upper().replace("Á","A").replace("É","E").replace("Í","I")
+                    # 4.7 Crear Sesión
+                    dia_str_norm = sesion_norm.dia_semana.upper().replace("Á","A").replace("É","E").replace("Í","I").replace("Ó","O").replace("Ú","U")
                     dia_enum = TEXTO_A_DIA_ENUM.get(dia_str_norm)
-                    
                     if not dia_enum: continue
 
                     sesion_in = SesionCreate(
@@ -374,6 +378,7 @@ class HorariosPipelineService:
                         profesores=[]
                     )
                     
+                    # Delegamos la creación al servicio de sesión
                     try:
                         res_servicio = sesion_service.create(db, sesion_in)
                         sesiones_resultado.append(res_servicio.sesion)
@@ -382,13 +387,16 @@ class HorariosPipelineService:
                         logger.error(f"Error creando sesión: {e}")
                         raise HTTPException(status_code=500, detail=f"Error interno al guardar sesión: {str(e)}")
 
+            # --- 5. COMMIT FINAL (Todo o Nada) ---
             db.commit()
+            logger.info(f"✅ Transacción completada exitosamente. Stats: {stats}")
 
         except Exception as e:
+            # En caso de cualquier error, revertimos TODO (grupos borrados, menciones, etc.)
             db.rollback()
             if isinstance(e, HTTPException): raise e
-            logger.error(f"Error fatal en confirmación: {e}")
-            raise HTTPException(status_code=500, detail=f"Error procesando horario: {str(e)}")
+            logger.error(f"❌ Error fatal en persistencia (Rollback ejecutado): {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error guardando horario: {str(e)}")
 
         return HorarioConfirmResponse(
             grupos=list(grupos_resultado_map.values()),
@@ -397,3 +405,45 @@ class HorariosPipelineService:
             warnings=[],
             errors=[]
         )
+
+    def _procesar_aprendizaje_alias(self, db: Session, data: HorarioTemporalConfirmIn):
+        """
+        Detecta correcciones manuales del usuario y registra nuevos alias.
+        Se ejecuta dentro de la transacción principal (sin commit propio).
+        """
+        aliases_to_create: Dict[str, int] = {}
+        
+        for tabla in data.horarios:
+            for sesion in tabla.sesiones:
+                texto_original = (sesion.texto_original or sesion.asignatura or "").strip()
+                # Usamos el ID de la asignatura confirmada (bien sea por match automático o selección manual)
+                asignatura_id = sesion.asignatura_id
+                
+                if asignatura_id and texto_original:
+                    # Validar si el texto original ya es el nombre oficial
+                    asig_db = db.query(Asignatura).get(asignatura_id)
+                    if asig_db and asig_db.nombre.upper() == texto_original.upper():
+                        continue
+
+                    # Preparamos para creación si no existe
+                    aliases_to_create[texto_original] = asignatura_id
+
+        # Upsert manual de alias
+        for alias_texto, asig_id in aliases_to_create.items():
+            alias_existe = db.query(AsignaturaAlias).filter_by(
+                asignatura_id=asig_id, 
+                alias=alias_texto
+            ).first()
+            
+            if not alias_existe:
+                logger.info(f"🧠 APRENDIENDO: '{alias_texto}' es alias de ID {asig_id}")
+                nuevo_alias = AsignaturaAlias(
+                    asignatura_id=asig_id,
+                    alias=alias_texto,
+                    origen="AUTO_CONFIRMACION",
+                    veces_usado=1
+                )
+                db.add(nuevo_alias)
+        
+        # Flush para que los alias estén disponibles en la misma transacción si fuera necesario
+        db.flush()

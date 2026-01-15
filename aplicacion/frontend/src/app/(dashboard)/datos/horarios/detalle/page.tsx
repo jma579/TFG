@@ -159,7 +159,11 @@ export default function DetalleHorarioPage() {
         const validGrupoIds = new Set(validGrupos.map(g => g.id));
 
         // 5. Cargar Sesiones (CORREGIDO: Límite 1000 para evitar error 422)
-        const resSesiones = await listSesiones({ size: 1000 });
+        const resSesiones = await listSesiones({ 
+          size: 1000,
+          curso: Number(pCurso),          // <--- Filtro de Curso
+          mencion: pMencion || undefined  // <--- Filtro de Mención (si existe)
+        });
         
         const sesionesFiltradas = (resSesiones.items || []).filter((s: SesionOut) => 
           validGrupoIds.has(s.grupo_docente_id)
