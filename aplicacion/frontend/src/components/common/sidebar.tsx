@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// ... (navSections se mantiene igual, no hace falta repetirlo si no cambió) ...
 const navSections = [
   {
     label: "Planificación",
@@ -50,22 +51,22 @@ const navSections = [
     label: "Datos",
     items: [
       {
-        label: "Ver horario",
+        label: "Horarios",
         href: "/datos/horarios",
         icon: CalendarRange,
       },
       {
-        label: "Ver asignaturas",
+        label: "Asignaturas",
         href: "/datos/fichas-academicas",
         icon: BookOpen,
       },
       {
-        label: "Ver profesores",
+        label: "Profesores",
         href: "/datos/profesores",
         icon: Users,
       },
       {
-        label: "Ver aulas",
+        label: "Aulas",
         href: "/datos/aulas",
         icon: School,
       },
@@ -77,7 +78,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-border bg-slate-50 text-foreground">
+    <aside className="flex h-full w-64 flex-col border-r border-border bg-slate-50 text-foreground">
       {/* Header */}
       <Link href="/app" className="flex items-center gap-3 px-6 py-6 transition-opacity hover:opacity-80">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
