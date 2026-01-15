@@ -19,7 +19,10 @@ import {
   MoreHorizontal,
   Search,
   ArrowUpDown,
-  X
+  X,
+  Pencil, // ✅ Iconos añadidos
+  Power,
+  Trash2
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -93,11 +96,11 @@ function StatusBadge({ active }: { active: boolean }) {
 
 // ------- Tabla Principal -------
 
-// 👇 TIPO CORREGIDO: Estructura estricta para onDataUpdate
 export type SubjectsTableProps = {
   data: SubjectRow[];
   onEdit: (row: SubjectRow) => void;
   onDelete: (row: SubjectRow) => void;
+  onToggleActive: (row: SubjectRow) => void; // ✅ Nueva prop
   onDataUpdate: (
     id: string, 
     data: { 
@@ -108,12 +111,12 @@ export type SubjectsTableProps = {
   titulacionesDisponibles?: ProgramaOut[];
 };
 
-export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacionesDisponibles = [] }: SubjectsTableProps) {
+export function SubjectsTable({ data, onEdit, onDelete, onToggleActive, onDataUpdate, titulacionesDisponibles = [] }: SubjectsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'codigo_plan', desc: false } // Orden inicial por código
+    { id: 'codigo_plan', desc: false } 
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([
-    { id: 'activo', value: 'active' } // Filtro inicial: solo activas
+    { id: 'activo', value: 'active' }
   ]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
@@ -246,6 +249,7 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
         id: 'actions',
         enableHiding: false,
         cell: ({ row }) => {
+          const item = row.original;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -256,15 +260,25 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                  Editar asignatura
+                
+                <DropdownMenuItem onClick={() => onEdit(item)}>
+                  <Pencil className="mr-2 h-4 w-4" /> Editar
                 </DropdownMenuItem>
+
+                {/* ✅ NUEVO: Botón Activar/Desactivar */}
+                <DropdownMenuItem onClick={() => onToggleActive(item)}>
+                  <Power className="mr-2 h-4 w-4" />
+                  {item.activo ? 'Desactivar' : 'Activar'}
+                </DropdownMenuItem>
+                
                 <DropdownMenuSeparator />
+                
+                {/* ✅ NUEVO: Botón Eliminar Físico */}
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
-                  onClick={() => onDelete(row.original)}
+                  onClick={() => onDelete(item)}
                 >
-                  {row.original.activo ? 'Desactivar (Eliminar)' : 'Eliminar definitivamente'}
+                  <Trash2 className="mr-2 h-4 w-4" /> Eliminar (Físico)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -272,7 +286,7 @@ export function SubjectsTable({ data, onEdit, onDelete, onDataUpdate, titulacion
         },
       },
     ],
-    [onEdit, onDelete]
+    [onEdit, onDelete, onToggleActive]
   );
 
   const table = useReactTable({

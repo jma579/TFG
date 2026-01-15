@@ -30,24 +30,20 @@ type SubjectData = {
   error?: string;
 };
 
-function PeriodBadge({ periodo, num_periodo }: { periodo?: string; num_periodo?: number | null }) {
-  if (!periodo) return null;
+function formatPeriodo(periodo?: string): string {
+  if (!periodo) return '-';
   
-  const label =
-    periodo === 'ANUAL'
-      ? 'Anual'
-      : periodo === 'primer_cuatrimestre'
-      ? '1º cuatri'
-      : periodo === 'segundo_cuatrimestre'
-      ? '2º cuatri'
-      : periodo;
-
-  return (
-    <Badge variant="outline" className="font-normal">
-      {label}
-      {num_periodo ? ` · P${num_periodo}` : ''}
-    </Badge>
-  );
+  switch (periodo.toLowerCase()) {
+    case 'primer_cuatrimestre':
+      return 'Primer Cuatrimestre';
+    case 'segundo_cuatrimestre':
+      return 'Segundo Cuatrimestre';
+    case 'anual':
+      return 'Anual';
+    default:
+      // Fallback: Capitalizar la primera letra y reemplazar guiones bajos por espacios
+      return periodo.charAt(0).toUpperCase() + periodo.slice(1).replace(/_/g, ' ');
+  }
 }
 
 export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded }: Props) {
@@ -58,11 +54,8 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
     loading: true,
   });
 
-  // 1. TRUCO DE EXPERTO: Usamos un Ref para guardar la última versión de la función.
-  // Esto nos permite llamarla dentro del useEffect sin añadirla a las dependencias.
   const onDataLoadedRef = React.useRef(onDataLoaded);
 
-  // 2. Mantenemos el ref siempre actualizado
   React.useEffect(() => {
     onDataLoadedRef.current = onDataLoaded;
   }, [onDataLoaded]);
@@ -98,7 +91,6 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
           loading: false,
         });
 
-        // 3. Llamamos a la función a través del Ref
         if (onDataLoadedRef.current) {
           onDataLoadedRef.current({ profesores: teachers, titulaciones });
         }
@@ -153,7 +145,6 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
           <p className="text-base font-semibold text-foreground">{asignatura.nombre}</p>
         </div>
         <div className="flex items-center gap-2">
-          <PeriodBadge periodo={asignatura.periodo} num_periodo={asignatura.num_periodo} />
           {extractionStatus && (
             <Badge variant={extractionStatus.success ? 'secondary' : 'destructive'}>
               {extractionStatus.success ? 'Extracción OK' : 'Errores'}
@@ -170,7 +161,7 @@ export function SubjectDetailView({ asignaturaId, extractionStatus, onDataLoaded
         <div>
           <p className="text-xs text-muted-foreground">Periodo</p>
           <p className="text-sm">
-            {asignatura.periodo}
+            {formatPeriodo(asignatura.periodo)}
             {asignatura.num_periodo ? ` · P${asignatura.num_periodo}` : ''}
           </p>
         </div>

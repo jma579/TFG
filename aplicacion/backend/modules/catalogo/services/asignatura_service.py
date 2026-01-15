@@ -16,7 +16,7 @@ from modules.catalogo.repositories.programa_asignatura_repo import programa_asig
 from modules.recursos.repositories.profesor_asignatura_repo import profesor_asignatura_repository
 
 from modules.catalogo.schemas.asignatura import (
-    AsignaturaOut, AsignaturaList, AsignaturaProgramaOut
+    AsignaturaOut, AsignaturaList, AsignaturaProgramaOut, AsignaturaUpdate
 )
 from modules.recursos.schemas.profesor import ProfesorOut
 
@@ -91,6 +91,32 @@ class AsignaturaService:
     # ==========================
     # ESCRITURA (Restringida)
     # ==========================
+
+    def update_asignatura(self, db: Session, asignatura_id: int, asignatura_in: AsignaturaUpdate) -> AsignaturaOut:
+        """
+        Actualiza una asignatura existente.
+        Valida unicidad de código si este cambia.
+        """
+        # 1. Verificar existencia
+        asignatura = self.repo.get_by_id(db, asignatura_id)
+        if not asignatura:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Asignatura no encontrada")
+        
+        # 2. Validar duplicidad de código (solo si se está intentando cambiar)
+        if asignatura_in.codigo_plan and asignatura_in.codigo_plan != asignatura.codigo_plan:
+            if self.repo.exists_by_codigo(db, asignatura_in.codigo_plan, exclude_id=asignatura_id):
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT, 
+                    detail=f"El código '{asignatura_in.codigo_plan}' ya está en uso por otra asignatura"
+                )
+
+        # 3. Ejecutar actualización. Usamos model_dump(exclude_unset=True) para solo actualizar los campos enviados
+        updated_asignatura = self.repo.update(db, asignatura_id, asignatura_in.model_dump(exclude_unset=True))
+        
+        db.commit()
+        db.refresh(updated_asignatura)
+        
+        return self._map_to_out(updated_asignatura)
 
     def delete_asignatura(self, db: Session, asignatura_id: int, physical: bool = False) -> dict:
         """

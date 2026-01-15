@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useCallback } from 'react'; // 1. Importamos useCallback
+import { useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { SubjectsTable } from '@/components/subjects/table';
 import type { SubjectRow } from '@/components/subjects/data';
@@ -39,28 +39,51 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (row: SubjectRow) => {
+  const handleToggleActive = async (row: SubjectRow) => {
     try {
-      await deleteAsignatura(Number(row.id));
-      setRows((prev) => prev.filter((r) => r.id !== row.id));
+      const nuevoEstado = !row.activo;
+      // Solo enviamos el campo activo
+      await updateAsignatura(Number(row.id), { activo: nuevoEstado });
+
+      // Actualización optimista del estado local
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === row.id ? { ...r, activo: nuevoEstado } : r
+        )
+      );
+
       toast({
-        title: 'Asignatura eliminada',
-        description:
-          'La asignatura se ha desactivado correctamente y ya no aparece en el listado.',
+        title: nuevoEstado ? 'Asignatura activada' : 'Asignatura desactivada',
+        description: `La asignatura ${row.codigo_plan} ahora está ${nuevoEstado ? 'activa' : 'inactiva'}.`,
       });
     } catch (error: unknown) {
       toast({
         variant: 'destructive',
-        title: 'Error al eliminar',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'No se ha podido eliminar la asignatura.',
+        title: 'Error al cambiar estado',
+        description: error instanceof Error ? error.message : 'No se pudo actualizar la asignatura.',
       });
     }
   };
 
-  // 2. Envolvemos la función con useCallback para estabilizarla
+  const handleDelete = async (row: SubjectRow) => {
+    if (!confirm('¿Estás seguro? Esta acción eliminará la asignatura permanentemente de la base de datos.')) return;
+
+    try {
+      await deleteAsignatura(Number(row.id), true); // true = physical delete
+      setRows((prev) => prev.filter((r) => r.id !== row.id));
+      toast({
+        title: 'Asignatura eliminada',
+        description: 'El registro se ha eliminado físicamente.',
+      });
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'No se puede eliminar',
+        description: error instanceof Error ? error.message : 'Error al eliminar la asignatura.',
+      });
+    }
+  };
+
   const handleDataUpdate = useCallback((
     id: string, 
     data: { 
@@ -75,7 +98,7 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
           : row
       )
     );
-  }, []); // Array de dependencias vacío porque setRows es estable
+  }, []);
 
   const handleSubmit = async (values: {
     nombre: string;
@@ -140,7 +163,8 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
            <SubjectsTable 
              data={rows} 
              onEdit={handleEdit} 
-             onDelete={handleDelete} 
+             onDelete={handleDelete}
+             onToggleActive={handleToggleActive} 
              onDataUpdate={handleDataUpdate}
              titulacionesDisponibles={programas}
            />

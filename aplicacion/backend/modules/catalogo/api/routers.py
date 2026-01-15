@@ -36,7 +36,8 @@ from modules.catalogo.services.ficha_pipeline_service import FichaPipelineServic
 from modules.catalogo.schemas.asignatura import (
     AsignaturaOut,
     AsignaturaList,
-    AsignaturaProgramaOut
+    AsignaturaProgramaOut,
+    AsignaturaUpdate
 )
 
 # Schemas - Programa
@@ -202,6 +203,18 @@ def eliminar_asignatura(
 ):
     """Eliminar o desactivar una asignatura."""
     return asignatura_service.delete_asignatura(db, asignatura_id, physical=physical)
+
+@router.put("/asignaturas/{asignatura_id}", response_model=AsignaturaOut)
+def actualizar_asignatura(
+    asignatura_in: AsignaturaUpdate,
+    asignatura_id: int = Path(..., ge=1),
+    db: Session = Depends(get_db),
+):
+    """
+    Actualizar datos de una asignatura.
+    Permite cambios parciales (ej: solo activar/desactivar).
+    """
+    return asignatura_service.update_asignatura(db, asignatura_id, asignatura_in)
 
 
 # =============================================================================
