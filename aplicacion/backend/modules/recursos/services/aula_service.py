@@ -67,9 +67,6 @@ class AulaService:
         if self.repo.exists_by_codigo(db, aula_in.codigo):
             raise HTTPException(status.HTTP_409_CONFLICT, detail=f"Código '{aula_in.codigo}' ya existe")
         
-        if self.repo.exists_by_nombre(db, aula_in.nombre):
-            raise HTTPException(status.HTTP_409_CONFLICT, detail=f"Nombre '{aula_in.nombre}' ya existe")
-        
         # Crear y commit
         aula = self.repo.create(db, aula_in.model_dump())
         db.commit()

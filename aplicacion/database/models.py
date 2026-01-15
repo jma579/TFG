@@ -133,7 +133,7 @@ class Profesor(Base):
 class Aula(Base):
     __tablename__ = "aulas"
     id = Column(Integer, primary_key=True)
-    nombre = Column(String(200), nullable=False, unique=True)
+    nombre = Column(String(200), nullable=False, unique=False)
     codigo = Column(String(50), nullable=False, unique=True)
     tipo = Column(Enum(TipoAula), nullable=False)
     capacidad = Column(Integer)
