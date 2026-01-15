@@ -14,6 +14,7 @@ export default async function AulasPage() {
     codigo: aula.codigo,
     tipo: aula.tipo,
     capacidad: aula.capacidad ?? null,
+    activo: aula.activo,
   }));
 
   // Ordenar por código por defecto

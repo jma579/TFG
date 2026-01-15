@@ -6,6 +6,7 @@ export type AulaOut = {
   codigo: string;
   tipo: string;
   capacidad: number | null;
+  activo: boolean;
 };
 
 export type AulaListResponse = {
@@ -22,6 +23,7 @@ export type AulaFilters = {
   capacidadMax?: number;
   page?: number;
   size?: number;
+  activo?: boolean;
 };
 
 export type AulaCreateInput = {
@@ -29,6 +31,7 @@ export type AulaCreateInput = {
   codigo: string;
   tipo: string;
   capacidad?: number | null;
+  activo: boolean;
 };
 
 export type AulaUpdateInput = Partial<AulaCreateInput>;
@@ -58,6 +61,8 @@ export async function updateAula(id: number, input: AulaUpdateInput): Promise<Au
   return api.put(`/v0/recursos/aulas/${id}`, input);
 }
 
-export async function deleteAula(id: number): Promise<void> {
-  return api.delete(`/v0/recursos/aulas/${id}`);
+export async function deleteAula(id: number, physical: boolean = false): Promise<void> {
+  return api.delete(`/v0/recursos/aulas/${id}`, { 
+    params: { physical } 
+  });
 }

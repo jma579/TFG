@@ -5,7 +5,6 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -16,8 +15,10 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   Search,
-  X,
-  Plus
+  Plus,
+  Power,
+  Trash2,
+  Pencil
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -49,21 +50,23 @@ import {
 
 import type { Room } from './data';
 
+// 1. AQUI DEFINIMOS QUE EL COMPONENTE ACEPTA onToggleActive
 type RoomsTableProps = {
   data: Room[];
   onEdit: (room: Room) => void;
   onDelete: (room: Room) => void;
+  onToggleActive: (room: Room) => void; // <--- ESTA LINEA ES LA CLAVE DEL ERROR
   onCreate: () => void;
 };
 
-export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps) {
+// 2. AÑADIMOS LA PROP A LA DESESTRUCTURACIÓN
+export function RoomsTable({ data, onEdit, onDelete, onToggleActive, onCreate }: RoomsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'codigo', desc: false }
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
 
-  // Obtener tipos únicos para el filtro
   const tiposDisponibles = React.useMemo(() => {
     const set = new Set<string>();
     data.forEach((r) => {
@@ -108,17 +111,27 @@ export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps
         },
         cell: ({ row }) => <div>{row.getValue('nombre')}</div>,
       },
+      // 3. NUEVA COLUMNA VISUAL PARA EL ESTADO
+      {
+        accessorKey: 'activo',
+        header: 'Estado',
+        cell: ({ row }) => {
+          const activo = row.getValue('activo') as boolean;
+          return (
+            <Badge variant={activo ? "default" : "secondary"} className={activo ? "bg-green-600 hover:bg-green-700" : ""}>
+              {activo ? 'Activo' : 'Inactivo'}
+            </Badge>
+          );
+        },
+      },
       {
         accessorKey: 'tipo',
         header: 'Tipo',
         cell: ({ row }) => (
-          <Badge variant="secondary" className="font-normal">
+          <Badge variant="outline" className="font-normal">
             {row.getValue('tipo')}
           </Badge>
         ),
-        filterFn: (row, id, value) => {
-          return value === 'all' ? true : row.getValue(id) === value;
-        },
       },
       {
         accessorKey: 'capacidad',
@@ -138,17 +151,12 @@ export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps
           const cap = row.getValue('capacidad') as number | null;
           return <div className="font-medium">{cap ?? '—'}</div>;
         },
-        filterFn: (row, id, value) => {
-          const cap = row.getValue(id) as number | null;
-          if (!value) return true;
-          if (cap === null) return false;
-          return cap >= Number(value);
-        },
       },
       {
         id: 'actions',
         enableHiding: false,
         cell: ({ row }) => {
+          const room = row.original;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -159,15 +167,24 @@ export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                  Editar
+                
+                <DropdownMenuItem onClick={() => onEdit(room)}>
+                  <Pencil className="mr-2 h-4 w-4" /> Editar
                 </DropdownMenuItem>
+                
+                {/* 4. AQUI USAMOS LA NUEVA FUNCIÓN */}
+                <DropdownMenuItem onClick={() => onToggleActive(room)}>
+                  <Power className="mr-2 h-4 w-4" />
+                  {room.activo ? 'Desactivar' : 'Activar'}
+                </DropdownMenuItem>
+                
                 <DropdownMenuSeparator />
+                
                 <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => onDelete(row.original)}
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDelete(room)}
                 >
-                  Eliminar
+                  <Trash2 className="mr-2 h-4 w-4" /> Eliminar (Físico)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -175,7 +192,7 @@ export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps
         },
       },
     ],
-    [onEdit, onDelete]
+    [onEdit, onDelete, onToggleActive]
   );
 
   const table = useReactTable({
@@ -233,17 +250,6 @@ export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps
               ))}
             </SelectContent>
           </Select>
-
-          <div className="flex items-center gap-2">
-             <Input
-              type="number"
-              placeholder="Cap. mínima"
-              className="w-full md:w-[120px]"
-              onChange={(event) =>
-                table.getColumn('capacidad')?.setFilterValue(event.target.value)
-              }
-            />
-          </div>
         </div>
 
         <Button onClick={onCreate}>
@@ -278,6 +284,8 @@ export function RoomsTable({ data, onEdit, onDelete, onCreate }: RoomsTableProps
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
+                    // Opcional: difuminar si está inactivo
+                    className={!row.original.activo ? 'opacity-60 bg-muted/50' : ''}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
