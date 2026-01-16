@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-// ✅ NUEVO: Importamos useRouter para navegar
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, BookOpen, Loader2, Filter, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,13 +30,26 @@ type SchedulesScreenProps = {
 
 export function SchedulesScreen({ programas }: SchedulesScreenProps) {
   const { toast } = useToast();
-  const router = useRouter(); // ✅ Hook de navegación
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const [data, setData] = React.useState<ScheduleSummary[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [selectedProgram, setSelectedProgram] = React.useState<string>("");
   const [searchTerm, setSearchTerm] = React.useState('');
 
+  // 1. EFECTO: Sincronizar URL -> Estado
+  // Al montar o cambiar la URL, si hay un ID, actualizamos el estado local.
+  React.useEffect(() => {
+    const progId = searchParams.get('programa_id');
+    // Verificamos si es diferente para evitar ciclos infinitos
+    if (progId && progId !== selectedProgram) {
+      setSelectedProgram(progId);
+    }
+  }, [searchParams, selectedProgram]); 
+
+  // 2. EFECTO: Cargar datos cuando cambia el programa seleccionado
   React.useEffect(() => {
     if (!selectedProgram) {
       setData([]);
@@ -51,13 +63,12 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
           programa_id: Number(selectedProgram) 
         });
         setData(result);
-      } catch (error) {
+      } catch {
         toast({
           variant: 'destructive',
           title: 'Error de conexión',
           description: 'No se pudieron obtener los datos del horario.',
         });
-        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -77,28 +88,30 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
     );
   }, [data, searchTerm]);
 
-  // ✅ LOGICA DE NAVEGACIÓN IMPLEMENTADA
+  // MANEJADOR: Actualizar Estado -> URL (cuando el usuario elige en el Select)
+  const handleProgramChange = (value: string) => {
+    setSelectedProgram(value);
+    
+    const params = new URLSearchParams(searchParams);
+    params.set('programa_id', value);
+    
+    // Usamos replace para actualizar la URL sin recargar
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   const handleView = (item: ScheduleSummary) => {
-    // Construimos la URL con los parámetros necesarios
     const params = new URLSearchParams();
     params.set('programa_id', String(item.programa_id));
     params.set('curso', String(item.curso));
     
-    // Si el resumen tiene menciones específicas, usamos la primera por defecto para filtrar
-    // (Opcional: Si es un curso común, no enviamos mención)
     if (item.menciones && item.menciones.length > 0) {
-        // Simple heurística: Si solo hay una mención, la pasamos. 
-        // Si hay varias, quizás quieras ver el "común" primero o dejar que el usuario filtre en la vista detalle.
-        // Por ahora pasamos la primera para ser específicos.
         params.set('mencion', item.menciones[0]);
     }
 
     router.push(`/datos/horarios/detalle?${params.toString()}`);
   };
 
-  const handleSolve = (item: ScheduleSummary) => {
-      // Futuro: Navegar al solver
-      console.log("Resolver conflictos para:", item);
+  const handleSolve = (/* item: ScheduleSummary */) => {
       toast({ description: "Funcionalidad de resolución automática próximamente." });
   };
 
@@ -109,7 +122,7 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-background p-1">
         <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center w-full">
           
-          <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+          <Select value={selectedProgram} onValueChange={handleProgramChange}>
             <SelectTrigger className="h-10 w-full md:w-[320px]">
               <SelectValue placeholder="Selecciona una titulación..." />
             </SelectTrigger>
