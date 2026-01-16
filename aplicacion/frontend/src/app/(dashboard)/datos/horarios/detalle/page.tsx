@@ -27,10 +27,8 @@ import { getPrograma, type ProgramaOut } from '@/lib/api/catalogo/programas';
 
 // --- CONSTANTES & UTILIDADES ---
 
-// Valores exactos según backend/constants/enums.py
 const DIAS_BACKEND = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'] as const;
 
-// Opciones para el Select (Value = Backend, Label = UI)
 const DIAS_OPTIONS = [
   { value: 'lunes', label: 'Lunes' },
   { value: 'martes', label: 'Martes' },
@@ -39,23 +37,15 @@ const DIAS_OPTIONS = [
   { value: 'viernes', label: 'Viernes' },
 ];
 
-/**
- * Convierte cualquier formato de día (BD o UI) al índice 0-4 del Grid.
- * Maneja mayúsculas, minúsculas y tildes.
- */
 function normalizeDayToIndex(dia: string | null | undefined): number {
-  if (!dia) return 0; // Por defecto al Lunes si no hay dato
-  
-  // Normalizar: minúsculas y quitar tildes (NFD)
+  if (!dia) return 0;
   const d = dia.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
   if (d.startsWith('lu')) return 0;
   if (d.startsWith('ma')) return 1;
   if (d.startsWith('mi')) return 2;
   if (d.startsWith('ju')) return 3;
   if (d.startsWith('vi')) return 4;
-  
-  return 0; // Fallback
+  return 0;
 }
 
 // --- TIPOS EXTENDIDOS ---
@@ -80,7 +70,6 @@ export default function DetalleHorarioPage() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  // Parámetros de URL
   const pProgramaId = searchParams.get('programa_id');
   const pCurso = searchParams.get('curso');
   const pMencion = searchParams.get('mencion'); 
@@ -94,11 +83,9 @@ export default function DetalleHorarioPage() {
   const [gruposMap, setGruposMap] = React.useState<Map<number, GrupoDocenteOut>>(new Map());
   const [asignaturasMap, setAsignaturasMap] = React.useState<Map<number, AsignaturaOut>>(new Map());
 
-  // Estado de edición
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [editingSesion, setEditingSesion] = React.useState<SesionOut | null>(null);
   
-  // Formulario inicializado con valores seguros
   const [form, setForm] = React.useState<EditSesionForm>({
     dia_semana: 'lunes',
     hora_inicio: '',
@@ -115,7 +102,6 @@ export default function DetalleHorarioPage() {
       try {
         setLoading(true);
 
-        // 1. Cargar datos básicos
         const [resProg, resAulas, resAsignaturas] = await Promise.all([
           getPrograma(Number(pProgramaId)).catch(() => null),
           listAulas({ size: 1000 }),
@@ -125,7 +111,6 @@ export default function DetalleHorarioPage() {
         setPrograma(resProg);
         setAulas(resAulas.items || []);
 
-        // 2. Procesar Asignaturas y filtrar por MENCIÓN
         const asigMap = new Map<number, AsignaturaOut>();
         (resAsignaturas.items || []).forEach((a: AsignaturaOut) => {
             const asigExtendida = a as AsignaturaConMencion;
@@ -138,13 +123,11 @@ export default function DetalleHorarioPage() {
         });
         setAsignaturasMap(asigMap);
 
-        // 3. Cargar Grupos Docentes del CURSO
         const resGrupos = await listGruposDocentes({ 
           curso: Number(pCurso), 
           size: 1000 
         });
 
-        // 4. Filtrar Grupos
         const validGrupos: GrupoDocenteOut[] = [];
         const gMap = new Map<number, GrupoDocenteOut>();
         
@@ -158,11 +141,10 @@ export default function DetalleHorarioPage() {
 
         const validGrupoIds = new Set(validGrupos.map(g => g.id));
 
-        // 5. Cargar Sesiones (CORREGIDO: Límite 1000 para evitar error 422)
         const resSesiones = await listSesiones({ 
           size: 1000,
-          curso: Number(pCurso),          // <--- Filtro de Curso
-          mencion: pMencion || undefined  // <--- Filtro de Mención (si existe)
+          curso: Number(pCurso),
+          mencion: pMencion || undefined
         });
         
         const sesionesFiltradas = (resSesiones.items || []).filter((s: SesionOut) => 
@@ -190,16 +172,19 @@ export default function DetalleHorarioPage() {
   const gridSessions = React.useMemo<Session[]>(() => {
     return sesionesDb.map((dbSesion) => {
       const grupo = gruposMap.get(dbSesion.grupo_docente_id);
+      
+      // ✅ MODIFICADO: No filtramos nada, las mostramos todas.
+      // (Anteriormente aquí había un return si era práctica/lab)
+
       const asignatura = grupo ? asignaturasMap.get(grupo.asignatura_id) : undefined;
       const aula = aulas.find(a => a.id === dbSesion.aula_id);
 
       const title = asignatura?.nombre || "Asignatura desconocida";
       const subtitle = grupo ? `Grupo ${grupo.codigo} (${grupo.tipo})` : "Sin grupo";
       
-      // SOLUCIÓN DÍA: Usar normalizador
       const dayIndex = normalizeDayToIndex(dbSesion.dia_semana);
 
-      const sessionObj: GridSession = {
+      return {
         id: String(dbSesion.id),
         courseId: String(dbSesion.grupo_docente_id),
         dayIndex: dayIndex,
@@ -208,11 +193,12 @@ export default function DetalleHorarioPage() {
         title: title,
         room: aula?.nombre || 'Sin Aula',
         teacher: subtitle, 
-        color: (grupo?.tipo === 'practica' || grupo?.tipo === 'laboratorio') ? 'orange' : 'blue',
+        
+        // ✅ CAMBIO: Forzamos color 'blue' siempre, ignorando el tipo de grupo
+        color: 'blue', 
+        
         originalData: dbSesion 
-      };
-
-      return sessionObj;
+      } as GridSession;
     });
   }, [sesionesDb, gruposMap, asignaturasMap, aulas]);
 
@@ -224,9 +210,7 @@ export default function DetalleHorarioPage() {
 
     setEditingSesion(original);
     
-    // Normalizamos el día al abrir para que coincida con el Select
     const diaBackend = original.dia_semana ? original.dia_semana.toLowerCase() : 'lunes';
-    // Si viene con tilde desde DB por error antiguo, lo limpiamos
     const diaLimpio = diaBackend.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     setForm({
@@ -246,7 +230,6 @@ export default function DetalleHorarioPage() {
     const startMin = timeToMinutes(newStartTime);
     const newEndTime = minutesToTimeLabel(startMin + duracionMin);
     
-    // Convertir índice visual (0..4) a string backend ('lunes'..'viernes')
     const newDay = DIAS_BACKEND[newDayIndex] || 'lunes';
 
     const previousState = [...sesionesDb];
@@ -283,7 +266,6 @@ export default function DetalleHorarioPage() {
 
       const updated = await updateSesion(editingSesion.id, payload);
       
-      // Actualizamos estado local con los datos que devuelve el server
       setSesionesDb(prev => prev.map(s => s.id === editingSesion.id ? updated.sesion : s));
       setIsEditOpen(false);
       toast({ title: "Guardado", description: "La sesión ha sido actualizada." });
@@ -348,7 +330,7 @@ export default function DetalleHorarioPage() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Badge variant="secondary">Curso {pCurso}</Badge>
               {pMencion && <Badge variant="outline">{pMencion}</Badge>}
-              <span>• {sesionesDb.length} sesiones visibles</span>
+              <span>• {gridSessions.length} sesiones visibles</span>
             </div>
           </div>
         </div>
