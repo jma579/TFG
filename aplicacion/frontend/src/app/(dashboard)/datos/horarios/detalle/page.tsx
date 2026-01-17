@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
-  ArrowLeft, Calendar, Loader2, Trash2, AlertTriangle 
+  ArrowLeft, Calendar, Loader2, Trash2, AlertTriangle, 
+  Save, X, Edit, Plus, BookOpen, Clock
 } from 'lucide-react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
@@ -17,11 +18,22 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
+import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
 
 // --- APIS ---
-import { listSesiones, updateSesion, deleteSesion, type SesionOut, type SesionUpdateInput } from '@/lib/api/docencia/sesiones';
+import { 
+  listSesiones, 
+  batchUpdateSesiones, 
+  type SesionOut, 
+  type SesionCreate, 
+  type SesionUpdateWithId 
+} from '@/lib/api/docencia/sesiones';
 import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
-import { listGruposDocentes, type GrupoDocenteOut } from '@/lib/api/docencia/grupos-docentes';
+import { 
+  listGruposDocentes, 
+  createGrupoDocente, 
+  type GrupoDocenteOut 
+} from '@/lib/api/docencia/grupos-docentes';
 import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
 import { getPrograma, type ProgramaOut } from '@/lib/api/catalogo/programas'; 
 
@@ -37,6 +49,14 @@ const DIAS_OPTIONS = [
   { value: 'viernes', label: 'Viernes' },
 ];
 
+const TIPOS_GRUPO = [
+  { value: 'teoria', label: 'Teoría' },
+  { value: 'practica', label: 'Práctica' },
+  { value: 'laboratorio', label: 'Laboratorio' },
+  { value: 'seminario', label: 'Seminario' },
+  { value: 'taller', label: 'Taller' },
+];
+
 function normalizeDayToIndex(dia: string | null | undefined): number {
   if (!dia) return 0;
   const d = dia.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -48,14 +68,45 @@ function normalizeDayToIndex(dia: string | null | undefined): number {
   return 0;
 }
 
+function normalizeTime(value: string | null | undefined): string {
+  if (!value) return '00:00';
+  const parts = value.split(':');
+  return parts.length >= 2 ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` : value;
+}
+
+function timeToMinutes(value: string | null | undefined): number {
+  if (!value) return 0;
+  const [h, m] = value.split(':').map((n) => parseInt(n, 10) || 0);
+  return h * 60 + m;
+}
+
+function minutesToTimeLabel(totalMin: number): string {
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 // --- TIPOS EXTENDIDOS ---
 
-interface AsignaturaConMencion extends AsignaturaOut {
-  mencion?: string;
+interface AsignaturaCompleta extends Omit<AsignaturaOut, 'titulaciones'> {
+  id: number;
+  nombre: string;
+  codigo_plan?: string;
+  titulaciones?: Array<{
+    programa?: { id: number; nombre?: string }; 
+    programa_id?: number;                       
+    curso?: number;
+    periodo?: string;
+  }>;
+  menciones?: Array<{
+    id: number;
+    nombre: string;
+  }>;
 }
 
 interface GridSession extends Session {
   originalData: SesionOut;
+  isNew?: boolean; 
 }
 
 interface EditSesionForm {
@@ -63,7 +114,17 @@ interface EditSesionForm {
   hora_inicio: string;
   hora_fin: string;
   aula_id: number | null;
+  asignatura_id?: number | null;
+  tipo_grupo?: string;
+  codigo_grupo?: string;
+  grupo_docente_id?: number | null; 
 }
+
+type PendingChanges = {
+  created: SesionCreate[];
+  updated: Map<number, SesionUpdateWithId>;
+  deleted: Set<number>;
+};
 
 export default function DetalleHorarioPage() {
   const router = useRouter();
@@ -72,110 +133,157 @@ export default function DetalleHorarioPage() {
 
   const pProgramaId = searchParams.get('programa_id');
   const pCurso = searchParams.get('curso');
-  const pMencion = searchParams.get('mencion'); 
+  const pMencion = searchParams.get('mencion');
+  const pPeriodo = searchParams.get('periodo'); 
 
   // --- ESTADOS ---
   const [loading, setLoading] = React.useState(true);
   const [programa, setPrograma] = React.useState<ProgramaOut | null>(null);
-  const [sesionesDb, setSesionesDb] = React.useState<SesionOut[]>([]);
-  
   const [aulas, setAulas] = React.useState<AulaOut[]>([]);
   const [gruposMap, setGruposMap] = React.useState<Map<number, GrupoDocenteOut>>(new Map());
-  const [asignaturasMap, setAsignaturasMap] = React.useState<Map<number, AsignaturaOut>>(new Map());
+  const [asignaturasMap, setAsignaturasMap] = React.useState<Map<number, AsignaturaCompleta>>(new Map());
+
+  const [localSesiones, setLocalSesiones] = React.useState<SesionOut[]>([]);
+  
+  const [isEditMode, setIsEditMode] = React.useState(false);
+  const [hasChanges, setHasChanges] = React.useState(false);
+
+  const [pendingChanges, setPendingChanges] = React.useState<PendingChanges>({
+    created: [],
+    updated: new Map(),
+    deleted: new Set()
+  });
 
   const [isEditOpen, setIsEditOpen] = React.useState(false);
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [editingSesion, setEditingSesion] = React.useState<SesionOut | null>(null);
   
   const [form, setForm] = React.useState<EditSesionForm>({
     dia_semana: 'lunes',
-    hora_inicio: '',
-    hora_fin: '',
-    aula_id: null
+    hora_inicio: '09:00',
+    hora_fin: '10:00',
+    aula_id: null,
+    asignatura_id: null,
+    tipo_grupo: 'teoria',
+    codigo_grupo: 'UNICO'
   });
+  
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = React.useState(false);
 
   // --- CARGA DE DATOS ---
-  React.useEffect(() => {
-    async function fetchData() {
-      if (!pProgramaId || !pCurso) return;
+  const fetchData = React.useCallback(async () => {
+    if (!pProgramaId || !pCurso) return;
+    
+    try {
+      setLoading(true);
+
+      const [resProg, resAulas, resAsignaturas] = await Promise.all([
+        getPrograma(Number(pProgramaId)).catch(() => null),
+        listAulas({ size: 1000 }),
+        listAsignaturas({ limit: 1000, activo: true }) 
+      ]);
+
+      setPrograma(resProg);
+      setAulas(resAulas.items || []);
+
+      const asigMap = new Map<number, AsignaturaCompleta>();
+      (resAsignaturas.items || []).forEach((a: AsignaturaOut) => {
+          asigMap.set(a.id, a as unknown as AsignaturaCompleta);
+      });
+      setAsignaturasMap(asigMap);
+
+      const resGrupos = await listGruposDocentes({ 
+        curso: Number(pCurso), 
+        size: 1000 
+      });
+
+      const validGrupos: GrupoDocenteOut[] = [];
+      const gMap = new Map<number, GrupoDocenteOut>();
       
-      try {
-        setLoading(true);
+      (resGrupos.items || []).forEach((g: GrupoDocenteOut) => {
+          if (asigMap.has(g.asignatura_id)) {
+              validGrupos.push(g);
+              gMap.set(g.id, g);
+          }
+      });
+      setGruposMap(gMap);
 
-        const [resProg, resAulas, resAsignaturas] = await Promise.all([
-          getPrograma(Number(pProgramaId)).catch(() => null),
-          listAulas({ size: 1000 }),
-          listAsignaturas({ limit: 1000, activo: true }) 
-        ]);
+      const validGrupoIds = new Set(validGrupos.map(g => g.id));
 
-        setPrograma(resProg);
-        setAulas(resAulas.items || []);
+      const resSesiones = await listSesiones({ 
+        size: 1000,
+        curso: Number(pCurso),
+        mencion: pMencion || undefined
+      });
+      
+      const sesionesFiltradas = (resSesiones.items || []).filter((s: SesionOut) => 
+        validGrupoIds.has(s.grupo_docente_id)
+      );
 
-        const asigMap = new Map<number, AsignaturaOut>();
-        (resAsignaturas.items || []).forEach((a: AsignaturaOut) => {
-            const asigExtendida = a as AsignaturaConMencion;
-            const asigMencion = asigExtendida.mencion; 
-            
-            if (pMencion && asigMencion && asigMencion !== pMencion) {
-                return; 
-            }
-            asigMap.set(a.id, a);
-        });
-        setAsignaturasMap(asigMap);
+      setLocalSesiones(sesionesFiltradas);
+      setPendingChanges({ created: [], updated: new Map(), deleted: new Set() });
+      setHasChanges(false);
 
-        const resGrupos = await listGruposDocentes({ 
-          curso: Number(pCurso), 
-          size: 1000 
-        });
-
-        const validGrupos: GrupoDocenteOut[] = [];
-        const gMap = new Map<number, GrupoDocenteOut>();
-        
-        (resGrupos.items || []).forEach((g: GrupoDocenteOut) => {
-            if (asigMap.has(g.asignatura_id)) {
-                validGrupos.push(g);
-                gMap.set(g.id, g);
-            }
-        });
-        setGruposMap(gMap);
-
-        const validGrupoIds = new Set(validGrupos.map(g => g.id));
-
-        const resSesiones = await listSesiones({ 
-          size: 1000,
-          curso: Number(pCurso),
-          mencion: pMencion || undefined
-        });
-        
-        const sesionesFiltradas = (resSesiones.items || []).filter((s: SesionOut) => 
-          validGrupoIds.has(s.grupo_docente_id)
-        );
-
-        setSesionesDb(sesionesFiltradas);
-
-      } catch (error) {
-        console.error("Error cargando detalle:", error);
-        toast({
-          title: "Error de carga",
-          description: "No se pudo componer el horario completo.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
+    } catch (error) {
+      console.error("Error cargando detalle:", error);
+      toast({
+        title: "Error de carga",
+        description: "No se pudo componer el horario completo.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-
-    fetchData();
   }, [pProgramaId, pCurso, pMencion, toast]);
+
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // --- OPCIONES MEMOIZADAS ---
+  
+  const aulaOptions = React.useMemo<AutocompleteOption[]>(
+    () => aulas.map((a) => ({
+      value: a.id,
+      label: a.nombre,
+      keywords: a.codigo,
+    })),
+    [aulas]
+  );
+
+  // [LOGICA SIMPLIFICADA] Filtro SOLO por Titulación
+  const asignaturaOptions = React.useMemo<AutocompleteOption[]>(() => {
+      const targetProgId = Number(pProgramaId);
+      const asignaturasArray = Array.from(asignaturasMap.values());
+
+      return asignaturasArray
+        .filter((a: AsignaturaCompleta) => {
+            // 1. Si no tiene datos de titulación, no podemos saber si es de este grado. Ocultar.
+            if (!a.titulaciones || a.titulaciones.length === 0) {
+              return false; 
+            }
+
+            // 2. Comprobar únicamente si la asignatura pertenece al PROGRAMA (Grado) actual.
+            // Ignoramos curso, periodo y mención para mostrar todas las opciones posibles.
+            const esDelPrograma = a.titulaciones.some(t => {
+                const pId = t.programa?.id ?? t.programa_id; 
+                return pId === targetProgId;
+            });
+            
+            return esDelPrograma;
+        })
+        .map((a: AsignaturaCompleta) => ({
+            value: Number(a.id), 
+            label: String(a.nombre),
+            keywords: a.codigo_plan ? String(a.codigo_plan) : undefined
+        }));
+  }, [asignaturasMap, pProgramaId]); // Dependencias reducidas al mínimo
 
   // --- TRANSFORMACIÓN: DB -> GRID ---
   const gridSessions = React.useMemo<Session[]>(() => {
-    return sesionesDb.map((dbSesion) => {
+    return localSesiones.map((dbSesion) => {
       const grupo = gruposMap.get(dbSesion.grupo_docente_id);
-      
-      // ✅ MODIFICADO: No filtramos nada, las mostramos todas.
-      // (Anteriormente aquí había un return si era práctica/lab)
-
       const asignatura = grupo ? asignaturasMap.get(grupo.asignatura_id) : undefined;
       const aula = aulas.find(a => a.id === dbSesion.aula_id);
 
@@ -183,6 +291,10 @@ export default function DetalleHorarioPage() {
       const subtitle = grupo ? `Grupo ${grupo.codigo} (${grupo.tipo})` : "Sin grupo";
       
       const dayIndex = normalizeDayToIndex(dbSesion.dia_semana);
+
+      let color: Session['color'] = 'blue';
+      if (dbSesion.id < 0) color = 'green'; 
+      else if (pendingChanges.updated.has(dbSesion.id)) color = 'orange'; 
 
       return {
         id: String(dbSesion.id),
@@ -193,21 +305,26 @@ export default function DetalleHorarioPage() {
         title: title,
         room: aula?.nombre || 'Sin Aula',
         teacher: subtitle, 
-        
-        // ✅ CAMBIO: Forzamos color 'blue' siempre, ignorando el tipo de grupo
-        color: 'blue', 
-        
-        originalData: dbSesion 
+        color: color,
+        originalData: dbSesion,
+        isNew: dbSesion.id < 0
       } as GridSession;
     });
-  }, [sesionesDb, gruposMap, asignaturasMap, aulas]);
+  }, [localSesiones, gruposMap, asignaturasMap, aulas, pendingChanges]);
 
-  // --- HANDLERS ---
+  // --- HANDLERS (Sin Cambios) ---
+  const toggleEditMode = () => {
+    if (isEditMode && hasChanges) {
+      if (!confirm("Tienes cambios sin guardar. ¿Seguro que quieres salir y perderlos?")) return;
+      fetchData(); 
+    }
+    setIsEditMode(!isEditMode);
+  };
 
   const handleSessionClick = (session: Session) => {
+    if (!isEditMode) return;
     const original = (session as GridSession).originalData;
     if (!original) return;
-
     setEditingSesion(original);
     
     const diaBackend = original.dia_semana ? original.dia_semana.toLowerCase() : 'lunes';
@@ -217,79 +334,172 @@ export default function DetalleHorarioPage() {
       dia_semana: diaLimpio,
       hora_inicio: normalizeTime(original.hora_inicio),
       hora_fin: normalizeTime(original.hora_fin),
-      aula_id: original.aula_id || null 
+      aula_id: original.aula_id || null,
+      grupo_docente_id: original.grupo_docente_id
     });
     setIsEditOpen(true);
   };
 
-  const handleSessionMove = async (session: Session, newDayIndex: number, newStartTime: string) => {
+  const handleSessionMove = (session: Session, newDayIndex: number, newStartTime: string) => {
+    if (!isEditMode) return;
     const original = (session as GridSession).originalData;
     if (!original) return;
 
     const duracionMin = timeToMinutes(original.hora_fin) - timeToMinutes(original.hora_inicio);
     const startMin = timeToMinutes(newStartTime);
     const newEndTime = minutesToTimeLabel(startMin + duracionMin);
-    
     const newDay = DIAS_BACKEND[newDayIndex] || 'lunes';
 
-    const previousState = [...sesionesDb];
-    setSesionesDb(prev => prev.map(s => 
-      s.id === original.id 
-        ? { ...s, dia_semana: newDay, hora_inicio: newStartTime, hora_fin: newEndTime } 
-        : s
-    ));
-
-    try {
-      await updateSesion(original.id, {
-        dia_semana: newDay,
-        hora_inicio: newStartTime,
-        hora_fin: newEndTime
-      });
-      toast({ description: "Sesión movida correctamente." });
-    } catch (error) {
-      console.error(error);
-      setSesionesDb(previousState);
-      toast({ title: "Error", description: "No se pudo mover la sesión.", variant: "destructive" });
-    }
+    updateLocalSession(original.id, { dia_semana: newDay, hora_inicio: newStartTime, hora_fin: newEndTime });
   };
 
-  const handleSaveEdit = async () => {
+  const updateLocalSession = (id: number, updates: Partial<SesionOut>) => {
+    setLocalSesiones(prev => prev.map(s => (s.id !== id ? s : { ...s, ...updates })));
+    if (id > 0) {
+      setPendingChanges(prev => {
+        const existing = prev.updated.get(id) || { id };
+        const updatedEntry = { ...existing, ...updates };
+        const newMap = new Map(prev.updated);
+        newMap.set(id, updatedEntry as SesionUpdateWithId);
+        return { ...prev, updated: newMap };
+      });
+    } 
+    setHasChanges(true);
+  };
+
+  const handleSaveEditForm = () => {
     if (!editingSesion) return;
-    setIsSaving(true);
+    updateLocalSession(editingSesion.id, {
+      dia_semana: form.dia_semana,
+      hora_inicio: form.hora_inicio,
+      hora_fin: form.hora_fin,
+      aula_id: form.aula_id || 0 
+    });
+    setIsEditOpen(false);
+    toast({ description: "Cambio registrado (pendiente de guardar)." });
+  };
+
+  const handleDelete = () => {
+    if (!editingSesion) return;
+    setLocalSesiones(prev => prev.filter(s => s.id !== editingSesion.id));
+    if (editingSesion.id > 0) {
+      setPendingChanges(prev => {
+        const newDeleted = new Set(prev.deleted);
+        newDeleted.add(editingSesion.id);
+        const newUpdated = new Map(prev.updated);
+        newUpdated.delete(editingSesion.id);
+        return { ...prev, deleted: newDeleted, updated: newUpdated };
+      });
+    }
+    setIsEditOpen(false);
+    setHasChanges(true);
+    toast({ description: "Sesión eliminada (pendiente de guardar)." });
+  };
+
+  const handleOpenCreate = () => {
+    setForm({ 
+      dia_semana: 'lunes', 
+      hora_inicio: '09:00', 
+      hora_fin: '10:00', 
+      aula_id: null, 
+      asignatura_id: null,
+      tipo_grupo: 'teoria',
+      codigo_grupo: 'UNICO'
+    });
+    setIsCreateOpen(true);
+  };
+
+  const handleCreateSession = async () => {
+    if (!form.asignatura_id || !form.tipo_grupo || !form.codigo_grupo) {
+      toast({ title: "Faltan datos", description: "Selecciona asignatura, tipo y código de grupo.", variant: "destructive" });
+      return;
+    }
+
+    setIsCreatingGroup(true);
     try {
-      const payload: SesionUpdateInput = {
+      let targetGroupId: number | null = null;
+      
+      for (const group of gruposMap.values()) {
+        if (
+          group.asignatura_id === form.asignatura_id && 
+          group.tipo.toLowerCase() === form.tipo_grupo!.toLowerCase() &&
+          group.codigo.toLowerCase() === form.codigo_grupo!.toLowerCase()
+        ) {
+          targetGroupId = group.id;
+          break;
+        }
+      }
+
+      if (!targetGroupId) {
+        try {
+          const newGroup = await createGrupoDocente({
+            asignatura_id: form.asignatura_id!,
+            tipo: form.tipo_grupo!,
+            codigo: form.codigo_grupo!,
+            curso: Number(pCurso) || 1,
+            turno: 'mañana'
+          });
+          
+          targetGroupId = newGroup.id;
+          setGruposMap(prev => new Map(prev).set(newGroup.id, newGroup));
+          toast({ description: `Grupo docente creado automáticamente: ${newGroup.codigo}` });
+        } catch (error) {
+          console.error("Error creando grupo docente", error);
+          toast({ title: "Error", description: "No se pudo crear el grupo docente.", variant: "destructive" });
+          setIsCreatingGroup(false);
+          return;
+        }
+      }
+
+      const tempId = -1 * (Date.now() % 100000); 
+      const newSession: SesionOut = {
+        id: tempId,
+        grupo_docente_id: targetGroupId,
+        aula_id: form.aula_id || 0, 
+        modalidad: 'presencial', 
+        tipo_recurrencia: 'semanal',
         dia_semana: form.dia_semana,
         hora_inicio: form.hora_inicio,
         hora_fin: form.hora_fin,
-        aula_id: form.aula_id
+        inicio: null, fin: null, profesores: [] 
       };
 
-      const updated = await updateSesion(editingSesion.id, payload);
-      
-      setSesionesDb(prev => prev.map(s => s.id === editingSesion.id ? updated.sesion : s));
-      setIsEditOpen(false);
-      toast({ title: "Guardado", description: "La sesión ha sido actualizada." });
-    } catch (error) {
-      console.error(error);
-      toast({ title: "Error", description: "Fallo al guardar los cambios.", variant: "destructive" });
+      setLocalSesiones(prev => [...prev, newSession]);
+      setHasChanges(true);
+      setIsCreateOpen(false);
+      toast({ title: "Sesión creada", description: "Aparece en verde. Recuerda guardar." });
+
     } finally {
-      setIsSaving(false);
+      setIsCreatingGroup(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!editingSesion) return;
-    if (!confirm("¿Eliminar sesión permanentemente?")) return;
-
+  const handleSaveChanges = async () => {
+    if (!hasChanges) return;
     setIsSaving(true);
     try {
-      await deleteSesion(editingSesion.id);
-      setSesionesDb(prev => prev.filter(s => s.id !== editingSesion.id));
-      setIsEditOpen(false);
-      toast({ title: "Eliminado", description: "La sesión ha sido eliminada." });
+      const createdSessions = localSesiones.filter(s => s.id < 0).map(s => ({
+          grupo_docente_id: s.grupo_docente_id,
+          aula_id: s.aula_id,
+          modalidad: s.modalidad || 'presencial',
+          tipo_recurrencia: s.tipo_recurrencia || 'semanal',
+          dia_semana: s.dia_semana,
+          hora_inicio: s.hora_inicio,
+          hora_fin: s.hora_fin,
+          profesores: []
+        } as SesionCreate));
+
+      const updatedSessions = Array.from(pendingChanges.updated.values());
+      const deletedIds = Array.from(pendingChanges.deleted);
+
+      await batchUpdateSesiones({ created: createdSessions, updated: updatedSessions, deleted: deletedIds });
+      
+      toast({ title: "¡Guardado!", description: "El horario se ha actualizado correctamente." });
+      await fetchData();
+      setIsEditMode(false);
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "No se pudo eliminar.", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -309,154 +519,171 @@ export default function DetalleHorarioPage() {
       <div className="p-8 flex flex-col items-center text-center gap-4">
         <AlertTriangle className="h-12 w-12 text-yellow-500" />
         <h2 className="text-xl font-bold">Faltan parámetros de visualización</h2>
-        <p>Selecciona una titulación y curso desde el panel principal.</p>
         <Button onClick={() => router.back()}>Volver</Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] space-y-4 p-4">
+    <div className="flex flex-col h-[calc(100vh-2rem)]">
+      
       {/* HEADER */}
-      <div className="flex items-center justify-between border-b pb-4 bg-background">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {programa ? programa.nombre : "Cargando..."}
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="secondary">Curso {pCurso}</Badge>
-              {pMencion && <Badge variant="outline">{pMencion}</Badge>}
-              <span>• {gridSessions.length} sesiones visibles</span>
+      <div className="sticky top-0 z-30 flex flex-col gap-4 px-6 py-4 bg-transparent">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <Button variant="ghost" size="icon" className="-ml-2 mt-1 shrink-0" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <BookOpen className="h-3.5 w-3.5" /><span>Horarios</span><span>/</span><span className="text-foreground">Detalle</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{programa ? programa.nombre : "Cargando..."}</h1>
+                <div className="hidden sm:block h-6 w-[1px] bg-border mx-1" />
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="gap-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200">Curso {pCurso}</Badge>
+                  {pMencion && <Badge variant="secondary" className="gap-1 bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-200">{pMencion}</Badge>}
+                  
+                  {/* Badge de Periodo si existe en URL */}
+                  {pPeriodo && (
+                    <Badge variant="outline" className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <Clock className="h-3 w-3" />
+                      {pPeriodo.replace(/_/g, ' ')}
+                    </Badge>
+                  )}
+
+                  <span className="ml-2 text-sm text-muted-foreground font-medium">{localSesiones.length} sesiones</span>
+                </div>
+              </div>
             </div>
+          </div>
+          <div className="flex items-center gap-3 self-start sm:self-center">
+            {isEditMode ? (
+               <>
+                 <Button variant="outline" size="sm" onClick={handleOpenCreate} className="h-9 bg-background/80 backdrop-blur"><Plus className="mr-2 h-4 w-4" />Nueva Sesión</Button>
+                 <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
+                 <Button variant="ghost" size="sm" onClick={toggleEditMode} disabled={isSaving} className="h-9 text-muted-foreground hover:text-foreground"><X className="mr-2 h-4 w-4" />Cancelar</Button>
+                 <Button onClick={handleSaveChanges} disabled={!hasChanges || isSaving} className="h-9 min-w-[140px]">
+                   {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}Guardar
+                 </Button>
+               </>
+            ) : (
+               <Button onClick={toggleEditMode} className="h-9 shadow-sm"><Edit className="mr-2 h-4 w-4" />Editar Horario</Button>
+            )}
           </div>
         </div>
       </div>
 
       {/* GRID AREA */}
-      <Card className="flex-1 overflow-hidden border bg-background shadow-sm">
-        <CardContent className="p-0 h-full">
-           {gridSessions.length > 0 ? (
-             <InteractiveScheduleGrid
-               sessions={gridSessions}
-               onSessionClick={handleSessionClick}
-               onSessionMove={handleSessionMove}
-               className="h-full"
-               start="08:00"
-               end="22:00"
-             />
-           ) : (
-             <div className="flex h-full flex-col items-center justify-center space-y-3 p-8 text-muted-foreground">
-               <Calendar className="h-12 w-12 opacity-20" />
-               <p className="text-lg font-medium">No hay sesiones para este criterio</p>
-               <p className="text-sm">Si has seleccionado mención, verifica que las asignaturas la tengan asignada.</p>
-             </div>
-           )}
-        </CardContent>
-      </Card>
+      <div className="flex-1 overflow-hidden px-6 pb-6 bg-muted/10">
+        <Card className={`h-full overflow-hidden border bg-background shadow-sm transition-all duration-300 ${isEditMode ? 'ring-2 ring-primary/10 border-primary/20' : ''}`}>
+          <CardContent className="p-0 h-full relative">
+             {isEditMode && (
+               <div className="absolute top-3 right-3 z-20 flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 shadow-sm animate-in fade-in zoom-in-95">
+                 <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />Modo Edición
+               </div>
+             )}
+             {gridSessions.length > 0 || isEditMode ? (
+               <InteractiveScheduleGrid sessions={gridSessions} onSessionClick={handleSessionClick} onSessionMove={handleSessionMove} readOnly={!isEditMode} className="h-full border-0 rounded-none" start="08:00" end="22:00" />
+             ) : (
+               <div className="flex h-full flex-col items-center justify-center space-y-4 p-8 text-muted-foreground">
+                 <div className="rounded-full bg-muted p-4"><Calendar className="h-8 w-8 opacity-40" /></div>
+                 <div className="text-center"><p className="text-lg font-medium text-foreground">No hay sesiones visibles</p><p className="text-sm max-w-xs mx-auto mt-1">No se encontraron clases para los filtros seleccionados o el horario está vacío.</p></div>
+               </div>
+             )}
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* MODAL EDICION */}
+      {/* MODAL EDICIÓN */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Sesión</DialogTitle>
-          </DialogHeader>
-          
+          <DialogHeader><DialogTitle>Editar Sesión</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-4">
              {editingSesion && (
-               <div className="rounded-md bg-muted/50 p-3 text-sm mb-2">
+               <div className="rounded-md bg-muted/50 p-3 text-sm mb-2 border border-muted">
                  <p className="font-semibold text-foreground">
                    {asignaturasMap.get(gruposMap.get(editingSesion.grupo_docente_id)?.asignatura_id || 0)?.nombre}
                  </p>
-                 <p className="text-muted-foreground">
-                   Grupo {gruposMap.get(editingSesion.grupo_docente_id)?.codigo} ({gruposMap.get(editingSesion.grupo_docente_id)?.tipo})
+                 <p className="text-muted-foreground text-xs mt-0.5">
+                   Grupo {gruposMap.get(editingSesion.grupo_docente_id)?.codigo} • {gruposMap.get(editingSesion.grupo_docente_id)?.tipo}
                  </p>
                </div>
              )}
-
             <div className="grid gap-2">
               <Label>Día</Label>
-              <Select 
-                value={form.dia_semana} 
-                onValueChange={(val) => setForm({...form, dia_semana: val})}
-              >
+              <Select value={form.dia_semana} onValueChange={(val) => setForm({...form, dia_semana: val})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {DIAS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectContent>{DIAS_OPTIONS.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Inicio</Label>
-                <Input type="time" value={form.hora_inicio} onChange={(e) => setForm({...form, hora_inicio: e.target.value})} />
-              </div>
-              <div className="grid gap-2">
-                <Label>Fin</Label>
-                <Input type="time" value={form.hora_fin} onChange={(e) => setForm({...form, hora_fin: e.target.value})} />
-              </div>
+              <div className="grid gap-2"><Label>Inicio</Label><Input type="time" value={form.hora_inicio} onChange={(e) => setForm({...form, hora_inicio: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>Fin</Label><Input type="time" value={form.hora_fin} onChange={(e) => setForm({...form, hora_fin: e.target.value})} /></div>
             </div>
-
             <div className="grid gap-2">
               <Label>Aula</Label>
-              <Select 
-                value={form.aula_id?.toString() || "no-aula"} 
-                onValueChange={(val) => setForm({...form, aula_id: val === "no-aula" ? null : Number(val)})}
-              >
-                <SelectTrigger><SelectValue placeholder="Sin aula" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-aula">-- Sin Aula --</SelectItem>
-                  {aulas.map((aula) => (
-                    <SelectItem key={aula.id} value={String(aula.id)}>
-                      {aula.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SimpleAutocomplete options={aulaOptions} value={form.aula_id ?? undefined} onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} placeholder="Buscar aula..." />
             </div>
           </div>
-
           <DialogFooter className="flex justify-between sm:justify-between">
-            <Button variant="destructive" size="icon" onClick={handleDelete} disabled={isSaving}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <Button variant="destructive" size="icon" onClick={handleDelete}><Trash2 className="h-4 w-4" /></Button>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSaveEdit} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Guardar
-              </Button>
+              <Button onClick={handleSaveEditForm}>Aplicar</Button>
             </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MODAL CREACIÓN */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader><DialogTitle>Nueva Sesión</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Asignatura</Label>
+              <SimpleAutocomplete options={asignaturaOptions} value={form.asignatura_id ?? undefined} onChange={(val) => setForm({...form, asignatura_id: Number(val)})} placeholder="Buscar asignatura..." emptyText="No se encontraron asignaturas" />
+            </div>
+            <div className="grid gap-2">
+              <Label>Aula</Label>
+              <SimpleAutocomplete options={aulaOptions} value={form.aula_id ?? undefined} onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} placeholder="Buscar aula..." />
+            </div>
+            <div className="grid gap-2">
+              <Label>Día</Label>
+              <Select value={form.dia_semana} onValueChange={(val) => setForm({...form, dia_semana: val})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{DIAS_OPTIONS.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2"><Label>Inicio</Label><Input type="time" value={form.hora_inicio} onChange={(e) => setForm({...form, hora_inicio: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>Fin</Label><Input type="time" value={form.hora_fin} onChange={(e) => setForm({...form, hora_fin: e.target.value})} /></div>
+            </div>
+            <div className="grid gap-2">
+                <Label>Tipo</Label>
+                <Select value={form.tipo_grupo} onValueChange={(val) => setForm({...form, tipo_grupo: val})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {TIPOS_GRUPO.map((t) => <SelectItem key={t.value} value={t.value}>{String(t.label)}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid gap-2">
+                <Label>Grupo</Label>
+                <Input value={form.codigo_grupo} onChange={(e) => setForm({...form, codigo_grupo: e.target.value})} placeholder="Ej: A, G1, PL1" />
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button onClick={handleCreateSession} disabled={!form.asignatura_id || !form.tipo_grupo || !form.codigo_grupo || isCreatingGroup}>
+                {isCreatingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Crear
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
-}
-
-// --- HELPERS ---
-function normalizeTime(value: string | null | undefined): string {
-  if (!value) return '00:00';
-  const parts = value.split(':');
-  return parts.length >= 2 ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` : value;
-}
-
-function timeToMinutes(value: string | null | undefined): number {
-  if (!value) return 0;
-  const [h, m] = value.split(':').map((n) => parseInt(n, 10) || 0);
-  return h * 60 + m;
-}
-
-function minutesToTimeLabel(totalMin: number): string {
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }

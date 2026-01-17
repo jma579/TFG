@@ -12,6 +12,7 @@ type Props = {
   className?: string;
   onSessionClick?: (session: Session) => void;
   onSessionMove?: (session: Session, newDayIndex: number, newStartTime: string) => void;
+  readOnly?: boolean; // ✅ NUEVA PROP: Controla si el grid es interactivo
 };
 
 const DAYS = ['L', 'M', 'X', 'J', 'V'];
@@ -29,6 +30,7 @@ export function InteractiveScheduleGrid({
   className,
   onSessionClick,
   onSessionMove,
+  readOnly = false, // ✅ Por defecto false (interactivo)
 }: Props) {
   const startMin = timeToMinutes(start);
   const endMin = timeToMinutes(end);
@@ -51,6 +53,8 @@ export function InteractiveScheduleGrid({
   // --- Lógica Drag & Drop mejorada ---
 
   const handleDragStart = (e: React.DragEvent, session: Session) => {
+    if (readOnly) return; // ✅ Bloqueo de seguridad
+    
     e.dataTransfer.setData('sessionId', String(session.id));
     e.dataTransfer.effectAllowed = 'move';
 
@@ -61,9 +65,7 @@ export function InteractiveScheduleGrid({
     const offsetSlots = Math.floor(offsetY / SLOT_HEIGHT);
     e.dataTransfer.setData('offsetSlots', String(offsetSlots));
 
-    // Activamos el modo dragging con un micro-tick de retraso para que 
-    // el navegador tenga tiempo de generar la "imagen fantasma" del drag
-    // antes de que le quitemos los pointer-events al elemento original.
+    // Activamos el modo dragging con un micro-tick de retraso
     setTimeout(() => setIsDragging(true), 0);
   };
 
@@ -72,13 +74,15 @@ export function InteractiveScheduleGrid({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    if (readOnly) return; // ✅ Bloqueo
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (e: React.DragEvent, dayIndex: number, dropSlotIndex: number) => {
+    if (readOnly) return; // ✅ Bloqueo
+    
     e.preventDefault();
-    // Importante: reseteamos estado aquí también por seguridad
     setIsDragging(false);
 
     const sessionId = e.dataTransfer.getData('sessionId');
@@ -178,31 +182,35 @@ export function InteractiveScheduleGrid({
           const widthPercent = 100 / layout.lanes;
           const leftPercent = layout.lane * widthPercent;
 
+          // ✅ Lógica visual para modo solo lectura vs edición
+          const isDraggable = !readOnly && !!onSessionMove;
+          const isClickable = !readOnly && !!onSessionClick;
+          
           return (
             <div
               key={session.id}
-              draggable={!!onSessionMove}
+              draggable={isDraggable}
               onDragStart={(e) => handleDragStart(e, session)}
-              onDragEnd={handleDragEnd} // Limpiamos estado al terminar
+              onDragEnd={handleDragEnd}
               className={cn(
                 'my-[2px] flex flex-col items-stretch justify-center overflow-hidden rounded-sm border px-1 py-[2px] text-left text-[11px] shadow-sm ring-1 transition-all',
                 chipColor(session.color),
-                onSessionMove ? 'cursor-grab active:cursor-grabbing' : '',
-                // TRUCO CLAVE: Si estamos arrastrando, quitamos eventos de puntero a TODAS las sesiones
-                // Esto permite que el evento 'drop' atraviese las sesiones y llegue a la celda de fondo.
-                isDragging ? 'pointer-events-none opacity-80 z-0' : 'hover:z-30 hover:shadow-md cursor-pointer'
+                isDraggable && !isDragging ? 'cursor-grab active:cursor-grabbing hover:shadow-md hover:z-30' : '',
+                !isDraggable && !isClickable ? 'cursor-default' : '',
+                isClickable && !isDraggable ? 'cursor-pointer hover:shadow-md' : '',
+                // TRUCO: pointer-events-none durante drag para que el drop llegue a la celda
+                isDragging ? 'pointer-events-none opacity-80 z-0' : ''
               )}
               style={{
                 gridRow: `${rowStart} / ${rowEnd}`,
                 gridColumn: dayIndex + 2,
                 width: `calc(${widthPercent}% - 4px)`,
                 marginLeft: `calc(${leftPercent}% + 2px)`,
-                // Si no arrastramos, usamos z-index calculado. Si arrastramos, z-0 para no molestar.
                 zIndex: isDragging ? 0 : 10 + layout.lane,
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                if (!isDragging) onSessionClick?.(session);
+                if (!readOnly && !isDragging) onSessionClick?.(session);
               }}
             >
               <span className="truncate font-medium leading-tight">
@@ -226,10 +234,7 @@ export function InteractiveScheduleGrid({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
-
+// ... (Helpers sin cambios) ...
 function buildLayoutById(sessions: Session[]): Map<string, LayoutInfo> {
   const result = new Map<string, LayoutInfo>();
   const byDay = new Map<number, { session: Session; start: number; end: number }[]>();

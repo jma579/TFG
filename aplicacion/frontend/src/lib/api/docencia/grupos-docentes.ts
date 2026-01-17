@@ -1,15 +1,25 @@
-import { api } from '@/lib/api/config';
+import { api } from '@/lib/api/config'; // Ajusta esto a tu configuración real de axios/api
 
 export type GrupoDocenteOut = {
   id: number;
   asignatura_id: number;
   codigo: string;
-  tipo: string;
-  curso?: number | null;
-  turno?: string | null;
+  tipo: string; // 'teoria', 'practica', etc.
+  curso: number;
+  turno?: string;
+  // Campos opcionales para la UI (si el backend los devuelve en joins)
+  asignatura?: { nombre: string };
 };
 
-export type GrupoDocenteListResponse = {
+export type GrupoDocenteCreate = {
+  asignatura_id: number;
+  codigo: string;
+  tipo: string;
+  curso?: number;
+  turno?: string;
+};
+
+export type GrupoDocenteList = {
   total: number;
   items: GrupoDocenteOut[];
   page: number;
@@ -17,20 +27,22 @@ export type GrupoDocenteListResponse = {
 };
 
 export type GrupoDocenteFilters = {
-  asignatura_id?: number;
-  tipo?: string;
   curso?: number;
-  turno?: string;
-  page?: number;
   size?: number;
 };
 
-export async function listGruposDocentes(filters: GrupoDocenteFilters = {}): Promise<GrupoDocenteListResponse> {
-  const { page = 1, size = 100, ...rest } = filters;
+// --- FUNCIONES ---
+
+export async function listGruposDocentes(filters: GrupoDocenteFilters = {}): Promise<GrupoDocenteList> {
+  const { size = 100, ...rest } = filters;
   const params = {
-    skip: (page - 1) * size,
     limit: size,
     ...rest,
   };
   return api.get('/v0/docencia/grupos-docentes', { params });
+}
+
+// ✅ Esta es la función que faltaba
+export async function createGrupoDocente(data: GrupoDocenteCreate): Promise<GrupoDocenteOut> {
+  return api.post('/v0/docencia/grupos-docentes', data);
 }

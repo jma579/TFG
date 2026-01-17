@@ -24,7 +24,8 @@ from modules.docencia.schemas.grupo_docente import (
     GrupoDocenteCreate, GrupoDocenteUpdate, GrupoDocenteOut, GrupoDocenteList
 )
 from modules.docencia.schemas.sesion import (
-    SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut
+    SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut,
+    SesionBatchRequest
 )
 from modules.docencia.schemas.dashboard import (
     ResumenHorarioOut, DashboardFiltros
@@ -1069,6 +1070,64 @@ def eliminar_sesion(
     sesion_service.delete(db, id)
     return None
 
+@router.post(
+    "/sesiones/batch",
+    status_code=status.HTTP_200_OK,
+    summary="Procesar lote de cambios en sesiones",
+    description="""
+    Permite crear, actualizar y eliminar múltiples sesiones en una sola operación.
+    Útil para el modo 'Guardar' del editor de horarios.
+    """,
+    tags=["Sesiones"]
+)
+def batch_update_sesiones(
+    payload: SesionBatchRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Ejecuta las operaciones en orden: Delete -> Update -> Create.
+    """
+    try:
+        # 1. Eliminar
+        for id_sesion in payload.deleted:
+            # Usamos el servicio para asegurar borrado en cascada correcto
+            # Si falla uno, la transacción completa fallará al final (FastAPI default behavior)
+            try:
+                sesion_service.delete(db, id_sesion)
+            except HTTPException as e:
+                # Ignoramos 404 si ya no existe, pero relanzamos otros
+                if e.status_code != 404:
+                    raise e
+
+        # 2. Actualizar
+        for item in payload.updated:
+            # Separamos el ID de los datos de update
+            update_data = item.model_dump(exclude={'id'}, exclude_unset=True)
+            if not update_data:
+                continue
+            
+            # Reconvertimos a SesionUpdate para el servicio
+            schema_update = SesionUpdate(**update_data)
+            sesion_service.update(db, item.id, schema_update)
+
+        # 3. Crear
+        created_sessions = []
+        for create_item in payload.created:
+            new_sesion = sesion_service.create(db, create_item)
+            created_sessions.append(new_sesion)
+        
+        # Hacemos commit explícito para asegurar que todo el bloque entró
+        db.commit()
+        
+        return {"status": "success", "created_count": len(created_sessions)}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error procesando el lote: {str(e)}"
+        )
+    
 
 # ============================================================
 #  ENDPOINTS DE HORARIOS (PIPELINE EXTRACCIÓN)

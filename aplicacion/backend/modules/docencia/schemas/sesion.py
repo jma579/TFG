@@ -454,3 +454,31 @@ class SesionList(BaseModel):
 class SesionWithConflictosOut(BaseModel):
     sesion: SesionOut
     conflictos: List[ConflictoOut]
+
+
+# === NUEVO: Schemas para Batch Update ===
+
+class SesionUpdateWithId(SesionUpdate):
+    """
+    SesionUpdate que incluye el ID obligatorio.
+    Necesario para identificar qué sesión actualizar en una lista.
+    """
+    id: int = Field(..., gt=0, description="ID de la sesión a actualizar")
+
+class SesionBatchRequest(BaseModel):
+    """
+    Payload para procesar cambios masivos en una sola transacción.
+    """
+    created: List[SesionCreate] = Field(default_factory=list, description="Sesiones nuevas a crear")
+    updated: List[SesionUpdateWithId] = Field(default_factory=list, description="Sesiones existentes a modificar")
+    deleted: List[int] = Field(default_factory=list, description="IDs de sesiones a eliminar")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "created": [{"grupo_docente_id": 1, "aula_id": 1, "modalidad": "presencial", "tipo_recurrencia": "semanal", "dia_semana": "lunes", "hora_inicio": "09:00", "hora_fin": "10:00"}],
+                "updated": [{"id": 55, "aula_id": 2}],
+                "deleted": [10, 11]
+            }
+        }
+    )

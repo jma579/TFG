@@ -352,6 +352,7 @@ class SesionService:
         # Flush para asegurar que los cambios están en BD antes de detectar conflictos
         db.flush()
 
+        """
         resultados = conflict_engine.detect_conflicts_for_session(
             sesion_id=sesion.id,
             db_session=db,
@@ -362,6 +363,7 @@ class SesionService:
             sesion_id=sesion.id,
             resultados_engine=resultados,
         )
+        """
 
         # Commit
         db.commit()
@@ -369,7 +371,7 @@ class SesionService:
         
         return SesionWithConflictosOut(
             sesion=self._convert_to_out(sesion),
-            conflictos=[ConflictoOut.model_validate(c) for c in conflictos_db],
+            conflictos=[]#[ConflictoOut.model_validate(c) for c in conflictos_db],
         )
     
     
