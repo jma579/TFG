@@ -8,6 +8,17 @@ if (!API_BASE_URL) {
   );
 }
 
+// 1. Definimos una clase de error personalizada que guarde el status
+export class ApiError extends Error {
+  status: number;
+  
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -18,18 +29,15 @@ export const api = axios.create({
 // Interceptor de Respuesta
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Devolvemos directamente la data para evitar escribir .data en cada llamada
     return response.data;
   },
   (error: AxiosError) => {
-    // Si no hay respuesta del servidor (caído, red)
     if (!error.response) {
       return Promise.reject(new Error('Error de red o servidor no disponible.'));
     }
 
     const { data, status, statusText } = error.response;
     
-    // Tratamiento de errores estilo FastAPI
     const errorData = data as { detail?: string | { msg?: string }[] };
     const detail = errorData?.detail;
 
@@ -41,6 +49,7 @@ api.interceptors.response.use(
       errorMessage = detail[0].msg;
     }
 
-    return Promise.reject(new Error(errorMessage));
+    // 2. Lanzamos nuestro ApiError con el mensaje Y el status
+    return Promise.reject(new ApiError(errorMessage, status));
   }
 );

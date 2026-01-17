@@ -1,13 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProfessorsTable } from '@/components/professors/table';
 import type { Professor } from '@/components/professors/data';
 import { ProfessorFormDialog } from '@/components/professors/professor-form-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfesor, createProfessor } from '@/lib/api/recursos/profesores';
+import { updateProfesor } from '@/lib/api/recursos/profesores'; 
 
 type ProfessorsScreenProps = {
   data: Professor[];
@@ -21,11 +20,6 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
-  const handleCreate = () => {
-    setEditing(null);
-    setDialogOpen(true);
-  };
-
   const handleEdit = (row: Professor) => {
     setEditing(row);
     setDialogOpen(true);
@@ -38,70 +32,45 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
     departamento: string;
     activo: boolean;
   }) => {
+    if (!editing) return;
+    
     setSaving(true);
 
     try {
-      if (editing) {
-        const updated = await updateProfesor(Number(editing.id), {
-          nombre: values.nombre,
-          apellidos: values.apellidos,
-          email: values.email || null,
-          departamento: values.departamento || null,
-          activo: values.activo,
-        });
+      const updated = await updateProfesor(Number(editing.id), {
+        nombre: values.nombre,
+        apellidos: values.apellidos,
+        email: values.email || null,
+        departamento: values.departamento || null,
+        activo: values.activo,
+      });
 
-        setRows((prev) =>
-          prev.map((row) =>
-            row.id === String(updated.id)
-              ? {
-                  id: String(updated.id),
-                  nombre: updated.nombre,
-                  apellidos: updated.apellidos,
-                  email: updated.email ?? null,
-                  departamento: updated.departamento ?? null,
-                  activo: updated.activo,
-                }
-              : row,
-          ),
-        );
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === String(updated.id)
+            ? {
+                id: String(updated.id),
+                nombre: updated.nombre,
+                apellidos: updated.apellidos,
+                email: updated.email ?? null,
+                departamento: updated.departamento ?? null,
+                activo: updated.activo,
+              }
+            : row,
+        ),
+      );
 
-        toast({
-          title: 'Profesor actualizado',
-          description: 'Los cambios se han guardado correctamente.',
-        });
-      } else {
-        const created = await createProfessor({
-          nombre: values.nombre,
-          apellidos: values.apellidos,
-          email: values.email || null,
-          departamento: values.departamento || null,
-          activo: values.activo,
-        });
-
-        setRows((prev) => [
-          ...prev,
-          {
-            id: String(created.id),
-            nombre: created.nombre,
-            apellidos: created.apellidos,
-            email: created.email ?? null,
-            departamento: created.departamento ?? null,
-            activo: created.activo,
-          },
-        ]);
-
-        toast({
-          title: 'Profesor creado',
-          description: 'El profesor se ha añadido correctamente.',
-        });
-      }
+      toast({
+        title: 'Profesor actualizado',
+        description: 'Los cambios se han guardado correctamente.',
+      });
 
       setDialogOpen(false);
       setEditing(null);
     } catch (error: unknown) {
       toast({
         variant: 'destructive',
-        title: editing ? 'Error al actualizar' : 'Error al crear',
+        title: 'Error al actualizar',
         description:
           error instanceof Error
             ? error.message
@@ -119,7 +88,6 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
           <ProfessorsTable 
             data={rows} 
             onEdit={handleEdit} 
-            onCreate={handleCreate}
           />
         </CardContent>
       </Card>

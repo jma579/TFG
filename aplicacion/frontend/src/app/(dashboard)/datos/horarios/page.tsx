@@ -1,19 +1,18 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react'; 
 import { SchedulesScreen } from '@/components/schedules/schedules-screen';
-// ✅ CORRECCIÓN: Importamos ProgramaOut
-import { listProgramas, ProgramaOut } from '@/lib/api/catalogo/programas';
+import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
+import { Loader2 } from 'lucide-react';
 
 export default function HorariosPage() {
   const [programas, setProgramas] = React.useState<ProgramaOut[]>([]);
   
   React.useEffect(() => {
-    // ✅ CORRECCIÓN: Tu función listProgramas espera (page, size).
-    // Pedimos página 1, 100 elementos (o 1000 si quieres asegurarte de traer todos)
+    // Carga inicial de la lista de programas para el selector
     listProgramas(1, 1000)
       .then((res) => {
-        // Tu API devuelve un objeto { total, items, ... }, así que usamos res.items
         setProgramas(res.items || []); 
       })
       .catch(err => console.error("Error cargando programas", err));
@@ -28,7 +27,13 @@ export default function HorariosPage() {
         </p>
       </div>
 
-      <SchedulesScreen programas={programas} />
+      <Suspense fallback={
+        <div className="flex h-64 w-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }>
+        <SchedulesScreen programas={programas} />
+      </Suspense>
     </div>
   );
 }

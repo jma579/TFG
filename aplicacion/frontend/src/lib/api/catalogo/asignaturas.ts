@@ -71,8 +71,10 @@ export async function updateAsignatura(
   return api.put(`/v0/catalogo/asignaturas/${id}`, data);
 }
 
-export async function deleteAsignatura(id: number): Promise<void> {
-  return api.delete(`/v0/catalogo/asignaturas/${id}`);
+export async function deleteAsignatura(id: number, physical: boolean = false): Promise<void> {
+  return api.delete(`/v0/catalogo/asignaturas/${id}`, {
+    params: { physical }
+  });
 }
 
 export async function getAsignaturaProgramas(

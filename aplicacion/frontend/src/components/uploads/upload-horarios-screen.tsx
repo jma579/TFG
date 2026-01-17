@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Play, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,25 +34,28 @@ export function UploadHorariosScreen() {
   const isUploading = items.some((i) => i.status === 'uploading');
   const disabledAnalyze = items.length === 0 || isUploading;
 
+  // Cálculos para la alerta
   const pendientesAnalizar = items.filter((i) => i.status === 'pending' || i.status === 'uploading').length;
   const pendientesConfirmar = items.filter((i) => i.status === 'done' && !i.confirmed).length;
   const hayPendientes = pendientesAnalizar + pendientesConfirmar > 0;
 
   const [open, setOpen] = React.useState(false);
 
+  // Si no hay pendientes, limpia y va a la vista GENERAL de horarios
   const handleTerminarClick = () => {
     if (hayPendientes) {
-      setOpen(true);
+      setOpen(true); // Muestra la alerta
     } else {
       clear();
-      router.push('/app');
+      router.push('/datos/horarios'); // Redirige a la consulta
     }
   };
 
+  // Si el usuario confirma abandonar, limpia y va a la vista GENERAL
   const confirmarSalida = () => {
     setOpen(false);
     clear();
-    router.push('/app');
+    router.push('/datos/horarios'); // Redirige a la consulta
   };
 
   return (
@@ -114,7 +117,7 @@ export function UploadHorariosScreen() {
                       </div>
                     )}
                     <p className="pt-2 font-medium text-foreground">
-                      ¿Quieres volver a la página principal o prefieres seguir aquí?
+                      Si sales ahora, perderás el progreso no guardado. ¿Quieres ir a la página de horarios de todos modos?
                     </p>
                   </AlertDialogDescription>
                 </AlertDialogHeader>

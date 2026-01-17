@@ -525,7 +525,7 @@ export default function RevisionHorarioPage({ params }: Props) {
       // Si todo OK:
       confirm(item.id);
       toast({ title: '¡Éxito!', description: 'El horario se ha guardado correctamente.' });
-      router.push('/datos/horarios'); 
+      router.push('/uploads/horarios'); 
       
     } catch (error: unknown) {
       // Capturamos error 400 del Gatekeeper
@@ -867,6 +867,7 @@ function buildCourseIdFromCurso(cursoTexto: string): string {
   if (cursoTexto.includes('2') || cursoTexto.toLowerCase().includes('segundo')) return '2º';
   if (cursoTexto.includes('3') || cursoTexto.toLowerCase().includes('tercer')) return '3º';
   if (cursoTexto.includes('4') || cursoTexto.toLowerCase().includes('cuarto')) return '4º';
+  if (cursoTexto.includes('5') || cursoTexto.toLowerCase().includes('quinto')) return '5º';
   return cursoTexto;
 }
 

@@ -7,6 +7,7 @@ import { RoomFormDialog } from './room-form-dialog';
 import type { Room } from './data';
 import {
   deleteAula,
+  updateAula, // ✅ Importamos updateAula
   type AulaOut,
 } from '@/lib/api/recursos/aulas';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +16,6 @@ export type RoomsScreenProps = {
   initialData: Room[];
 };
 
-// Convierte de API (AulaOut) a Vista (Room)
 function mapAulaToRoom(aula: AulaOut): Room {
   return {
     id: String(aula.id),
@@ -23,17 +23,18 @@ function mapAulaToRoom(aula: AulaOut): Room {
     codigo: aula.codigo,
     tipo: aula.tipo,
     capacidad: aula.capacidad ?? null,
+    activo: aula.activo, // ✅ Mapeo
   };
 }
 
-// Convierte de Vista (Room) a API (AulaOut) para pasar al formulario
 function mapRoomToAulaOut(room: Room): AulaOut {
   return {
     id: Number(room.id),
     nombre: room.nombre,
     codigo: room.codigo,
     tipo: room.tipo,
-    capacidad: room.capacidad
+    capacidad: room.capacidad,
+    activo: room.activo, // ✅ Mapeo
   };
 }
 
@@ -54,32 +55,55 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (room: Room) => {
+  // ✅ Nueva función para cambiar estado (Activar/Desactivar)
+  const handleToggleActive = async (room: Room) => {
     try {
-      await deleteAula(Number(room.id));
-      setRows((prev) => prev.filter((r) => r.id !== room.id));
+      const nuevoEstado = !room.activo;
+      const result = await updateAula(Number(room.id), { activo: nuevoEstado });
+      
+      // Actualizamos estado local
+      handleSuccess(result);
+      
       toast({
-        title: 'Aula eliminada',
-        description: 'El aula se ha eliminado correctamente.',
+        title: nuevoEstado ? 'Aula activada' : 'Aula desactivada',
+        description: `El aula ${room.codigo} ahora está ${nuevoEstado ? 'activa' : 'inactiva'}.`,
       });
     } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'No se pudo cambiar el estado.';
       toast({
         variant: 'destructive',
-        title: 'Error al eliminar',
-        description:
-          error instanceof Error ? error.message : 'No se ha podido eliminar el aula.',
+        title: 'Error al actualizar',
+        description: msg,
       });
     }
   };
 
-  // ✅ NUEVO: Manejador de éxito que actualiza la tabla
+  const handleDelete = async (room: Room) => {
+    if (!confirm('¿Estás seguro? Esta acción eliminará el aula permanentemente de la base de datos.')) return;
+
+    try {
+      // ✅ Enviamos true para borrado físico
+      await deleteAula(Number(room.id), true); 
+      setRows((prev) => prev.filter((r) => r.id !== room.id));
+      toast({
+        title: 'Aula eliminada',
+        description: 'El registro se ha eliminado físicamente.',
+      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Error desconocido';
+      // Si hay conflicto (tiene sesiones), el backend devuelve 409
+      toast({
+        variant: 'destructive',
+        title: 'No se puede eliminar',
+        description: msg,
+      });
+    }
+  };
+
   const handleSuccess = (aula: AulaOut) => {
     const newRoom = mapAulaToRoom(aula);
-    
     setRows((prev) => {
-      // Comprobamos si ya existe (edición) o es nueva (creación)
       const exists = prev.some((r) => r.id === newRoom.id);
-      
       if (exists) {
         return prev.map((r) => (r.id === newRoom.id ? newRoom : r));
       }
@@ -95,6 +119,7 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
             data={rows} 
             onEdit={openEdit} 
             onDelete={handleDelete} 
+            onToggleActive={handleToggleActive} // ✅ Pasamos la nueva función
             onCreate={openNew}
           />
         </CardContent>
@@ -104,9 +129,7 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
         open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
-          if (!open) {
-            setEditing(null);
-          }
+          if (!open) setEditing(null);
         }}
         initialData={editing ? mapRoomToAulaOut(editing) : null}
         onSuccess={handleSuccess}

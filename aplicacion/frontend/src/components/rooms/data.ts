@@ -4,4 +4,5 @@ export type Room = {
   codigo: string;
   tipo: string;
   capacidad: number | null;
+  activo: boolean;
 };

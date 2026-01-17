@@ -5,7 +5,6 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -16,8 +15,8 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   Search,
-  X,
-  Plus
+  X
+  // Eliminado 'Plus' de los imports ya que no se usa
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -51,10 +50,10 @@ import type { Professor } from './data';
 type ProfessorsTableProps = {
   data: Professor[];
   onEdit: (row: Professor) => void;
-  onCreate: () => void;
+  // ❌ ELIMINADO: onCreate: () => void;
 };
 
-export function ProfessorsTable({ data, onEdit, onCreate }: ProfessorsTableProps) {
+export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'nombre', desc: false }
   ]);
@@ -251,9 +250,7 @@ export function ProfessorsTable({ data, onEdit, onCreate }: ProfessorsTableProps
           )}
         </div>
 
-        <Button onClick={onCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Añadir profesor
-        </Button>
+        {/* ❌ ELIMINADO: Botón <Button onClick={onCreate}> ... </Button> */}
       </div>
 
       {/* Tabla con Scroll Interno */}

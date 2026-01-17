@@ -36,10 +36,6 @@ export async function getAsignaturaProfesores(asignaturaId: number): Promise<Pro
   return api.get(`/v0/catalogo/asignaturas/${asignaturaId}/profesores`);
 }
 
-export async function createProfessor(data: ProfesorCreateInput): Promise<ProfesorAPI> {
-  return api.post('/v0/recursos/profesores', data);
-}
-
 export async function updateProfesor(id: number, data: ProfesorUpdateInput): Promise<ProfesorAPI> {
   return api.put(`/v0/recursos/profesores/${id}`, data);
 }
