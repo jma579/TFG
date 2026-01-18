@@ -25,7 +25,7 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    listProgramas(1, 1000, true)
+    listProgramas({ limit: 1000, activo: true })
       .then((res) => {
         if (res && res.items) {
           setProgramas(res.items);

@@ -103,6 +103,14 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
     const params = new URLSearchParams();
     params.set('programa_id', String(item.programa_id));
     params.set('curso', String(item.curso));
+
+    const periodoVal = (item as ScheduleSummary & { periodo?: number }).periodo || item.cuatrimestre;
+
+    if (periodoVal) {
+        params.set('periodo', String(periodoVal));
+    } else {
+        console.warn("⚠️ Advertencia: El item no tiene 'periodo' ni 'cuatrimestre'. El filtro de asignaturas será laxo.");
+    }
     
     if (item.menciones && item.menciones.length > 0) {
         params.set('mencion', item.menciones[0]);

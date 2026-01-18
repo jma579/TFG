@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Pencil, Loader2, CheckCircle2, AlertTriangle, 
-  Sparkles, XCircle, ArrowRight, Plus, AlertCircle, Trash2
+  Pencil, CheckCircle2, 
+  Sparkles, XCircle, ArrowRight, Plus, AlertCircle 
 } from 'lucide-react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
@@ -26,7 +26,6 @@ import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
 import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
 import { PERIODOS } from '@/lib/constants/periodos';
 
-// Importamos el componente de revisión
 import { ReviewDashboard, ReviewBlock } from '@/components/solver/review-dashboard';
 
 type RouteParams = { id: string };
@@ -90,7 +89,7 @@ const DEFAULT_SESSION_FORM: SesionFormState = {
 const TIPO_OPCIONES = ['TEORÍA', 'PRÁCTICAS DE AULA', 'PRÁCTICAS DE LABORATORIO'] as const;
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
 
-// --- COMPONENTE: MatchInfoCard (Tipado) ---
+// --- COMPONENTE: MatchInfoCard ---
 interface MatchInfoCardProps {
   status?: string;
   originalName: string;
@@ -174,8 +173,8 @@ export default function RevisionHorarioPage({ params }: Props) {
     async function loadData() {
       try {
         const [resProgramas, resAsig, resAulas] = await Promise.all([
-          listProgramas(1, 500, true),
-          listAsignaturas({ limit: 1000, activo: true }),
+          listProgramas({ limit: 1000, activo: true }), 
+          listAsignaturas({ limit: 1000, activo: true }), 
           listAulas({ size: 1000 }),
         ]);
 
@@ -200,27 +199,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     })),
     [listaProgramas]
   );
-
-  const asignaturaOptions = React.useMemo<AutocompleteOption[]>(() => {
-    if (!horarioTemporal) return [];
-    const planHorario = normalizeText(
-      horarioTemporal.plan ||
-      (horarioTemporal.titulo ? horarioTemporal.titulo.split(' - ')[0] : '') || ''
-    );
-    const filtradas = listaAsignaturas.filter((asig) => {
-      const match = asig.titulaciones?.some((t) => {
-        const nombreProg = normalizeText(t.programa.nombre);
-        return nombreProg.includes(planHorario) || planHorario.includes(nombreProg);
-      });
-      return match;
-    });
-    const listaFinal = filtradas.length > 0 ? filtradas : listaAsignaturas;
-    return listaFinal.map((a) => ({
-      value: a.id,
-      label: a.nombre,
-      keywords: a.codigo_plan,
-    }));
-  }, [listaAsignaturas, horarioTemporal]);
 
   const aulaOptions = React.useMemo<AutocompleteOption[]>(
     () => listaAulas.map((a) => ({
@@ -255,6 +233,111 @@ export default function RevisionHorarioPage({ params }: Props) {
       setSelectedBlockIndex(0);
     }
   }, [bloques.length, selectedBlockIndex]);
+
+  // --- 🟢 LÓGICA DE FILTRADO (CON DEPURACIÓN) ---
+  
+  const detectedPrograma = React.useMemo(() => {
+    if (!horario || !listaProgramas.length) return null;
+    const planTexto = normalizeText(horario.plan || horario.titulo?.split(' - ')[0] || '');
+    const exacto = listaProgramas.find(p => normalizeText(p.nombre) === planTexto);
+    if (exacto) return exacto;
+    const aprox = listaProgramas.find(p => {
+        const pNombre = normalizeText(p.nombre);
+        return pNombre.includes(planTexto) || planTexto.includes(pNombre);
+    });
+    return aprox || null;
+  }, [horario, listaProgramas]);
+
+  const detectedPeriodo = React.useMemo(() => {
+      const texto = horario?.periodo || horario?.titulo?.split(' - ')[1] || '';
+      return normalizeText(texto);
+  }, [horario]);
+
+  // FUNCIÓN PRINCIPAL DE FILTRADO
+  const getAsignaturaOptionsForBlock = React.useCallback((blockIdx: number): AutocompleteOption[] => {
+      const bloque = bloques[blockIdx];
+      if (!bloque) return [];
+
+      if (!detectedPrograma) {
+          console.warn("⚠️ No se ha detectado programa. Mostrando todas las asignaturas.");
+          return listaAsignaturas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
+      }
+
+      const cursoNum = parseCursoNumerico(bloque.curso);
+      const planNameNorm = normalizeText(detectedPrograma.nombre);
+      
+      // LOG DE DIAGNÓSTICO (Míralo en Consola F12)
+      console.groupCollapsed(`🔍 FILTRO DEBUG: Curso ${cursoNum} - ${detectedPrograma.nombre}`);
+      
+      const filtradas = listaAsignaturas.filter(asig => {
+            // 1. Verificar si hay datos de relaciones
+            if (!asig.titulaciones || asig.titulaciones.length === 0) {
+                // Si la API devuelve asignaturas sin titulaciones (común en listas),
+                // no podemos filtrar de forma segura. 
+                return false; 
+            }
+
+            // 2. Filtro de PROGRAMA + CURSO
+            const matchProgCurso = asig.titulaciones.some(t => {
+                // Check ID Flexible (== por si viene como string)
+                const pid = t.programa?.id;
+                // eslint-disable-next-line eqeqeq
+                const matchId = pid != null && pid == detectedPrograma.id;
+
+                // Check Nombre (Fallback)
+                const tProgName = normalizeText(t.programa.nombre || '');
+                const matchName = tProgName.includes(planNameNorm) || planNameNorm.includes(tProgName);
+
+                const isSameProgram = matchId || matchName;
+
+                // Check Curso
+                const c = t.curso;
+                // Aceptamos si es el mismo curso O si es null (asignaturas sin curso fijo)
+                const matchCurso = c === null || c === undefined || c === cursoNum;
+
+                return isSameProgram && matchCurso;
+            });
+
+            if (!matchProgCurso) return false;
+
+            // 3. Filtro de PERIODO
+            if (asig.periodo) {
+                const pAsig = normalizeText(asig.periodo);
+                if (pAsig.includes('anual')) return true;
+
+                // Logica de cuatrimestres
+                const esPrimero = detectedPeriodo.includes('primer') || detectedPeriodo.includes('1');
+                const esSegundo = detectedPeriodo.includes('segundo') || detectedPeriodo.includes('2');
+
+                if (esPrimero) {
+                    return pAsig.includes('primer') || pAsig.includes('1') || pAsig.includes('s1');
+                }
+                if (esSegundo) {
+                    return pAsig.includes('segundo') || pAsig.includes('2') || pAsig.includes('s2');
+                }
+                
+                // Fallback
+                if (detectedPeriodo) {
+                    return pAsig.includes(detectedPeriodo) || detectedPeriodo.includes(pAsig);
+                }
+            }
+            return true;
+        });
+
+        console.log(`Resultados encontrados: ${filtradas.length}`);
+        if (filtradas.length === 0 && listaAsignaturas.length > 0) {
+            console.log("⚠️ ATENCIÓN: El filtro devolvió 0. Verifica el primer elemento recibido de la API:", listaAsignaturas[0]);
+        }
+        console.groupEnd();
+
+        return filtradas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
+
+  }, [listaAsignaturas, bloques, detectedPrograma, detectedPeriodo]);
+
+  const activeAsignaturaOptions = React.useMemo(() => {
+      return getAsignaturaOptionsForBlock(selectedBlockIndex);
+  }, [getAsignaturaOptionsForBlock, selectedBlockIndex]);
+
 
   const totalSessions = React.useMemo(() => {
     if (!horario) return 0;
@@ -331,8 +414,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
-  // --- HANDLERS INTERACTIVOS DE REVISIÓN ---
-
   const toggleSessionValidation = (sesIndex: number, isValid: boolean) => {
     if (!draftHorario) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
@@ -340,27 +421,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     if (sesion) {
         sesion.manual_validated = isValid;
         handleUpdateDraft(cloned);
-    }
-  };
-
-  const confirmAllSuggestionsInBlock = () => {
-    if (!draftHorario) return;
-    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
-    const bloque = cloned.horarios[selectedBlockIndex];
-    if (bloque && bloque.sesiones) {
-        let count = 0;
-        bloque.sesiones.forEach(s => {
-            // Si tiene sugerencia y no es exacto ni validado -> Validar
-            const isExact = s.match_status === 'EXACT' || s.match_status === 'ALIAS_DB';
-            if (s.asignatura_sugerida && !isExact && !s.manual_validated) {
-                s.manual_validated = true;
-                count++;
-            }
-        });
-        if (count > 0) {
-            handleUpdateDraft(cloned);
-            toast({ title: 'Sugerencias confirmadas', description: `${count} sesiones validadas.` });
-        }
     }
   };
 
@@ -502,44 +562,23 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
-  // --- 🔥 HANDLE CONFIRM CON GATEKEEPER ---
   const handleConfirm = async () => {
     if (!horario || !item) return;
-
     setIsConfirming(true);
     setConfirmError(null); 
-
     try {
-      // Aseguramos que el campo 'plan' tenga valor antes de enviar.
-      // Usamos la misma lógica que usas para 'displayPlan'.
       const planAEnviar = horario.plan || horario.titulo?.split(' - ')[0] || "";
-      
-      // Creamos una copia del horario asegurando que el plan está relleno
-      const payload = {
-        ...horario,
-        plan: planAEnviar
-      };
-
+      const payload = { ...horario, plan: planAEnviar };
       await confirmHorario(payload as unknown as HorarioTemporalOut);
-      
-      // Si todo OK:
       confirm(item.id);
       toast({ title: '¡Éxito!', description: 'El horario se ha guardado correctamente.' });
       router.push('/uploads/horarios'); 
-      
     } catch (error: unknown) {
-      // Capturamos error 400 del Gatekeeper
       const msg = (error as { response?: { data?: { detail?: string } }; message?: string })?.response?.data?.detail 
         || (error as { message?: string })?.message 
         || 'Error desconocido al confirmar.';
-      
       setConfirmError(msg); 
-      
-      toast({ 
-        title: 'No se puede guardar', 
-        description: 'Hay errores bloqueantes. Revisa la alerta en pantalla.', 
-        variant: 'destructive' 
-      });
+      toast({ title: 'No se puede guardar', description: 'Revisa los errores.', variant: 'destructive' });
     } finally {
       setIsConfirming(false);
     }
@@ -550,6 +589,11 @@ export default function RevisionHorarioPage({ params }: Props) {
   if (!item || !horario) return <div className="p-8"><Card><CardContent className="p-6">Cargando...</CardContent></Card></div>;
 
   const editingBloque = editingLocation && horario?.horarios ? horario.horarios[editingLocation.blockIndex] : null;
+
+  // OPCIONES para el modal de edición
+  const editingOptions = editingLocation 
+    ? getAsignaturaOptionsForBlock(editingLocation.blockIndex) 
+    : activeAsignaturaOptions;
 
   return (
     <div className="space-y-6">
@@ -567,25 +611,12 @@ export default function RevisionHorarioPage({ params }: Props) {
         </div>
       </div>
 
-      {/* 🔥 ALERTA DE ERROR BLOQUEANTE */}
       {confirmError && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 animate-in slide-in-from-top-2">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-red-900 mb-1">No se pudo confirmar el horario</h3>
-              <p className="text-sm text-red-700 leading-relaxed">
-                {confirmError}
-              </p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-red-500 hover:text-red-700 hover:bg-red-100"
-              onClick={() => setConfirmError(null)}
-            >
-              Cerrar
-            </Button>
+            <div className="flex-1"><h3 className="font-semibold text-red-900 mb-1">No se pudo confirmar</h3><p className="text-sm text-red-700">{confirmError}</p></div>
+            <Button variant="ghost" size="sm" className="text-red-500" onClick={() => setConfirmError(null)}>Cerrar</Button>
           </div>
         </div>
       )}
@@ -595,7 +626,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         <CardHeader><CardTitle className="flex justify-between">Resumen <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100" /></CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div><p className="text-xs text-muted-foreground">Plan</p><p className="font-medium">{displayPlan}</p></div>
+            <div><p className="text-xs text-muted-foreground">Plan Detectado</p><p className="font-medium text-primary">{detectedPrograma ? `✔ ${detectedPrograma.nombre}` : `⚠ ${displayPlan} (No encontrado)`}</p></div>
             <div><p className="text-xs text-muted-foreground">Periodo</p><p className="font-medium capitalize">{displayPeriodo.replace(/_/g, ' ')}</p></div>
             <div><p className="text-xs text-muted-foreground">Total</p><p className="font-medium">{bloques.length} cursos · {totalSessions} sesiones</p></div>
           </div>
@@ -620,7 +651,6 @@ export default function RevisionHorarioPage({ params }: Props) {
         </div>
       </div>
 
-      {/* COMPONENTE DE REVISIÓN */}
       {hasData && (
         <ReviewDashboard 
            bloque={bloques[selectedBlockIndex] as unknown as ReviewBlock}
@@ -642,7 +672,6 @@ export default function RevisionHorarioPage({ params }: Props) {
         />
       )}
 
-      {/* CALENDARIO */}
       {hasData && (
         <InteractiveScheduleGrid
           sessions={sessions}
@@ -651,7 +680,6 @@ export default function RevisionHorarioPage({ params }: Props) {
         />
       )}
 
-      {/* EDIT INFO DIALOG */}
       <Dialog open={isEditInfoOpen} onOpenChange={setIsEditInfoOpen}>
         <DialogContent className="overflow-visible">
           <DialogHeader><DialogTitle>Editar información</DialogTitle></DialogHeader>
@@ -674,7 +702,6 @@ export default function RevisionHorarioPage({ params }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* EDIT SESION DIALOG */}
       <Dialog open={isEditOpen} onOpenChange={(open) => !open && closeEditSesion()}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader><DialogTitle>Editar sesión</DialogTitle></DialogHeader>
@@ -686,7 +713,7 @@ export default function RevisionHorarioPage({ params }: Props) {
             />
           )}
           {editingForm && (
-            <SessionFormFieldsSmart form={editingForm} onChange={handleEditFieldChange} asignaturaOptions={asignaturaOptions} aulaOptions={aulaOptions} />
+            <SessionFormFieldsSmart form={editingForm} onChange={handleEditFieldChange} asignaturaOptions={editingOptions} aulaOptions={aulaOptions} />
           )}
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={closeEditSesion}>Cancelar</Button>
@@ -695,7 +722,6 @@ export default function RevisionHorarioPage({ params }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && closeCreateDialog()}>
         <DialogContent>
           <DialogHeader><DialogTitle>Crear elemento</DialogTitle></DialogHeader>
@@ -703,7 +729,7 @@ export default function RevisionHorarioPage({ params }: Props) {
             <Button size="sm" variant={createTab === 'session' ? 'default' : 'secondary'} disabled={!canCreateSession} onClick={() => setCreateTab('session')}>Nueva sesión</Button>
             <Button size="sm" variant={createTab === 'block' ? 'default' : 'secondary'} onClick={() => setCreateTab('block')}>Nuevo horario</Button>
           </div>
-          {createTab === 'session' && <SessionFormFieldsSmart form={createSessionForm} onChange={handleCreateFieldChange} asignaturaOptions={asignaturaOptions} aulaOptions={aulaOptions} />}
+          {createTab === 'session' && <SessionFormFieldsSmart form={createSessionForm} onChange={handleCreateFieldChange} asignaturaOptions={activeAsignaturaOptions} aulaOptions={aulaOptions} />}
           {createTab === 'block' && (
             <div className="space-y-3 py-2 text-sm">
               <div className="grid gap-2"><Label>Curso</Label><Input value={newBlockForm.curso} onChange={(e) => setNewBlockForm({ ...newBlockForm, curso: e.target.value })} /></div>
@@ -716,7 +742,6 @@ export default function RevisionHorarioPage({ params }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* EDIT BLOCK DIALOG */}
       <Dialog open={isEditBlockOpen} onOpenChange={setIsEditBlockOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Editar curso</DialogTitle></DialogHeader>
@@ -731,7 +756,8 @@ export default function RevisionHorarioPage({ params }: Props) {
   );
 }
 
-// CORRECCIÓN: Definición de tipos explícita en lugar de 'any'
+// --- SUBCOMPONENTES ---
+
 interface SessionFormFieldsProps {
   form: SesionFormState;
   onChange: <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => void;
@@ -755,7 +781,7 @@ function SessionFormFieldsSmart({
         <SimpleAutocomplete options={asignaturaOptions} value={selectedAsigId} initialValue={form.asignatura} onChange={(val) => {
             const selected = asignaturaOptions.find((o) => o.value === val);
             if (selected) onChange('asignatura', selected.label);
-          }} placeholder="Buscar..." emptyText="No encontrada" />
+          }} placeholder="Buscar..." emptyText="No se encontraron asignaturas para este curso/plan" />
       </div>
       <div className="grid gap-2">
         <Label>Aula</Label>
@@ -807,11 +833,8 @@ function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number)
     const hasAsignatura = sesion.asignatura_sugerida || sesion.manual_validated || sesion.match_status === 'EXACT' || sesion.match_status === 'ALIAS_DB';
     const hasAula = sesion.aula && sesion.aula !== 'POR DETERMINAR';
 
-    if (!hasAsignatura || !hasAula) {
-        color = 'red';
-    } else {
-        color = 'blue';
-    }
+    if (!hasAsignatura || !hasAula) color = 'red';
+    else color = 'blue';
 
     const displayName = sesion.asignatura_sugerida || sesion.asignatura;
 
@@ -869,6 +892,17 @@ function buildCourseIdFromCurso(cursoTexto: string): string {
   if (cursoTexto.includes('4') || cursoTexto.toLowerCase().includes('cuarto')) return '4º';
   if (cursoTexto.includes('5') || cursoTexto.toLowerCase().includes('quinto')) return '5º';
   return cursoTexto;
+}
+
+function parseCursoNumerico(cursoTexto: string): number {
+    const txt = normalizeText(cursoTexto);
+    if (txt.includes('1') || txt.includes('primer')) return 1;
+    if (txt.includes('2') || txt.includes('segundo')) return 2;
+    if (txt.includes('3') || txt.includes('tercer')) return 3;
+    if (txt.includes('4') || txt.includes('cuarto')) return 4;
+    if (txt.includes('5') || txt.includes('quinto')) return 5;
+    if (txt.includes('6') || txt.includes('sexto')) return 6;
+    return 0; 
 }
 
 function buildBloqueLabel(bloque: HorarioExtraidoBloque): string {

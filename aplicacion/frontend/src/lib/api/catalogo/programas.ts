@@ -14,14 +14,20 @@ export type ProgramaList = {
   size: number;
 };
 
-export async function listProgramas(
-  page = 1,
-  size = 100,
-  activo?: boolean
-): Promise<ProgramaList> {
-  return api.get('/v0/catalogo/programas', {
-    params: { page, size, activo },
-  });
+export type ProgramaListResponse = {
+  total: number;
+  items: ProgramaOut[];
+  page?: number;
+  size?: number;
+};
+
+export async function listProgramas(params?: {
+  skip?: number;
+  limit?: number;
+  activo?: boolean;
+  tipo?: string;
+}): Promise<ProgramaListResponse> {
+  return api.get('/v0/catalogo/programas', { params });
 }
 
 export async function getPrograma(id: number): Promise<ProgramaOut> {

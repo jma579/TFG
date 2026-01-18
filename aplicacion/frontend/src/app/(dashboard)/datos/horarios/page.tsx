@@ -11,7 +11,7 @@ export default function HorariosPage() {
   
   React.useEffect(() => {
     // Carga inicial de la lista de programas para el selector
-    listProgramas(1, 1000)
+    listProgramas({ limit: 1000 })
       .then((res) => {
         setProgramas(res.items || []); 
       })

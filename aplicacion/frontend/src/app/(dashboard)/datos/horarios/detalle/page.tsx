@@ -57,6 +57,11 @@ const TIPOS_GRUPO = [
   { value: 'taller', label: 'Taller' },
 ];
 
+function normalizeText(text: string): string {
+  if (!text) return "";
+  return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function normalizeDayToIndex(dia: string | null | undefined): number {
   if (!dia) return 0;
   const d = dia.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -241,7 +246,7 @@ export default function DetalleHorarioPage() {
     fetchData();
   }, [fetchData]);
 
-  // --- OPCIONES MEMOIZADAS ---
+  // --- OPCIONES MEMOIZADAS (Filtrado Automático) ---
   
   const aulaOptions = React.useMemo<AutocompleteOption[]>(
     () => aulas.map((a) => ({
@@ -252,33 +257,71 @@ export default function DetalleHorarioPage() {
     [aulas]
   );
 
-  // [LOGICA SIMPLIFICADA] Filtro SOLO por Titulación
   const asignaturaOptions = React.useMemo<AutocompleteOption[]>(() => {
+      if (!pProgramaId || !pCurso) return [];
+
       const targetProgId = Number(pProgramaId);
+      const targetCurso = Number(pCurso);
+      // Aseguramos que sea string y minúsculas. Si no llega, es string vacío.
+      const targetPeriodoNorm = pPeriodo ? normalizeText(String(pPeriodo)) : '';
+      
       const asignaturasArray = Array.from(asignaturasMap.values());
+      
+      // LOG DE DIAGNÓSTICO
+      console.groupCollapsed(`🔍 FILTRO AUTOMÁTICO DE ASIGNATURAS`);
+      console.log(`Filtro: Programa=${targetProgId}, Curso=${targetCurso}, Periodo="${targetPeriodoNorm}"`);
 
-      return asignaturasArray
-        .filter((a: AsignaturaCompleta) => {
-            // 1. Si no tiene datos de titulación, no podemos saber si es de este grado. Ocultar.
-            if (!a.titulaciones || a.titulaciones.length === 0) {
-              return false; 
-            }
+      const filtered = asignaturasArray.filter((a: AsignaturaCompleta) => {
+            if (!a.titulaciones || a.titulaciones.length === 0) return false;
 
-            // 2. Comprobar únicamente si la asignatura pertenece al PROGRAMA (Grado) actual.
-            // Ignoramos curso, periodo y mención para mostrar todas las opciones posibles.
-            const esDelPrograma = a.titulaciones.some(t => {
-                const pId = t.programa?.id ?? t.programa_id; 
-                return pId === targetProgId;
+            // 1. Filtro PROGRAMA + CURSO
+            const matchProgCurso = a.titulaciones.some(t => {
+                const pId = t.programa?.id ?? t.programa_id;
+                const matchPrograma = pId === targetProgId;
+                
+                const c = t.curso;
+                const matchCurso = c === null || c === undefined || c === targetCurso;
+
+                return matchPrograma && matchCurso;
             });
+
+            if (!matchProgCurso) return false;
+
+            // 2. Filtro PERIODO (Automático desde URL)
+            // Si hay periodo en la URL, aplicamos filtro estricto
+            if (targetPeriodoNorm) {
+                const pAsig = normalizeText(String(a.periodo || ''));
+                
+                if (pAsig.includes('anual')) return true;
+
+                // Logica de coincidencia flexible
+                const esPrimero = targetPeriodoNorm.includes('primer') || targetPeriodoNorm.includes('1') || targetPeriodoNorm === 's1';
+                const esSegundo = targetPeriodoNorm.includes('segundo') || targetPeriodoNorm.includes('2') || targetPeriodoNorm === 's2';
+
+                if (esPrimero) {
+                    return pAsig.includes('primer') || pAsig.includes('1') || pAsig.includes('s1');
+                }
+                if (esSegundo) {
+                    return pAsig.includes('segundo') || pAsig.includes('2') || pAsig.includes('s2');
+                }
+                
+                // Fallback por si acaso
+                return pAsig.includes(targetPeriodoNorm) || targetPeriodoNorm.includes(pAsig);
+            }
             
-            return esDelPrograma;
-        })
-        .map((a: AsignaturaCompleta) => ({
+            // Si no llega periodo en la URL, mostramos todo
+            return true;
+      });
+
+      console.log(`✅ ${filtered.length} asignaturas filtradas.`);
+      console.groupEnd();
+
+      return filtered.map((a: AsignaturaCompleta) => ({
             value: Number(a.id), 
             label: String(a.nombre),
             keywords: a.codigo_plan ? String(a.codigo_plan) : undefined
-        }));
-  }, [asignaturasMap, pProgramaId]); // Dependencias reducidas al mínimo
+      }));
+  }, [asignaturasMap, pProgramaId, pCurso, pPeriodo]);
 
   // --- TRANSFORMACIÓN: DB -> GRID ---
   const gridSessions = React.useMemo<Session[]>(() => {
@@ -545,11 +588,11 @@ export default function DetalleHorarioPage() {
                   <Badge variant="secondary" className="gap-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200">Curso {pCurso}</Badge>
                   {pMencion && <Badge variant="secondary" className="gap-1 bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-200">{pMencion}</Badge>}
                   
-                  {/* Badge de Periodo si existe en URL */}
+                  {/* Badge Informativo del Periodo Detectado (Si existe) */}
                   {pPeriodo && (
                     <Badge variant="outline" className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200">
                       <Clock className="h-3 w-3" />
-                      {pPeriodo.replace(/_/g, ' ')}
+                      {pPeriodo.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase())}
                     </Badge>
                   )}
 

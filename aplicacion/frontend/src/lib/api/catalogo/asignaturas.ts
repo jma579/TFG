@@ -15,7 +15,7 @@ export type AsignaturaOut = {
   num_profesores?: number;
   num_titulaciones?: number;
   titulaciones?: {
-    programa: { nombre: string };
+    programa: { id: number, nombre: string };
     curso?: number | null;
     tipo_asignatura?: string | null;
   }[];

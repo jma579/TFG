@@ -82,6 +82,7 @@ function normalizeDayToIndex(dia: string | null | undefined): number {
   return 0;
 }
 function normalizeText(text: string): string {
+  if (!text) return "";
   return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 function normalizeTime(value: string | null | undefined): string {
@@ -105,11 +106,11 @@ interface AsignaturaCompleta extends Omit<AsignaturaOut, 'titulaciones'> {
   id: number;
   nombre: string;
   codigo_plan?: string;
+  periodo: string; // Propiedad raíz importante para el filtro
   titulaciones?: Array<{
     programa?: { id: number; nombre?: string }; 
     programa_id?: number;                       
     curso?: number;
-    periodo?: string;
   }>;
   menciones?: Array<{ id: number; nombre: string; }>;
 }
@@ -161,7 +162,7 @@ export default function GestionHorarioPage() {
     async function loadCatalogs() {
       try {
         const [resProg, resAulas, resAsignaturas] = await Promise.all([
-          listProgramas(1000), 
+          listProgramas({ limit: 1000 }), 
           listAulas({ size: 1000 }),
           listAsignaturas({ limit: 1000, activo: true })
         ]);
@@ -183,6 +184,7 @@ export default function GestionHorarioPage() {
 
   // --- COMPROBACIÓN ---
   const checkExistingData = React.useCallback(async () => {
+    // Limpiamos siempre al cambiar parámetros
     setLocalSesiones([]); 
     setExistingSessionIds([]);
     setHasChanges(false);
@@ -198,29 +200,44 @@ export default function GestionHorarioPage() {
 
       const resSesiones = await listSesiones({ size: 1000, curso: selectedCurso });
 
+      // Filtro robusto para detectar si ya hay horario (solo para control interno, no visual)
       const sesionesPrevias = (resSesiones.items || []).filter((s: SesionOut) => {
          const grupo = gMap.get(s.grupo_docente_id);
          if (!grupo) return false;
          const asig = asignaturasMap.get(grupo.asignatura_id);
          if (!asig) return false;
 
+         // 1. Filtro Programa
          const esDelPrograma = asig.titulaciones?.some(t => {
             const pId = t.programa?.id ?? t.programa_id;
             return pId === selectedProgramaId;
          });
          if (!esDelPrograma) return false;
 
+         // 2. Filtro Periodo (usando propiedad raíz)
          const pPeriodoNorm = normalizeText(selectedPeriodo);
-         const esDelPeriodo = asig.titulaciones?.some(t => {
-            if (!t.periodo) return true; 
-            const tPeriodoNorm = normalizeText(t.periodo);
-            return tPeriodoNorm.includes(pPeriodoNorm) || pPeriodoNorm.includes(tPeriodoNorm) || tPeriodoNorm.includes('anual');
-         });
+         const aPeriodoNorm = normalizeText(asig.periodo || '');
+         
+         const esAnual = aPeriodoNorm.includes('anual');
+         const coincidePeriodo = aPeriodoNorm.includes(pPeriodoNorm) || pPeriodoNorm.includes(aPeriodoNorm);
+         
+         let matchFuzzy = false;
+         if (!esAnual && !coincidePeriodo) {
+             const esPrimero = pPeriodoNorm.includes('primer') || pPeriodoNorm.includes('1');
+             const esSegundo = pPeriodoNorm.includes('segundo') || pPeriodoNorm.includes('2');
+             
+             if (esPrimero) matchFuzzy = aPeriodoNorm.includes('primer') || aPeriodoNorm.includes('1') || aPeriodoNorm.includes('s1');
+             if (esSegundo) matchFuzzy = aPeriodoNorm.includes('segundo') || aPeriodoNorm.includes('2') || aPeriodoNorm.includes('s2');
+         }
 
-         return esDelPeriodo;
+         return esAnual || coincidePeriodo || matchFuzzy;
       });
 
       if (sesionesPrevias.length > 0) {
+        // 🟢 MODIFICACIÓN: NO cargamos localSesiones para que la rejilla salga limpia
+        // setLocalSesiones(sesionesPrevias); 
+        
+        // Pero SÍ guardamos los IDs para poder avisar de sobrescritura al guardar
         setExistingSessionIds(sesionesPrevias.map(s => s.id));
       }
 
@@ -244,25 +261,41 @@ export default function GestionHorarioPage() {
     aulas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo })), 
   [aulas]);
 
+  // Filtro de Asignaturas (Lógica Robusta)
   const asignaturaOptions = React.useMemo<AutocompleteOption[]>(() => {
     if (!selectedProgramaId || !selectedCurso) return [];
-    const targetPeriodo = selectedPeriodo ? normalizeText(selectedPeriodo).replace(/_/g, ' ') : null;
+    
+    const targetPeriodoNorm = selectedPeriodo ? normalizeText(selectedPeriodo) : '';
 
     return Array.from(asignaturasMap.values())
       .filter(a => {
         if (!a.titulaciones || a.titulaciones.length === 0) return false;
-        const matchPC = a.titulaciones.some(t => {
+        
+        const matchProgramaCurso = a.titulaciones.some(t => {
            const pId = t.programa?.id ?? t.programa_id;
            const cVal = t.curso ?? 0;
-           let matchPeriodo = true;
-           if (targetPeriodo && t.periodo) {
-               const tPeriodoNorm = normalizeText(t.periodo);
-               if (tPeriodoNorm.includes('anual')) return true;
-               matchPeriodo = tPeriodoNorm.includes(targetPeriodo) || targetPeriodo.includes(tPeriodoNorm);
-           }
-           return pId === selectedProgramaId && cVal === selectedCurso && matchPeriodo;
+           return pId === selectedProgramaId && (cVal === selectedCurso || cVal === null);
         });
-        return matchPC;
+
+        if (!matchProgramaCurso) return false;
+
+        if (!targetPeriodoNorm) return true;
+
+        const aPeriodoNorm = normalizeText(String(a.periodo || ''));
+        
+        if (aPeriodoNorm.includes('anual')) return true;
+
+        const esPrimero = targetPeriodoNorm.includes('primer') || targetPeriodoNorm.includes('1');
+        const esSegundo = targetPeriodoNorm.includes('segundo') || targetPeriodoNorm.includes('2');
+
+        if (esPrimero) {
+            return aPeriodoNorm.includes('primer') || aPeriodoNorm.includes('1') || aPeriodoNorm.includes('s1');
+        }
+        if (esSegundo) {
+            return aPeriodoNorm.includes('segundo') || aPeriodoNorm.includes('2') || aPeriodoNorm.includes('s2');
+        }
+        
+        return aPeriodoNorm.includes(targetPeriodoNorm) || targetPeriodoNorm.includes(aPeriodoNorm);
       })
       .map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
   }, [asignaturasMap, selectedProgramaId, selectedCurso, selectedPeriodo]);
@@ -282,6 +315,9 @@ export default function GestionHorarioPage() {
         
       const dayIndex = normalizeDayToIndex(dbSesion.dia_semana);
 
+      // Diferenciamos visualmente nuevas vs existentes (aunque ahora todas serán nuevas visualmente)
+      const isExisting = dbSesion.id > 0;
+
       return {
         id: String(dbSesion.id),
         courseId: String(dbSesion.grupo_docente_id),
@@ -291,9 +327,9 @@ export default function GestionHorarioPage() {
         title: title,
         room: aula?.nombre || 'Sin Aula',
         teacher: subtitle, 
-        color: 'green',
+        color: isExisting ? 'blue' : 'green', 
         originalData: dbSesion,
-        isNew: true
+        isNew: !isExisting
       } as GridSession;
     });
   }, [localSesiones, gruposMap, asignaturasMap, aulas]);
@@ -372,6 +408,8 @@ export default function GestionHorarioPage() {
     try {
       const codigoFinal = form.tipo_grupo === 'teoria' ? CODIGO_GRUPO_TEORIA : form.codigo_grupo;
       let targetGroupId: number | null = null;
+      
+      // Buscamos si ya existe el grupo docente localmente
       for (const group of gruposMap.values()) {
         if (group.asignatura_id === form.asignatura_id && 
             group.tipo.toLowerCase() === form.tipo_grupo!.toLowerCase() &&
@@ -380,6 +418,8 @@ export default function GestionHorarioPage() {
           break;
         }
       }
+      
+      // Si no existe, lo creamos
       if (!targetGroupId) {
         const newGroup = await createGrupoDocente({
           asignatura_id: form.asignatura_id!,
@@ -403,6 +443,7 @@ export default function GestionHorarioPage() {
       setHasChanges(true);
       setIsCreateOpen(false);
     } catch (e) {
+      console.error(e);
       toast({ title: "Error", description: "Error gestionando grupo docente", variant: "destructive" });
     } finally {
       setIsCreatingGroup(false);
@@ -422,21 +463,25 @@ export default function GestionHorarioPage() {
     setIsSaving(true);
     try {
       const created = localSesiones.map(s => ({
-          grupo_docente_id: s.grupo_docente_id, aula_id: s.aula_id,
-          modalidad: s.modalidad || 'presencial', tipo_recurrencia: s.tipo_recurrencia || 'semanal',
-          dia_semana: s.dia_semana, hora_inicio: s.hora_inicio, hora_fin: s.hora_fin, profesores: []
+          grupo_docente_id: s.grupo_docente_id, 
+          aula_id: s.aula_id,
+          modalidad: s.modalidad || 'presencial', 
+          tipo_recurrencia: s.tipo_recurrencia || 'semanal',
+          dia_semana: s.dia_semana, 
+          hora_inicio: s.hora_inicio, 
+          hora_fin: s.hora_fin, 
+          profesores: []
       } as SesionCreate));
 
-      const deleted = existingSessionIds;
+      // Importante: Si había sesiones antiguas, las borramos todas para "sobrescribir" con lo nuevo
+      const deleted = existingSessionIds; 
 
       await batchUpdateSesiones({ created, updated: [], deleted });
       toast({ title: "¡Guardado!", description: "Horario registrado correctamente." });
       
       setIsOverwriteAlertOpen(false);
-      setLocalSesiones([]);
-      setExistingSessionIds([]); 
       setHasChanges(false);
-      checkExistingData();
+      checkExistingData(); // Recargamos para que el sistema actualice el estado interno
 
     } catch (e) {
       console.error(e);
@@ -451,7 +496,6 @@ export default function GestionHorarioPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-2rem)]">
       
-      {/* 🟢 CABECERA SIMPLE (Alineada con Revisión de Horario) */}
       <div className="px-6 pt-6 pb-4">
         <div className="space-y-1.5">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
