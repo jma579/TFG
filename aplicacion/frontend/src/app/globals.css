@@ -30,8 +30,6 @@ a {
   }
 }
 
-
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -88,13 +86,63 @@ a {
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* --- ESTILOS DE IMPRESIÓN PROFESIONAL --- */
+@media print {
+  /* 1. Configuración de página física */
+  @page {
+    margin: 0; /* Mantiene ocultos fecha, URL y num página */
+    size: auto; 
+  }
+
+  /* 2. Ocultar interfaz */
+  aside, nav, header, footer, .sidebar, .navbar, button, .no-print {
+    display: none !important;
+  }
+
+  /* 3. Reset total del layout */
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important; /* Quitamos el padding de aquí */
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+    display: block !important; /* Importante para evitar duplicados por flex */
+  }
+
+  /* 4. Reset de contenedores de Next.js */
+  main, #__next, div[data-radix-scroll-area-viewport] {
+    height: auto !important;
+    width: 100% !important;
+    display: block !important;
+    overflow: visible !important;
+    position: static !important; /* Evita que elementos fixed se repitan */
+  }
+
+  /* 5. Asegurar colores */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+  }
+  
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Escala ligera para asegurar ajuste */
+  body {
+    zoom: 85%; 
   }
 }

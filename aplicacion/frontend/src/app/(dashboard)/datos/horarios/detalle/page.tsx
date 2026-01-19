@@ -4,7 +4,8 @@ import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   ArrowLeft, Calendar, Loader2, Trash2, AlertTriangle, 
-  Save, X, Edit, Plus, BookOpen, Clock
+  Save, X, Edit, Plus, BookOpen, Clock, 
+  Printer 
 } from 'lucide-react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
@@ -89,6 +90,18 @@ function minutesToTimeLabel(totalMin: number): string {
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+// Función formateadora de periodo
+function formatPeriodoLabel(rawPeriodo: string | null): string {
+  if (!rawPeriodo) return "PERIODO GENERAL";
+  const norm = normalizeText(String(rawPeriodo));
+  
+  if (norm.includes('1') || norm.includes('primer')) return "PRIMER CUATRIMESTRE";
+  if (norm.includes('2') || norm.includes('segundo')) return "SEGUNDO CUATRIMESTRE";
+  if (norm.includes('anual')) return "ANUAL";
+  
+  return rawPeriodo.toUpperCase().replace(/_/g, ' ');
 }
 
 // --- TIPOS EXTENDIDOS ---
@@ -246,7 +259,7 @@ export default function DetalleHorarioPage() {
     fetchData();
   }, [fetchData]);
 
-  // --- OPCIONES MEMOIZADAS (Filtrado Automático) ---
+  // --- OPCIONES MEMOIZADAS ---
   
   const aulaOptions = React.useMemo<AutocompleteOption[]>(
     () => aulas.map((a) => ({
@@ -262,59 +275,37 @@ export default function DetalleHorarioPage() {
 
       const targetProgId = Number(pProgramaId);
       const targetCurso = Number(pCurso);
-      // Aseguramos que sea string y minúsculas. Si no llega, es string vacío.
       const targetPeriodoNorm = pPeriodo ? normalizeText(String(pPeriodo)) : '';
       
       const asignaturasArray = Array.from(asignaturasMap.values());
       
-      // LOG DE DIAGNÓSTICO
-      console.groupCollapsed(`🔍 FILTRO AUTOMÁTICO DE ASIGNATURAS`);
-      console.log(`Filtro: Programa=${targetProgId}, Curso=${targetCurso}, Periodo="${targetPeriodoNorm}"`);
-
       const filtered = asignaturasArray.filter((a: AsignaturaCompleta) => {
             if (!a.titulaciones || a.titulaciones.length === 0) return false;
 
-            // 1. Filtro PROGRAMA + CURSO
             const matchProgCurso = a.titulaciones.some(t => {
                 const pId = t.programa?.id ?? t.programa_id;
                 const matchPrograma = pId === targetProgId;
-                
                 const c = t.curso;
                 const matchCurso = c === null || c === undefined || c === targetCurso;
-
                 return matchPrograma && matchCurso;
             });
 
             if (!matchProgCurso) return false;
 
-            // 2. Filtro PERIODO (Automático desde URL)
-            // Si hay periodo en la URL, aplicamos filtro estricto
             if (targetPeriodoNorm) {
                 const pAsig = normalizeText(String(a.periodo || ''));
-                
                 if (pAsig.includes('anual')) return true;
 
-                // Logica de coincidencia flexible
                 const esPrimero = targetPeriodoNorm.includes('primer') || targetPeriodoNorm.includes('1') || targetPeriodoNorm === 's1';
                 const esSegundo = targetPeriodoNorm.includes('segundo') || targetPeriodoNorm.includes('2') || targetPeriodoNorm === 's2';
 
-                if (esPrimero) {
-                    return pAsig.includes('primer') || pAsig.includes('1') || pAsig.includes('s1');
-                }
-                if (esSegundo) {
-                    return pAsig.includes('segundo') || pAsig.includes('2') || pAsig.includes('s2');
-                }
+                if (esPrimero) return pAsig.includes('primer') || pAsig.includes('1') || pAsig.includes('s1');
+                if (esSegundo) return pAsig.includes('segundo') || pAsig.includes('2') || pAsig.includes('s2');
                 
-                // Fallback por si acaso
                 return pAsig.includes(targetPeriodoNorm) || targetPeriodoNorm.includes(pAsig);
             }
-            
-            // Si no llega periodo en la URL, mostramos todo
             return true;
       });
-
-      console.log(`✅ ${filtered.length} asignaturas filtradas.`);
-      console.groupEnd();
 
       return filtered.map((a: AsignaturaCompleta) => ({
             value: Number(a.id), 
@@ -323,7 +314,6 @@ export default function DetalleHorarioPage() {
       }));
   }, [asignaturasMap, pProgramaId, pCurso, pPeriodo]);
 
-  // --- TRANSFORMACIÓN: DB -> GRID ---
   const gridSessions = React.useMemo<Session[]>(() => {
     return localSesiones.map((dbSesion) => {
       const grupo = gruposMap.get(dbSesion.grupo_docente_id);
@@ -355,7 +345,7 @@ export default function DetalleHorarioPage() {
     });
   }, [localSesiones, gruposMap, asignaturasMap, aulas, pendingChanges]);
 
-  // --- HANDLERS (Sin Cambios) ---
+  // --- HANDLERS (Sin cambios en lógica) ---
   const toggleEditMode = () => {
     if (isEditMode && hasChanges) {
       if (!confirm("Tienes cambios sin guardar. ¿Seguro que quieres salir y perderlos?")) return;
@@ -461,7 +451,6 @@ export default function DetalleHorarioPage() {
     setIsCreatingGroup(true);
     try {
       let targetGroupId: number | null = null;
-      
       for (const group of gruposMap.values()) {
         if (
           group.asignatura_id === form.asignatura_id && 
@@ -482,7 +471,6 @@ export default function DetalleHorarioPage() {
             curso: Number(pCurso) || 1,
             turno: 'mañana'
           });
-          
           targetGroupId = newGroup.id;
           setGruposMap(prev => new Map(prev).set(newGroup.id, newGroup));
           toast({ description: `Grupo docente creado automáticamente: ${newGroup.codigo}` });
@@ -568,10 +556,29 @@ export default function DetalleHorarioPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)]">
+    // IMPORTANTE: Aquí aplicamos el padding para impresión
+    <div className="flex flex-col h-[calc(100vh-2rem)] print:h-auto print:block print:w-full print:p-4">
       
-      {/* HEADER */}
-      <div className="sticky top-0 z-30 flex flex-col gap-4 px-6 py-4 bg-transparent">
+      {/* CABECERA EXCLUSIVA PARA IMPRESIÓN */}
+      <div className="hidden print:flex flex-col items-center justify-center mb-8 pt-4 text-center border-b pb-4">
+        <h1 className="text-2xl font-bold uppercase tracking-wider text-black">
+          {programa ? programa.nombre : "Horario Académico"}
+        </h1>
+        <div className="flex gap-4 mt-2 text-sm font-medium text-gray-600 uppercase">
+          <span>Curso: {pCurso}º</span>
+          <span>•</span>
+          <span>{formatPeriodoLabel(pPeriodo)}</span>
+          {pMencion && (
+            <>
+              <span>•</span>
+              <span>{pMencion}</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* HEADER VISIBLE EN PANTALLA */}
+      <div className="sticky top-0 z-30 flex flex-col gap-4 px-6 py-4 bg-transparent print:hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-start gap-4">
             <Button variant="ghost" size="icon" className="-ml-2 mt-1 shrink-0" onClick={() => router.back()}>
@@ -588,11 +595,10 @@ export default function DetalleHorarioPage() {
                   <Badge variant="secondary" className="gap-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200">Curso {pCurso}</Badge>
                   {pMencion && <Badge variant="secondary" className="gap-1 bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-200">{pMencion}</Badge>}
                   
-                  {/* Badge Informativo del Periodo Detectado (Si existe) */}
                   {pPeriodo && (
                     <Badge variant="outline" className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200">
                       <Clock className="h-3 w-3" />
-                      {pPeriodo.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase())}
+                      {pPeriodo.replace(/_/g, ' ')}
                     </Badge>
                   )}
 
@@ -612,25 +618,51 @@ export default function DetalleHorarioPage() {
                  </Button>
                </>
             ) : (
-               <Button onClick={toggleEditMode} className="h-9 shadow-sm"><Edit className="mr-2 h-4 w-4" />Editar Horario</Button>
+               <>
+                 <Button 
+                   variant="outline" 
+                   className="h-9 shadow-sm" 
+                   onClick={() => window.print()}
+                 >
+                   <Printer className="mr-2 h-4 w-4" />
+                   Imprimir
+                 </Button>
+
+                 <Button onClick={toggleEditMode} className="h-9 shadow-sm">
+                   <Edit className="mr-2 h-4 w-4" />
+                   Editar Horario
+                 </Button>
+               </>
             )}
           </div>
         </div>
       </div>
 
       {/* GRID AREA */}
-      <div className="flex-1 overflow-hidden px-6 pb-6 bg-muted/10">
-        <Card className={`h-full overflow-hidden border bg-background shadow-sm transition-all duration-300 ${isEditMode ? 'ring-2 ring-primary/10 border-primary/20' : ''}`}>
-          <CardContent className="p-0 h-full relative">
+      <div className="flex-1 overflow-hidden px-6 pb-6 bg-muted/10 print:bg-white print:p-0 print:overflow-visible print:h-auto">
+        <Card className={`h-full overflow-hidden border bg-background shadow-sm transition-all duration-300 
+          ${isEditMode ? 'ring-2 ring-primary/10 border-primary/20' : ''}
+          print:border-0 print:shadow-none print:h-auto print:overflow-visible
+        `}>
+          <CardContent className="p-0 h-full relative print:h-auto print:block">
              {isEditMode && (
-               <div className="absolute top-3 right-3 z-20 flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 shadow-sm animate-in fade-in zoom-in-95">
+               <div className="absolute top-3 right-3 z-20 flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 shadow-sm animate-in fade-in zoom-in-95 print:hidden">
                  <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />Modo Edición
                </div>
              )}
+             
              {gridSessions.length > 0 || isEditMode ? (
-               <InteractiveScheduleGrid sessions={gridSessions} onSessionClick={handleSessionClick} onSessionMove={handleSessionMove} readOnly={!isEditMode} className="h-full border-0 rounded-none" start="08:00" end="22:00" />
+               <InteractiveScheduleGrid 
+                 sessions={gridSessions} 
+                 onSessionClick={handleSessionClick} 
+                 onSessionMove={handleSessionMove} 
+                 readOnly={!isEditMode} 
+                 className="h-full border-0 rounded-none print:h-auto" 
+                 start="08:00" 
+                 end="22:00" 
+               />
              ) : (
-               <div className="flex h-full flex-col items-center justify-center space-y-4 p-8 text-muted-foreground">
+               <div className="flex h-full flex-col items-center justify-center space-y-4 p-8 text-muted-foreground print:hidden">
                  <div className="rounded-full bg-muted p-4"><Calendar className="h-8 w-8 opacity-40" /></div>
                  <div className="text-center"><p className="text-lg font-medium text-foreground">No hay sesiones visibles</p><p className="text-sm max-w-xs mx-auto mt-1">No se encontraron clases para los filtros seleccionados o el horario está vacío.</p></div>
                </div>
