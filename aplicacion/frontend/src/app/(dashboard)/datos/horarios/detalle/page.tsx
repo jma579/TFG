@@ -92,7 +92,6 @@ function minutesToTimeLabel(totalMin: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-// Función formateadora de periodo
 function formatPeriodoLabel(rawPeriodo: string | null): string {
   if (!rawPeriodo) return "PERIODO GENERAL";
   const norm = normalizeText(String(rawPeriodo));
@@ -188,6 +187,9 @@ export default function DetalleHorarioPage() {
   
   const [isSaving, setIsSaving] = React.useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = React.useState(false);
+  
+  // NUEVO: Bandera para saber si se ha intentado guardar (controla los errores visuales)
+  const [intentoGuardar, setIntentoGuardar] = React.useState(false);
 
   // --- CARGA DE DATOS ---
   const fetchData = React.useCallback(async () => {
@@ -345,7 +347,7 @@ export default function DetalleHorarioPage() {
     });
   }, [localSesiones, gruposMap, asignaturasMap, aulas, pendingChanges]);
 
-  // --- HANDLERS (Sin cambios en lógica) ---
+  // --- HANDLERS ---
   const toggleEditMode = () => {
     if (isEditMode && hasChanges) {
       if (!confirm("Tienes cambios sin guardar. ¿Seguro que quieres salir y perderlos?")) return;
@@ -370,6 +372,9 @@ export default function DetalleHorarioPage() {
       aula_id: original.aula_id || null,
       grupo_docente_id: original.grupo_docente_id
     });
+    
+    // Reseteamos el estado de intento al abrir para que no salga rojo de inicio
+    setIntentoGuardar(false);
     setIsEditOpen(true);
   };
 
@@ -401,12 +406,25 @@ export default function DetalleHorarioPage() {
   };
 
   const handleSaveEditForm = () => {
+    // 1. Marcar que se ha intentado guardar
+    setIntentoGuardar(true);
+
+    // 2. Validar que exista el aula (bloqueante)
+    if (!form.aula_id) {
+        toast({
+            title: "Datos incompletos",
+            description: "Es necesario asignar un aula a la sesión.",
+            variant: "destructive"
+        });
+        return;
+    }
+
     if (!editingSesion) return;
     updateLocalSession(editingSesion.id, {
       dia_semana: form.dia_semana,
       hora_inicio: form.hora_inicio,
       hora_fin: form.hora_fin,
-      aula_id: form.aula_id || 0 
+      aula_id: form.aula_id 
     });
     setIsEditOpen(false);
     toast({ description: "Cambio registrado (pendiente de guardar)." });
@@ -439,12 +457,22 @@ export default function DetalleHorarioPage() {
       tipo_grupo: 'teoria',
       codigo_grupo: 'UNICO'
     });
+    // Reseteamos el estado de intento al abrir
+    setIntentoGuardar(false);
     setIsCreateOpen(true);
   };
 
   const handleCreateSession = async () => {
-    if (!form.asignatura_id || !form.tipo_grupo || !form.codigo_grupo) {
-      toast({ title: "Faltan datos", description: "Selecciona asignatura, tipo y código de grupo.", variant: "destructive" });
+    // 1. Marcar intento
+    setIntentoGuardar(true);
+
+    // 2. Validación extendida: Asignatura, Grupo y Aula son obligatorios
+    if (!form.asignatura_id || !form.tipo_grupo || !form.codigo_grupo || !form.aula_id) {
+      toast({ 
+          title: "Faltan datos", 
+          description: "Revisa los campos marcados en rojo (Asignatura, Grupo, Aula).", 
+          variant: "destructive" 
+      });
       return;
     }
 
@@ -486,7 +514,7 @@ export default function DetalleHorarioPage() {
       const newSession: SesionOut = {
         id: tempId,
         grupo_docente_id: targetGroupId,
-        aula_id: form.aula_id || 0, 
+        aula_id: form.aula_id!, // Ya validado arriba
         modalidad: 'presencial', 
         tipo_recurrencia: 'semanal',
         dia_semana: form.dia_semana,
@@ -556,7 +584,6 @@ export default function DetalleHorarioPage() {
   }
 
   return (
-    // IMPORTANTE: Aquí aplicamos el padding para impresión
     <div className="flex flex-col h-[calc(100vh-2rem)] print:h-auto print:block print:w-full print:p-4">
       
       {/* CABECERA EXCLUSIVA PARA IMPRESIÓN */}
@@ -697,10 +724,28 @@ export default function DetalleHorarioPage() {
               <div className="grid gap-2"><Label>Inicio</Label><Input type="time" value={form.hora_inicio} onChange={(e) => setForm({...form, hora_inicio: e.target.value})} /></div>
               <div className="grid gap-2"><Label>Fin</Label><Input type="time" value={form.hora_fin} onChange={(e) => setForm({...form, hora_fin: e.target.value})} /></div>
             </div>
+            
+            {/* CAMPO AULA CON VALIDACIÓN VISUAL */}
             <div className="grid gap-2">
-              <Label>Aula</Label>
-              <SimpleAutocomplete options={aulaOptions} value={form.aula_id ?? undefined} onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} placeholder="Buscar aula..." />
+              <Label className={(!form.aula_id && intentoGuardar) ? "text-destructive" : ""}>
+                Aula {(!form.aula_id && intentoGuardar) && "*"}
+              </Label>
+              <SimpleAutocomplete 
+                options={aulaOptions} 
+                value={form.aula_id ?? undefined} 
+                onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} 
+                placeholder="Buscar aula..." 
+                className={
+                  (!form.aula_id && intentoGuardar) 
+                    ? "[&_input]:border-destructive [&_input]:ring-1 [&_input]:ring-destructive" 
+                    : ""
+                }
+              />
+              {(!form.aula_id && intentoGuardar) && (
+                <span className="text-[0.8rem] text-destructive font-medium">Campo obligatorio</span>
+              )}
             </div>
+
           </div>
           <DialogFooter className="flex justify-between sm:justify-between">
             <Button variant="destructive" size="icon" onClick={handleDelete}><Trash2 className="h-4 w-4" /></Button>
@@ -718,13 +763,41 @@ export default function DetalleHorarioPage() {
           <DialogHeader><DialogTitle>Nueva Sesión</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>Asignatura</Label>
-              <SimpleAutocomplete options={asignaturaOptions} value={form.asignatura_id ?? undefined} onChange={(val) => setForm({...form, asignatura_id: Number(val)})} placeholder="Buscar asignatura..." emptyText="No se encontraron asignaturas" />
+              <Label className={(!form.asignatura_id && intentoGuardar) ? "text-destructive" : ""}>
+                Asignatura {(!form.asignatura_id && intentoGuardar) && "*"}
+              </Label>
+              <SimpleAutocomplete 
+                options={asignaturaOptions} 
+                value={form.asignatura_id ?? undefined} 
+                onChange={(val) => setForm({...form, asignatura_id: Number(val)})} 
+                placeholder="Buscar asignatura..." 
+                emptyText="No se encontraron asignaturas" 
+                className={
+                    (!form.asignatura_id && intentoGuardar) 
+                      ? "[&_input]:border-destructive [&_input]:ring-1 [&_input]:ring-destructive" 
+                      : ""
+                  }
+              />
             </div>
+            
+            {/* CAMPO AULA CON VALIDACIÓN EN CREACIÓN */}
             <div className="grid gap-2">
-              <Label>Aula</Label>
-              <SimpleAutocomplete options={aulaOptions} value={form.aula_id ?? undefined} onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} placeholder="Buscar aula..." />
+              <Label className={(!form.aula_id && intentoGuardar) ? "text-destructive" : ""}>
+                Aula {(!form.aula_id && intentoGuardar) && "*"}
+              </Label>
+              <SimpleAutocomplete 
+                options={aulaOptions} 
+                value={form.aula_id ?? undefined} 
+                onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} 
+                placeholder="Buscar aula..." 
+                className={
+                    (!form.aula_id && intentoGuardar) 
+                      ? "[&_input]:border-destructive [&_input]:ring-1 [&_input]:ring-destructive" 
+                      : ""
+                  }
+              />
             </div>
+
             <div className="grid gap-2">
               <Label>Día</Label>
               <Select value={form.dia_semana} onValueChange={(val) => setForm({...form, dia_semana: val})}>
@@ -747,12 +820,17 @@ export default function DetalleHorarioPage() {
             </div>
             <div className="grid gap-2">
                 <Label>Grupo</Label>
-                <Input value={form.codigo_grupo} onChange={(e) => setForm({...form, codigo_grupo: e.target.value})} placeholder="Ej: A, G1, PL1" />
+                <Input 
+                    value={form.codigo_grupo} 
+                    onChange={(e) => setForm({...form, codigo_grupo: e.target.value})} 
+                    placeholder="Ej: A, G1, PL1" 
+                    className={(!form.codigo_grupo && intentoGuardar) ? "border-destructive ring-1 ring-destructive" : ""}
+                />
             </div>
           </div>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreateSession} disabled={!form.asignatura_id || !form.tipo_grupo || !form.codigo_grupo || isCreatingGroup}>
+            <Button onClick={handleCreateSession} disabled={isCreatingGroup}>
                 {isCreatingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Crear
             </Button>
           </DialogFooter>
