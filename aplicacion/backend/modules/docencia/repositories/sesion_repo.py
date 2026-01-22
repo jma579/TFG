@@ -50,7 +50,8 @@ class SesionRepository:
         tipo_recurrencia: Optional[TipoRecurrencia] = None,
         curso: Optional[int] = None,
         mencion_id: Optional[int] = None,
-        mencion_nombre: Optional[str] = None
+        mencion_nombre: Optional[str] = None,
+        mencion: Optional[str] = None
     ) -> Tuple[List[Sesion], int]:
         """Listar sesiones con filtros múltiples."""
         query = db.query(Sesion)

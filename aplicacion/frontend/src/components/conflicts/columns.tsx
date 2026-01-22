@@ -4,65 +4,90 @@ import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Conflict } from './data';
+import { ConflictoOut, ConflictoSeveridad, ConflictoEstado } from '@/lib/api/conflictos';
 
+// Mapeo visual para Severidad
 const severidadToVariant: Record<
-  Conflict['severidad'],
+  ConflictoSeveridad,
   'secondary' | 'default' | 'destructive' | 'outline'
 > = {
-  baja: 'secondary',
-  media: 'default',
-  alta: 'destructive',
-  crítica: 'destructive',
+  INFO: 'secondary',
+  WARNING: 'default',
+  ERROR: 'destructive',
+  CRITICA: 'destructive',
 };
 
-const estadoToVariant: Record<Conflict['estado'], 'secondary' | 'default' | 'outline'> = {
-  abierto: 'default',
-  'en progreso': 'secondary',
-  resuelto: 'outline',
+// Mapeo visual para Estado
+const estadoToVariant: Record<ConflictoEstado, 'secondary' | 'default' | 'outline'> = {
+  ABIERTO: 'default',
+  IGNORADO: 'secondary',
+  RESUELTO: 'outline',
 };
 
-export const columns: ColumnDef<Conflict>[] = [
+// Helper para formatear el tipo de conflicto (ENUM -> Texto legible)
+const formatTipo = (tipo: string) => {
+  return tipo
+    .replace('SOLAPAMIENTO_', 'Solape ')
+    .replace('VIOLACION_', 'Violación ')
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w/, (c) => c.toUpperCase());
+};
+
+export const columns: ColumnDef<ConflictoOut>[] = [
   {
-    accessorKey: 'titulo',
-    header: 'Título',
-    cell: ({ row }) => <span className="font-medium">{row.original.titulo}</span>,
+    accessorKey: 'descripcion',
+    header: 'Descripción',
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <span className="font-medium truncate max-w-[400px]" title={row.original.descripcion}>
+          {row.original.descripcion}
+        </span>
+        <span className="text-xs text-muted-foreground">
+           Detectado: {row.original.creado_en ? new Date(row.original.creado_en).toLocaleDateString() : '-'}
+        </span>
+      </div>
+    ),
   },
-    {
+  {
     accessorKey: 'tipo',
     header: () => <div className="text-center">Tipo</div>,
     cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground">{row.original.tipo}</div>
+      <div className="text-center text-sm text-muted-foreground">
+        {formatTipo(row.original.tipo)}
+      </div>
     ),
-    },
-    {
+  },
+  {
     accessorKey: 'severidad',
     header: () => <div className="text-center">Severidad</div>,
     cell: ({ row }) => (
-        <div className="text-center">
+      <div className="text-center">
         <Badge variant={severidadToVariant[row.original.severidad]}>
-            {row.original.severidad}
+          {row.original.severidad}
         </Badge>
-        </div>
+      </div>
     ),
-    },
-    {
+  },
+  {
     accessorKey: 'estado',
     header: () => <div className="text-center">Estado</div>,
     cell: ({ row }) => (
-        <div className="text-center">
+      <div className="text-center">
         <Badge variant={estadoToVariant[row.original.estado]}>
-            {row.original.estado}
+          {row.original.estado}
         </Badge>
-        </div>
+      </div>
     ),
-    },
+  },
   {
     id: 'accion',
     header: '',
     cell: ({ row }) => (
-      <Button asChild size="sm" className="ml-auto">
-        <Link href={`/solucionador/${row.original.id}`}>Abrir solucionador</Link>
+      <Button asChild size="sm" variant="ghost" className="ml-auto">
+        <Link href={`/solucionador/${row.original.sesion_id}`}>
+          Resolver
+        </Link>
       </Button>
     ),
     enableSorting: false,

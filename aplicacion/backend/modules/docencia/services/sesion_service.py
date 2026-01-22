@@ -47,15 +47,15 @@ class SesionService:
     Patrón Service: Encapsula lógica de negocio y orquesta repositories.
     """
     
-    def create(self, db: Session, sesion_in: SesionCreate) -> SesionWithConflictosOut:
+    def create(self, db: Session, sesion_in: SesionCreate, detect_conflicts: bool = True) -> SesionWithConflictosOut:
         """
-        Crear nueva sesión.
+        Crea una nueva sesión y sus relaciones.
         
-        Flujo:
-        1. Validar FKs y coherencia horaria.
-        2. Crear sesión en BD (flush para obtener ID).
-        3. Detectar y persistir conflictos (Motor).
-        4. Commit final.
+        Args:
+            db: Sesión de base de datos
+            sesion_in: Datos de la sesión
+            detect_conflicts: Si es True, ejecuta el motor de conflictos inmediatamente.
+                              Si es False, guarda sin validar (útil para cargas masivas).
         """
         # 1. Validar FK Grupo Docente
         if not grupo_docente_repository.get_by_id(db, sesion_in.grupo_docente_id):
@@ -125,25 +125,24 @@ class SesionService:
             # 🛡️ HOOK DE DETECCIÓN DE CONFLICTOS
             # ----------------------------------------------------------------
             conflictos_out = []
-            try:
-                # 1. El motor lee la BD (que ya ve la sesión gracias al flush previo)
-                resultados = conflict_engine.detect_conflicts_for_session(
-                    sesion_id=db_sesion.id,
-                    db_session=db
-                )
-                
-                # 2. Sincronizamos (Borrar viejos -> Guardar nuevos)
-                # Nota: Al crear es "insertar nuevos", pues no hay viejos, pero sync maneja ambos casos.
-                conflictos_db = conflictos_repository.sync_conflictos_for_sesion(
-                    db, db_sesion.id, resultados
-                )
-                
-                # 3. Convertir a Output Schema
-                conflictos_out = [ConflictoOut.model_validate(c) for c in conflictos_db]
-                
-            except Exception as e:
-                # Loguear error pero permitir guardar la sesión (Failsafe)
-                logger.error(f"[ERROR] Motor conflictos falló en CREATE sesion {db_sesion.id}: {e}")
+            if detect_conflicts:
+                try:
+                    # 1. Detectar choques usando el motor
+                    resultados = conflict_engine.detect_conflicts_for_session(
+                        sesion_id=db_sesion.id,
+                        db_session=db
+                    )
+                    # 2. Sincronizar (guardar/borrar) conflictos en BD
+                    conflictos_db = conflictos_repository.sync_conflictos_for_sesion(
+                        db, db_sesion.id, resultados
+                    )
+                    # 3. Convertir a Schema para devolver
+                    conflictos_out = [ConflictoOut.model_validate(c) for c in conflictos_db]
+                    
+                except Exception as e:
+                    # No bloqueamos la creación si falla el motor, pero logueamos el error
+                    # logger.error(...) podría ir aquí
+                    print(f"[WARNING] Fallo en detección de conflictos para sesión {db_sesion.id}: {e}")
 
             # 6. Commit Final
             db.commit()

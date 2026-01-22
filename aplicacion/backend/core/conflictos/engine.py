@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Optional, Tuple, Set, Any
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session as DbSession # Renombrado para evitar confusión
+from sqlalchemy.orm import Session as DbSession, joinedload
 
 # Core imports
 from core.conflictos.types import (
@@ -48,12 +48,18 @@ class ConflictDetectionEngine:
 
     def _db_to_refs(self, db_session: DbSession) -> Tuple[List[SesionRef], List[RestriccionRef]]:
         # Eager loading sugerido para produccion: .options(joinedload(Sesion.grupo_docente))
-        db_sesiones = db_session.query(Sesion).all()
+        db_sesiones = db_session.query(Sesion).options(
+            joinedload(Sesion.grupo_docente),
+            joinedload(Sesion.profesores),
+            joinedload(Sesion.aula)
+        ).all()
         db_restricciones = db_session.query(Restriccion).all()
 
         sesiones_ref = []
         for s in db_sesiones:
             try:
+                if not s.grupo_docente:
+                    continue 
                 ref = self._db_sesion_to_ref(s)
                 sesiones_ref.append(ref)
             except ValueError as e:

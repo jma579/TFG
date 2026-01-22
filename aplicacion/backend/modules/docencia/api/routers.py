@@ -670,7 +670,7 @@ def listar_sesiones(
         description="Filtrar por ID de mención para itinerarios específicos",
         examples=[1, 5]
     ),
-    mencion: Optional[str] = Query(
+    mencion_nombre: Optional[str] = Query(
         None, 
         description="Nombre de la mención (ej: 'Computación', 'Informática'). Case-insensitive."
     ),
@@ -694,7 +694,7 @@ def listar_sesiones(
         dia_semana=dia_semana,
         curso=curso,
         mencion_id=mencion_id,
-        mencion=mencion
+        mencion_nombre=mencion_nombre
     )
     
     # Calcular número de página actual

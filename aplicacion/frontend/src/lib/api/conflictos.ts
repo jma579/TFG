@@ -7,25 +7,36 @@ export type ConflictoTipo =
   | 'VIOLACION_RESTRICCION';
 
 export type ConflictoEstado = 'ABIERTO' | 'RESUELTO' | 'IGNORADO';
-export type ConflictoSeveridad = 'INFO' | 'WARNING' | 'ERROR';
+// Se añade CRITICA para cubrir todos los posibles valores del backend
+export type ConflictoSeveridad = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICA';
 
 export type ConflictoOut = {
   id: number;
   tipo: ConflictoTipo;
   severidad: ConflictoSeveridad;
   estado: ConflictoEstado;
-  mensaje: string;
-  sesion_id?: number | null;
+  descripcion: string; // CORREGIDO: Alineado con Backend (era 'mensaje')
+  
+  // IDs Relacionados
+  sesion_id: number;
+  sesion_2_id?: number | null; // AÑADIDO: Vital para saber con quién choca
   profesor_id?: number | null;
   aula_id?: number | null;
+  restriccion_id?: number | null; // AÑADIDO
+
+  // Metadatos y Auditoría
+  hash_deteccion: string;
+  creado_en: string; // ISO Date string
+  resuelto_en?: string | null;
+  
   [key: string]: unknown;
 };
 
 export type ConflictoListResponse = {
   total: number;
   items: ConflictoOut[];
-  page?: number;
-  size?: number;
+  page: number; // Backend siempre devuelve page/size obligatorios
+  size: number;
 };
 
 export type ConflictoListFilters = {
@@ -43,6 +54,8 @@ export type ConflictoEstadoUpdateIn = {
   estado: ConflictoEstado;
 };
 
+// --- Endpoints ---
+
 export async function listConflictos(
   filters: ConflictoListFilters = {}
 ): Promise<ConflictoListResponse> {
@@ -58,6 +71,7 @@ export async function listConflictos(
 }
 
 export async function listConflictosPorSesion(sesionId: number): Promise<ConflictoOut[]> {
+  // Este endpoint devuelve una lista plana (Array), no un objeto paginado
   return api.get(`/v0/conflictos/sesion/${sesionId}`);
 }
 

@@ -103,4 +103,4 @@ class ResultadoDeteccion(BaseModel):
     descripcion: str
     hash_deteccion: str
     datos_contexto: dict = Field(default_factory=dict)
-    model_config = {"frozen": True}
+    model_config = {"frozen": False}
