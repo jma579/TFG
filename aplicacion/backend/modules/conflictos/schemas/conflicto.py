@@ -1,34 +1,50 @@
-from typing import Optional, List
-from pydantic import BaseModel, ConfigDict
+"""
+Esquemas Pydantic para la entidad Conflicto.
+
+Responsabilidades:
+- Definir la estructura de salida (Out) para la API.
+- Definir esquemas de actualización de estado (ignorar/resolver).
+"""
+
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
+from datetime import datetime
+
 from constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
 
-class ConflictoOut(BaseModel):
-    id: int
+
+class ConflictoBase(BaseModel):
+    """Campos comunes del conflicto."""
     tipo: TipoConflicto
     severidad: SeveridadConflicto
     estado: EstadoConflicto
-    sesion_id: int
-    sesion_2_id: Optional[int] = None
-    descripcion: Optional[str] = None
-    hash_deteccion: str
-    model_config = ConfigDict(from_attributes=True)
-
-class ConflictoList(BaseModel):
-    """Lista paginada de conflictos.
-
-    Mantiene el mismo contrato que otros List del backend (total, items, page, size).
-    """
-
-    total: int
-    items: List[ConflictoOut]
-    page: int
-    size: int
+    descripcion: str
 
 
 class ConflictoEstadoUpdateIn(BaseModel):
-    """Payload de actualización de estado de un conflicto.
-
-    Permite cambiar el estado a ABIERTO, RESUELTO o IGNORADO.
     """
-
+    Schema para cambiar manualmente el estado de un conflicto.
+    Ej: Marcar como IGNORADO o RESUELTO manualmente.
+    """
     estado: EstadoConflicto
+
+
+class ConflictoOut(ConflictoBase):
+    """
+    Schema de respuesta completo para un Conflicto.
+    """
+    id: int
+    sesion_id: int = Field(..., description="ID de la sesión principal afectada")
+    sesion_2_id: Optional[int] = Field(None, description="ID de la segunda sesión en conflicto (si existe)")
+    
+    # Recursos afectados
+    profesor_id: Optional[int] = None
+    aula_id: Optional[int] = None
+    restriccion_id: Optional[int] = None
+    
+    # Metadatos
+    hash_deteccion: str
+    creado_en: datetime
+    resuelto_en: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)

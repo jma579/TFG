@@ -482,3 +482,14 @@ class SesionBatchRequest(BaseModel):
             }
         }
     )
+
+class SesionBatchResponse(BaseModel):
+    """
+    Respuesta estructurada para operaciones en lote.
+    Devuelve las entidades completas (con sus conflictos) para que el frontend
+    pueda actualizar el estado visual (ej: pintar de rojo) sin recargar.
+    """
+    status: str = "success"
+    created: List[SesionWithConflictosOut] = Field(default_factory=list)
+    updated: List[SesionWithConflictosOut] = Field(default_factory=list)
+    deleted_ids: List[int] = Field(default_factory=list)

@@ -25,7 +25,7 @@ from modules.docencia.schemas.grupo_docente import (
 )
 from modules.docencia.schemas.sesion import (
     SesionCreate, SesionUpdate, SesionOut, SesionList, SesionWithConflictosOut,
-    SesionBatchRequest
+    SesionBatchRequest, SesionBatchResponse
 )
 from modules.docencia.schemas.dashboard import (
     ResumenHorarioOut, DashboardFiltros
@@ -1072,11 +1072,15 @@ def eliminar_sesion(
 
 @router.post(
     "/sesiones/batch",
+    response_model=SesionBatchResponse,
     status_code=status.HTTP_200_OK,
     summary="Procesar lote de cambios en sesiones",
     description="""
     Permite crear, actualizar y eliminar múltiples sesiones en una sola operación.
-    Útil para el modo 'Guardar' del editor de horarios.
+    
+    **Retorno:**
+    Devuelve las sesiones creadas y actualizadas CON su lista de conflictos detectados.
+    Esto permite al frontend actualizar el color de las sesiones (rojo/azul) inmediatamente.
     """,
     tags=["Sesiones"]
 )
@@ -1086,40 +1090,44 @@ def batch_update_sesiones(
 ):
     """
     Ejecuta las operaciones en orden: Delete -> Update -> Create.
+    Recolecta los conflictos generados para devolverlos al cliente.
     """
+    response_data = SesionBatchResponse(
+        created=[],
+        updated=[],
+        deleted_ids=payload.deleted
+    )
+
     try:
-        # 1. Eliminar
+        # 1. Eliminar (Sin cambios, solo borrado físico)
         for id_sesion in payload.deleted:
-            # Usamos el servicio para asegurar borrado en cascada correcto
-            # Si falla uno, la transacción completa fallará al final (FastAPI default behavior)
             try:
                 sesion_service.delete(db, id_sesion)
             except HTTPException as e:
-                # Ignoramos 404 si ya no existe, pero relanzamos otros
                 if e.status_code != 404:
                     raise e
 
-        # 2. Actualizar
+        # 2. Actualizar (Capturamos el resultado con conflictos)
         for item in payload.updated:
-            # Separamos el ID de los datos de update
             update_data = item.model_dump(exclude={'id'}, exclude_unset=True)
             if not update_data:
                 continue
             
-            # Reconvertimos a SesionUpdate para el servicio
             schema_update = SesionUpdate(**update_data)
-            sesion_service.update(db, item.id, schema_update)
+            
+            # Al llamar a update, el servicio calcula conflictos y nos devuelve SesionWithConflictosOut
+            res_update = sesion_service.update(db, item.id, schema_update)
+            response_data.updated.append(res_update)
 
-        # 3. Crear
-        created_sessions = []
+        # 3. Crear (Capturamos el resultado con conflictos)
         for create_item in payload.created:
-            new_sesion = sesion_service.create(db, create_item)
-            created_sessions.append(new_sesion)
+            res_create = sesion_service.create(db, create_item)
+            response_data.created.append(res_create)
         
-        # Hacemos commit explícito para asegurar que todo el bloque entró
+        # 4. Commit Final (Todo el bloque es atómico gracias a la gestión de sesión de FastAPI/SQLAlchemy)
         db.commit()
         
-        return {"status": "success", "created_count": len(created_sessions)}
+        return response_data
 
     except Exception as e:
         db.rollback()

@@ -377,12 +377,16 @@ class HorariosPipelineService:
                         hora_fin=sesion_norm.hora_fin,
                         profesores=[]
                     )
+
+                    conflictos_totales = 0
                     
                     # Delegamos la creación al servicio de sesión
                     try:
                         res_servicio = sesion_service.create(db, sesion_in)
                         sesiones_resultado.append(res_servicio.sesion)
                         stats["sesiones_creadas"] += 1
+                        if res_servicio.conflictos:
+                            conflictos_totales += len(res_servicio.conflictos)
                     except Exception as e:
                         logger.error(f"Error creando sesión: {e}")
                         raise HTTPException(status_code=500, detail=f"Error interno al guardar sesión: {str(e)}")
@@ -397,12 +401,19 @@ class HorariosPipelineService:
             if isinstance(e, HTTPException): raise e
             logger.error(f"❌ Error fatal en persistencia (Rollback ejecutado): {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error guardando horario: {str(e)}")
+        
+        warnings_report = []
+        if conflictos_totales > 0:
+            warnings_report.append(
+                f"Se han importado las sesiones correctamente, pero se han detectado {conflictos_totales} conflictos. "
+                "Por favor, revise la pantalla de Gestión de Conflictos."
+            )
 
         return HorarioConfirmResponse(
             grupos=list(grupos_resultado_map.values()),
             sesiones=sesiones_resultado,
             created_entities=stats,
-            warnings=[],
+            warnings=warnings_report,
             errors=[]
         )
 

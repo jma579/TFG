@@ -1,177 +1,130 @@
-from __future__ import annotations
+"""
+Repositorio de persistencia para la entidad Conflicto.
 
-from datetime import datetime, timezone
-from typing import Iterable, List, Optional, Tuple
+Responsabilidades:
+- Sincronización (Wipe & Replace) de resultados del motor con la BD.
+- Búsqueda filtrada de conflictos.
+"""
 
-from sqlalchemy import or_, func
+from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
-from core.conflictos.types import ResultadoDeteccion
-
-from constants.enums import EstadoConflicto, TipoConflicto, SeveridadConflicto
 from database.models import Conflicto
+from core.conflictos.types import ResultadoDeteccion
+from constants.enums import EstadoConflicto
 
 
-def get_conflicto_by_id(db: Session, conflicto_id: int) -> Optional[Conflicto]:
-    """Obtiene un conflicto por su ID o None si no existe."""
-    return db.query(Conflicto).filter(Conflicto.id == conflicto_id).first()
-
-
-def get_conflictos_for_sesion(db: Session, sesion_id: int) -> List[Conflicto]:
-    """Devuelve todos los conflictos asociados a una sesión.
-
-    Un conflicto está asociado a una sesión si aparece como sesion_id o sesion_2_id.
+class ConflictosRepository:
     """
-    return (
-        db.query(Conflicto)
-        .filter(
+    Gestor de persistencia para Conflictos.
+    Actúa como adaptador entre el Core (ResultadoDeteccion) y el ORM.
+    """
+
+    def get_by_id(self, db: Session, id: int) -> Optional[Conflicto]:
+        return db.query(Conflicto).filter(Conflicto.id == id).first()
+
+    def search(
+        self,
+        db: Session,
+        skip: int = 0,
+        limit: int = 100,
+        tipo=None,
+        severidad=None,
+        estado=None,
+        profesor_id: Optional[int] = None,
+        aula_id: Optional[int] = None,
+        sesion_id: Optional[int] = None,
+    ) -> Tuple[List[Conflicto], int]:
+        """
+        Busca conflictos aplicando filtros dinámicos.
+        """
+        query = db.query(Conflicto)
+
+        if tipo:
+            query = query.filter(Conflicto.tipo == tipo)
+        if severidad:
+            query = query.filter(Conflicto.severidad == severidad)
+        if estado:
+            query = query.filter(Conflicto.estado == estado)
+        if profesor_id:
+            query = query.filter(Conflicto.profesor_id == profesor_id)
+        if aula_id:
+            query = query.filter(Conflicto.aula_id == aula_id)
+        
+        # Filtro bidireccional para sesión: Trae conflictos donde la sesión participa como A o B
+        if sesion_id:
+            query = query.filter(
+                or_(
+                    Conflicto.sesion_id == sesion_id,
+                    Conflicto.sesion_2_id == sesion_id
+                )
+            )
+
+        total = query.count()
+        items = query.offset(skip).limit(limit).all()
+        return items, total
+
+    def sync_conflictos_for_sesion(
+        self,
+        db: Session,
+        sesion_id: int,
+        resultados_engine: List[ResultadoDeteccion]
+    ) -> List[Conflicto]:
+        """
+        Sincroniza los conflictos de una sesión (Estrategia Wipe & Replace).
+        
+        1. Elimina conflictos previos donde la sesión es la principal (sesion_id).
+        2. Inserta los nuevos detectados por el motor.
+        
+        Args:
+            db: Sesión SQLAlchemy
+            sesion_id: ID de la sesión que se ha modificado/creado
+            resultados_engine: Lista de DTOs provenientes del motor
+            
+        Returns:
+            Lista de objetos Conflicto (ORM) recién creados.
+        """
+        # 1. WIPE: Eliminar conflictos previos (donde esta sesión es la fuente)
+        db.query(Conflicto).filter(Conflicto.sesion_id == sesion_id).delete(synchronize_session=False)
+
+        conflictos_orm = []
+
+        # 2. REPLACE: Mapear DTO -> ORM
+        for res in resultados_engine:
+            nuevo_conflicto = Conflicto(
+                tipo=res.tipo,
+                severidad=res.severidad,
+                estado=EstadoConflicto.ABIERTO,  # Nacen abiertos por defecto
+                descripcion=res.descripcion,
+                hash_deteccion=res.hash_deteccion,
+                
+                # Relaciones
+                sesion_id=res.sesion_id,
+                sesion_2_id=res.sesion_2_id,
+                profesor_id=res.profesor_id,
+                aula_id=res.aula_id,
+                restriccion_id=res.restriccion_id
+            )
+            conflictos_orm.append(nuevo_conflicto)
+
+        # 3. Persistir (sin commit)
+        if conflictos_orm:
+            db.add_all(conflictos_orm)
+            db.flush()  # Para generar IDs y verificar integridad
+            
+        return conflictos_orm
+
+    def delete_by_sesion_fisico(self, db: Session, sesion_id: int):
+        """Elimina físicamente todos los conflictos relacionados con una sesión."""
+        db.query(Conflicto).filter(
             or_(
                 Conflicto.sesion_id == sesion_id,
-                Conflicto.sesion_2_id == sesion_id,
+                Conflicto.sesion_2_id == sesion_id
             )
-        )
-        .all()
-    )
+        ).delete(synchronize_session=False)
+        db.flush()
 
 
-def search_conflictos(
-    db: Session,
-    *,
-    skip: int = 0,
-    limit: int = 100,
-    tipo: Optional[TipoConflicto] = None,
-    severidad: Optional[SeveridadConflicto] = None,
-    estado: Optional[EstadoConflicto] = None,
-    profesor_id: Optional[int] = None,
-    aula_id: Optional[int] = None,
-    sesion_id: Optional[int] = None,
-) -> Tuple[List[Conflicto], int]:
-    """Busca conflictos con filtros y paginación.
-
-    Devuelve la lista de conflictos y el total antes de paginar.
-    """
-
-    query = db.query(Conflicto)
-
-    if tipo is not None:
-        query = query.filter(Conflicto.tipo == tipo)
-    if severidad is not None:
-        query = query.filter(Conflicto.severidad == severidad)
-    if estado is not None:
-        query = query.filter(Conflicto.estado == estado)
-    if profesor_id is not None:
-        query = query.filter(Conflicto.profesor_id == profesor_id)
-    if aula_id is not None:
-        query = query.filter(Conflicto.aula_id == aula_id)
-    if sesion_id is not None:
-        query = query.filter(
-            or_(
-                Conflicto.sesion_id == sesion_id,
-                Conflicto.sesion_2_id == sesion_id,
-            )
-        )
-
-    total = query.with_entities(func.count(Conflicto.id)).scalar() or 0
-
-    if limit > 0:
-        query = query.offset(skip).limit(limit)
-
-    items = query.all()
-    return items, total
-
-
-def _apply_resultado_to_conflicto(
-    conflicto: Conflicto,
-    resultado: ResultadoDeteccion,
-    preserve_ignored: bool = True,
-) -> None:
-    """Actualiza los campos de un conflicto a partir de un ResultadoDeteccion.
-
-    - Mantiene el estado IGNORADO si preserve_ignored=True.
-    - Para otros estados, reabre el conflicto como ABIERTO.
-    """
-
-    conflicto.tipo = resultado.tipo
-    conflicto.severidad = resultado.severidad
-    conflicto.descripcion = resultado.descripcion
-    conflicto.sesion_id = resultado.sesion_id
-    conflicto.sesion_2_id = resultado.sesion_2_id
-    conflicto.profesor_id = resultado.profesor_id
-    conflicto.aula_id = resultado.aula_id
-    conflicto.restriccion_id = resultado.restriccion_id
-
-    # Reapertura de conflictos, respetando IGNORADO
-    if preserve_ignored and conflicto.estado == EstadoConflicto.IGNORADO:
-        # No tocar estado ni resuelto_en
-        return
-
-    # Para cualquier otro estado, el conflicto vuelve a estar activo
-    conflicto.estado = EstadoConflicto.ABIERTO
-    conflicto.resuelto_en = None
-
-
-def sync_conflictos_for_sesion(
-    db: Session,
-    sesion_id: int,
-    resultados_engine: Iterable[ResultadoDeteccion],
-) -> List[Conflicto]:
-    """Sincroniza los conflictos de la BD para una sesión con los resultados del engine.
-
-    Reglas:
-    - Se consideran solo conflictos donde la sesión aparece como sesion_id o sesion_2_id.
-    - Cada conflicto se identifica de forma canónica por hash_deteccion (único en BD).
-    - Si el motor devuelve un conflicto cuyo hash ya existe:
-      - Se actualizan sus datos (tipo, severidad, descripción, refs...),
-      - Se mantiene el estado IGNORADO si ya lo estaba,
-      - En otros estados, se marca como ABIERTO y resuelto_en = None.
-    - Si el motor devuelve un conflicto nuevo (hash no existente):
-      - Se crea un nuevo registro con estado ABIERTO.
-    - Si existe en BD un conflicto asociado a la sesión cuyo hash ya no aparece:
-      - Se marca como RESUELTO y se rellena resuelto_en (si no estaba ya resuelto/ignorado).
-
-    IMPORTANTE: esta función NO hace commit. El commit debe realizarse en la capa de servicio.
-    """
-
-
-    resultados_list = list(resultados_engine)
-    hashes_nuevos = {r.hash_deteccion for r in resultados_list}
-
-    # 1) Cargar conflictos actuales asociados a la sesión
-    conflictos_existentes: List[Conflicto] = get_conflictos_for_sesion(db, sesion_id)
-    conflictos_por_hash = {c.hash_deteccion: c for c in conflictos_existentes}
-
-    # 2) Upsert de conflictos detectados por el engine
-    for resultado in resultados_list:
-        h = resultado.hash_deteccion
-        conflicto_existente = conflictos_por_hash.get(h)
-
-        if conflicto_existente is not None:
-            # Actualizamos el conflicto existente respetando IGNORADO
-            _apply_resultado_to_conflicto(conflicto_existente, resultado)
-        else:
-            # Crear nuevo conflicto en estado ABIERTO
-            conflicto_nuevo = Conflicto(
-                tipo=resultado.tipo,
-                severidad=resultado.severidad,
-                estado=EstadoConflicto.ABIERTO,
-                sesion_id=resultado.sesion_id,
-                sesion_2_id=resultado.sesion_2_id,
-                profesor_id=resultado.profesor_id,
-                aula_id=resultado.aula_id,
-                restriccion_id=resultado.restriccion_id,
-                descripcion=resultado.descripcion,
-                hash_deteccion=resultado.hash_deteccion,
-            )
-            db.add(conflicto_nuevo)
-            conflictos_existentes.append(conflicto_nuevo)
-            conflictos_por_hash[h] = conflicto_nuevo
-
-    # 3) Marcar como RESUELTO los conflictos que ya no aparecen en la detección
-    now = datetime.now(timezone.utc)
-    for conflicto in conflictos_existentes:
-        if conflicto.hash_deteccion not in hashes_nuevos:
-            if conflicto.estado not in (EstadoConflicto.RESUELTO, EstadoConflicto.IGNORADO):
-                conflicto.estado = EstadoConflicto.RESUELTO
-                conflicto.resuelto_en = now
-
-    return conflictos_existentes
+# Instancia singleton
+conflictos_repository = ConflictosRepository()
