@@ -7,7 +7,7 @@ Responsabilidades:
 """
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 from constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
@@ -48,3 +48,13 @@ class ConflictoOut(ConflictoBase):
     resuelto_en: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ConflictoList(BaseModel):
+    """
+    Schema para respuestas de listado paginado de conflictos.
+    """
+    total: int
+    items: List[ConflictoOut]
+    page: int
+    size: int
