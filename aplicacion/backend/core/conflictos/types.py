@@ -60,6 +60,11 @@ class SesionRef(BaseModel):
     asignatura_id: int 
     grupo_id: int
     
+    curso: int = 0                  # Ej: 1, 2, 3...
+    tipo_grupo: str = "TEORIA"      # TEORIA, PRACTICA, LABORATORIO...
+    grupo_codigo: str = "UNICO"     # "A", "B", "1", "UNICO"
+    mencion_ids: List[int] = Field(default_factory=list) # IDs de menciones asociadas
+    
     tipo_recurrencia: Literal["SEMANAL", "FECHADA"]
     slot: Optional[SlotSemanal] = None
     intervalo: Optional[Intervalo] = None
@@ -86,7 +91,7 @@ class ParametrosDeteccion(BaseModel):
     incluir_solapamientos_aula: bool = True
     incluir_violaciones_restriccion: bool = True
     incluir_solapamientos_grupo: bool = True # Nueva regla
-    severidad_minima: SeveridadConflicto = SeveridadConflicto.BAJA
+    severidad_minima: SeveridadConflicto = SeveridadConflicto.LEVE
     rango_fechas: Optional[tuple[datetime, datetime]] = None
     model_config = {"frozen": True}
 

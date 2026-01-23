@@ -6,6 +6,13 @@ para garantizar consistencia y validación de datos.
 """
 
 from enum import Enum
+from datetime import time
+
+# Horario Lectivo del Centro
+# Define los límites para calcular conciliaciones (entradas tardías/salidas tempranas)
+HORA_APERTURA_CENTRO = time(8, 0)   # 08:00
+HORA_CIERRE_CENTRO = time(21, 0)    # 21:00
+
 
 # ============================
 # Catálogo Académico
@@ -116,24 +123,25 @@ class TipoAsignatura(str, Enum):
 
 
 # ============================
-# Restricciones
+# Conciliacion Docente y Restricicones
 # ============================
 
-class TipoRestriccion(str, Enum):
-    """Tipos de restricciones de horarios."""
-    NO_DISPONIBLE = "no_disponible"
-    PREFERENCIA_NO = "preferencia_no"
-    PREFERENCIA_SI = "preferencia_si"
-    MANTENIMIENTO = "mantenimiento"
-    RESERVADO = "reservado"
-    CAPACIDAD_REDUCIDA = "capacidad_reducida"
+class TipoConciliacion(str, Enum):
+    """Tipos de conciliaciones docentes."""
+    ENTRADA_TARDIA = "entrada_tardia"
+    SALIDA_TEMPRANA = "salida_temprana"
+    MIXTA = "mixta"
 
+# Margen de horas para la conciliación
+HORAS_CONCILIACION_NORMAL = 2  # Para Entrada Tardía o Salida Temprana
+HORAS_CONCILIACION_MIXTA = 1   # Para el caso Mixto (1h inicio + 1h fin)
+
+class TipoRestriccion(str, Enum):
+    pass
 
 class DurezaRestriccion(str, Enum):
-    """Niveles de dureza de las restricciones."""
-    SUAVE = "suave"          # Preferencia, puede violarse si es necesario
-    DURA = "dura"            # Restricción fuerte, difícil de violar
-    CRITICA = "critica"      # No se puede violar bajo ninguna circunstancia
+    pass
+
 
 
 # ============================
@@ -142,30 +150,23 @@ class DurezaRestriccion(str, Enum):
 
 class TipoConflicto(str, Enum):
     """Tipos de conflictos detectados."""
-    SOLAPAMIENTO_PROFESOR = "solapamiento_profesor"
     SOLAPAMIENTO_AULA = "solapamiento_aula"
-    VIOLACION_RESTRICCION = "violacion_restriccion"
-    CAPACIDAD_INSUFICIENTE = "capacidad_insuficiente"
-    MODALIDAD_INCOMPATIBLE = "modalidad_incompatible"
-    RECURSOS_INSUFICIENTES = "recursos_insuficientes"
-    HORARIO_INVALIDO = "horario_invalido"
+    SOLAPAMIENTO_PROFESOR = "solapamiento_profesor"
+    SOLAPAMIENTO_GRUPO = "solapamiento_grupo"
+    INTERFERENCIA_CONCILIACION = "interferencia_conciliacion"
 
 
 class SeveridadConflicto(str, Enum):
     """Niveles de severidad de los conflictos."""
-    BAJA = "baja"
-    MEDIA = "media"
-    ALTA = "alta"
-    CRITICA = "critica"
+    CRITICO = "critico"            # Imposibilidad física (ej: Aula ocupada)
+    NO_BLOQUEANTE = "no_bloqueante" # Problema grave pero posible (ej: Preferencia docente fuerte)
+    LEVE = "leve"                  # Aviso menor (ej: Preferencia docente suave)
 
 
 class EstadoConflicto(str, Enum):
-    """Estados de los conflictos en el sistema."""
-    ABIERTO = "abierto"
-    EN_REVISION = "en_revision"
-    RESUELTO = "resuelto"
-    IGNORADO = "ignorado"
-    FALSO_POSITIVO = "falso_positivo"
+    """Estados del ciclo de vida del conflicto."""
+    POR_REVISAR = "por_revisar"    # Detectado y pendiente de acción
+    SOLUCIONADO = "solucionado"    # El usuario lo ha arreglado o aceptado
 
 
 # ============================
@@ -230,31 +231,9 @@ DIA_SEMANA_TO_NUMBER = {
 # Mapeo inverso: número a día de semana
 NUMBER_TO_DIA_SEMANA = {v: k for k, v in DIA_SEMANA_TO_NUMBER.items()}
 
-# Prioridades de severidad (para ordenación)
-SEVERIDAD_PRIORITY = {
-    SeveridadConflicto.BAJA: 1,
-    SeveridadConflicto.MEDIA: 2,
-    SeveridadConflicto.ALTA: 3,
-    SeveridadConflicto.CRITICA: 4,
-}
-
-# Colores asociados a severidades (para UI)
+# Colores para UI (Mapeados a las nuevas severidades)
 SEVERIDAD_COLORS = {
-    SeveridadConflicto.BAJA: "#28a745",      # Verde
-    SeveridadConflicto.MEDIA: "#ffc107",     # Amarillo
-    SeveridadConflicto.ALTA: "#fd7e14",      # Naranja
-    SeveridadConflicto.CRITICA: "#dc3545",   # Rojo
-}
-
-# Estados que indican conflicto activo
-ESTADOS_CONFLICTO_ACTIVOS = {
-    EstadoConflicto.ABIERTO,
-    EstadoConflicto.EN_REVISION,
-}
-
-# Estados que indican conflicto cerrado
-ESTADOS_CONFLICTO_CERRADOS = {
-    EstadoConflicto.RESUELTO,
-    EstadoConflicto.IGNORADO,
-    EstadoConflicto.FALSO_POSITIVO,
+    SeveridadConflicto.CRITICO: "#dc3545",       # Rojo
+    SeveridadConflicto.NO_BLOQUEANTE: "#fd7e14", # Naranja
+    SeveridadConflicto.LEVE: "#ffc107",          # Amarillo
 }
