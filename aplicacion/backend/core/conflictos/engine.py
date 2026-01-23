@@ -1,6 +1,6 @@
 """
 Motor de Orquestación de Conflictos.
-Versión Mejorada: Mensajes human-readable (Nombres en lugar de IDs).
+Versión Final: Corrección de Eager Loading (Branching).
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from core.conflictos.basic_rules import detectar_todos_los_conflictos_basicos
 from core.conflictos.hashing import generar_hash_conflicto
 
 # --- Database & Constants ---
-from database.models import Sesion, GrupoDocente, Asignatura, Profesor
+from database.models import Sesion, GrupoDocente, Asignatura, Profesor, ProgramaAsignatura
 from constants.enums import (
     TipoConflicto, 
     SeveridadConflicto, 
@@ -45,11 +45,8 @@ class ConflictDetectionEngine:
     def detect_conflicts_for_session(
         self, sesion_id: int, db: DbSession
     ) -> List[ResultadoDeteccion]:
-        # Desempaquetamos los 4 elementos devueltos
         sesiones_ref, mapa_conciliacion, lookups = self._db_to_refs(db)
-        
         resultados = self._execute_detection(sesiones_ref, mapa_conciliacion, lookups)
-        
         return [r for r in resultados if sesion_id in (r.sesion_id, r.sesion_2_id or -1)]
 
     def detect_conflicts_for_range(self, db: DbSession) -> List[ResultadoDeteccion]:
@@ -61,15 +58,25 @@ class ConflictDetectionEngine:
     # -------------------------------------------------------------------------
 
     def _db_to_refs(self, db: DbSession) -> Tuple[List[SesionRef], Dict[int, str], Dict[str, Dict[int, str]]]:
-        """
-        Carga datos y crea mapas de nombres para enriquecer los mensajes.
-        """
+        
+        # --- CONSULTA CORREGIDA ---
+        # Usamos cadenas separadas para evitar el error de relación inválida.
+        # SQLAlchemy fusionará automáticamente las ramas que parten del mismo nodo.
         db_sesiones = db.query(Sesion).options(
+            # 1. Básicos
             joinedload(Sesion.profesores),
             joinedload(Sesion.aula),
+            
+            # 2. Rama Asignatura -> Menciones
             joinedload(Sesion.grupo_docente)
                 .joinedload(GrupoDocente.asignatura)
-                .joinedload(Asignatura.asignatura_menciones)
+                .joinedload(Asignatura.asignatura_menciones),
+
+            # 3. Rama Asignatura -> Programas (Separada explícitamente)
+            joinedload(Sesion.grupo_docente)
+                .joinedload(GrupoDocente.asignatura)
+                .joinedload(Asignatura.programa_asignaturas)
+                .joinedload(ProgramaAsignatura.programa)
         ).all()
         
         db_profes_conciliacion = db.query(Profesor).filter(
@@ -78,74 +85,73 @@ class ConflictDetectionEngine:
 
         sesiones_ref = []
         
-        # --- NUEVO: Diccionarios de Búsqueda (Lookups) ---
-        # Usamos esto para evitar consultas N+1 al generar los mensajes
+        # Lookups
         nombres_profesors = {}
         nombres_aulas = {}
         nombres_asignaturas = {}
+        info_academica = {} 
 
         for s in db_sesiones:
             try:
-                # 1. Convertir a Ref
                 sesiones_ref.append(self._convert_sesion(s))
                 
-                # 2. Rellenar Lookups (Caché de nombres)
+                # 1. LIMPIEZA DE AULA
                 if s.aula:
-                    nombres_aulas[s.aula.id] = f"{s.aula.nombre} ({s.aula.codigo})"
+                    nombres_aulas[s.aula.id] = s.aula.nombre
                 
                 for p in s.profesores:
-                    # Guardamos "Nombre Apellido"
                     nombres_profesors[p.id] = f"{p.nombre} {p.apellidos}"
 
                 if s.grupo_docente and s.grupo_docente.asignatura:
-                    nombres_asignaturas[s.grupo_docente.asignatura.id] = s.grupo_docente.asignatura.nombre
+                    asig = s.grupo_docente.asignatura
+                    nombres_asignaturas[asig.id] = asig.nombre
+                    
+                    # Extraer datos extra
+                    grado = "Plan de Estudios"
+                    if asig.programa_asignaturas:
+                        grado = asig.programa_asignaturas[0].programa.nombre
+                    
+                    periodo = asig.periodo.value if asig.periodo else ""
+                    periodo = periodo.replace("_", " ").title()
+                    
+                    mencion = ""
+                    if asig.asignatura_menciones:
+                        mencion = asig.asignatura_menciones[0].mencion.nombre
+
+                    info_academica[asig.id] = {
+                        "grado": grado,
+                        "periodo": periodo,
+                        "mencion": mencion
+                    }
 
             except ValueError:
                 continue 
 
-        # Mapa de conciliación (lógica)
-        mapa_conciliacion = {
-            p.id: p.conciliacion.value 
-            for p in db_profes_conciliacion
-        }
-        
-        # Aseguramos tener los nombres de los profes con conciliación aunque no tengan sesión
-        for p in db_profes_conciliacion:
-            nombres_profesors[p.id] = f"{p.nombre} {p.apellidos}"
+        mapa_conciliacion = {p.id: p.conciliacion.value for p in db_profes_conciliacion}
+        for p in db_profes_conciliacion: nombres_profesors[p.id] = f"{p.nombre} {p.apellidos}"
 
-        # Empaquetamos todo en un objeto de contexto
         lookups = {
             "profesores": nombres_profesors,
             "aulas": nombres_aulas,
-            "asignaturas": nombres_asignaturas
+            "asignaturas": nombres_asignaturas,
+            "info_academica": info_academica
         }
 
         return sesiones_ref, mapa_conciliacion, lookups
 
     def _convert_sesion(self, s: Sesion) -> SesionRef:
-        # ... (Este método se mantiene IDÉNTICO al anterior) ...
-        if not s.grupo_docente:
-            raise ValueError(f"Sesión {s.id} sin grupo docente.")
-
+        if not s.grupo_docente: raise ValueError(f"Sesión {s.id} sin grupo.")
         slot = None
         if s.dia_semana:
             dia_str = str(s.dia_semana).lower().split('.')[-1]
             dia_int = DIAS_MAP.get(dia_str)
             if dia_int is not None and s.hora_inicio and s.hora_fin:
-                slot = SlotSemanal(
-                    dia_semana=dia_int, 
-                    hora_inicio=s.hora_inicio, 
-                    hora_fin=s.hora_fin
-                )
+                slot = SlotSemanal(dia_semana=dia_int, hora_inicio=s.hora_inicio, hora_fin=s.hora_fin)
         
         intervalo = None
-        if s.inicio and s.fin:
-            intervalo = Intervalo(inicio=s.inicio, fin=s.fin)
+        if s.inicio and s.fin: intervalo = Intervalo(inicio=s.inicio, fin=s.fin)
 
-        mencion_ids = [
-            am.mencion_id 
-            for am in s.grupo_docente.asignatura.asignatura_menciones
-        ]
+        mencion_ids = [am.mencion_id for am in s.grupo_docente.asignatura.asignatura_menciones]
 
         return SesionRef(
             id=s.id,
@@ -162,117 +168,66 @@ class ConflictDetectionEngine:
             intervalo=intervalo
         )
 
-    # -------------------------------------------------------------------------
-    # LÓGICA DE NEGOCIO (Ejecución)
-    # -------------------------------------------------------------------------
-
-    def _execute_detection(
-        self, 
-        sesiones: List[SesionRef], 
-        mapa_conciliacion: Dict[int, str],
-        lookups: Dict[str, Dict[int, str]] # <--- Recibimos los nombres
-    ) -> List[ResultadoDeteccion]:
-        
+    def _execute_detection(self, sesiones: List[SesionRef], mapa_conciliacion: Dict, lookups: Dict) -> List[ResultadoDeteccion]:
         resultados = []
+        get_aula = lambda id: lookups["aulas"].get(id, f"Aula {id}")
+        get_profe = lambda id: lookups["profesores"].get(id, f"Docente {id}")
+        get_asig = lambda id: lookups["asignaturas"].get(id, f"Asignatura {id}")
         
-        # Helpers para obtener nombres con fallback a ID si no existe
-        def get_aula(id): return lookups["aulas"].get(id, f"Aula {id}")
-        def get_profe(id): return lookups["profesores"].get(id, f"Docente {id}")
-        def get_asig(id): return lookups["asignaturas"].get(id, f"Asignatura {id}")
+        def get_meta(asig_id): 
+            return lookups["info_academica"].get(asig_id, {"grado": "Grado Desconocido", "periodo": "", "mencion": ""})
 
-        # 1. Llamada al Núcleo Matemático
         (sol_aula, sol_prof, sol_grupo, sol_conciliacion) = detectar_todos_los_conflictos_basicos(
-            sesiones,
-            mapa_conciliacion,
-            HORA_APERTURA_CENTRO,
-            HORA_CIERRE_CENTRO,
-            HORAS_CONCILIACION_NORMAL,
-            HORAS_CONCILIACION_MIXTA
+            sesiones, mapa_conciliacion,
+            HORA_APERTURA_CENTRO, HORA_CIERRE_CENTRO,
+            HORAS_CONCILIACION_NORMAL, HORAS_CONCILIACION_MIXTA
         )
 
-        # --- A. SOLAPAMIENTO DE AULAS ---
+        # A. AULAS
         for s1, s2, aid in sol_aula:
-            nombre_aula = get_aula(aid)
             resultados.append(ResultadoDeteccion(
-                tipo=TipoConflicto.SOLAPAMIENTO_AULA,
-                severidad=SeveridadConflicto.CRITICO,
-                sesion_id=s1.id,
-                sesion_2_id=s2.id,
-                aula_id=aid,
-                # NUEVO MENSAJE
-                descripcion=f"El aula '{nombre_aula}' está ocupada simultáneamente por dos sesiones.",
+                tipo=TipoConflicto.SOLAPAMIENTO_AULA, severidad=SeveridadConflicto.CRITICO,
+                sesion_id=s1.id, sesion_2_id=s2.id, aula_id=aid,
+                descripcion=f"El aula '{get_aula(aid)}' está ocupada simultáneamente.",
                 hash_deteccion="temp"
             ))
 
-        # --- B. SOLAPAMIENTO DE PROFESORES ---
+        # B. PROFESORES
         for s1, s2, pid in sol_prof:
-            nombre_profe = get_profe(pid)
-            
-            n_p1 = len(s1.profesor_ids)
-            n_p2 = len(s2.profesor_ids)
-            es_bloqueante = (n_p1 == 1 and n_p2 == 1)
-            
-            if es_bloqueante:
-                sev = SeveridadConflicto.CRITICO
-                # NUEVO MENSAJE
-                desc = f"{nombre_profe} tiene dos clases a la vez y es el único docente asignado."
-            else:
-                sev = SeveridadConflicto.NO_BLOQUEANTE
-                # NUEVO MENSAJE
-                desc = f"{nombre_profe} tiene solapamiento horario, pero cuenta con apoyo de otros docentes."
-
+            es_bloqueante = (len(s1.profesor_ids) == 1 and len(s2.profesor_ids) == 1)
+            desc = f"{get_profe(pid)} tiene dos clases a la vez (único docente)." if es_bloqueante else f"{get_profe(pid)} tiene solapamiento (con apoyo)."
             resultados.append(ResultadoDeteccion(
                 tipo=TipoConflicto.SOLAPAMIENTO_PROFESOR,
-                severidad=sev,
-                sesion_id=s1.id,
-                sesion_2_id=s2.id,
-                profesor_id=pid,
-                descripcion=desc,
-                hash_deteccion="temp"
+                severidad=SeveridadConflicto.CRITICO if es_bloqueante else SeveridadConflicto.NO_BLOQUEANTE,
+                sesion_id=s1.id, sesion_2_id=s2.id, profesor_id=pid, descripcion=desc, hash_deteccion="temp"
             ))
 
-        # --- C. SOLAPAMIENTO DE GRUPOS ---
+        # C. GRUPOS
         for s1, s2, asig_comun, motivo in sol_grupo:
-            # Si hay asignatura común, mostramos su nombre
             if asig_comun:
-                nombre_asig = get_asig(asig_comun)
-                prefijo = f"Asignatura {nombre_asig}: "
+                desc = f"Asignatura '{get_asig(asig_comun)}': {motivo}"
             else:
-                prefijo = "Plan de Estudios: "
+                meta = get_meta(s1.asignatura_id)
+                mencion_txt = f" ({meta['mencion']})" if meta['mencion'] else ""
+                desc = f"Solape en {meta['grado']}: Curso {s1.curso}º, {meta['periodo']}{mencion_txt}"
 
             resultados.append(ResultadoDeteccion(
-                tipo=TipoConflicto.SOLAPAMIENTO_GRUPO,
-                severidad=SeveridadConflicto.CRITICO,
-                sesion_id=s1.id,
-                sesion_2_id=s2.id,
-                asignatura_id=s1.asignatura_id,
-                # NUEVO MENSAJE
-                descripcion=f"{prefijo}{motivo}",
-                hash_deteccion="temp"
+                tipo=TipoConflicto.SOLAPAMIENTO_GRUPO, severidad=SeveridadConflicto.CRITICO,
+                sesion_id=s1.id, sesion_2_id=s2.id, asignatura_id=s1.asignatura_id,
+                descripcion=desc, hash_deteccion="temp"
             ))
 
-        # --- D. INTERFERENCIA CONCILIACIÓN ---
+        # D. CONCILIACIÓN
         for sesion, pid, motivo in sol_conciliacion:
-            nombre_profe = get_profe(pid)
-            
             resultados.append(ResultadoDeteccion(
-                tipo=TipoConflicto.INTERFERENCIA_CONCILIACION,
-                severidad=SeveridadConflicto.NO_BLOQUEANTE,
-                sesion_id=sesion.id,
-                profesor_id=pid,
-                # NUEVO MENSAJE: Incluye el nombre del profesor
-                descripcion=f"{nombre_profe}: {motivo}",
-                hash_deteccion="temp",
+                tipo=TipoConflicto.INTERFERENCIA_CONCILIACION, severidad=SeveridadConflicto.NO_BLOQUEANTE,
+                sesion_id=sesion.id, profesor_id=pid, descripcion=f"{get_profe(pid)}: {motivo}", hash_deteccion="temp"
             ))
 
-        # 2. Deduplicación y Hashing
-        unique_results = {}
+        unique = {}
         for r in resultados:
             r.hash_deteccion = generar_hash_conflicto(r)
-            if r.hash_deteccion not in unique_results:
-                unique_results[r.hash_deteccion] = r
-                
-        return list(unique_results.values())
+            if r.hash_deteccion not in unique: unique[r.hash_deteccion] = r
+        return list(unique.values())
 
-# Instancia Singleton
 conflict_engine = ConflictDetectionEngine()

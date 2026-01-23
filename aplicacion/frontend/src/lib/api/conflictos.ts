@@ -14,13 +14,18 @@ export type ConflictoEstado = 'por_revisar' | 'solucionado';
 
 // --- MODELOS ---
 
-// Estructura que viene del backend (SesionResumen)
+// Estructura enriquecida que viene del backend
 export type SesionResumen = {
   id: number;
   asignatura: string;
   grupo: string;
   horario: string;
   curso: string;
+  // Campos nuevos para metadatos
+  aula?: string;
+  titulacion?: string;
+  mencion?: string;
+  periodo?: string;
 };
 
 export type ConflictoOut = {
@@ -37,7 +42,7 @@ export type ConflictoOut = {
   aula_id?: number | null;
   restriccion_id?: number | null;
 
-  // OBJETOS DETALLADOS (NUEVO)
+  // Objetos detallados
   sesion_1_detalle?: SesionResumen | null;
   sesion_2_detalle?: SesionResumen | null;
 
@@ -71,9 +76,11 @@ export async function listConflictos(
   filters: ConflictoListFilters = {}
 ): Promise<ConflictoListResponse> {
   const { skip = 0, limit = 100, ...rest } = filters;
+  
   const params = Object.fromEntries(
-    Object.entries({ skip, limit, ...rest }).filter(([_, v]) => v != null)
+    Object.entries({ skip, limit, ...rest }).filter(([, v]) => v != null)
   );
+
   return api.get('/v0/conflictos', { params });
 }
 

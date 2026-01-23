@@ -10,7 +10,7 @@ from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
-from database.models import Conflicto, Sesion, GrupoDocente, Asignatura
+from database.models import Conflicto, Sesion, GrupoDocente, Asignatura, ProgramaAsignatura, AsignaturaMencion
 from core.conflictos.types import ResultadoDeteccion
 from constants.enums import EstadoConflicto
 
@@ -38,32 +38,48 @@ class ConflictosRepository:
     ) -> Tuple[List[Conflicto], int]:
         """
         Busca conflictos aplicando filtros dinámicos.
+        Carga Eager (joinedload) profunda para mostrar Titulación, Mención y Periodo en el Frontend.
         """
+        query = db.query(Conflicto)
+
+        def cargar_ramas_sesion(entidad_sesion):
+            return [
+                # 1. Aula
+                entidad_sesion.joinedload(Sesion.aula),
+                
+                # 2. Asignatura -> Menciones (Rama A)
+                entidad_sesion.joinedload(Sesion.grupo_docente)
+                    .joinedload(GrupoDocente.asignatura)
+                    .joinedload(Asignatura.asignatura_menciones)
+                    .joinedload(AsignaturaMencion.mencion),
+
+                # 3. Asignatura -> Programas (Rama B - Separada)
+                entidad_sesion.joinedload(Sesion.grupo_docente)
+                    .joinedload(GrupoDocente.asignatura)
+                    .joinedload(Asignatura.programa_asignaturas)
+                    .joinedload(ProgramaAsignatura.programa)
+            ]
+
         query = db.query(Conflicto).options(
-            joinedload(Conflicto.sesion).joinedload(Sesion.grupo_docente).joinedload(GrupoDocente.asignatura),
-            joinedload(Conflicto.sesion_2).joinedload(Sesion.grupo_docente).joinedload(GrupoDocente.asignatura),
+            # Cargamos relaciones de la Sesión 1
+            *cargar_ramas_sesion(joinedload(Conflicto.sesion)),
+            
+            # Cargamos relaciones de la Sesión 2
+            *cargar_ramas_sesion(joinedload(Conflicto.sesion_2)),
+            
             joinedload(Conflicto.aula),
             joinedload(Conflicto.profesor)
         )
 
-        if tipo:
-            query = query.filter(Conflicto.tipo == tipo)
-        if severidad:
-            query = query.filter(Conflicto.severidad == severidad)
-        if estado:
-            query = query.filter(Conflicto.estado == estado)
-        if profesor_id:
-            query = query.filter(Conflicto.profesor_id == profesor_id)
-        if aula_id:
-            query = query.filter(Conflicto.aula_id == aula_id)
+        if tipo: query = query.filter(Conflicto.tipo == tipo)
+        if severidad: query = query.filter(Conflicto.severidad == severidad)
+        if estado: query = query.filter(Conflicto.estado == estado)
+        if profesor_id: query = query.filter(Conflicto.profesor_id == profesor_id)
+        if aula_id: query = query.filter(Conflicto.aula_id == aula_id)
         
-        # Filtro bidireccional para sesión: Trae conflictos donde la sesión participa como A o B
         if sesion_id:
             query = query.filter(
-                or_(
-                    Conflicto.sesion_id == sesion_id,
-                    Conflicto.sesion_2_id == sesion_id
-                )
+                or_(Conflicto.sesion_id == sesion_id, Conflicto.sesion_2_id == sesion_id)
             )
 
         total = query.count()

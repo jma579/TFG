@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {
-  Column, // <--- 1. IMPORTANTE: Añadir este import
+  Column,
   ColumnDef,
   ColumnFiltersState,
   SortingState,
@@ -32,39 +32,69 @@ import {
 import { CheckIcon, PlusCircledIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
 import { ConflictoOut, SesionResumen } from '@/lib/api/conflictos';
-import { Clock, GraduationCap, Users } from 'lucide-react';
+import { 
+  Clock, 
+  Users, 
+  Building2, 
+  BookOpen, 
+  CalendarDays, 
+  Bookmark,
+  LucideIcon 
+} from 'lucide-react';
 
-// --- COMPONENTES AUXILIARES ---
+// --- COMPONENTES VISUALES ---
 
-function SessionCard({ title, data, isConflictSource }: { title: string, data?: SesionResumen | null, isConflictSource?: boolean }) {
+function MetadataBadge({ icon: Icon, text }: { icon: LucideIcon, text?: string }) {
+  if (!text) return null;
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200">
+      <Icon className="w-3 h-3" />
+      <span className="truncate max-w-[150px]" title={text}>{text}</span>
+    </div>
+  );
+}
+
+function SessionCard({ data, isConflictSource }: { data?: SesionResumen | null, isConflictSource?: boolean }) {
   if (!data) return null;
 
   return (
     <div className={cn(
-      "p-3 rounded-md border text-sm flex flex-col gap-2",
-      isConflictSource ? "bg-red-50 border-red-100" : "bg-white border-gray-100"
+      "p-4 rounded-lg border text-sm flex flex-col gap-3 transition-all hover:shadow-sm",
+      isConflictSource 
+        ? "bg-red-50/50 border-red-100 hover:border-red-200" 
+        : "bg-white border-slate-200 hover:border-slate-300"
     )}>
-      <div className="flex justify-between items-center mb-1">
-        <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">{title}</span>
-        <Badge variant="outline" className="text-[10px] h-5 bg-white">ID: {data.id}</Badge>
-      </div>
-      
-      <div className="font-medium text-base text-gray-900 leading-tight">
+      <div className="font-semibold text-base text-slate-900 leading-tight">
         {data.asignatura}
       </div>
       
-      <div className="grid grid-cols-2 gap-2 mt-1">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{data.horario}</span>
+      <div className="flex flex-wrap gap-2">
+        <MetadataBadge icon={BookOpen} text={data.titulacion} />
+        <MetadataBadge icon={CalendarDays} text={data.periodo} />
+        <MetadataBadge icon={Bookmark} text={data.mencion} />
+      </div>
+
+      <Separator className={isConflictSource ? "bg-red-100" : "bg-slate-100"} />
+
+      <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-slate-600">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-slate-400" />
+          <span className="font-medium text-slate-700">{data.horario}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Users className="w-3.5 h-3.5" />
-          <span>{data.grupo}</span>
+        
+        <div className="flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-slate-400" />
+          <span title="Aula">{data.aula || "Sin aula"}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span>Curso: {data.curso}</span>
+
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-slate-400" />
+          <span title="Grupo">{data.grupo}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-slate-400 border px-1 rounded">CURSO</span>
+          <span>{data.curso}</span>
         </div>
       </div>
     </div>
@@ -76,39 +106,34 @@ function ExpandedConflictDetails({ conflicto }: { conflicto: ConflictoOut }) {
   const s2 = conflicto.sesion_2_detalle;
 
   return (
-    <div className="p-4 bg-muted/30 rounded-md border border-muted/50 animate-in fade-in zoom-in-95 duration-200">
-      {!s2 && (
-        <div className="mb-4 p-3 border border-blue-100 bg-blue-50 text-blue-800 rounded-md text-sm">
-          ℹ️ Este es un conflicto de normativa interna (ej: conciliación). Solo implica una sesión.
+    <div className="p-4 bg-slate-50/50 border-t border-b border-slate-100 animate-in slide-in-from-top-2 duration-200">
+      
+      {!s2 ? (
+        // CASO 1: Conflicto de una sola sesión
+        <div className="max-w-2xl mx-auto">
+           <SessionCard data={s1} />
+        </div>
+      ) : (
+        // CASO 2: Conflicto entre dos sesiones
+        // Se muestran en grid simple, SIN elementos intermedios
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <div className="flex flex-col gap-2">
+            <SessionCard data={s1} />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <SessionCard data={s2} isConflictSource />
+          </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SessionCard 
-          title="Sesión Existente" 
-          data={s1} 
-        />
-        
-        {s2 ? (
-          <SessionCard 
-            title="Sesión Entrante / Solapada" 
-            data={s2} 
-            isConflictSource 
-          />
-        ) : (
-          <div className="flex items-center justify-center p-4 border border-dashed rounded-md bg-muted/20 text-muted-foreground text-sm italic">
-            No hay segunda sesión implicada.
-          </div>
-        )}
-      </div>
     </div>
   );
 }
 
-// --- FILTRO FACETADO CORREGIDO ---
+// --- FILTRO FACETADO ---
 
 interface DataTableFacetedFilterProps<TData, TValue> {
-  // 2. CORRECCIÓN: Usamos el tipo genérico Column en lugar de 'any'
   column?: Column<TData, TValue>; 
   title: string;
   options: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[];
@@ -227,7 +252,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {/* TOOLBAR */}
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <Input
@@ -268,7 +292,6 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      {/* TABLE */}
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
