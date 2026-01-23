@@ -7,10 +7,10 @@ Responsabilidades:
 """
 
 from typing import List, Tuple, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
-from database.models import Conflicto
+from database.models import Conflicto, Sesion, GrupoDocente, Asignatura
 from core.conflictos.types import ResultadoDeteccion
 from constants.enums import EstadoConflicto
 
@@ -39,7 +39,12 @@ class ConflictosRepository:
         """
         Busca conflictos aplicando filtros dinámicos.
         """
-        query = db.query(Conflicto)
+        query = db.query(Conflicto).options(
+            joinedload(Conflicto.sesion).joinedload(Sesion.grupo_docente).joinedload(GrupoDocente.asignatura),
+            joinedload(Conflicto.sesion_2).joinedload(Sesion.grupo_docente).joinedload(GrupoDocente.asignatura),
+            joinedload(Conflicto.aula),
+            joinedload(Conflicto.profesor)
+        )
 
         if tipo:
             query = query.filter(Conflicto.tipo == tipo)
@@ -95,7 +100,7 @@ class ConflictosRepository:
             nuevo_conflicto = Conflicto(
                 tipo=res.tipo,
                 severidad=res.severidad,
-                estado=EstadoConflicto.ABIERTO,  # Nacen abiertos por defecto
+                estado=EstadoConflicto.POR_REVISAR,
                 descripcion=res.descripcion,
                 hash_deteccion=res.hash_deteccion,
                 

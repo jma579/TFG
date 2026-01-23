@@ -1,41 +1,56 @@
-// src/lib/api/conflictos.ts
+// frontend/src/lib/api/conflictos.ts
+
 import { api } from '@/lib/api/config';
 
+// --- ENUMS ---
 export type ConflictoTipo =
-  | 'SOLAPAMIENTO_PROFESOR'
-  | 'SOLAPAMIENTO_AULA'
-  | 'VIOLACION_RESTRICCION';
+  | 'solapamiento_profesor'
+  | 'solapamiento_aula'
+  | 'solapamiento_grupo'
+  | 'interferencia_conciliacion';
 
-export type ConflictoEstado = 'ABIERTO' | 'RESUELTO' | 'IGNORADO';
-// Se añade CRITICA para cubrir todos los posibles valores del backend
-export type ConflictoSeveridad = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICA';
+export type ConflictoSeveridad = 'critico' | 'no_bloqueante' | 'leve';
+export type ConflictoEstado = 'por_revisar' | 'solucionado';
+
+// --- MODELOS ---
+
+// Estructura que viene del backend (SesionResumen)
+export type SesionResumen = {
+  id: number;
+  asignatura: string;
+  grupo: string;
+  horario: string;
+  curso: string;
+};
 
 export type ConflictoOut = {
   id: number;
   tipo: ConflictoTipo;
   severidad: ConflictoSeveridad;
   estado: ConflictoEstado;
-  descripcion: string; // CORREGIDO: Alineado con Backend (era 'mensaje')
+  descripcion: string;
   
-  // IDs Relacionados
+  // IDs Relacionales
   sesion_id: number;
-  sesion_2_id?: number | null; // AÑADIDO: Vital para saber con quién choca
+  sesion_2_id?: number | null;
   profesor_id?: number | null;
   aula_id?: number | null;
-  restriccion_id?: number | null; // AÑADIDO
+  restriccion_id?: number | null;
 
-  // Metadatos y Auditoría
+  // OBJETOS DETALLADOS (NUEVO)
+  sesion_1_detalle?: SesionResumen | null;
+  sesion_2_detalle?: SesionResumen | null;
+
+  // Metadatos
   hash_deteccion: string;
-  creado_en: string; // ISO Date string
+  creado_en: string; 
   resuelto_en?: string | null;
-  
-  [key: string]: unknown;
 };
 
 export type ConflictoListResponse = {
   total: number;
   items: ConflictoOut[];
-  page: number; // Backend siempre devuelve page/size obligatorios
+  page: number;
   size: number;
 };
 
@@ -50,34 +65,18 @@ export type ConflictoListFilters = {
   limit?: number;
 };
 
-export type ConflictoEstadoUpdateIn = {
-  estado: ConflictoEstado;
-};
-
-// --- Endpoints ---
+// --- ENDPOINTS ---
 
 export async function listConflictos(
   filters: ConflictoListFilters = {}
 ): Promise<ConflictoListResponse> {
   const { skip = 0, limit = 100, ...rest } = filters;
-  
-  const params = {
-    skip,
-    limit,
-    ...rest
-  };
-
+  const params = Object.fromEntries(
+    Object.entries({ skip, limit, ...rest }).filter(([_, v]) => v != null)
+  );
   return api.get('/v0/conflictos', { params });
 }
 
-export async function listConflictosPorSesion(sesionId: number): Promise<ConflictoOut[]> {
-  // Este endpoint devuelve una lista plana (Array), no un objeto paginado
-  return api.get(`/v0/conflictos/sesion/${sesionId}`);
-}
-
-export async function updateConflictoEstado(
-  id: number,
-  payload: ConflictoEstadoUpdateIn
-): Promise<ConflictoOut> {
-  return api.patch(`/v0/conflictos/${id}`, payload);
+export async function resolverConflicto(id: number): Promise<ConflictoOut> {
+  return api.patch(`/v0/conflictos/${id}`, { estado: 'solucionado' });
 }

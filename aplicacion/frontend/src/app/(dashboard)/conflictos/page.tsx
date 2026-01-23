@@ -11,8 +11,11 @@ export default async function ConflictosPage() {
   let error = null;
 
   try {
+    // Solo pedimos los 'por_revisar' (activo por defecto en la lógica de negocio, 
+    // pero explícito aquí para claridad).
     const response = await listConflictos({ 
       limit: 100,
+      estado: 'por_revisar' 
     });
     data = response.items;
   } catch (e) {
@@ -21,21 +24,21 @@ export default async function ConflictosPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <PageTitle
         title="Auditoría de Conflictos"
-        subtitle="Listado global de incidencias detectadas por el motor de validación."
+        subtitle="Panel de control de calidad del horario académico. Revise y solucione las incidencias detectadas."
       />
       
       {error ? (
-        <div className="p-4 text-red-600 bg-red-50 rounded border border-red-200">
+        <div className="p-4 text-red-600 bg-red-50 rounded-md border border-red-200">
           {error}
         </div>
       ) : (
         <DataTable 
           columns={columns} 
           data={data} 
-          emptyText="¡Enhorabuena! No se han detectado conflictos en el sistema."
+          emptyText="¡Excelente! No hay conflictos pendientes de revisión."
         />
       )}
     </div>

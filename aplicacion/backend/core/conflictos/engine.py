@@ -263,7 +263,6 @@ class ConflictDetectionEngine:
                 # NUEVO MENSAJE: Incluye el nombre del profesor
                 descripcion=f"{nombre_profe}: {motivo}",
                 hash_deteccion="temp",
-                datos_contexto={"tipo_conciliacion": mapa_conciliacion.get(pid)}
             ))
 
         # 2. Deduplicación y Hashing

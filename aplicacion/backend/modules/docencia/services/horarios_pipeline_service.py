@@ -382,7 +382,7 @@ class HorariosPipelineService:
                         with db.begin_nested():
                             conflictos = conflict_engine.detect_conflicts_for_session(
                                 sesion_id=ses_id,
-                                db_session=db
+                                db=db
                             )
                             # CORREGIDO: Variable ses_id correcta
                             conflictos_db = conflictos_repository.sync_conflictos_for_sesion(

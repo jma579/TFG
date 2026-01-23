@@ -107,5 +107,4 @@ class ResultadoDeteccion(BaseModel):
     asignatura_id: Optional[int] = None
     descripcion: str
     hash_deteccion: str
-    datos_contexto: dict = Field(default_factory=dict)
     model_config = {"frozen": False}

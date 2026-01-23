@@ -82,9 +82,9 @@ class ConflictoService:
 
         now = datetime.now(timezone.utc)
 
-        if nuevo_estado == EstadoConflicto.RESUELTO:
+        if nuevo_estado == EstadoConflicto.SOLUCIONADO:
             conflicto.resuelto_en = now
-        elif nuevo_estado == EstadoConflicto.ABIERTO:
+        elif nuevo_estado == EstadoConflicto.POR_REVISAR:
             conflicto.resuelto_en = None
         
         conflicto.estado = nuevo_estado

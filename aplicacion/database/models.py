@@ -145,7 +145,6 @@ class Aula(Base):
     )
 
     sesiones = relationship("Sesion", back_populates="aula", passive_deletes=True)
-    restricciones = relationship("Restriccion", back_populates="aula", passive_deletes=True)
     conflictos = relationship("Conflicto", back_populates="aula", passive_deletes=True)
 
 
