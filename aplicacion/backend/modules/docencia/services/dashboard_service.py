@@ -6,84 +6,78 @@ from database.models import (
     GrupoDocente,
     Asignatura,
     Programa,
-    AsignaturaMencion
+    AsignaturaMencion,
+    Sesion
 )
 from modules.docencia.schemas.dashboard import (
     ResumenHorarioOut,
     EstadoHorario,
     DashboardFiltros
 )
+from constants.enums import EstadoConflicto
 
 class DashboardService:
     def get_resumen(self, db: Session, filtros: DashboardFiltros) -> List[ResumenHorarioOut]:
         """
         Genera el resumen de tarjetas para el dashboard.
-        Optimizado para Mención Única y sin cálculo de conflictos.
+        Calcula la salud contando CONFLICTOS ÚNICOS (Hashes), no sesiones.
         """
-        # 1. Query Optimizada (Eager Loading)
+        # 1. Query Optimizada
         query = db.query(GrupoDocente)\
             .join(GrupoDocente.asignatura)\
             .join(Asignatura.programas)\
             .options(
-                joinedload(GrupoDocente.sesiones),
                 joinedload(GrupoDocente.asignatura)
                     .joinedload(Asignatura.asignatura_menciones)
                     .joinedload(AsignaturaMencion.mencion),
-                joinedload(GrupoDocente.asignatura).joinedload(Asignatura.programas)
+                joinedload(GrupoDocente.asignatura).joinedload(Asignatura.programas),
+                
+                # Carga de sesiones y sus conflictos (ambos lados)
+                joinedload(GrupoDocente.sesiones).joinedload(Sesion.conflictos_sesion_1),
+                joinedload(GrupoDocente.sesiones).joinedload(Sesion.conflictos_sesion_2)
             )
 
-        # 2. Aplicar Filtros Básicos en BD
+        # 2. Filtros BD
         if filtros.programa_id:
             query = query.filter(Programa.id == filtros.programa_id)
         if filtros.curso:
             query = query.filter(GrupoDocente.curso == filtros.curso)
 
-        # Ejecutamos consulta
         grupos_db = query.all()
 
         # 3. Agregación en Memoria
-        # Estructura Clave -> Datos Agregados
         agrupacion: Dict[tuple, Dict[str, Any]] = {}
         now = datetime.now()
 
         for grupo in grupos_db:
             asignatura = grupo.asignatura
             
-            # ✅ CORRECCIÓN: Guardamos tupla (nombre, programa_id_dueño)
-            # En lugar de solo el nombre, guardamos a qué programa pertenece esa mención
+            # Gestión de menciones
             menciones_info = []
             if asignatura.asignatura_menciones:
                 for am in asignatura.asignatura_menciones:
                     if am.mencion:
                         menciones_info.append({
                             "nombre": am.mencion.nombre,
-                            "programa_id": am.mencion.programa_id # ID del grado dueño de la mención
+                            "programa_id": am.mencion.programa_id
                         })
             
-            # Si no tiene menciones, es Troncal (None)
             if not menciones_info:
                 menciones_info = [{"nombre": None, "programa_id": None}]
 
-            # Iteramos sobre CADA mención (o None)
             for info in menciones_info:
                 nombre_mencion = info["nombre"]
                 owner_programa_id = info["programa_id"]
                 
                 for programa in asignatura.programas:
-                    # Filtro de seguridad si se pidió un programa específico
                     if filtros.programa_id and programa.id != filtros.programa_id:
                         continue
 
-                    # ✅ VALIDACIÓN CRÍTICA:
-                    # Si estamos procesando una mención (no es None),
-                    # SOLO debemos mostrarla si pertenece al programa actual.
-                    # Esto evita que la mención de Matemáticas aparezca en el dashboard de Informática.
                     if nombre_mencion is not None and owner_programa_id != programa.id:
                         continue
 
                     cuatrimestre = getattr(asignatura, 'cuatrimestre', 1) or 1
                     
-                    # La clave incluye el nombre de la mención específica
                     key = (programa.id, grupo.curso, cuatrimestre, nombre_mencion)
 
                     if key not in agrupacion:
@@ -95,6 +89,8 @@ class DashboardService:
                             "mencion_str": nombre_mencion,
                             "asignaturas_ids": set(),
                             "total_sesiones": 0,
+                            # CAMBIO: Usamos un set de strings para los HASHES de conflicto
+                            "conflictos_hashes": set(), 
                             "ultima_actualizacion": now
                         }
 
@@ -102,10 +98,29 @@ class DashboardService:
                     stats["asignaturas_ids"].add(asignatura.id)
                     stats["total_sesiones"] += len(grupo.sesiones)
 
-        # 4. Transformación a Esquema de Salida
+                    # --- LÓGICA DE CONTEO DE CONFLICTOS (DEDUPLICADA) ---
+                    for sesion in grupo.sesiones:
+                        # Revisamos conflictos donde esta sesión es la "Principal" (1)
+                        for c in sesion.conflictos_sesion_1:
+                            if c.estado == EstadoConflicto.POR_REVISAR:
+                                stats["conflictos_hashes"].add(c.hash_deteccion)
+                        
+                        # Revisamos conflictos donde esta sesión es la "Secundaria" (2)
+                        # Importante: Si dos sesiones del mismo grupo chocan, ambas tendrán
+                        # el mismo hash_deteccion. Al ser un set, solo cuenta como 1.
+                        for c in sesion.conflictos_sesion_2:
+                            if c.estado == EstadoConflicto.POR_REVISAR:
+                                stats["conflictos_hashes"].add(c.hash_deteccion)
+
+        # 4. Transformación
         resultados = []
         for stats in agrupacion.values():
             menciones_out = [stats["mencion_str"]] if stats["mencion_str"] else []
+            
+            # El número real de incidencias únicas a resolver
+            num_conflictos_reales = len(stats["conflictos_hashes"])
+            
+            estado_calculado = EstadoHorario.CONFLICTO if num_conflictos_reales > 0 else EstadoHorario.OK
 
             resumen = ResumenHorarioOut(
                 programa_id=stats["programa_id"],
@@ -115,8 +130,9 @@ class DashboardService:
                 menciones=menciones_out,
                 total_asignaturas=len(stats["asignaturas_ids"]),
                 total_sesiones=stats["total_sesiones"],
-                estado=EstadoHorario.OK,
-                conflictos_count=0,
+                estado=estado_calculado,
+                # Ahora enviamos el número de problemas únicos
+                conflictos_count=num_conflictos_reales,
                 ultima_actualizacion=stats["ultima_actualizacion"]
             )
             resultados.append(resumen)

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   ArrowLeft, Calendar, Loader2, Trash2, AlertTriangle, 
   Save, X, Edit, Plus, BookOpen, Clock, 
-  Printer 
+  Printer, ChevronDown, ChevronUp 
 } from 'lucide-react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
@@ -20,14 +20,21 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
 import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"; 
+
+
+// --- COMPONENTES TABLA CONFLICTOS ---
+import { DataTable } from '@/components/conflicts/data-table';
+import { columns } from '@/components/conflicts/columns';
+import type { ConflictoOut } from '@/lib/api/conflictos';
 
 // --- APIS ---
 import { 
   listSesiones, 
   batchUpdateSesiones, 
-  type SesionOut, 
   type SesionCreate, 
-  type SesionUpdateWithId 
+  type SesionUpdateWithId,
+  type SesionOut as BaseSesionOut 
 } from '@/lib/api/docencia/sesiones';
 import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
 import { 
@@ -37,6 +44,12 @@ import {
 } from '@/lib/api/docencia/grupos-docentes';
 import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
 import { getPrograma, type ProgramaOut } from '@/lib/api/catalogo/programas'; 
+
+// --- EXTENSIÓN DE TIPOS ---
+// Extendemos SesionOut para incluir conflictos (mientras se actualiza el tipo global)
+interface SesionOut extends BaseSesionOut {
+  conflictos?: ConflictoOut[];
+}
 
 // --- CONSTANTES & UTILIDADES ---
 
@@ -103,7 +116,7 @@ function formatPeriodoLabel(rawPeriodo: string | null): string {
   return rawPeriodo.toUpperCase().replace(/_/g, ' ');
 }
 
-// --- TIPOS EXTENDIDOS ---
+// --- INTERFACES AUXILIARES ---
 
 interface AsignaturaCompleta extends Omit<AsignaturaOut, 'titulaciones'> {
   id: number;
@@ -162,6 +175,9 @@ export default function DetalleHorarioPage() {
 
   const [localSesiones, setLocalSesiones] = React.useState<SesionOut[]>([]);
   
+  // Estado para la barra de conflictos
+  const [isConflictsOpen, setIsConflictsOpen] = React.useState(true); 
+
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [hasChanges, setHasChanges] = React.useState(false);
 
@@ -187,8 +203,6 @@ export default function DetalleHorarioPage() {
   
   const [isSaving, setIsSaving] = React.useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = React.useState(false);
-  
-  // NUEVO: Bandera para saber si se ha intentado guardar (controla los errores visuales)
   const [intentoGuardar, setIntentoGuardar] = React.useState(false);
 
   // --- CARGA DE DATOS ---
@@ -237,9 +251,9 @@ export default function DetalleHorarioPage() {
         mencion: pMencion || undefined
       });
       
-      const sesionesFiltradas = (resSesiones.items || []).filter((s: SesionOut) => 
+      const sesionesFiltradas = (resSesiones.items || []).filter((s: BaseSesionOut) => 
         validGrupoIds.has(s.grupo_docente_id)
-      );
+      ) as SesionOut[]; // Cast para incluir conflictos
 
       setLocalSesiones(sesionesFiltradas);
       setPendingChanges({ created: [], updated: new Map(), deleted: new Set() });
@@ -260,6 +274,23 @@ export default function DetalleHorarioPage() {
   React.useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // --- COMPUTED: CONFLICTOS ÚNICOS ---
+  const uniqueConflicts = React.useMemo(() => {
+    const map = new Map<string, ConflictoOut>();
+    
+    localSesiones.forEach(s => {
+      if (s.conflictos && s.conflictos.length > 0) {
+        s.conflictos.forEach(c => {
+          // Usamos el hash para deduplicar el mismo conflicto que aparece en 
+          // la Sesión A y la Sesión B.
+          map.set(c.hash_deteccion, c);
+        });
+      }
+    });
+    
+    return Array.from(map.values());
+  }, [localSesiones]);
 
   // --- OPCIONES MEMOIZADAS ---
   
@@ -316,6 +347,7 @@ export default function DetalleHorarioPage() {
       }));
   }, [asignaturasMap, pProgramaId, pCurso, pPeriodo]);
 
+  // --- GRID SESSIONS ---
   const gridSessions = React.useMemo<Session[]>(() => {
     return localSesiones.map((dbSesion) => {
       const grupo = gruposMap.get(dbSesion.grupo_docente_id);
@@ -327,9 +359,13 @@ export default function DetalleHorarioPage() {
       
       const dayIndex = normalizeDayToIndex(dbSesion.dia_semana);
 
+      // LÓGICA DE COLORES
       let color: Session['color'] = 'blue';
-      if (dbSesion.id < 0) color = 'green'; 
-      else if (pendingChanges.updated.has(dbSesion.id)) color = 'orange'; 
+      const hasConflict = dbSesion.conflictos && dbSesion.conflictos.length > 0;
+
+      if (dbSesion.id < 0) color = 'green'; // Nueva
+      else if (pendingChanges.updated.has(dbSesion.id)) color = 'orange'; // Modificada
+      else if (hasConflict) color = 'red'; // CONFLICTO (Prioridad visual alta)
 
       return {
         id: String(dbSesion.id),
@@ -373,7 +409,6 @@ export default function DetalleHorarioPage() {
       grupo_docente_id: original.grupo_docente_id
     });
     
-    // Reseteamos el estado de intento al abrir para que no salga rojo de inicio
     setIntentoGuardar(false);
     setIsEditOpen(true);
   };
@@ -406,10 +441,7 @@ export default function DetalleHorarioPage() {
   };
 
   const handleSaveEditForm = () => {
-    // 1. Marcar que se ha intentado guardar
     setIntentoGuardar(true);
-
-    // 2. Validar que exista el aula (bloqueante)
     if (!form.aula_id) {
         toast({
             title: "Datos incompletos",
@@ -457,16 +489,12 @@ export default function DetalleHorarioPage() {
       tipo_grupo: 'teoria',
       codigo_grupo: 'UNICO'
     });
-    // Reseteamos el estado de intento al abrir
     setIntentoGuardar(false);
     setIsCreateOpen(true);
   };
 
   const handleCreateSession = async () => {
-    // 1. Marcar intento
     setIntentoGuardar(true);
-
-    // 2. Validación extendida: Asignatura, Grupo y Aula son obligatorios
     if (!form.asignatura_id || !form.tipo_grupo || !form.codigo_grupo || !form.aula_id) {
       toast({ 
           title: "Faltan datos", 
@@ -514,13 +542,13 @@ export default function DetalleHorarioPage() {
       const newSession: SesionOut = {
         id: tempId,
         grupo_docente_id: targetGroupId,
-        aula_id: form.aula_id!, // Ya validado arriba
+        aula_id: form.aula_id!,
         modalidad: 'presencial', 
         tipo_recurrencia: 'semanal',
         dia_semana: form.dia_semana,
         hora_inicio: form.hora_inicio,
         hora_fin: form.hora_fin,
-        inicio: null, fin: null, profesores: [] 
+        inicio: null, fin: null, profesores: [], conflictos: [] 
       };
 
       setLocalSesiones(prev => [...prev, newSession]);
@@ -665,6 +693,52 @@ export default function DetalleHorarioPage() {
         </div>
       </div>
 
+      {/* --- BARRA SUPERIOR DE CONFLICTOS (NUEVO) --- */}
+      {uniqueConflicts.length > 0 && !isEditMode && (
+        <div className="px-6 pb-4 print:hidden animate-in fade-in slide-in-from-top-4">
+          <Collapsible 
+            open={isConflictsOpen} 
+            onOpenChange={setIsConflictsOpen} 
+            className="border border-red-200 bg-red-50/50 rounded-lg shadow-sm"
+          >
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-red-900">
+                    Conflictos detectados en este horario ({uniqueConflicts.length})
+                  </h3>
+                  <p className="text-xs text-red-700">
+                    Existen incidencias que requieren atención. Expande para ver detalles y posibles soluciones.
+                  </p>
+                </div>
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="hover:bg-red-100 text-red-700 gap-2">
+                  <span className="text-xs font-medium">{isConflictsOpen ? 'Ocultar' : 'Ver Lista'}</span>
+                  {isConflictsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            
+            <CollapsibleContent>
+              <div className="px-4 pb-4">
+                <div className="bg-white rounded-md border border-red-100 overflow-hidden shadow-sm">
+                  {/* REUTILIZAMOS LA TABLA DE CONFLICTOS FILTRADA */}
+                  <DataTable 
+                    columns={columns} 
+                    data={uniqueConflicts} 
+                    emptyText="No hay conflictos visibles." 
+                  />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      )}
+
       {/* GRID AREA */}
       <div className="flex-1 overflow-hidden px-6 pb-6 bg-muted/10 print:bg-white print:p-0 print:overflow-visible print:h-auto">
         <Card className={`h-full overflow-hidden border bg-background shadow-sm transition-all duration-300 
@@ -711,6 +785,14 @@ export default function DetalleHorarioPage() {
                  <p className="text-muted-foreground text-xs mt-0.5">
                    Grupo {gruposMap.get(editingSesion.grupo_docente_id)?.codigo} • {gruposMap.get(editingSesion.grupo_docente_id)?.tipo}
                  </p>
+                 
+                 {/* ALERTA DE CONFLICTO EN EDICIÓN */}
+                 {editingSesion.conflictos && editingSesion.conflictos.length > 0 && (
+                   <div className="mt-2 flex items-center gap-2 text-xs text-red-600 bg-red-100/50 p-1.5 rounded">
+                     <AlertTriangle className="h-3 w-3" />
+                     <span>Esta sesión tiene conflictos activos</span>
+                   </div>
+                 )}
                </div>
              )}
             <div className="grid gap-2">
@@ -725,7 +807,6 @@ export default function DetalleHorarioPage() {
               <div className="grid gap-2"><Label>Fin</Label><Input type="time" value={form.hora_fin} onChange={(e) => setForm({...form, hora_fin: e.target.value})} /></div>
             </div>
             
-            {/* CAMPO AULA CON VALIDACIÓN VISUAL */}
             <div className="grid gap-2">
               <Label className={(!form.aula_id && intentoGuardar) ? "text-destructive" : ""}>
                 Aula {(!form.aula_id && intentoGuardar) && "*"}
@@ -780,7 +861,6 @@ export default function DetalleHorarioPage() {
               />
             </div>
             
-            {/* CAMPO AULA CON VALIDACIÓN EN CREACIÓN */}
             <div className="grid gap-2">
               <Label className={(!form.aula_id && intentoGuardar) ? "text-destructive" : ""}>
                 Aula {(!form.aula_id && intentoGuardar) && "*"}

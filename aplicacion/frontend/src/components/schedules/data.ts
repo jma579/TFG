@@ -1,4 +1,4 @@
-export type EstadoHorario = 'OK' | 'CONFLICTO';
+export type EstadoHorario = 'OK' | 'CONFLICTO' | 'PROCESANDO';
 
 export type ScheduleSummary = {
   // Identificadores compuestos para usar como key
@@ -17,5 +17,7 @@ export type ScheduleSummary = {
   // Estado
   estado: EstadoHorario;
   conflictos_count: number;
+  
+  // Metadatos
   ultima_actualizacion: string;
 };

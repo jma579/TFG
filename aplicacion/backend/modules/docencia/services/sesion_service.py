@@ -35,7 +35,7 @@ from core.conflictos.engine import conflict_engine
 from core.conflictos.types import ParametrosDeteccion
 
 # Enums y Modelos
-from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
+from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana, EstadoConflicto
 from database.models import Sesion
 
 logger = logging.getLogger(__name__)
@@ -265,7 +265,7 @@ class SesionService:
     # ============================================================
     
     def _to_sesion_out(self, sesion: Sesion) -> SesionOut:
-        """Helper para convertir modelo ORM a Schema Pydantic incluyendo profesores"""
+        """Helper para convertir modelo ORM a Schema Pydantic incluyendo profesores y CONFLICTOS"""
         sesion_dict = {
             'id': sesion.id,
             'grupo_docente_id': sesion.grupo_docente_id,
@@ -279,6 +279,7 @@ class SesionService:
             'fin': sesion.fin
         }
         
+        # Profesores
         profesores_out = []
         for profesor in sesion.profesores:
             profesor_sesion = next(
@@ -291,8 +292,25 @@ class SesionService:
                 nombre=profesor.nombre,
                 apellidos=profesor.apellidos
             ))
-        
         sesion_dict['profesores'] = profesores_out
+
+        # --- Conflictos Activos ---
+        # Recolectamos conflictos donde la sesión participa como s1 o s2
+        active_conflictos = []
+        
+        # Conflictos donde es Sesión 1
+        for c in sesion.conflictos_sesion_1:
+            if c.estado == EstadoConflicto.POR_REVISAR:
+                active_conflictos.append(c)
+        
+        # Conflictos donde es Sesión 2
+        for c in sesion.conflictos_sesion_2:
+            if c.estado == EstadoConflicto.POR_REVISAR:
+                active_conflictos.append(c)
+        
+        # Convertimos a esquema
+        sesion_dict['conflictos'] = [ConflictoOut.model_validate(c) for c in active_conflictos]
+
         return SesionOut(**sesion_dict)
 
 

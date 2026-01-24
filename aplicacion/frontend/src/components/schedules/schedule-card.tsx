@@ -1,14 +1,15 @@
 import React from 'react';
-import { ResumenHorario } from '@/types/dashboard';
+// CORRECCIÓN: Importamos desde el archivo local 'data' en lugar de 'types/dashboard'
+import { ScheduleSummary } from './data'; 
 import { Calendar, AlertTriangle, CheckCircle, ArrowRight, BookOpen, Layers, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 
 interface ScheduleCardProps {
-  data: ResumenHorario;
-  onView: (data: ResumenHorario) => void;
-  onSolve: (data: ResumenHorario) => void;
+  data: ScheduleSummary;
+  onView: (data: ScheduleSummary) => void;
+  onSolve: (data: ScheduleSummary) => void;
 }
 
 export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolve }) => {
@@ -37,13 +38,19 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolv
           </div>
           
           {isConflict ? (
-            <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+            <Badge 
+              variant="destructive" 
+              className="bg-red-100 text-red-700 border-red-200 hover:bg-red-200 px-2 py-1"
+              title={`Se han detectado ${data.conflictos_count} incidencias únicas en este horario`}
+            >
               <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />
-              {data.conflictos_count}
+              {/* Muestra "Conflictos" en lugar de "Sesiones" */}
+              {data.conflictos_count} {data.conflictos_count === 1 ? 'Conflicto' : 'Conflictos'}
             </Badge>
           ) : isProcessing ? (
             <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
               <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              Procesando
             </Badge>
           ) : (
             <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">

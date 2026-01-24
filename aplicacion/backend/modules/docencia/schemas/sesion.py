@@ -350,13 +350,7 @@ class SesionUpdate(BaseModel):
 
 class SesionOut(SesionBase):
     """
-    Schema para respuestas de Sesion (incluye ID y profesores).
-    
-    Usado en:
-    - Respuestas de endpoints GET, POST, PUT
-    - Elementos de listas
-    
-    Incluye lista de profesores asignados con sus datos básicos.
+    Schema para respuestas de Sesion (incluye ID, profesores y CONFLICTOS).
     """
     
     id: int = Field(
@@ -367,6 +361,11 @@ class SesionOut(SesionBase):
     profesores: List[ProfesorSesionOut] = Field(
         default_factory=list,
         description="Lista de profesores asignados a la sesión"
+    )
+
+    conflictos: List[ConflictoOut] = Field(
+        default_factory=list,
+        description="Lista de conflictos activos asociados a esta sesión"
     )
     
     model_config = ConfigDict(
@@ -381,16 +380,8 @@ class SesionOut(SesionBase):
                 "dia_semana": "lunes",
                 "hora_inicio": "09:00:00",
                 "hora_fin": "11:00:00",
-                "inicio": None,
-                "fin": None,
-                "profesores": [
-                    {
-                        "profesor_id": 10,
-                        "rol_en_sesion": "Docente",
-                        "nombre": "Juan",
-                        "apellidos": "García López"
-                    }
-                ]
+                "profesores": [],
+                "conflictos": []
             }
         }
     )
