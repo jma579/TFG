@@ -295,6 +295,11 @@ class HorariosPipelineService:
 
                     # 4.3 ESTRATEGIA WIPE
                     if asignatura.id not in asignaturas_limpiadas:
+                        
+                        # Eliminamos todos los conflictos antiguos de esta asignatura en un solo paso
+                        conflictos_repository.delete_by_asignatura(db, asignatura.id)
+
+                        # Ahora sí, borramos la estructura docente (Grupos -> Sesiones)
                         grupo_docente_repository.delete_by_asignatura(db, asignatura.id)
                         
                         # LIMPIEZA TOTAL DE MEMORIA PARA EVITAR ERRORES DE INTEGRIDAD
@@ -302,7 +307,7 @@ class HorariosPipelineService:
                         db.expire_all() 
                         
                         asignaturas_limpiadas.add(asignatura.id)
-                        logger.info(f"🧹 WIPE: Eliminados grupos previos de Asignatura ID {asignatura.id}")
+                        logger.info(f"🧹 WIPE: Eliminados grupos y conflictos previos de Asignatura ID {asignatura.id}")
 
                     # 4.4 Vincular Mención
                     if mencion_db:

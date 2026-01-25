@@ -673,6 +673,7 @@ def listar_sesiones(
     ),
     mencion_nombre: Optional[str] = Query(
         None, 
+        alias="mencion",
         description="Nombre de la mención (ej: 'Computación', 'Informática'). Case-insensitive."
     ),
     programa_id: Optional[int] = Query(

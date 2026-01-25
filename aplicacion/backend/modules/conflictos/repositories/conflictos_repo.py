@@ -151,6 +151,30 @@ class ConflictosRepository:
         ).delete(synchronize_session='fetch')
         db.flush()
 
+    def delete_by_asignatura(self, db: Session, asignatura_id: int):
+        """
+        Elimina masivamente todos los conflictos donde participe cualquier sesión
+        de la asignatura indicada (ya sea como principal o secundaria).
+        
+        Realiza una única operación DELETE con SUBQUERY en base de datos.
+        Eficiente y sin cargar objetos en memoria.
+        """
+        # Subquery: IDs de sesiones que pertenecen a la asignatura
+        sq_sesiones = db.query(Sesion.id)\
+            .join(GrupoDocente)\
+            .filter(GrupoDocente.asignatura_id == asignatura_id)\
+            .subquery()
+
+        # Delete masivo: Borra conflicto si s1 O s2 están en la lista de sesiones afectadas
+        db.query(Conflicto).filter(
+            or_(
+                Conflicto.sesion_id.in_(sq_sesiones),
+                Conflicto.sesion_2_id.in_(sq_sesiones)
+            )
+        ).delete(synchronize_session=False) # False porque vamos a borrar las sesiones justo después
+        
+        db.flush()
+        
 
 # Instancia singleton
 conflictos_repository = ConflictosRepository()

@@ -80,10 +80,10 @@ class SesionRepository:
             query = query.join(GrupoDocente.asignatura)
 
         # Joins específicos
-        if mencion_id is not None or mencion_nombre is not None:
-            query = query.join(Asignatura.asignatura_menciones)
-            if mencion_nombre:
-                 query = query.join(AsignaturaMencion.mencion)
+        if mencion_id is not None:
+            query = query.outerjoin(Asignatura.asignatura_menciones)
+        if mencion_nombre is not None:
+             query = query.outerjoin(Asignatura.asignatura_menciones).outerjoin(AsignaturaMencion.mencion)
 
         if programa_id is not None:
             query = query.join(Asignatura.programa_asignaturas)
@@ -118,10 +118,20 @@ class SesionRepository:
             query = query.filter(ProgramaAsignatura.programa_id == programa_id)
         
         if mencion_id is not None:
-            query = query.filter(AsignaturaMencion.mencion_id == mencion_id)
+            query = query.filter(
+                or_(
+                    AsignaturaMencion.mencion_id == mencion_id,
+                    AsignaturaMencion.mencion_id.is_(None)
+                )
+            )
             
         if mencion_nombre is not None:
-            query = query.filter(Mencion.nombre.ilike(mencion_nombre))
+            query = query.filter(
+                or_(
+                    Mencion.nombre.ilike(mencion_nombre),
+                    Mencion.id.is_(None) 
+                )
+            )
 
         query = query.distinct()
 
