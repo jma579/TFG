@@ -41,6 +41,7 @@ export type SesionCreate = {
     profesor_id: number;
     rol_en_sesion?: string;
   }>;
+  temp_id?: number; // Campo opcional para simulaciones
 };
 
 export type SesionUpdate = Partial<SesionCreate>;
@@ -86,6 +87,11 @@ export type SesionFilters = {
   size?: number;
 };
 
+export type SesionValidationResponse = {
+  valid: boolean;
+  conflictos: ConflictoOut[];
+};
+
 // --- Funciones Actualizadas ---
 
 export async function listSesiones(filters: SesionFilters = {}): Promise<SesionListResponse> {
@@ -111,6 +117,10 @@ export async function updateSesion(
   data: SesionUpdateInput
 ): Promise<SesionWithConflictosOut> {
   return api.put(`/v0/docencia/sesiones/${id}`, data); 
+}
+
+export async function validateBatchSesiones(payload: SesionBatchRequest): Promise<ConflictoOut[]> {
+  return api.post('/v0/docencia/sesiones/validate-batch', payload);
 }
 
 export async function deleteSesion(id: number): Promise<void> {

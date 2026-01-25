@@ -15,6 +15,7 @@ import logging
 from typing import List, Tuple, Optional, Dict
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from datetime import datetime
 
 # Repositorios
 from modules.docencia.repositories.sesion_repo import sesion_repository
@@ -25,7 +26,7 @@ from modules.recursos.repositories.profesor_repo import profesor_repository
 # Schemas
 from modules.docencia.schemas.sesion import (
     SesionCreate, SesionUpdate, SesionOut, ProfesorSesionOut,
-    SesionWithConflictosOut
+    SesionWithConflictosOut, SesionBatchRequest
 )
 
 # Conflictos (Core & Module)
@@ -234,6 +235,85 @@ class SesionService:
             conflictos=conflictos_out,
         )
     
+    def simulate_batch(self, db: Session, payload: SesionBatchRequest) -> List[ConflictoOut]:
+        """
+        Simula un lote de cambios (Crear/Actualizar/Borrar) y devuelve 
+        TODOS los conflictos resultantes del horario completo.
+        
+        NO persiste cambios (hace ROLLBACK).
+        """
+        # Mapa para rastrear IDs reales generados -> IDs temporales del frontend
+        id_map = {}
+
+        db.begin_nested()
+        try:
+            # 1. Eliminar
+            for id_sesion in payload.deleted:
+                if sesion_repository.get_by_id(db, id_sesion):
+                    sesion_repository.delete(db, id_sesion)
+
+            # 2. Actualizar
+            for item in payload.updated:
+                db_sesion = sesion_repository.get_by_id(db, item.id)
+                if db_sesion:
+                    update_data = item.model_dump(exclude={'id'}, exclude_unset=True)
+                    if update_data:
+                        schema_update = SesionUpdate(**update_data)
+                        sesion_repository.update(db, db_sesion, schema_update)
+                        if schema_update.profesores is not None:
+                             p_data = [{'profesor_id': p.profesor_id, 'rol_en_sesion': p.rol_en_sesion} for p in schema_update.profesores]
+                             sesion_repository.update_profesores(db, item.id, p_data)
+
+            # 3. Crear
+            for create_item in payload.created:
+                new_sesion = sesion_repository.create(db, create_item)
+                if create_item.profesores:
+                    for p in create_item.profesores:
+                        sesion_repository.add_profesor(db, new_sesion.id, p.profesor_id, p.rol_en_sesion)
+                if create_item.temp_id is not None:
+                    id_map[new_sesion.id] = create_item.temp_id
+
+            db.flush() 
+
+            # 4. Detectar conflictos GLOBALES
+            resultados = conflict_engine.detect_conflicts_for_range(db)
+            
+            # 5. Convertir a Schema y ajustar IDs
+            conflictos_out = []
+            
+            # --- CORRECCIÓN AQUI: Usamos enumerate para generar IDs falsos ---
+            for i, res in enumerate(resultados):
+                
+                # Reemplazar IDs reales por temporales si corresponde (para lógica interna)
+                s1_id = id_map.get(res.sesion_id, res.sesion_id)
+                s2_id = id_map.get(res.sesion_2_id, res.sesion_2_id)
+
+                conf_out = ConflictoOut(
+                    # --- CAMPOS FALSIFICADOS PARA VALIDACIÓN ---
+                    id=-1 * (i + 1),          # ID negativo único temporal
+                    creado_en=datetime.now(), # Timestamp actual
+                    # -------------------------------------------
+                    tipo=res.tipo,
+                    severidad=res.severidad,
+                    descripcion=res.descripcion,
+                    sesion_id=s1_id,
+                    sesion_2_id=s2_id,
+                    profesor_id=res.profesor_id,
+                    aula_id=res.aula_id,
+                    hash_deteccion=res.hash_deteccion,
+                    estado=EstadoConflicto.POR_REVISAR
+                )
+                
+                conflictos_out.append(conf_out)
+
+            return conflictos_out
+
+        except Exception as e:
+            # logger.error(f"Error en simulación: {e}") # Descomentar para debug
+            raise e
+        finally:
+            db.rollback()
+
     def delete(self, db: Session, id: int) -> None:
         """
         Eliminar sesión (DELETE físico).

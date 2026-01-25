@@ -30,6 +30,7 @@ from modules.docencia.schemas.sesion import (
 from modules.docencia.schemas.dashboard import (
     ResumenHorarioOut, DashboardFiltros
 )
+from modules.conflictos.schemas.conflicto import ConflictoOut
 from modules.docencia.services.grupo_docente_service import grupo_docente_service
 from modules.docencia.services.sesion_service import sesion_service
 from modules.docencia.services.dashboard_service import dashboard_service
@@ -1008,6 +1009,18 @@ def actualizar_sesion(
     """
     return sesion_service.update(db, id, sesion)
 
+@router.post(
+    "/sesiones/validate-batch",
+    response_model=List[ConflictoOut],
+    summary="Simular cambios y validar horario completo",
+    description="Recibe el estado actual del frontend (creados, modificados, borrados), simula su aplicación y devuelve todos los conflictos del horario. No guarda cambios.",
+    tags=["Sesiones"]
+)
+def validar_batch_sesiones(
+    payload: SesionBatchRequest,
+    db: Session = Depends(get_db)
+):
+    return sesion_service.simulate_batch(db, payload)
 
 @router.delete(
     "/sesiones/{id}",

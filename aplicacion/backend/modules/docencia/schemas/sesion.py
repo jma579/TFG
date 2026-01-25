@@ -277,6 +277,12 @@ class SesionCreate(SesionBase):
         ]
     )
 
+    # Campo opcional para rastrear sesiones temporales en simulaciones
+    temp_id: Optional[int] = Field(
+        None, 
+        description="ID temporal del frontend (ej: -123) usado para mapear conflictos en simulaciones."
+    )
+
 
 class SesionUpdate(BaseModel):
     """
@@ -484,3 +490,11 @@ class SesionBatchResponse(BaseModel):
     created: List[SesionWithConflictosOut] = Field(default_factory=list)
     updated: List[SesionWithConflictosOut] = Field(default_factory=list)
     deleted_ids: List[int] = Field(default_factory=list)
+
+class SesionValidationResult(BaseModel):
+    """
+    Respuesta de la simulación de cambios.
+    Devuelve si el cambio es válido y la lista de conflictos que generaría.
+    """
+    valid: bool
+    conflictos: List[ConflictoOut] = []
