@@ -689,12 +689,15 @@ export default function DetalleHorarioPage() {
                  {editingSesion.conflictos && editingSesion.conflictos.length > 0 && (
                   <div className="mt-3 bg-red-50 border border-red-200 rounded-md p-2 animate-in fade-in">
                     <div className="flex items-center gap-2 text-xs font-semibold text-red-800 mb-1">
-                      <AlertTriangle className="h-3.5 w-3.5" />
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {/* shrink-0 evita que el icono se aplaste */}
                       <span>Conflictos detectados:</span>
                     </div>
-                    <ul className="list-disc list-inside pl-1 space-y-1 text-xs text-red-700/90 max-h-[80px] overflow-y-auto">
+                    {/* CAMBIOS AQUÍ: list-outside, ml-4, sin truncate, leading-relaxed */}
+                    <ul className="list-disc list-outside ml-4 space-y-1 text-xs text-red-700/90 max-h-[100px] overflow-y-auto pr-1">
                       {editingSesion.conflictos.map((c, i) => (
-                        <li key={i} title={c.descripcion} className="truncate">{c.descripcion}</li>
+                        <li key={i} className="leading-snug text-pretty">
+                          {c.descripcion}
+                        </li>
                       ))}
                     </ul>
                   </div>
