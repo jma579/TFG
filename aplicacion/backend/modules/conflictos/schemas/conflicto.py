@@ -15,6 +15,9 @@ class SesionResumen(BaseModel):
     titulacion: Optional[str] = None
     mencion: Optional[str] = None
     periodo: Optional[str] = None
+    programa_id: Optional[int] = None
+    curso_num: Optional[int] = None
+    periodo_code: Optional[str] = None
 
 class ConflictoBase(BaseModel):
     tipo: TipoConflicto
@@ -34,8 +37,6 @@ class ConflictoOut(ConflictoBase):
     aula_id: Optional[int] = None
     restriccion_id: Optional[int] = None
     
-    # --- 2. CAMPOS NUEVOS NECESARIOS ---
-    # Usamos validation_alias para mapear la relación ORM "sesion" al campo JSON "sesion_1_detalle"
     sesion_1_detalle: Optional[SesionResumen] = Field(None, validation_alias="sesion")
     sesion_2_detalle: Optional[SesionResumen] = Field(None, validation_alias="sesion_2")
     
@@ -45,47 +46,58 @@ class ConflictoOut(ConflictoBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-    # --- 3. VALIDADOR PARA APLANAR EL OBJETO ORM ---
     @field_validator("sesion_1_detalle", "sesion_2_detalle", mode="before")
     @classmethod
     def transform_sesion_orm(cls, v):
-        """Convierte el objeto ORM Sesion en SesionResumen enriquecido."""
         if not v: return None
         
         asig = "Desconocida"
         grp = "?"
-        curso = "-"
+        curso_str = "-"
         horario = "Sin horario"
-        
-        # Nuevas variables
         aula_nombre = v.aula.nombre if v.aula else "Sin Aula"
         titulacion = None
         mencion = None
-        periodo = None
+        
+        # Variables de contexto
+        periodo_str = None
+        periodo_code = None
+        programa_id = None
+        curso_num = None
 
         # Datos del Grupo y Asignatura
         if hasattr(v, "grupo_docente") and v.grupo_docente:
             tipo = v.grupo_docente.tipo.value if v.grupo_docente.tipo else "TEORIA"
             cod = v.grupo_docente.codigo or "UNICO"
             grp = f"{tipo} ({cod})"
-            curso = f"{v.grupo_docente.curso}º" if v.grupo_docente.curso else "Optativa"
+            
+            curso_val = v.grupo_docente.curso
+            curso_num = curso_val
+            curso_str = f"{curso_val}º" if curso_val else "Optativa"
             
             if v.grupo_docente.asignatura:
                 asig_obj = v.grupo_docente.asignatura
                 asig = asig_obj.nombre
-                periodo = asig_obj.periodo.value if asig_obj.periodo else None
-
+                
+                # Extracción del Periodo
                 if asig_obj.periodo:
-                    # De "primer_cuatrimestre" a "Primer Cuatrimestre"
-                    periodo = asig_obj.periodo.value.replace("_", " ").title()
+                    periodo_code = asig_obj.periodo.value  # ej: "primer_cuatrimestre"
+                    periodo_str = asig_obj.periodo.value.replace("_", " ").title() # ej: "Primer Cuatrimestre"
                 
-                # Extraer Titulación (Tomamos el primer programa asociado)
+                # Extracción del Programa (Contexto Principal)
+                target_prog = None
                 if asig_obj.programa_asignaturas:
-                    # Preferimos el que coincida con el curso si es posible, sino el primero
-                    prog = asig_obj.programa_asignaturas[0].programa
-                    titulacion = prog.nombre
+                    for pa in asig_obj.programa_asignaturas:
+                        if pa.curso == curso_val:
+                            target_prog = pa.programa
+                            break
+                    if not target_prog and len(asig_obj.programa_asignaturas) > 0:
+                        target_prog = asig_obj.programa_asignaturas[0].programa
                 
-                # Extraer Mención (Si tiene)
+                if target_prog:
+                    titulacion = target_prog.nombre
+                    programa_id = target_prog.id
+
                 if asig_obj.asignatura_menciones:
                     mencion = asig_obj.asignatura_menciones[0].mencion.nombre
 
@@ -104,11 +116,16 @@ class ConflictoOut(ConflictoBase):
             asignatura=asig,
             grupo=grp,
             horario=horario,
-            curso=curso,
+            curso=curso_str,
             aula=aula_nombre,
             titulacion=titulacion,
             mencion=mencion,
-            periodo=periodo
+            periodo=periodo_str,
+            
+            # Inyectamos los 3 datos clave
+            programa_id=programa_id,
+            curso_num=curso_num,
+            periodo_code=periodo_code
         )
 
 class ConflictoList(BaseModel):

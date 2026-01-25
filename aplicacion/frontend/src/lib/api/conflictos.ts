@@ -26,6 +26,9 @@ export type SesionResumen = {
   titulacion?: string;
   mencion?: string;
   periodo?: string;
+  programa_id?: number;
+  curso_num?: number;
+  periodo_code?: string;
 };
 
 export type ConflictoOut = {

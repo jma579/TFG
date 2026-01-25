@@ -598,7 +598,7 @@ export default function DetalleHorarioPage() {
   if (!pProgramaId || !pCurso) return <div className="p-8 flex flex-col items-center text-center gap-4"><AlertTriangle className="h-12 w-12 text-yellow-500" /><h2 className="text-xl font-bold">Faltan parámetros</h2><Button onClick={() => router.back()}>Volver</Button></div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] print:h-auto print:block print:w-full print:p-4">
+    <div className="flex flex-col min-h-[calc(100vh-2rem)] print:h-auto print:block print:w-full print:p-4">
       
       {/* HEADER PRINCIPAL */}
       <div className="sticky top-0 z-30 flex flex-col gap-4 px-6 py-4 bg-transparent print:hidden">
@@ -667,8 +667,8 @@ export default function DetalleHorarioPage() {
       )}
 
       {/* GRID */}
-      <div className="flex-1 overflow-hidden px-6 pb-6 bg-muted/10 print:bg-white print:p-0 print:overflow-visible print:h-auto">
-        <Card className={`h-full overflow-hidden border bg-background shadow-sm transition-all duration-300 ${isEditMode ? 'ring-2 ring-primary/10 border-primary/20' : ''} print:border-0 print:shadow-none print:h-auto print:overflow-visible`}>
+      <div className="flex-1 px-6 pb-6 bg-muted/10 print:bg-white print:p-0 print:overflow-visible print:h-auto">
+        <Card className={`h-full min-h-[700px] overflow-hidden border bg-background shadow-sm transition-all duration-300 ${isEditMode ? 'ring-2 ring-primary/10 border-primary/20' : ''} print:border-0 print:shadow-none print:h-auto print:overflow-visible`}>
           <CardContent className="p-0 h-full relative print:h-auto print:block">
              {isEditMode && (<div className="absolute top-3 right-3 z-20 flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 shadow-sm animate-in fade-in zoom-in-95 print:hidden"><div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />Modo Edición</div>)}
              {gridSessions.length > 0 || isEditMode ? (
