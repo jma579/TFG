@@ -83,6 +83,7 @@ export type SesionFilters = {
   aula_id?: number;
   curso?: number;
   mencion?: string;
+  programa_id?: number;
   page?: number;
   size?: number;
 };

@@ -106,7 +106,7 @@ interface AsignaturaCompleta extends Omit<AsignaturaOut, 'titulaciones'> {
   id: number;
   nombre: string;
   codigo_plan?: string;
-  periodo: string; // Propiedad raíz importante para el filtro
+  periodo: string; 
   titulaciones?: Array<{
     programa?: { id: number; nombre?: string }; 
     programa_id?: number;                       
@@ -198,23 +198,22 @@ export default function GestionHorarioPage() {
       (resGrupos.items || []).forEach((g: GrupoDocenteOut) => gMap.set(g.id, g));
       setGruposMap(gMap);
 
-      const resSesiones = await listSesiones({ size: 1000, curso: selectedCurso });
+      // 🟢 CAMBIO CLAVE: Enviamos programa_id para que el backend filtre.
+      // Ya no recibiremos sesiones de otras titulaciones ("manguera cerrada").
+      const resSesiones = await listSesiones({ 
+        size: 1000, 
+        curso: selectedCurso,
+        programa_id: selectedProgramaId 
+      });
 
-      // Filtro robusto para detectar si ya hay horario (solo para control interno, no visual)
+      // Ahora filtramos por Periodo (esto sí lo hacemos en front porque el backend no lo filtra por ahora)
       const sesionesPrevias = (resSesiones.items || []).filter((s: SesionOut) => {
          const grupo = gMap.get(s.grupo_docente_id);
          if (!grupo) return false;
          const asig = asignaturasMap.get(grupo.asignatura_id);
          if (!asig) return false;
 
-         // 1. Filtro Programa
-         const esDelPrograma = asig.titulaciones?.some(t => {
-            const pId = t.programa?.id ?? t.programa_id;
-            return pId === selectedProgramaId;
-         });
-         if (!esDelPrograma) return false;
-
-         // 2. Filtro Periodo (usando propiedad raíz)
+         // Filtro Periodo
          const pPeriodoNorm = normalizeText(selectedPeriodo);
          const aPeriodoNorm = normalizeText(asig.periodo || '');
          
@@ -234,10 +233,7 @@ export default function GestionHorarioPage() {
       });
 
       if (sesionesPrevias.length > 0) {
-        // 🟢 MODIFICACIÓN: NO cargamos localSesiones para que la rejilla salga limpia
-        // setLocalSesiones(sesionesPrevias); 
-        
-        // Pero SÍ guardamos los IDs para poder avisar de sobrescritura al guardar
+        // Guardamos los IDs para detectar si el usuario intenta sobrescribir
         setExistingSessionIds(sesionesPrevias.map(s => s.id));
       }
 
@@ -261,7 +257,6 @@ export default function GestionHorarioPage() {
     aulas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo })), 
   [aulas]);
 
-  // Filtro de Asignaturas (Lógica Robusta)
   const asignaturaOptions = React.useMemo<AutocompleteOption[]>(() => {
     if (!selectedProgramaId || !selectedCurso) return [];
     
@@ -315,7 +310,6 @@ export default function GestionHorarioPage() {
         
       const dayIndex = normalizeDayToIndex(dbSesion.dia_semana);
 
-      // Diferenciamos visualmente nuevas vs existentes (aunque ahora todas serán nuevas visualmente)
       const isExisting = dbSesion.id > 0;
 
       return {
@@ -409,7 +403,6 @@ export default function GestionHorarioPage() {
       const codigoFinal = form.tipo_grupo === 'teoria' ? CODIGO_GRUPO_TEORIA : form.codigo_grupo;
       let targetGroupId: number | null = null;
       
-      // Buscamos si ya existe el grupo docente localmente
       for (const group of gruposMap.values()) {
         if (group.asignatura_id === form.asignatura_id && 
             group.tipo.toLowerCase() === form.tipo_grupo!.toLowerCase() &&
@@ -419,7 +412,6 @@ export default function GestionHorarioPage() {
         }
       }
       
-      // Si no existe, lo creamos
       if (!targetGroupId) {
         const newGroup = await createGrupoDocente({
           asignatura_id: form.asignatura_id!,
@@ -473,7 +465,6 @@ export default function GestionHorarioPage() {
           profesores: []
       } as SesionCreate));
 
-      // Importante: Si había sesiones antiguas, las borramos todas para "sobrescribir" con lo nuevo
       const deleted = existingSessionIds; 
 
       await batchUpdateSesiones({ created, updated: [], deleted });
@@ -481,7 +472,7 @@ export default function GestionHorarioPage() {
       
       setIsOverwriteAlertOpen(false);
       setHasChanges(false);
-      checkExistingData(); // Recargamos para que el sistema actualice el estado interno
+      checkExistingData();
 
     } catch (e) {
       console.error(e);
@@ -502,7 +493,7 @@ export default function GestionHorarioPage() {
             Gestión de Horarios
           </h1>
           <p className="text-lg text-muted-foreground">
-            Selecciona una titulación, curso y periodo para crear o sobrescribir un horario.
+            Crea o sobrescribe horarios verificando conflictos en tiempo real.
           </p>
         </div>
       </div>
@@ -518,7 +509,7 @@ export default function GestionHorarioPage() {
                  options={programaOptions} 
                  value={selectedProgramaId ?? undefined} 
                  onChange={(val) => {
-                    if (hasChanges && !confirm("Perderás el horario actual. ¿Continuar?")) return;
+                    if (hasChanges && !confirm("Perderás el borrador actual. ¿Continuar?")) return;
                     setSelectedProgramaId(val ? Number(val) : null);
                  }} 
                  placeholder="Selecciona Grado..." 
@@ -527,7 +518,7 @@ export default function GestionHorarioPage() {
              <div className="space-y-2">
                <Label className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground/80 ml-1">Curso</Label>
                <Select value={selectedCurso?.toString()} onValueChange={(val) => {
-                   if (hasChanges && !confirm("Perderás el horario actual. ¿Continuar?")) return;
+                   if (hasChanges && !confirm("Perderás el borrador actual. ¿Continuar?")) return;
                    setSelectedCurso(Number(val));
                }}>
                  <SelectTrigger className="h-10 bg-background"><SelectValue placeholder="Curso..." /></SelectTrigger>
@@ -539,7 +530,7 @@ export default function GestionHorarioPage() {
              <div className="space-y-2">
                <Label className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground/80 ml-1">Periodo</Label>
                <Select value={selectedPeriodo || ""} onValueChange={(val) => {
-                   if (hasChanges && !confirm("Perderás el horario actual. ¿Continuar?")) return;
+                   if (hasChanges && !confirm("Perderás el borrador actual. ¿Continuar?")) return;
                    setSelectedPeriodo(val);
                }}>
                  <SelectTrigger className="h-10 bg-background"><SelectValue placeholder="Cuatrimestre..." /></SelectTrigger>

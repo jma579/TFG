@@ -675,6 +675,11 @@ def listar_sesiones(
         None, 
         description="Nombre de la mención (ej: 'Computación', 'Informática'). Case-insensitive."
     ),
+    programa_id: Optional[int] = Query(
+        None, 
+        gt=0, 
+        description="Filtrar sesiones exclusivas de una titulación (Programa)"
+    ),
     db: Session = Depends(get_db)
 ):
     """
@@ -695,7 +700,8 @@ def listar_sesiones(
         dia_semana=dia_semana,
         curso=curso,
         mencion_id=mencion_id,
-        mencion_nombre=mencion_nombre
+        mencion_nombre=mencion_nombre,
+        programa_id=programa_id
     )
     
     # Calcular número de página actual

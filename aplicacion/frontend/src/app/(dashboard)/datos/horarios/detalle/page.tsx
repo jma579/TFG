@@ -239,7 +239,7 @@ export default function DetalleHorarioPage() {
       });
       setAsignaturasMap(asigMap);
 
-      const resGrupos = await listGruposDocentes({ curso: Number(pCurso), size: 1000 });
+      const resGrupos = await listGruposDocentes({ size: 1000 });
       const gMap = new Map<number, GrupoDocenteOut>();
       (resGrupos.items || []).forEach((g: GrupoDocenteOut) => {
           if (asigMap.has(g.asignatura_id)) {
@@ -249,7 +249,12 @@ export default function DetalleHorarioPage() {
       setGruposMap(gMap);
 
       const validGrupoIds = new Set(Array.from(gMap.keys()));
-      const resSesiones = await listSesiones({ size: 1000, curso: Number(pCurso), mencion: pMencion || undefined });
+      const resSesiones = await listSesiones({ 
+        size: 1000, 
+        curso: Number(pCurso), 
+        mencion: pMencion || undefined,
+        programa_id: Number(pProgramaId) 
+      });
       
       const sesionesFiltradas = (resSesiones.items || []).filter((s: BaseSesionOut) => 
         validGrupoIds.has(s.grupo_docente_id)
