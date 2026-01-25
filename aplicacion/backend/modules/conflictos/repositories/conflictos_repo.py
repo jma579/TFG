@@ -95,7 +95,7 @@ class ConflictosRepository:
         """
         Sincroniza los conflictos de una sesión (Estrategia Wipe & Replace).
         
-        1. Elimina conflictos previos donde la sesión es la principal (sesion_id).
+        1. Elimina conflictos previos donde la sesión es la principal O secundaria.
         2. Inserta los nuevos detectados por el motor.
         
         Args:
@@ -106,8 +106,13 @@ class ConflictosRepository:
         Returns:
             Lista de objetos Conflicto (ORM) recién creados.
         """
-        # 1. WIPE: Eliminar conflictos previos (donde esta sesión es la fuente)
-        db.query(Conflicto).filter(Conflicto.sesion_id == sesion_id).delete(synchronize_session=False)
+        # 1. WIPE: Eliminar conflictos previos (BIDIRECCIONAL)
+        db.query(Conflicto).filter(
+            or_(
+                Conflicto.sesion_id == sesion_id,
+                Conflicto.sesion_2_id == sesion_id
+            )
+        ).delete(synchronize_session='fetch')
 
         conflictos_orm = []
 
@@ -132,7 +137,7 @@ class ConflictosRepository:
         # 3. Persistir (sin commit)
         if conflictos_orm:
             db.add_all(conflictos_orm)
-            db.flush()  # Para generar IDs y verificar integridad
+            # db.flush() se hace en el servicio para evitar locks aquí
             
         return conflictos_orm
 
@@ -143,7 +148,7 @@ class ConflictosRepository:
                 Conflicto.sesion_id == sesion_id,
                 Conflicto.sesion_2_id == sesion_id
             )
-        ).delete(synchronize_session=False)
+        ).delete(synchronize_session='fetch')
         db.flush()
 
 

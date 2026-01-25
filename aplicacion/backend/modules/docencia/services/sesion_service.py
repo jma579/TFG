@@ -131,12 +131,16 @@ class SesionService:
                     # 1. Detectar choques usando el motor
                     resultados = conflict_engine.detect_conflicts_for_session(
                         sesion_id=db_sesion.id,
-                        db_session=db
+                        db=db
                     )
                     # 2. Sincronizar (guardar/borrar) conflictos en BD
                     conflictos_db = conflictos_repository.sync_conflictos_for_sesion(
                         db, db_sesion.id, resultados
                     )
+                    db.flush()
+                    for c in conflictos_db:
+                        if not c.creado_en:
+                            c.creado_en = datetime.now()
                     # 3. Convertir a Schema para devolver
                     conflictos_out = [ConflictoOut.model_validate(c) for c in conflictos_db]
                     
@@ -212,7 +216,7 @@ class SesionService:
             # 1. Detectar
             resultados = conflict_engine.detect_conflicts_for_session(
                 sesion_id=sesion.id,
-                db_session=db
+                db=db
             )
             
             # 2. Sincronizar (Wipe & Replace)
@@ -220,7 +224,10 @@ class SesionService:
             conflictos_db = conflictos_repository.sync_conflictos_for_sesion(
                 db, sesion.id, resultados
             )
-            
+            db.flush()
+            for c in conflictos_db:
+                        if not c.creado_en:
+                            c.creado_en = datetime.now()
             conflictos_out = [ConflictoOut.model_validate(c) for c in conflictos_db]
             
         except Exception as e:
