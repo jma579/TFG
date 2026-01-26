@@ -273,7 +273,8 @@ class SesionService:
 
             # 3. Crear
             for create_item in payload.created:
-                new_sesion = sesion_repository.create(db, create_item)
+                sesion_data = create_item.model_dump(exclude={'temp_id'})
+                new_sesion = sesion_repository.create(db, sesion_data)
                 if create_item.profesores:
                     for p in create_item.profesores:
                         sesion_repository.add_profesor(db, new_sesion.id, p.profesor_id, p.rol_en_sesion)
