@@ -11,7 +11,7 @@ from typing import Optional, Tuple, List, Union, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from database.models import GrupoDocente
+from database.models import GrupoDocente, Sesion
 from constants.enums import TipoGrupoDocente
 
 
@@ -112,11 +112,18 @@ class GrupoDocenteRepository:
     def delete_by_asignatura(self, db: Session, asignatura_id: int) -> int:
         """
         WIPE STRATEGY: Elimina TODOS los grupos docentes de una asignatura.
-        
-        IMPORTANTE: Debido a la configuración `cascade='all, delete-orphan'` en 
-        el modelo SQLAlchemy, esto eliminará automáticamente todas las SESIONES 
-        asociadas a estos grupos.
         """
+        # 1. Identificar los IDs de los grupos que vamos a borrar
+        subquery_grupos = db.query(GrupoDocente.id).filter(
+            GrupoDocente.asignatura_id == asignatura_id
+        )
+        
+        # 2. Borrar explícitamente las SESIONES asociadas a esos grupos
+        db.query(Sesion).filter(
+            Sesion.grupo_docente_id.in_(subquery_grupos)
+        ).delete(synchronize_session=False)
+        
+        # 3. Borrar los GRUPOS docentes
         count = db.query(GrupoDocente).filter(
             GrupoDocente.asignatura_id == asignatura_id
         ).delete(synchronize_session=False)

@@ -13,7 +13,7 @@ from constants.enums import (
     TipoPrograma, Periodo, ModalidadAsignatura, Idioma, TipoAula,
     ModalidadSesion, TipoGrupoDocente, TipoRecurrencia, DiaSemana,
     TipoRestriccion, DurezaRestriccion, SeveridadConflicto,
-    TipoConflicto, EstadoConflicto, TipoAsignatura
+    TipoConflicto, EstadoConflicto, TipoAsignatura, TipoConciliacion
 )
 
 Base = declarative_base()
@@ -114,6 +114,7 @@ class Profesor(Base):
     telefono = Column(String(20), unique=True)
     departamento = Column(String(200))
     activo = Column(Boolean, default=True, nullable=False)
+    conciliacion = Column(Enum(TipoConciliacion), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("nombre", "apellidos", name="uq_profesor_nombre_apellidos"),
@@ -144,7 +145,6 @@ class Aula(Base):
     )
 
     sesiones = relationship("Sesion", back_populates="aula", passive_deletes=True)
-    restricciones = relationship("Restriccion", back_populates="aula", passive_deletes=True)
     conflictos = relationship("Conflicto", back_populates="aula", passive_deletes=True)
 
 
@@ -153,28 +153,18 @@ class Restriccion(Base):
     id = Column(Integer, primary_key=True)
     tipo = Column(Enum(TipoRestriccion), nullable=False)
     dureza = Column(Enum(DurezaRestriccion), nullable=False)
-    motivo = Column(Text)
+    motivo = Column(Text, nullable=True)
     profesor_id = Column(Integer, ForeignKey("profesores.id", ondelete="SET NULL"))
-    aula_id = Column(Integer, ForeignKey("aulas.id", ondelete="SET NULL"))
-    # Modelos de ventana: semanal o fechada
-    dia_semana = Column(Enum(DiaSemana))
-    hora_inicio = Column(Time)
-    hora_fin = Column(Time)
-    inicio = Column(DateTime)
-    fin = Column(DateTime)
+    inicio = Column(DateTime, nullable=False)
+    fin = Column(DateTime, nullable=False)
 
     __table_args__ = (
-        # XOR exacto: o profesor o aula, pero no ambos y no ninguno
-        CheckConstraint(
-            "((profesor_id IS NULL AND aula_id IS NOT NULL) OR (profesor_id IS NOT NULL AND aula_id IS NULL))",
-            name="ck_restriccion_exclusive_parent"
-        ),
+        CheckConstraint("fin > inicio", name="ck_restriccion_fechas_coherentes"),
         Index("ix_restriccion_profesor", "profesor_id"),
-        Index("ix_restriccion_aula", "aula_id"),
+        Index("ix_restriccion_fechas", "inicio", "fin"), # Índice para búsquedas rápidas por rango
     )
 
     profesor = relationship("Profesor", back_populates="restricciones")
-    aula = relationship("Aula", back_populates="restricciones")
     conflictos = relationship("Conflicto", back_populates="restriccion", passive_deletes=True)
 
 
@@ -313,7 +303,7 @@ class Conflicto(Base):
     id = Column(Integer, primary_key=True)
     tipo = Column(Enum(TipoConflicto), nullable=False)
     severidad = Column(Enum(SeveridadConflicto), nullable=False)
-    estado = Column(Enum(EstadoConflicto), nullable=False, default=EstadoConflicto.ABIERTO)
+    estado = Column(Enum(EstadoConflicto), nullable=False, default=EstadoConflicto.POR_REVISAR)
 
     sesion_id = Column(Integer, ForeignKey("sesiones.id", ondelete="CASCADE"), nullable=False)
     sesion_2_id = Column(Integer, ForeignKey("sesiones.id", ondelete="CASCADE"), nullable=True)

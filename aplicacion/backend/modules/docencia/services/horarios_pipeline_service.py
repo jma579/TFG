@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 import logging
 
 # Schemas
@@ -24,6 +25,9 @@ from modules.docencia.services.grupo_docente_service import grupo_docente_servic
 from modules.docencia.services.sesion_service import sesion_service
 from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
 from modules.recursos.repositories.aula_repo import aula_repository
+
+from core.conflictos.engine import conflict_engine
+from modules.conflictos.repositories.conflictos_repo import conflictos_repository
 
 # Modelos DB
 from database.models import (
@@ -239,32 +243,26 @@ class HorariosPipelineService:
         normalized_tablas = horario_data_normalizer.normalize_horarios(parsed_for_normalizer)
         
         # --- 4. TRANSACCIÓN PRINCIPAL (WIPE & REPLACE) ---
-        stats = {"grupos_creados": 0, "sesiones_creadas": 0}
+        stats = {"grupos_creados": 0, "sesiones_creadas": 0, "conflictos_detectados": 0}
         grupos_resultado_map: Dict[int, GrupoDocenteOut] = {}
         sesiones_resultado: List[SesionOut] = []
+        ids_sesiones_creadas: List[int] = [] 
         
-        # Caches locales para optimizar la transacción
         asignatura_cache: Dict[str, Asignatura] = {}
         mencion_cache: Dict[str, Mencion] = {}
         
-        # Cache de Grupos Creados EN ESTA TRANSACCIÓN para evitar duplicados
-        # Clave: (asignatura_id, codigo_grupo) -> Objeto GrupoDocente
-        grupos_nuevos_cache: Dict[Tuple[int, str], GrupoDocente] = {}
+        grupos_nuevos_ids_cache: Dict[Tuple[int, str], int] = {}
         
-        # Set para controlar qué asignaturas ya han sido limpiadas (Wiped)
         asignaturas_limpiadas: Set[int] = set()
 
-        # Instancia del matcher para aulas desconocidas
         aula_matcher_srv = AulaMatcher(db)
 
         try:
+            # === FASE 1: INSERCIÓN RÁPIDA (Sin validación de conflictos) ===
             for tabla in normalized_tablas:
-                
-                # 4.1 Gestión de Mención (Get or Create)
                 mencion_db: Optional[Mencion] = None
                 if tabla.mencion:
                     m_nombre = tabla.mencion.replace("Mención en ", "").replace("MENCION EN ", "").strip()
-                    
                     if m_nombre in mencion_cache:
                         mencion_db = mencion_cache[m_nombre]
                     else:
@@ -272,24 +270,19 @@ class HorariosPipelineService:
                             Mencion.programa_id == programa_db.id,
                             Mencion.nombre.ilike(m_nombre)
                         ).first()
-                        
                         if not mencion_db:
                             mencion_db = Mencion(programa_id=programa_db.id, nombre=m_nombre, activo=True)
                             db.add(mencion_db)
-                            db.flush() # Necesario para obtener ID, pero no commitea
-                        
+                            db.flush()
                         mencion_cache[m_nombre] = mencion_db
 
                 for sesion_norm in (tabla.sesiones or []):
-                    
-                    # 4.2 Resolver Asignatura
                     nombre_asig = sesion_norm.asignatura_nombre.strip()
                     if not nombre_asig: continue
 
                     if nombre_asig in asignatura_cache:
                         asignatura = asignatura_cache[nombre_asig]
                     else:
-                        # Búsqueda robusta: Nombre exacto o Alias
                         asignatura = db.query(Asignatura).filter(Asignatura.nombre.ilike(nombre_asig)).first()
                         if not asignatura:
                             alias_db = db.query(AsignaturaAlias).filter(AsignaturaAlias.alias.ilike(nombre_asig)).first()
@@ -297,38 +290,41 @@ class HorariosPipelineService:
                                 asignatura = alias_db.asignatura
                         
                         if not asignatura:
-                            raise HTTPException(
-                                status_code=400, 
-                                detail=f"Asignatura desconocida: '{nombre_asig}'. Verifica el catálogo."
-                            )
+                            raise HTTPException(status_code=400, detail=f"Asignatura desconocida: '{nombre_asig}'")
                         asignatura_cache[nombre_asig] = asignatura
 
-                    # 4.3 ESTRATEGIA WIPE: Limpieza preventiva
-                    # Si es la primera vez que vemos esta asignatura en este proceso, borramos sus datos viejos.
+                    # 4.3 ESTRATEGIA WIPE
                     if asignatura.id not in asignaturas_limpiadas:
-                        #
-                        grupo_docente_repository.delete_by_asignatura(db, asignatura.id)
-                        asignaturas_limpiadas.add(asignatura.id)
-                        logger.info(f"🧹 WIPE: Eliminados grupos previos de Asignatura ID {asignatura.id}")
+                        
+                        # Eliminamos todos los conflictos antiguos de esta asignatura en un solo paso
+                        conflictos_repository.delete_by_asignatura(db, asignatura.id)
 
-                    # 4.4 Vincular Mención (si aplica)
+                        # Ahora sí, borramos la estructura docente (Grupos -> Sesiones)
+                        grupo_docente_repository.delete_by_asignatura(db, asignatura.id)
+                        
+                        # LIMPIEZA TOTAL DE MEMORIA PARA EVITAR ERRORES DE INTEGRIDAD
+                        db.flush()
+                        db.expire_all() 
+                        
+                        asignaturas_limpiadas.add(asignatura.id)
+                        logger.info(f"🧹 WIPE: Eliminados grupos y conflictos previos de Asignatura ID {asignatura.id}")
+
+                    # 4.4 Vincular Mención
                     if mencion_db:
+                        # Recuperamos por ID porque expire_all invalidó el objeto
                         link_existe = db.query(AsignaturaMencion).filter_by(
                             asignatura_id=asignatura.id, mencion_id=mencion_db.id
                         ).first()
                         if not link_existe:
                             db.add(AsignaturaMencion(asignatura_id=asignatura.id, mencion_id=mencion_db.id))
-                            # No flush necesario aquí, se guardará al final
 
-                    # 4.5 Gestión de Grupo (REPLACE)
+                    # 4.5 Gestión de Grupo (CORREGIDO: USAR IDs)
                     codigo_grupo = sesion_norm.grupo_codigo.strip().upper() or "UNICO"
                     grupo_key = (asignatura.id, codigo_grupo)
                     
-                    # Verificamos si ya hemos creado este grupo EN ESTA CARGA
-                    if grupo_key in grupos_nuevos_cache:
-                        grupo_db = grupos_nuevos_cache[grupo_key]
-                    else:
-                        # Creamos el grupo nuevo (ya que hicimos Wipe, no existen colisiones en BD)
+                    grupo_id = grupos_nuevos_ids_cache.get(grupo_key)
+                    
+                    if not grupo_id:
                         grupo_in = GrupoDocenteCreate(
                             asignatura_id=asignatura.id,
                             codigo=codigo_grupo,
@@ -337,30 +333,23 @@ class HorariosPipelineService:
                             turno=None
                         )
                         grupo_out = grupo_docente_service.create(db, grupo_in)
+                        grupo_id = grupo_out.id
                         
-                        # Recargamos el objeto ORM para tenerlo disponible en la sesión
-                        grupo_db = db.query(GrupoDocente).filter(GrupoDocente.id == grupo_out.id).first()
-                        grupos_nuevos_cache[grupo_key] = grupo_db
+                        # Guardamos ID en cache local
+                        grupos_nuevos_ids_cache[grupo_key] = grupo_id
+                        # Guardamos objeto Pydantic en resultado (seguro)
+                        grupos_resultado_map[grupo_id] = grupo_out
                         stats["grupos_creados"] += 1
-
-                    if grupo_db.id not in grupos_resultado_map:
-                        grupos_resultado_map[grupo_db.id] = GrupoDocenteOut.model_validate(grupo_db)
 
                     # 4.6 Resolver Aula
                     nombre_aula = sesion_norm.aula_nombre.strip()
-                    # Intento 1: Búsqueda directa (rápida)
                     aula_db = aula_repository.get_by_nombre(db, nombre_aula) or \
                               aula_repository.get_by_codigo(db, nombre_aula)
                     
                     if not aula_db:
-                        # Intento 2: Matcher inteligente
                         aula_db = aula_matcher_srv.match(nombre_aula)
-                        
                         if not aula_db:
-                            raise HTTPException(
-                                status_code=400,
-                                detail=f"Aula no encontrada: '{nombre_aula}'."
-                            )
+                            raise HTTPException(status_code=400, detail=f"Aula no encontrada: '{nombre_aula}'")
 
                     # 4.7 Crear Sesión
                     dia_str_norm = sesion_norm.dia_semana.upper().replace("Á","A").replace("É","E").replace("Í","I").replace("Ó","O").replace("Ú","U")
@@ -368,7 +357,7 @@ class HorariosPipelineService:
                     if not dia_enum: continue
 
                     sesion_in = SesionCreate(
-                        grupo_docente_id=grupo_db.id,
+                        grupo_docente_id=grupo_id, # Usamos el ID, no el objeto DB
                         aula_id=aula_db.id,
                         modalidad=sesion_norm.modalidad,
                         tipo_recurrencia=sesion_norm.tipo_recurrencia,
@@ -377,32 +366,63 @@ class HorariosPipelineService:
                         hora_fin=sesion_norm.hora_fin,
                         profesores=[]
                     )
-                    
-                    # Delegamos la creación al servicio de sesión
+
                     try:
-                        res_servicio = sesion_service.create(db, sesion_in)
+                        # Detección desactivada para velocidad
+                        res_servicio = sesion_service.create(db, sesion_in, detect_conflicts=False)
                         sesiones_resultado.append(res_servicio.sesion)
+                        ids_sesiones_creadas.append(res_servicio.sesion.id)
                         stats["sesiones_creadas"] += 1
+                        
                     except Exception as e:
                         logger.error(f"Error creando sesión: {e}")
                         raise HTTPException(status_code=500, detail=f"Error interno al guardar sesión: {str(e)}")
 
-            # --- 5. COMMIT FINAL (Todo o Nada) ---
+            # === FASE 2: VALIDACIÓN DIFERIDA (CORREGIDA) ===
+            if ids_sesiones_creadas:
+                logger.info(f"🔍 Iniciando detección de conflictos para {len(ids_sesiones_creadas)} sesiones...")
+                for ses_id in ids_sesiones_creadas:
+                    try:
+                        # Subtransacción para que un duplicado no aborte todo el proceso
+                        with db.begin_nested():
+                            conflictos = conflict_engine.detect_conflicts_for_session(
+                                sesion_id=ses_id,
+                                db=db
+                            )
+                            # CORREGIDO: Variable ses_id correcta
+                            conflictos_db = conflictos_repository.sync_conflictos_for_sesion(
+                                db, ses_id, conflictos
+                            )
+                            stats["conflictos_detectados"] += len(conflictos_db)
+                            
+                    except IntegrityError:
+                        # Si el conflicto ya fue registrado (A vs B / B vs A), ignoramos el error.
+                        pass 
+                    except Exception as e:
+                        logger.error(f"Error validando conflictos post-insert sesion {ses_id}: {e}")
+
+            # --- 5. COMMIT FINAL ---
             db.commit()
             logger.info(f"✅ Transacción completada exitosamente. Stats: {stats}")
 
         except Exception as e:
-            # En caso de cualquier error, revertimos TODO (grupos borrados, menciones, etc.)
             db.rollback()
             if isinstance(e, HTTPException): raise e
-            logger.error(f"❌ Error fatal en persistencia (Rollback ejecutado): {e}", exc_info=True)
+            logger.error(f"❌ Error fatal en persistencia (Rollback): {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error guardando horario: {str(e)}")
+        
+        warnings_report = []
+        if stats["conflictos_detectados"] > 0:
+            warnings_report.append(
+                f"Se han importado las sesiones correctamente, pero se han detectado {stats['conflictos_detectados']} conflictos. "
+                "Por favor, revise la pantalla de Gestión de Conflictos."
+            )
 
         return HorarioConfirmResponse(
             grupos=list(grupos_resultado_map.values()),
             sesiones=sesiones_resultado,
             created_entities=stats,
-            warnings=[],
+            warnings=warnings_report,
             errors=[]
         )
 

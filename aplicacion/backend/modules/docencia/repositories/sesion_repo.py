@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 from datetime import datetime, time
 
-from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, AsignaturaMencion, Mencion
+from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, AsignaturaMencion, Mencion, ProgramaAsignatura
 from modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
 from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
 
@@ -50,23 +50,43 @@ class SesionRepository:
         tipo_recurrencia: Optional[TipoRecurrencia] = None,
         curso: Optional[int] = None,
         mencion_id: Optional[int] = None,
-        mencion_nombre: Optional[str] = None
+        mencion_nombre: Optional[str] = None,
+        programa_id: Optional[int] = None 
     ) -> Tuple[List[Sesion], int]:
         """Listar sesiones con filtros múltiples."""
         query = db.query(Sesion)
         
-        need_grupo_join = (curso is not None) or (mencion_id is not None) or (mencion_nombre is not None)
-        if need_grupo_join:
-            query = query.join(Sesion.grupo_docente)
+        # Determinamos qué tablas necesitamos unir según los filtros activos
+        need_grupo_join = (
+            (curso is not None) or 
+            (mencion_id is not None) or 
+            (mencion_nombre is not None) or 
+            (programa_id is not None) # Si filtramos por programa, necesitamos el grupo
+        )
         
-        need_mencion_join = (mencion_id is not None) or (mencion_nombre is not None)
-        if need_mencion_join:
-            query = query.join(GrupoDocente.asignatura)\
-                         .join(Asignatura.asignatura_menciones)
+        if need_grupo_join or grupo_docente_id: # grupo_docente_id no necesita join si filtramos directo, pero por consistencia a veces ayuda
+             # Optimización: si ya filtramos por ID directo no hace falta join explícito para filtrado simple,
+             # pero aquí lo hacemos para acceder a propiedades de la relación
+             if need_grupo_join:
+                query = query.join(Sesion.grupo_docente)
+        
+        need_asignatura_join = (
+            (mencion_id is not None) or 
+            (mencion_nombre is not None) or 
+            (programa_id is not None) # Si filtramos por programa, necesitamos la asignatura
+        )
 
-        # Si filtramos por NOMBRE, necesitamos un salto más hasta la tabla Mencion
-        if mencion_nombre:
-             query = query.join(AsignaturaMencion.mencion)
+        if need_asignatura_join:
+            query = query.join(GrupoDocente.asignatura)
+
+        # Joins específicos
+        if mencion_id is not None:
+            query = query.outerjoin(Asignatura.asignatura_menciones)
+        if mencion_nombre is not None:
+             query = query.outerjoin(Asignatura.asignatura_menciones).outerjoin(AsignaturaMencion.mencion)
+
+        if programa_id is not None:
+            query = query.join(Asignatura.programa_asignaturas)
 
         # --- Aplicación de Filtros ---
         if grupo_docente_id:
@@ -86,17 +106,33 @@ class SesionRepository:
         
         # Filtros jerárquicos
         if curso is not None:
-            query = query.filter(GrupoDocente.curso == curso)
+            if programa_id is not None:
+                # Modo Contextual: Filtramos por el curso definido en el PLAN DE ESTUDIOS
+                # Esto permite que una asignatura de 2º (origen) aparezca en el horario de 4º (destino)
+                query = query.filter(ProgramaAsignatura.curso == curso)
+            else:
+                # Modo Fallback: Filtramos por el curso de creación del grupo
+                query = query.filter(GrupoDocente.curso == curso)
+        
+        if programa_id is not None:
+            query = query.filter(ProgramaAsignatura.programa_id == programa_id)
         
         if mencion_id is not None:
-            query = query.filter(AsignaturaMencion.mencion_id == mencion_id)
+            query = query.filter(
+                or_(
+                    AsignaturaMencion.mencion_id == mencion_id,
+                    AsignaturaMencion.mencion_id.is_(None)
+                )
+            )
             
         if mencion_nombre is not None:
-            # ilike para que sea insensible a mayúsculas/minúsculas (robusto)
-            query = query.filter(Mencion.nombre.ilike(mencion_nombre))
+            query = query.filter(
+                or_(
+                    Mencion.nombre.ilike(mencion_nombre),
+                    Mencion.id.is_(None) 
+                )
+            )
 
-        # DISTINCT es vital cuando hacemos joins de 1:N (asignatura -> menciones)
-        # para evitar que una sesión salga duplicada si la asignatura tiene varias menciones.
         query = query.distinct()
 
         total = query.count()

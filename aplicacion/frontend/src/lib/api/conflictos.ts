@@ -1,31 +1,65 @@
-// src/lib/api/conflictos.ts
+// frontend/src/lib/api/conflictos.ts
+
 import { api } from '@/lib/api/config';
 
+// --- ENUMS ---
 export type ConflictoTipo =
-  | 'SOLAPAMIENTO_PROFESOR'
-  | 'SOLAPAMIENTO_AULA'
-  | 'VIOLACION_RESTRICCION';
+  | 'solapamiento_profesor'
+  | 'solapamiento_aula'
+  | 'solapamiento_grupo'
+  | 'interferencia_conciliacion';
 
-export type ConflictoEstado = 'ABIERTO' | 'RESUELTO' | 'IGNORADO';
-export type ConflictoSeveridad = 'INFO' | 'WARNING' | 'ERROR';
+export type ConflictoSeveridad = 'critico' | 'no_bloqueante' | 'leve';
+export type ConflictoEstado = 'por_revisar' | 'solucionado';
+
+// --- MODELOS ---
+
+// Estructura enriquecida que viene del backend
+export type SesionResumen = {
+  id: number;
+  asignatura: string;
+  grupo: string;
+  horario: string;
+  curso: string;
+  // Campos nuevos para metadatos
+  aula?: string;
+  titulacion?: string;
+  mencion?: string;
+  periodo?: string;
+  programa_id?: number;
+  curso_num?: number;
+  periodo_code?: string;
+};
 
 export type ConflictoOut = {
   id: number;
   tipo: ConflictoTipo;
   severidad: ConflictoSeveridad;
   estado: ConflictoEstado;
-  mensaje: string;
-  sesion_id?: number | null;
+  descripcion: string;
+  
+  // IDs Relacionales
+  sesion_id: number;
+  sesion_2_id?: number | null;
   profesor_id?: number | null;
   aula_id?: number | null;
-  [key: string]: unknown;
+  restriccion_id?: number | null;
+
+  // Objetos detallados
+  sesion_1_detalle?: SesionResumen | null;
+  sesion_2_detalle?: SesionResumen | null;
+
+  // Metadatos
+  hash_deteccion: string;
+  creado_en: string; 
+  resuelto_en?: string | null;
 };
 
 export type ConflictoListResponse = {
   total: number;
   items: ConflictoOut[];
-  page?: number;
-  size?: number;
+  page: number;
+  size: number;
 };
 
 export type ConflictoListFilters = {
@@ -39,31 +73,20 @@ export type ConflictoListFilters = {
   limit?: number;
 };
 
-export type ConflictoEstadoUpdateIn = {
-  estado: ConflictoEstado;
-};
+// --- ENDPOINTS ---
 
 export async function listConflictos(
   filters: ConflictoListFilters = {}
 ): Promise<ConflictoListResponse> {
   const { skip = 0, limit = 100, ...rest } = filters;
   
-  const params = {
-    skip,
-    limit,
-    ...rest
-  };
+  const params = Object.fromEntries(
+    Object.entries({ skip, limit, ...rest }).filter(([, v]) => v != null)
+  );
 
   return api.get('/v0/conflictos', { params });
 }
 
-export async function listConflictosPorSesion(sesionId: number): Promise<ConflictoOut[]> {
-  return api.get(`/v0/conflictos/sesion/${sesionId}`);
-}
-
-export async function updateConflictoEstado(
-  id: number,
-  payload: ConflictoEstadoUpdateIn
-): Promise<ConflictoOut> {
-  return api.patch(`/v0/conflictos/${id}`, payload);
+export async function resolverConflicto(id: number): Promise<ConflictoOut> {
+  return api.patch(`/v0/conflictos/${id}`, { estado: 'solucionado' });
 }

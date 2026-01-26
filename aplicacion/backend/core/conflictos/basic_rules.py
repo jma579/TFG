@@ -1,282 +1,272 @@
 """
-Reglas básicas de detección de conflictos académicos.
+Reglas Básicas de Detección (Capa Matemática Pura).
 
-Este módulo contiene funciones puras para detectar los conflictos fundamentales:
-- Detección de solapamientos de profesores
-- Detección de solapamientos de aulas  
-- Validación de restricciones temporales básicas
-
-Las funciones devuelven primitivas de detección que el engine convertirá 
-a ResultadoDeteccion con hashing y deduplicación.
-
-Las reglas avanzadas y arquitectura de registry se implementarán en Fase 4.1.4.
+Este módulo contiene los algoritmos geométricos y temporales.
+NO accede a base de datos.
+NO decide severidades.
+Solo responde: "¿X choca con Y?"
 """
 
 from __future__ import annotations
-from typing import List, Dict, Tuple
+from typing import List, Tuple, Dict, Set
 from collections import defaultdict
+from datetime import datetime, date, timedelta, time
 
-from core.conflictos.types import SesionRef, RestriccionRef, Intervalo, SlotSemanal
+from core.conflictos.types import SesionRef
 
-# ============================================================================
-# TIPOS DE DATOS PARA DETECCIÓN
-# ============================================================================
+# -----------------------------------------------------------------------------
+# Definición de Primitivas de Retorno (Tuplas crudas)
+# -----------------------------------------------------------------------------
+# (sesion1, sesion2, profesor_id)
+SolapamientoProfesor = Tuple[SesionRef, SesionRef, int]
 
-# Primitivas de detección que devuelven las funciones (usando IDs para determinismo)
-SolapamientoProfesor = Tuple[int, int, int]  # (sesion_id1, sesion_id2, profesor_id) - IDs ordenados
-SolapamientoAula = Tuple[int, int, int]      # (sesion_id1, sesion_id2, aula_id) - IDs ordenados  
-ViolacionRestriccion = Tuple[int, int]       # (sesion_id/profesor_id, restriccion_id) - determinista
+# (sesion1, sesion2, aula_id)
+SolapamientoAula = Tuple[SesionRef, SesionRef, int]
 
-# ============================================================================
-# UTILIDADES TEMPORALES
-# ============================================================================
+# (sesion1, sesion2, asignatura_id_comun (o 0), motivo)
+SolapamientoGrupo = Tuple[SesionRef, SesionRef, int, str]
+
+# (sesion, profesor_id, motivo)
+InterferenciaConciliacion = Tuple[SesionRef, int, str]
+
+
+# -----------------------------------------------------------------------------
+# 1. MOTOR MATEMÁTICO TEMPORAL
+# -----------------------------------------------------------------------------
 
 def sesiones_se_solapan_temporalmente(s1: SesionRef, s2: SesionRef) -> bool:
     """
-    Determina si dos sesiones se solapan en tiempo.
-    
-    Solo soporta casos simples para Fase 2.1.3:
-    - Ambas semanales (slot vs slot)
-    - Ambas fechadas (intervalo vs intervalo)
-    
-    Args:
-        s1, s2: Sesiones a comparar
-        
-    Returns:
-        True si se solapan temporalmente
-        
-    Raises:
-        ValueError: Si las sesiones no tienen datos temporales válidos
+    Compara dos sesiones. Devuelve True si sus intervalos de tiempo se intersectan.
+    Maneja comparación Semanal vs Semanal (la más común).
     """
-    # Caso 1: Ambas semanales (slot vs slot)
+    # Caso A: Ambas semanales
     if s1.slot and s2.slot:
-        slot1, slot2 = s1.slot, s2.slot
-
-        # Mismo día de la semana
-        if slot1.dia_semana != slot2.dia_semana:
+        if s1.slot.dia_semana != s2.slot.dia_semana:
             return False
-            
-        # Solapamiento de intervalos: inicio < fin_otro && inicio_otro < fin
-        return (slot1.hora_inicio < slot2.hora_fin and 
-                slot2.hora_inicio < slot1.hora_fin)
-    
-    # Caso 2: Ambas fechadas (intervalo vs intervalo)  
-    elif s1.intervalo and s2.intervalo:
-        int1, int2 = s1.intervalo, s2.intervalo
+        return _solapamiento_horas(
+            s1.slot.hora_inicio, s1.slot.hora_fin,
+            s2.slot.hora_inicio, s2.slot.hora_fin
+        )
 
-        # Solapamiento de intervalos: inicio < fin_otro && inicio_otro < fin
-        return (int1.inicio < int2.fin and int2.inicio < int1.fin)
-    
-    #TODO: Eliminar este aspecto en un futuro
-    # Caso 3: Mixtas - no soportado en Fase 2.1.3
-    else:
-        raise ValueError(f"Comparación mixta no soportada: s1={type(s1.slot)}, s2={type(s2.slot)}")
+    # Caso B: Ambas fechadas (Exámenes, eventos únicos)
+    if s1.intervalo and s2.intervalo:
+        return (s1.intervalo.inicio < s2.intervalo.fin and 
+                s2.intervalo.inicio < s1.intervalo.fin)
 
+    # Caso C: Mixto (Por simplicidad, en esta versión devolvemos False)
+    return False
 
-def sesion_viola_restriccion_temporal(sesion: SesionRef, restriccion: RestriccionRef) -> bool:
+def _solapamiento_horas(inicio1: time, fin1: time, inicio2: time, fin2: time) -> bool:
     """
-    Determina si una sesión viola una restricción temporal.
-    
-    Primero verifica ámbito (AULA/PROFESOR), luego solapamiento temporal.
-    
-    Args:
-        sesion: Sesión a verificar
-        restriccion: Restricción a aplicar
-        
-    Returns:
-        True si hay violación
+    Fórmula de intersección: max(inicioA, inicioB) < min(finA, finB)
     """
-    # 1. Verificar ámbito - ¿la restricción aplica a esta sesión?
-    if restriccion.ambito == "AULA":
-        if restriccion.aula_id != sesion.aula_id:
-            return False  # No aplica a esta aula
-            
-    elif restriccion.ambito == "PROFESOR":
-        if not restriccion.profesor_id or restriccion.profesor_id not in sesion.profesor_ids:
-            return False  # No aplica a ningún profesor de esta sesión
-    
-    # 2. Verificar solapamiento temporal
-    # Caso 1: Restricción semanal vs sesión semanal 
-    if restriccion.slot and sesion.slot:
-        r_slot, s_slot = restriccion.slot, sesion.slot
-
-        # Mismo día de la semana
-        if r_slot.dia_semana != s_slot.dia_semana:
-            return False
-            
-        # Solapamiento de intervalos
-        return (r_slot.hora_inicio < s_slot.hora_fin and 
-                s_slot.hora_inicio < r_slot.hora_fin)
-    
-    # Caso 2: Restricción fechada vs sesión fechada
-    elif restriccion.intervalo and sesion.intervalo:
-        r_int, s_int = restriccion.intervalo, sesion.intervalo
-
-        # Solapamiento de intervalos
-        return (r_int.inicio < s_int.fin and s_int.inicio < r_int.fin)
-    
-    # Caso 3: Tipos incompatibles - no hay violación
-    else:
-        return False
+    return inicio1 < fin2 and inicio2 < fin1
 
 
-def agrupar_sesiones_por_profesor(sesiones: List[SesionRef]) -> Dict[int, List[SesionRef]]:
-    """
-    Agrupa sesiones por profesor para detección eficiente O(n).
-    
-    IMPORTANTE: Una sesión puede aparecer en múltiples grupos si tiene varios profesores.
-    
-    Args:
-        sesiones: Lista de sesiones
-        
-    Returns:
-        Diccionario {profesor_id: [sesiones_del_profesor]}
-    """
-    grupos = defaultdict(list)
-    for sesion in sesiones:
-        if sesion.profesor_ids:  # Corregido: usar profesor_ids (lista)
-            for profesor_id in sesion.profesor_ids:
-                grupos[profesor_id].append(sesion)
-    return dict(grupos)
-
-
-def agrupar_sesiones_por_aula(sesiones: List[SesionRef]) -> Dict[int, List[SesionRef]]:
-    """
-    Agrupa sesiones por aula para detección eficiente O(n).
-    
-    Args:
-        sesiones: Lista de sesiones
-        
-    Returns:
-        Diccionario {aula_id: [sesiones_del_aula]}
-    """
-    grupos = defaultdict(list)
-    for sesion in sesiones:
-        if sesion.aula_id is not None:
-            grupos[sesion.aula_id].append(sesion)
-    return dict(grupos)
-
-# ============================================================================
-# FUNCIONES DE DETECCIÓN BÁSICA
-# ============================================================================
+# -----------------------------------------------------------------------------
+# 2. REGLAS DE RECURSOS FÍSICOS Y HUMANOS
+# -----------------------------------------------------------------------------
 
 def detectar_solapamientos_profesor(sesiones: List[SesionRef]) -> List[SolapamientoProfesor]:
     """
-    Detecta cuando un profesor tiene sesiones simultáneas.
-    
-    Lógica simple:
-    - Agrupa sesiones por profesor
-    - Para cada profesor, compara todas sus sesiones por pares
-    - Detecta solapamientos temporales
-    - Usa deduplicación con IDs ordenados
-    
-    Args:
-        sesiones: Lista de sesiones a analizar
-        
-    Returns:
-        Lista de tuplas (sesion_id1, sesion_id2, profesor_id) con solapamientos
+    Detecta si un profesor está asignado a dos sesiones simultáneas.
     """
-    conflictos_set = set()  # Deduplicación
-    grupos_profesor = agrupar_sesiones_por_profesor(sesiones)
-    
-    for profesor_id, sesiones_profesor in grupos_profesor.items():
-        # Comparación por pares O(n²) para cada profesor
-        for i in range(len(sesiones_profesor)):
-            for j in range(i + 1, len(sesiones_profesor)):
-                s1, s2 = sesiones_profesor[i], sesiones_profesor[j]
-                
+    conflictos = []
+    # Indexar: Profesor -> [Sesiones]
+    mapa = defaultdict(list)
+    for s in sesiones:
+        for pid in s.profesor_ids:
+            mapa[pid].append(s)
+            
+    # Comparar pares dentro del mismo profesor
+    for pid, lista in mapa.items():
+        for i in range(len(lista)):
+            for j in range(i + 1, len(lista)):
+                s1, s2 = lista[i], lista[j]
                 if sesiones_se_solapan_temporalmente(s1, s2):
-                    # IDs ordenados para evitar duplicados A-B / B-A
-                    id1, id2 = sorted([s1.id, s2.id])
-                    conflictos_set.add((id1, id2, profesor_id))
-    
-    return list(conflictos_set)
-
+                    conflictos.append((s1, s2, pid))
+    return conflictos
 
 def detectar_solapamientos_aula(sesiones: List[SesionRef]) -> List[SolapamientoAula]:
     """
-    Detecta cuando un aula tiene sesiones simultáneas.
-    
-    Lógica simple:
-    - Agrupa sesiones por aula
-    - Para cada aula, compara todas sus sesiones por pares
-    - Detecta solapamientos temporales
-    - Usa deduplicación con IDs ordenados
-    
-    Args:
-        sesiones: Lista de sesiones a analizar
-        
-    Returns:
-        Lista de tuplas (sesion_id1, sesion_id2, aula_id) con solapamientos
+    Detecta si un aula tiene dos sesiones simultáneas.
     """
-    conflictos_set = set()  # Deduplicación
-    grupos_aula = agrupar_sesiones_por_aula(sesiones)
-    
-    for aula_id, sesiones_aula in grupos_aula.items():
-        # Comparación por pares O(n²) para cada aula
-        for i in range(len(sesiones_aula)):
-            for j in range(i + 1, len(sesiones_aula)):
-                s1, s2 = sesiones_aula[i], sesiones_aula[j]
-                
+    conflictos = []
+    mapa = defaultdict(list)
+    for s in sesiones:
+        if s.aula_id is not None:
+            mapa[s.aula_id].append(s)
+            
+    for aid, lista in mapa.items():
+        for i in range(len(lista)):
+            for j in range(i + 1, len(lista)):
+                s1, s2 = lista[i], lista[j]
                 if sesiones_se_solapan_temporalmente(s1, s2):
-                    # IDs ordenados para evitar duplicados A-B / B-A
-                    id1, id2 = sorted([s1.id, s2.id])
-                    conflictos_set.add((id1, id2, aula_id))
-    
-    return list(conflictos_set)
+                    conflictos.append((s1, s2, aid))
+    return conflictos
 
 
-def detectar_violaciones_restriccion(sesiones: List[SesionRef], restricciones: List[RestriccionRef]) -> List[ViolacionRestriccion]:
+# -----------------------------------------------------------------------------
+# 3. REGLAS DE GRUPOS DOCENTES (ALUMNOS)
+# -----------------------------------------------------------------------------
+
+def detectar_solapamientos_grupos(sesiones: List[SesionRef]) -> List[SolapamientoGrupo]:
     """
-    Detecta violaciones de restricciones temporales básicas.
+    Detecta conflictos de alumno (ubicuidad).
+    Cubre:
+    1. Misma Asignatura: Teoría vs Práctica, o Grupo A vs Grupo A.
+    2. Diferente Asignatura (mismo curso): Coherencia del plan de estudios.
+    """
+    conflictos = []
     
-    Lógica simple:
-    - Para cada sesión, verifica contra todas las restricciones
-    - Verifica ámbito antes de comparar tiempos
-    - Detecta solapamientos temporales con restricciones
-    
-    Args:
-        sesiones: Sesiones a analizar
-        restricciones: Restricciones aplicables
+    # Agrupamos por CURSO para reducir complejidad (O(N^2) dentro del curso)
+    mapa_curso = defaultdict(list)
+    for s in sesiones:
+        # Si no tiene curso definido (0), lo agrupamos aparte
+        mapa_curso[s.curso].append(s)
         
-    Returns:
-        Lista de tuplas (sesion_id, restriccion_id) con violaciones
+    for curso, lista in mapa_curso.items():
+        for i in range(len(lista)):
+            for j in range(i + 1, len(lista)):
+                s1, s2 = lista[i], lista[j]
+                
+                # 1. Filtro Temporal Rápido
+                if not sesiones_se_solapan_temporalmente(s1, s2):
+                    continue
+                
+                # 2. Filtro de Menciones (Si son disjuntas, no hay conflicto)
+                # Si ambas tienen menciones definidas y NO comparten ninguna -> Poblaciones distintas
+                if s1.mencion_ids and s2.mencion_ids:
+                    set1 = set(s1.mencion_ids)
+                    set2 = set(s2.mencion_ids)
+                    if not set1.intersection(set2):
+                        continue # Ej: Mates (Mención A) vs Física (Mención B) -> OK
+
+                es_misma_asignatura = (s1.asignatura_id == s2.asignatura_id)
+                es_conflicto = False
+                motivo = ""
+
+                # --- CASO A: MISMA ASIGNATURA ---
+                if es_misma_asignatura:
+                    # Regla: Teoría (Grupo único) choca con todo lo de su asignatura
+                    tipo1, tipo2 = s1.tipo_grupo.upper(), s2.tipo_grupo.upper()
+                    
+                    if "TEORIA" in tipo1 or "TEORIA" in tipo2:
+                        es_conflicto = True
+                        motivo = "Incompatibilidad interna: Teoría se solapa con otra sesión."
+                    else:
+                        # Si son prácticas/labos, solo choca si es el MISMO código (A vs A)
+                        # A vs B es un desdoble válido.
+                        if s1.grupo_codigo == s2.grupo_codigo:
+                            es_conflicto = True
+                            motivo = f"Solapamiento de subgrupo idéntico ({s1.grupo_codigo})."
+                
+                # --- CASO B: DIFERENTE ASIGNATURA (Mismo Curso) ---
+                else:
+                    # Aquí asumimos que asignaturas del mismo curso/plan no deben solaparse
+                    # salvo que sean optativas de menciones distintas (ya filtrado arriba)
+                    es_conflicto = True
+                    motivo = "Incoherencia del Plan de Estudios (Asignaturas del mismo nivel solapadas)."
+
+                if es_conflicto:
+                    asig_comun = s1.asignatura_id if es_misma_asignatura else 0
+                    conflictos.append((s1, s2, asig_comun, motivo))
+
+    return conflictos
+
+
+# -----------------------------------------------------------------------------
+# 4. REGLAS DE CONCILIACIÓN DOCENTE
+# -----------------------------------------------------------------------------
+
+def detectar_interferencias_conciliacion(
+    sesiones: List[SesionRef],
+    mapa_conciliacion: Dict[int, str], # {profesor_id: tipo_conciliacion}
+    hora_apertura: time,
+    hora_cierre: time,
+    margen_normal: int,
+    margen_mixto: int
+) -> List[InterferenciaConciliacion]:
     """
-    conflictos_set = set()  # Deduplicación
-    
-    for sesion in sesiones:
-        for restriccion in restricciones:
-            if sesion_viola_restriccion_temporal(sesion, restriccion):
-                # Usar IDs para determinismo
-                conflictos_set.add((sesion.id, restriccion.id))
-    
-    return list(conflictos_set)
-
-
-# ============================================================================
-# FUNCIÓN DE CONVENIENCIA PRINCIPAL
-# ============================================================================
-
-def detectar_todos_los_conflictos_basicos(sesiones: List[SesionRef], restricciones: List[RestriccionRef]) -> Tuple[List[SolapamientoProfesor], List[SolapamientoAula], List[ViolacionRestriccion]]:
+    Verifica si las sesiones respetan los derechos de conciliación.
+    Compara directamente horarios sin usar restricciones virtuales.
     """
-    Ejecuta todas las funciones de detección básica.
+    conflictos = []
     
-    Esta función orquesta la detección pero no construye ResultadoDeteccion.
-    El engine se encargará de convertir estas primitivas de IDs a objetos completos
-    con hashing y deduplicación adicional si es necesaria.
+    # Helpers para sumar horas a un objeto time
+    def sumar_h(t: time, h: int) -> time:
+        return (datetime.combine(date.today(), t) + timedelta(hours=h)).time()
     
-    Args:
-        sesiones: Sesiones a analizar
-        restricciones: Restricciones aplicables
+    def restar_h(t: time, h: int) -> time:
+        return (datetime.combine(date.today(), t) - timedelta(hours=h)).time()
+
+    # Pre-cálculo de límites
+    limite_entrada = sumar_h(hora_apertura, margen_normal)      # 08:00 + 2h = 10:00
+    limite_salida = restar_h(hora_cierre, margen_normal)        # 21:00 - 2h = 19:00
+    
+    limite_mix_am = sumar_h(hora_apertura, margen_mixto)        # 08:00 + 1h = 09:00
+    limite_mix_pm = restar_h(hora_cierre, margen_mixto)         # 21:00 - 1h = 20:00
+
+    for s in sesiones:
+        if not s.slot: continue # Solo aplica a horarios semanales definidos
         
-    Returns:
-        Tupla con:
-        - solapamientos_profesor: List[(sesion_id1, sesion_id2, profesor_id)]
-        - solapamientos_aula: List[(sesion_id1, sesion_id2, aula_id)]  
-        - violaciones_restriccion: List[(sesion_id, restriccion_id)]
+        inicio = s.slot.hora_inicio
+        fin = s.slot.hora_fin
+        
+        for pid in s.profesor_ids:
+            tipo = mapa_conciliacion.get(pid)
+            if not tipo: continue # Profe sin conciliación
+            
+            motivo = None
+            
+            if tipo == "entrada_tardia":
+                if inicio < limite_entrada:
+                    motivo = f"Clase inicia a las {inicio}, violando margen de entrada ({limite_entrada})."
+            
+            elif tipo == "salida_temprana":
+                if fin > limite_salida:
+                    motivo = f"Clase termina a las {fin}, violando margen de salida ({limite_salida})."
+            
+            elif tipo == "mixta":
+                if inicio < limite_mix_am:
+                    motivo = f"Violación margen entrada mixto ({inicio} < {limite_mix_am})."
+                elif fin > limite_mix_pm:
+                    motivo = f"Violación margen salida mixto ({fin} > {limite_mix_pm})."
+            
+            if motivo:
+                conflictos.append((s, pid, motivo))
+
+    return conflictos
+
+
+# -----------------------------------------------------------------------------
+# FACHADA PRINCIPAL (Punto de entrada)
+# -----------------------------------------------------------------------------
+
+def detectar_todos_los_conflictos_basicos(
+    sesiones: List[SesionRef],
+    mapa_conciliacion: Dict[int, str],
+    hora_apertura: time,
+    hora_cierre: time,
+    margen_normal: int,
+    margen_mixto: int
+):
     """
-    solapamientos_profesor = detectar_solapamientos_profesor(sesiones)
-    solapamientos_aula = detectar_solapamientos_aula(sesiones)
-    violaciones_restriccion = detectar_violaciones_restriccion(sesiones, restricciones)
+    Ejecuta todas las reglas matemáticas en orden.
+    """
+    # 1. Aulas
+    s_aula = detectar_solapamientos_aula(sesiones)
     
-    return solapamientos_profesor, solapamientos_aula, violaciones_restriccion
+    # 2. Profesores
+    s_prof = detectar_solapamientos_profesor(sesiones)
+    
+    # 3. Grupos
+    s_grupo = detectar_solapamientos_grupos(sesiones)
+    
+    # 4. Conciliación
+    s_conciliacion = detectar_interferencias_conciliacion(
+        sesiones, mapa_conciliacion, 
+        hora_apertura, hora_cierre, margen_normal, margen_mixto
+    )
+    
+    return s_aula, s_prof, s_grupo, s_conciliacion

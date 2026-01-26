@@ -3,16 +3,22 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import type { Session } from '@/components/solver/schedule-mock';
+import { AlertTriangle } from 'lucide-react'; // <--- Icono de alerta
+
+// Extendemos el tipo Session para incluir la propiedad de conflicto visual
+export type SessionWithConflict = Session & {
+  hasConflict?: boolean;
+};
 
 type Props = {
-  sessions: Session[];
+  sessions: SessionWithConflict[]; // Usamos el tipo extendido
   start?: string; // HH:MM
   end?: string; // HH:MM
   stepMin?: number; // 30 por defecto
   className?: string;
   onSessionClick?: (session: Session) => void;
   onSessionMove?: (session: Session, newDayIndex: number, newStartTime: string) => void;
-  readOnly?: boolean; // ✅ NUEVA PROP: Controla si el grid es interactivo
+  readOnly?: boolean;
 };
 
 const DAYS = ['L', 'M', 'X', 'J', 'V'];
@@ -30,14 +36,13 @@ export function InteractiveScheduleGrid({
   className,
   onSessionClick,
   onSessionMove,
-  readOnly = false, // ✅ Por defecto false (interactivo)
+  readOnly = false,
 }: Props) {
   const startMin = timeToMinutes(start);
   const endMin = timeToMinutes(end);
   const totalMin = Math.max(endMin - startMin, stepMin);
   const slotCount = Math.ceil(totalMin / stepMin);
 
-  // Estado para controlar si estamos arrastrando algo globalmente
   const [isDragging, setIsDragging] = React.useState(false);
 
   const timeLabels = React.useMemo(
@@ -50,22 +55,17 @@ export function InteractiveScheduleGrid({
     [sessions],
   );
 
-  // --- Lógica Drag & Drop mejorada ---
-
   const handleDragStart = (e: React.DragEvent, session: Session) => {
-    if (readOnly) return; // ✅ Bloqueo de seguridad
-    
+    if (readOnly) return;
     e.dataTransfer.setData('sessionId', String(session.id));
     e.dataTransfer.effectAllowed = 'move';
 
-    // Cálculo del offset (dónde agarramos la caja)
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const offsetY = e.clientY - rect.top;
     const SLOT_HEIGHT = 32; 
     const offsetSlots = Math.floor(offsetY / SLOT_HEIGHT);
     e.dataTransfer.setData('offsetSlots', String(offsetSlots));
 
-    // Activamos el modo dragging con un micro-tick de retraso
     setTimeout(() => setIsDragging(true), 0);
   };
 
@@ -74,14 +74,13 @@ export function InteractiveScheduleGrid({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    if (readOnly) return; // ✅ Bloqueo
+    if (readOnly) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (e: React.DragEvent, dayIndex: number, dropSlotIndex: number) => {
-    if (readOnly) return; // ✅ Bloqueo
-    
+    if (readOnly) return;
     e.preventDefault();
     setIsDragging(false);
 
@@ -94,8 +93,6 @@ export function InteractiveScheduleGrid({
     if (!session) return;
 
     const offsetSlots = parseInt(offsetSlotsStr || '0', 10);
-    
-    // Ajustamos el slot de inicio restando el offset
     let newStartSlot = dropSlotIndex - offsetSlots;
     if (newStartSlot < 0) newStartSlot = 0;
 
@@ -107,59 +104,26 @@ export function InteractiveScheduleGrid({
   };
 
   return (
-    <div
-      className={cn(
-        'overflow-auto rounded-md border bg-background text-xs select-none',
-        className,
-      )}
-    >
-      <div
-        className="relative grid min-w-[720px]"
-        style={{
-          gridTemplateColumns: `80px repeat(${DAYS.length}, minmax(0, 1fr))`,
-          gridTemplateRows: `32px repeat(${slotCount}, 32px)`,
-        }}
-      >
+    <div className={cn('overflow-auto rounded-md border bg-background text-xs select-none', className)}>
+      <div className="relative grid min-w-[720px]" style={{ gridTemplateColumns: `80px repeat(${DAYS.length}, minmax(0, 1fr))`, gridTemplateRows: `32px repeat(${slotCount}, 32px)` }}>
+        
         {/* Cabecera hora */}
-        <div className="sticky top-0 z-20 flex items-center justify-center border-b bg-muted text-[11px] font-medium">
-          Hora
-        </div>
+        <div className="sticky top-0 z-20 flex items-center justify-center border-b bg-muted text-[11px] font-medium">Hora</div>
 
         {/* Cabeceras de días */}
         {DAYS.map((d, index) => (
-          <div
-            key={d}
-            className="sticky top-0 z-20 flex items-center justify-center border-b border-l bg-muted text-[11px] font-medium"
-            style={{ gridColumn: index + 2 }}
-          >
-            {d}
-          </div>
+          <div key={d} className="sticky top-0 z-20 flex items-center justify-center border-b border-l bg-muted text-[11px] font-medium" style={{ gridColumn: index + 2 }}>{d}</div>
         ))}
 
         {/* Columna de horas */}
         {timeLabels.map((label, idx) => (
-          <div
-            key={`time-${idx}`}
-            className="flex items-center justify-end border-b pr-2 text-[11px] text-muted-foreground"
-            style={{ gridRow: idx + 2, gridColumn: 1 }}
-          >
-            {label}
-          </div>
+          <div key={`time-${idx}`} className="flex items-center justify-end border-b pr-2 text-[11px] text-muted-foreground" style={{ gridRow: idx + 2, gridColumn: 1 }}>{label}</div>
         ))}
 
-        {/* Celdas de fondo (Drop Zones) */}
+        {/* Celdas de fondo */}
         {Array.from({ length: slotCount }).map((_, row) =>
           DAYS.map((_, dayIndex) => (
-            <div
-              key={`cell-${row}-${dayIndex}`}
-              className="border-b border-l bg-background/60 transition-colors hover:bg-muted/50"
-              style={{
-                gridRow: row + 2,
-                gridColumn: dayIndex + 2,
-              }}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, dayIndex, row)}
-            />
+            <div key={`cell-${row}-${dayIndex}`} className="border-b border-l bg-background/60 transition-colors hover:bg-muted/50" style={{ gridRow: row + 2, gridColumn: dayIndex + 2 }} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, dayIndex, row)} />
           )),
         )}
 
@@ -168,21 +132,15 @@ export function InteractiveScheduleGrid({
           const dayIndex = session.dayIndex ?? 0;
           if (dayIndex < 0 || dayIndex >= DAYS.length) return null;
 
-          const rowStart =
-            timeToSlotIndex(session.start, startMin, stepMin) + 2;
-          const rowEnd =
-            timeToSlotIndex(session.end, startMin, stepMin) + 2;
+          const rowStart = timeToSlotIndex(session.start, startMin, stepMin) + 2;
+          const rowEnd = timeToSlotIndex(session.end, startMin, stepMin) + 2;
 
           if (rowEnd <= rowStart) return null;
 
-          const layout =
-            layoutById.get(String(session.id)) ??
-            ({ lane: 0, lanes: 1 } as LayoutInfo);
-
+          const layout = layoutById.get(String(session.id)) ?? ({ lane: 0, lanes: 1 } as LayoutInfo);
           const widthPercent = 100 / layout.lanes;
           const leftPercent = layout.lane * widthPercent;
 
-          // ✅ Lógica visual para modo solo lectura vs edición
           const isDraggable = !readOnly && !!onSessionMove;
           const isClickable = !readOnly && !!onSessionClick;
           
@@ -198,8 +156,9 @@ export function InteractiveScheduleGrid({
                 isDraggable && !isDragging ? 'cursor-grab active:cursor-grabbing hover:shadow-md hover:z-30' : '',
                 !isDraggable && !isClickable ? 'cursor-default' : '',
                 isClickable && !isDraggable ? 'cursor-pointer hover:shadow-md' : '',
-                // TRUCO: pointer-events-none durante drag para que el drop llegue a la celda
-                isDragging ? 'pointer-events-none opacity-80 z-0' : ''
+                isDragging ? 'pointer-events-none opacity-80 z-0' : '',
+                // --- INDICADOR VISUAL DE CONFLICTO (Borde Rojo) ---
+                session.hasConflict && 'ring-2 ring-red-500 border-red-600'
               )}
               style={{
                 gridRow: `${rowStart} / ${rowEnd}`,
@@ -213,7 +172,14 @@ export function InteractiveScheduleGrid({
                 if (!readOnly && !isDragging) onSessionClick?.(session);
               }}
             >
-              <span className="truncate font-medium leading-tight">
+              {/* --- ICONO DE ALERTA FLOTANTE --- */}
+              {session.hasConflict && (
+                <div className="absolute top-0.5 right-0.5 z-20 bg-white/90 rounded-full p-[1px] shadow-sm ring-1 ring-red-100">
+                  <AlertTriangle className="h-3 w-3 text-red-600 stroke-[2.5px]" />
+                </div>
+              )}
+
+              <span className="truncate font-medium leading-tight pr-4">
                 {session.title}
               </span>
               {session.room && (
@@ -234,7 +200,7 @@ export function InteractiveScheduleGrid({
   );
 }
 
-// ... (Helpers sin cambios) ...
+// ... Helpers ...
 function buildLayoutById(sessions: Session[]): Map<string, LayoutInfo> {
   const result = new Map<string, LayoutInfo>();
   const byDay = new Map<number, { session: Session; start: number; end: number }[]>();

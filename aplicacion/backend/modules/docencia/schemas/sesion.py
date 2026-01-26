@@ -277,6 +277,12 @@ class SesionCreate(SesionBase):
         ]
     )
 
+    # Campo opcional para rastrear sesiones temporales en simulaciones
+    temp_id: Optional[int] = Field(
+        None, 
+        description="ID temporal del frontend (ej: -123) usado para mapear conflictos en simulaciones."
+    )
+
 
 class SesionUpdate(BaseModel):
     """
@@ -350,13 +356,7 @@ class SesionUpdate(BaseModel):
 
 class SesionOut(SesionBase):
     """
-    Schema para respuestas de Sesion (incluye ID y profesores).
-    
-    Usado en:
-    - Respuestas de endpoints GET, POST, PUT
-    - Elementos de listas
-    
-    Incluye lista de profesores asignados con sus datos básicos.
+    Schema para respuestas de Sesion (incluye ID, profesores y CONFLICTOS).
     """
     
     id: int = Field(
@@ -367,6 +367,11 @@ class SesionOut(SesionBase):
     profesores: List[ProfesorSesionOut] = Field(
         default_factory=list,
         description="Lista de profesores asignados a la sesión"
+    )
+
+    conflictos: List[ConflictoOut] = Field(
+        default_factory=list,
+        description="Lista de conflictos activos asociados a esta sesión"
     )
     
     model_config = ConfigDict(
@@ -381,16 +386,8 @@ class SesionOut(SesionBase):
                 "dia_semana": "lunes",
                 "hora_inicio": "09:00:00",
                 "hora_fin": "11:00:00",
-                "inicio": None,
-                "fin": None,
-                "profesores": [
-                    {
-                        "profesor_id": 10,
-                        "rol_en_sesion": "Docente",
-                        "nombre": "Juan",
-                        "apellidos": "García López"
-                    }
-                ]
+                "profesores": [],
+                "conflictos": []
             }
         }
     )
@@ -482,3 +479,22 @@ class SesionBatchRequest(BaseModel):
             }
         }
     )
+
+class SesionBatchResponse(BaseModel):
+    """
+    Respuesta estructurada para operaciones en lote.
+    Devuelve las entidades completas (con sus conflictos) para que el frontend
+    pueda actualizar el estado visual (ej: pintar de rojo) sin recargar.
+    """
+    status: str = "success"
+    created: List[SesionWithConflictosOut] = Field(default_factory=list)
+    updated: List[SesionWithConflictosOut] = Field(default_factory=list)
+    deleted_ids: List[int] = Field(default_factory=list)
+
+class SesionValidationResult(BaseModel):
+    """
+    Respuesta de la simulación de cambios.
+    Devuelve si el cambio es válido y la lista de conflictos que generaría.
+    """
+    valid: bool
+    conflictos: List[ConflictoOut] = []

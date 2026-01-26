@@ -8,7 +8,7 @@ Responsabilidades:
 El prefijo /v0/conflictos se define en main.py al registrar este router.
 """
 
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, Query, Path, Body, status
 from sqlalchemy.orm import Session
@@ -20,7 +20,7 @@ from modules.conflictos.schemas.conflicto import (
     ConflictoList,
     ConflictoEstadoUpdateIn,
 )
-from modules.conflictos.service.conflictos_service import conflicto_service
+from modules.conflictos.services.conflictos_service import conflicto_service
 
 
 router = APIRouter(
@@ -112,44 +112,27 @@ async def listar_conflictos(
 
 @router.get(
     "/sesion/{sesion_id}",
-    response_model=ConflictoList,
+    response_model=List[ConflictoOut],
     summary="Listar conflictos de una sesión",
     description="""Listar todos los conflictos en los que participa una sesión concreta.
 
 Incluye conflictos donde la sesión es sesion_id o sesion_2_id.
+No utiliza paginación ya que se muestran todos para el contexto visual (tooltip).
 """,
 )
 async def listar_conflictos_por_sesion(
     sesion_id: int = Path(
         ..., gt=0, description="ID de la sesión cuyas conflictos se quieren consultar"
     ),
-    skip: int = Query(
-        0,
-        ge=0,
-        description="Número de registros a saltar (offset)",
-        examples=[0, 10, 20],
-    ),
-    limit: int = Query(
-        20,
-        ge=1,
-        le=100,
-        description="Número máximo de registros a retornar",
-        examples=[10, 20, 50],
-    ),
     db: Session = Depends(get_db),
 ):
     """Listar conflictos asociados a una sesión concreta."""
-
-    items, total = conflicto_service.get_by_sesion(
+    items = conflicto_service.get_by_sesion(
         db=db,
-        sesion_id=sesion_id,
-        skip=skip,
-        limit=limit,
+        sesion_id=sesion_id
     )
 
-    page = (skip // limit) + 1 if limit > 0 else 1
-
-    return ConflictoList(total=total, items=items, page=page, size=limit)
+    return items
 
 
 @router.patch(
