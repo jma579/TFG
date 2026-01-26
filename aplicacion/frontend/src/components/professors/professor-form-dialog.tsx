@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Professor } from './data';
+import type { Professor, TipoConciliacion } from './data';
 
 type ProfessorFormDialogProps = {
   open: boolean;
@@ -30,6 +30,7 @@ type ProfessorFormDialogProps = {
     email: string;
     departamento: string;
     activo: boolean;
+    conciliacion: TipoConciliacion; // <--- Nuevo campo
   }) => void;
   saving: boolean;
 };
@@ -41,12 +42,20 @@ export function ProfessorFormDialog({
   onSubmit,
   saving,
 }: ProfessorFormDialogProps) {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState<{
+    nombre: string;
+    apellidos: string;
+    email: string;
+    departamento: string;
+    activo: boolean;
+    conciliacion: TipoConciliacion;
+  }>({
     nombre: '',
     apellidos: '',
     email: '',
     departamento: '',
     activo: true,
+    conciliacion: null,
   });
 
   React.useEffect(() => {
@@ -57,6 +66,7 @@ export function ProfessorFormDialog({
         email: initial.email ?? '',
         departamento: initial.departamento ?? '',
         activo: initial.activo,
+        conciliacion: initial.conciliacion, // <--- Carga valor inicial
       });
     } else {
       setForm({
@@ -65,11 +75,12 @@ export function ProfessorFormDialog({
         email: '',
         departamento: '',
         activo: true,
+        conciliacion: null,
       });
     }
   }, [initial, open]);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: string | boolean | null) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -80,7 +91,7 @@ export function ProfessorFormDialog({
           <DialogTitle>{initial ? 'Editar profesor' : 'Nuevo profesor'}</DialogTitle>
           <DialogDescription>
             {initial
-              ? 'Actualiza los datos del profesor y guarda los cambios.'
+              ? 'Actualiza los datos y preferencias del profesor.'
               : 'Introduce los datos del nuevo profesor.'}
           </DialogDescription>
         </DialogHeader>
@@ -140,20 +151,41 @@ export function ProfessorFormDialog({
             />
           </div>
 
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-muted-foreground">Estado</span>
-            <Select
-              value={form.activo ? 'active' : 'inactive'}
-              onValueChange={(value) => handleChange('activo', value === 'active')}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Activo</SelectItem>
-                <SelectItem value="inactive">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid gap-3 md:grid-cols-2">
+            {/* SELECTOR DE CONCILIACIÓN */}
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Conciliación</span>
+              <Select
+                value={form.conciliacion ?? 'none'} 
+                onValueChange={(value) => handleChange('conciliacion', value === 'none' ? null : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sin preferencia" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ninguna</SelectItem>
+                  <SelectItem value="entrada_tardia">Entrada Tardía (+2h)</SelectItem>
+                  <SelectItem value="salida_temprana">Salida Temprana (-2h)</SelectItem>
+                  <SelectItem value="mixta">Mixta (±1h)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Estado</span>
+              <Select
+                value={form.activo ? 'active' : 'inactive'}
+                onValueChange={(value) => handleChange('activo', value === 'active')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 

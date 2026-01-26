@@ -1,5 +1,8 @@
 import { api } from '@/lib/api/config';
 
+// 1. Definimos el tipo para la conciliación
+export type TipoConciliacion = 'entrada_tardia' | 'salida_temprana' | 'mixta' | null;
+
 export type ProfesorAPI = {
   id: number;
   nombre: string;
@@ -8,6 +11,7 @@ export type ProfesorAPI = {
   telefono?: string | null;
   departamento?: string | null;
   activo: boolean;
+  conciliacion?: TipoConciliacion; // <--- NUEVO CAMPO
   [key: string]: unknown;
 };
 
@@ -24,6 +28,7 @@ export type ProfesorCreateInput = {
   email?: string | null;
   departamento?: string | null;
   activo?: boolean;
+  conciliacion?: TipoConciliacion; // <--- NUEVO CAMPO
 };
 
 export type ProfesorUpdateInput = Partial<ProfesorCreateInput>;

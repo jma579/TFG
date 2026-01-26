@@ -16,7 +16,6 @@ import {
   MoreHorizontal,
   Search,
   X
-  // Eliminado 'Plus' de los imports ya que no se usa
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -50,7 +49,6 @@ import type { Professor } from './data';
 type ProfessorsTableProps = {
   data: Professor[];
   onEdit: (row: Professor) => void;
-  // ❌ ELIMINADO: onCreate: () => void;
 };
 
 export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
@@ -139,6 +137,38 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
           </span>
         ),
       },
+      // --- NUEVA COLUMNA: Conciliación ---
+      {
+        accessorKey: 'conciliacion',
+        header: 'Conciliación',
+        cell: ({ row }) => {
+          const val = row.original.conciliacion;
+          if (!val) return <span className="text-muted-foreground text-xs">—</span>;
+          
+          // FIX: Especificamos explícitamente que 'label' es un string
+          // para poder asignarle valores como "Entrada Tardía" que no están en el tipo original.
+          let label: string = val;
+          let colorClass = "bg-slate-100 text-slate-700"; // Default
+
+          if (val === 'entrada_tardia') {
+            label = "Entrada Tardía";
+            colorClass = "bg-indigo-50 text-indigo-700 border-indigo-200";
+          } else if (val === 'salida_temprana') {
+            label = "Salida Temprana";
+            colorClass = "bg-rose-50 text-rose-700 border-rose-200";
+          } else if (val === 'mixta') {
+            label = "Mixta (±1h)";
+            colorClass = "bg-violet-50 text-violet-700 border-violet-200";
+          }
+
+          return (
+            <Badge variant="outline" className={`whitespace-nowrap ${colorClass}`}>
+              {label}
+            </Badge>
+          );
+        },
+      },
+      // -----------------------------------
       {
         accessorKey: 'activo',
         header: 'Estado',
@@ -204,10 +234,8 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
 
   return (
     <div className="w-full space-y-4">
-      {/* Toolbar de filtros */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
-          {/* Buscador Global */}
           <div className="relative w-full md:max-w-xs">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -218,7 +246,6 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
             />
           </div>
 
-          {/* Filtro Estado */}
           <Select
             value={(table.getColumn('activo')?.getFilterValue() as string) ?? 'active'}
             onValueChange={(value) => table.getColumn('activo')?.setFilterValue(value)}
@@ -233,7 +260,6 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
             </SelectContent>
           </Select>
           
-          {/* Botón limpiar filtros */}
           {(globalFilter || columnFilters.length > 1) && (
             <Button
               variant="ghost"
@@ -249,11 +275,8 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
             </Button>
           )}
         </div>
-
-        {/* ❌ ELIMINADO: Botón <Button onClick={onCreate}> ... </Button> */}
       </div>
 
-      {/* Tabla con Scroll Interno */}
       <div className="rounded-md border h-[600px] overflow-auto relative">
         <table className="w-full caption-bottom text-sm">
           <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
@@ -305,7 +328,6 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
         </table>
       </div>
       
-      {/* Contador final */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} profesores.
