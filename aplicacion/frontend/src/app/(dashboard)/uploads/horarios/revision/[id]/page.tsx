@@ -4,7 +4,8 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Pencil, CheckCircle2, 
-  Sparkles, XCircle, ArrowRight, Plus, AlertCircle 
+  Sparkles, XCircle, ArrowRight, Plus, AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
@@ -435,6 +436,14 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
+  // Nueva función para manejar el borrado desde el modal de edición
+  const handleDeleteFromModal = () => {
+    if (!editingLocation) return;
+    
+    handleDeleteSession(editingLocation.sessionIndex);
+    closeEditSesion();
+  };
+
   const openEditSesion = (session: Session) => {
     if (!horario) return;
     const [blockStr, sesStr] = String(session.id).split('-');
@@ -715,9 +724,27 @@ export default function RevisionHorarioPage({ params }: Props) {
           {editingForm && (
             <SessionFormFieldsSmart form={editingForm} onChange={handleEditFieldChange} asignaturaOptions={editingOptions} aulaOptions={aulaOptions} />
           )}
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={closeEditSesion}>Cancelar</Button>
-            <Button onClick={handleSaveSesion}>Guardar</Button>
+          <DialogFooter className="mt-4 flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
+            {/* BOTÓN DE ELIMINAR (Lado Izquierdo) */}
+            <Button 
+              type="button"
+              variant="ghost" 
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleDeleteFromModal}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar Sesión
+            </Button>
+
+            {/* ACCIONES PRINCIPALES (Lado Derecho) */}
+            <div className="flex flex-col-reverse sm:flex-row gap-2">
+              <Button variant="outline" onClick={closeEditSesion}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveSesion}>
+                Guardar Cambios
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
