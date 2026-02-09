@@ -255,6 +255,10 @@ class HorariosPipelineService:
         
         asignaturas_limpiadas: Set[int] = set()
 
+        # [NUEVO] Cache para evitar duplicar sesiones idénticas (mismo grupo, día, hora)
+        # Key: (grupo_id, dia_semana, hora_inicio_str)
+        sesiones_creadas_cache: Set[Tuple[int, DiaSemana, str]] = set()
+
         aula_matcher_srv = AulaMatcher(db)
 
         try:
@@ -351,10 +355,16 @@ class HorariosPipelineService:
                         if not aula_db:
                             raise HTTPException(status_code=400, detail=f"Aula no encontrada: '{nombre_aula}'")
 
-                    # 4.7 Crear Sesión
+                    # 4.7 Crear Sesión (CON DEDUPLICACIÓN)
                     dia_str_norm = sesion_norm.dia_semana.upper().replace("Á","A").replace("É","E").replace("Í","I").replace("Ó","O").replace("Ú","U")
                     dia_enum = TEXTO_A_DIA_ENUM.get(dia_str_norm)
                     if not dia_enum: continue
+
+                    # [NUEVO] Check Anti-Duplicados
+                    # Si ya hemos creado una sesión para este grupo, este día y a esta hora, la saltamos.
+                    sesion_key = (grupo_id, dia_enum, str(sesion_norm.hora_inicio))
+                    if sesion_key in sesiones_creadas_cache:
+                        continue
 
                     sesion_in = SesionCreate(
                         grupo_docente_id=grupo_id, # Usamos el ID, no el objeto DB
@@ -373,6 +383,9 @@ class HorariosPipelineService:
                         sesiones_resultado.append(res_servicio.sesion)
                         ids_sesiones_creadas.append(res_servicio.sesion.id)
                         stats["sesiones_creadas"] += 1
+
+                        # [NUEVO] Registrar en cache
+                        sesiones_creadas_cache.add(sesion_key)
                         
                     except Exception as e:
                         logger.error(f"Error creando sesión: {e}")

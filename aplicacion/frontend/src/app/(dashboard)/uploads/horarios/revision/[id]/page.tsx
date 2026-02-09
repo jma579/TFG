@@ -58,12 +58,11 @@ export type HorarioExtraidoSesion = {
   hora_fin: string;
   tipo: string;
   grupo: string | null;
-  
+  grupo_codigo?: string | null; 
   match_confidence?: number;
   match_status?: string;       
   asignatura_sugerida?: string;
   manual_validated?: boolean;
-  
   [key: string]: unknown;
 };
 
@@ -91,38 +90,25 @@ const TIPO_OPCIONES = ['TEORÍA', 'PRÁCTICAS DE AULA', 'PRÁCTICAS DE LABORATOR
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
 
 // --- COMPONENTE: MatchInfoCard ---
-interface MatchInfoCardProps {
-  status?: string;
-  originalName: string;
-  suggestedName?: string;
-}
-
-function MatchInfoCard({ status, originalName, suggestedName }: MatchInfoCardProps) {
+function MatchInfoCard({ status, originalName, suggestedName }: { status?: string; originalName: string; suggestedName?: string }) {
   if (!status) return null;
-
   const isExact = status === 'EXACT' || status === 'ALIAS_DB';
-  
   if (isExact) {
       return (
         <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-semibold">Coincidencia Exacta</p>
-              <p className="text-blue-700/80">Nombre validado en BD.</p>
-            </div>
+            <div className="space-y-1"><p className="font-semibold">Coincidencia Exacta</p></div>
           </div>
         </div>
       );
   }
-
   if (suggestedName) {
       return (
         <div className="mb-4 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-800">
           <div className="flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-semibold">Sugerencia Automática</p>
+            <div className="space-y-1"><p className="font-semibold">Sugerencia Automática</p>
               <div className="flex flex-wrap items-center gap-1 text-indigo-700/90">
                 <span>PDF: <strong>{`"${originalName}"`}</strong></span>
                 <ArrowRight className="h-3 w-3" />
@@ -133,17 +119,11 @@ function MatchInfoCard({ status, originalName, suggestedName }: MatchInfoCardPro
         </div>
       );
   }
-
   return (
     <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
       <div className="flex items-start gap-3">
         <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-        <div className="space-y-1">
-          <p className="font-semibold">Sin Coincidencia</p>
-          <p className="text-red-700/90">
-             Original: <strong>{`"${originalName}"`}</strong>
-          </p>
-        </div>
+        <div className="space-y-1"><p className="font-semibold">Sin Coincidencia</p></div>
       </div>
     </div>
   );
@@ -156,10 +136,7 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const { items, updateHorario, confirm } = useHorariosUploadsStore();
 
-  const item = React.useMemo(
-    () => items.find((it) => it.id === id),
-    [items, id]
-  );
+  const item = React.useMemo(() => items.find((it) => it.id === id), [items, id]);
 
   const horarioTemporal: HorarioExtraido | undefined =
     item?.horarioTemporal as unknown as HorarioExtraido | undefined;
@@ -178,7 +155,6 @@ export default function RevisionHorarioPage({ params }: Props) {
           listAsignaturas({ limit: 1000, activo: true }), 
           listAulas({ size: 1000 }),
         ]);
-
         if (mounted) {
           setListaProgramas(resProgramas.items || []);
           setListaAsignaturas(resAsig.items || []);
@@ -191,24 +167,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     loadData();
     return () => { mounted = false; };
   }, []);
-
-  const programasOptions = React.useMemo<AutocompleteOption[]>(
-    () => listaProgramas.map((p) => ({
-      value: p.id,
-      label: p.nombre,
-      keywords: p.tipo,
-    })),
-    [listaProgramas]
-  );
-
-  const aulaOptions = React.useMemo<AutocompleteOption[]>(
-    () => listaAulas.map((a) => ({
-      value: a.id,
-      label: a.nombre,
-      keywords: a.codigo,
-    })),
-    [listaAulas]
-  );
 
   const [draftHorario, setDraftHorario] = React.useState<HorarioExtraido | null>(null);
 
@@ -223,139 +181,41 @@ export default function RevisionHorarioPage({ params }: Props) {
   const [isConfirming, setIsConfirming] = React.useState(false);
   const [confirmError, setConfirmError] = React.useState<string | null>(null);
 
-  const bloques = React.useMemo(
-    () => (horario?.horarios ?? []) as HorarioExtraidoBloque[],
-    [horario]
-  );
+  const bloques = React.useMemo(() => (horario?.horarios ?? []) as HorarioExtraidoBloque[], [horario]);
   const [selectedBlockIndex, setSelectedBlockIndex] = React.useState(0);
 
-  React.useEffect(() => {
-    if (selectedBlockIndex >= bloques.length) {
-      setSelectedBlockIndex(0);
-    }
-  }, [bloques.length, selectedBlockIndex]);
-
-  // --- 🟢 LÓGICA DE FILTRADO (CON DEPURACIÓN) ---
-  
-  const detectedPrograma = React.useMemo(() => {
-    if (!horario || !listaProgramas.length) return null;
-    const planTexto = normalizeText(horario.plan || horario.titulo?.split(' - ')[0] || '');
-    const exacto = listaProgramas.find(p => normalizeText(p.nombre) === planTexto);
-    if (exacto) return exacto;
-    const aprox = listaProgramas.find(p => {
-        const pNombre = normalizeText(p.nombre);
-        return pNombre.includes(planTexto) || planTexto.includes(pNombre);
-    });
-    return aprox || null;
-  }, [horario, listaProgramas]);
-
-  const detectedPeriodo = React.useMemo(() => {
-      const texto = horario?.periodo || horario?.titulo?.split(' - ')[1] || '';
-      return normalizeText(texto);
-  }, [horario]);
-
-  // FUNCIÓN PRINCIPAL DE FILTRADO
-  const getAsignaturaOptionsForBlock = React.useCallback((blockIdx: number): AutocompleteOption[] => {
-      const bloque = bloques[blockIdx];
-      if (!bloque) return [];
-
-      if (!detectedPrograma) {
-          console.warn("⚠️ No se ha detectado programa. Mostrando todas las asignaturas.");
-          return listaAsignaturas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
-      }
-
-      const cursoNum = parseCursoNumerico(bloque.curso);
-      const planNameNorm = normalizeText(detectedPrograma.nombre);
-      
-      // LOG DE DIAGNÓSTICO (Míralo en Consola F12)
-      console.groupCollapsed(`🔍 FILTRO DEBUG: Curso ${cursoNum} - ${detectedPrograma.nombre}`);
-      
-      const filtradas = listaAsignaturas.filter(asig => {
-            // 1. Verificar si hay datos de relaciones
-            if (!asig.titulaciones || asig.titulaciones.length === 0) {
-                // Si la API devuelve asignaturas sin titulaciones (común en listas),
-                // no podemos filtrar de forma segura. 
-                return false; 
-            }
-
-            // 2. Filtro de PROGRAMA + CURSO
-            const matchProgCurso = asig.titulaciones.some(t => {
-                // Check ID Flexible (== por si viene como string)
-                const pid = t.programa?.id;
-                // eslint-disable-next-line eqeqeq
-                const matchId = pid != null && pid == detectedPrograma.id;
-
-                // Check Nombre (Fallback)
-                const tProgName = normalizeText(t.programa.nombre || '');
-                const matchName = tProgName.includes(planNameNorm) || planNameNorm.includes(tProgName);
-
-                const isSameProgram = matchId || matchName;
-
-                // Check Curso
-                const c = t.curso;
-                // Aceptamos si es el mismo curso O si es null (asignaturas sin curso fijo)
-                const matchCurso = c === null || c === undefined || c === cursoNum;
-
-                return isSameProgram && matchCurso;
-            });
-
-            if (!matchProgCurso) return false;
-
-            // 3. Filtro de PERIODO
-            if (asig.periodo) {
-                const pAsig = normalizeText(asig.periodo);
-                if (pAsig.includes('anual')) return true;
-
-                // Logica de cuatrimestres
-                const esPrimero = detectedPeriodo.includes('primer') || detectedPeriodo.includes('1');
-                const esSegundo = detectedPeriodo.includes('segundo') || detectedPeriodo.includes('2');
-
-                if (esPrimero) {
-                    return pAsig.includes('primer') || pAsig.includes('1') || pAsig.includes('s1');
-                }
-                if (esSegundo) {
-                    return pAsig.includes('segundo') || pAsig.includes('2') || pAsig.includes('s2');
-                }
-                
-                // Fallback
-                if (detectedPeriodo) {
-                    return pAsig.includes(detectedPeriodo) || detectedPeriodo.includes(pAsig);
-                }
-            }
-            return true;
-        });
-
-        console.log(`Resultados encontrados: ${filtradas.length}`);
-        if (filtradas.length === 0 && listaAsignaturas.length > 0) {
-            console.log("⚠️ ATENCIÓN: El filtro devolvió 0. Verifica el primer elemento recibido de la API:", listaAsignaturas[0]);
+  // --- AUTO-CURACIÓN Y MAPEO ---
+  const unifiedNamesMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (!horario) return map;
+    
+    horario.horarios.forEach(bloque => {
+      bloque.sesiones.forEach(sesion => {
+        const raw = normalizeText(sesion.asignatura || '');
+        if (sesion.asignatura_sugerida && raw) {
+          map.set(raw, sesion.asignatura_sugerida);
         }
-        console.groupEnd();
-
-        return filtradas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
-
-  }, [listaAsignaturas, bloques, detectedPrograma, detectedPeriodo]);
-
-  const activeAsignaturaOptions = React.useMemo(() => {
-      return getAsignaturaOptionsForBlock(selectedBlockIndex);
-  }, [getAsignaturaOptionsForBlock, selectedBlockIndex]);
-
+      });
+    });
+    return map;
+  }, [horario]);
 
   const totalSessions = React.useMemo(() => {
     if (!horario) return 0;
-    return mapHorarioToSessions(horario).length;
-  }, [horario]);
+    return mapHorarioToSessions(horario, unifiedNamesMap).length;
+  }, [horario, unifiedNamesMap]);
 
   const sessions = React.useMemo<Session[]>(() => {
     if (!horario || bloques.length === 0) return [];
     const bloque = bloques[selectedBlockIndex];
     if (!bloque) return [];
-    return mapBloqueToSessions(bloque, selectedBlockIndex);
-  }, [bloques, horario, selectedBlockIndex]);
+    return mapBloqueToSessions(bloque, selectedBlockIndex, unifiedNamesMap);
+  }, [bloques, horario, selectedBlockIndex, unifiedNamesMap]);
 
   const hasData = Boolean(horario && bloques.length > 0);
   const displayPlan = horario?.plan || horario?.titulo?.split(' - ')[0] || "Desconocido";
-  const displayPeriodo = horario?.periodo || horario?.titulo?.split(' - ')[1] || "—";
 
+  // --- FORM STATES ---
   const [isEditInfoOpen, setIsEditInfoOpen] = React.useState(false);
   const [isRefining, setIsRefining] = React.useState(false);
   const [infoForm, setInfoForm] = React.useState({ plan: '', periodo: '' });
@@ -373,6 +233,98 @@ export default function RevisionHorarioPage({ params }: Props) {
   const [editBlockForm, setEditBlockForm] = React.useState({ curso: '', mencion: '' });
   
   const canCreateSession = bloques.length > 0;
+
+  // --- HELPERS DE FILTRADO (DEFINIDOS ANTES DEL RETURN) ---
+  const detectedPrograma = React.useMemo(() => {
+    if (!horario || !listaProgramas.length) return null;
+    const planTexto = normalizeText(horario.plan || horario.titulo?.split(' - ')[0] || '');
+    const exacto = listaProgramas.find(p => normalizeText(p.nombre) === planTexto);
+    if (exacto) return exacto;
+    const aprox = listaProgramas.find(p => {
+        const pNombre = normalizeText(p.nombre);
+        return pNombre.includes(planTexto) || planTexto.includes(pNombre);
+    });
+    return aprox || null;
+  }, [horario, listaProgramas]);
+
+  const detectedPeriodo = React.useMemo(() => {
+      const texto = horario?.periodo || horario?.titulo?.split(' - ')[1] || '';
+      return normalizeText(texto);
+  }, [horario]);
+
+  const getAsignaturaOptionsForBlock = React.useCallback((blockIdx: number): AutocompleteOption[] => {
+      const bloque = bloques[blockIdx];
+      if (!bloque) return [];
+
+      if (!detectedPrograma) {
+          return listaAsignaturas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
+      }
+
+      const cursoNum = parseCursoNumerico(bloque.curso);
+      const planNameNorm = normalizeText(detectedPrograma.nombre);
+      
+      const filtradas = listaAsignaturas.filter(asig => {
+            if (!asig.titulaciones || asig.titulaciones.length === 0) return false; 
+
+            const matchProgCurso = asig.titulaciones.some(t => {
+                const pid = t.programa?.id;
+                // eslint-disable-next-line eqeqeq
+                const matchId = pid != null && pid == detectedPrograma.id;
+                const tProgName = normalizeText(t.programa.nombre || '');
+                const matchName = tProgName.includes(planNameNorm) || planNameNorm.includes(tProgName);
+                const isSameProgram = matchId || matchName;
+                const c = t.curso;
+                const matchCurso = c === null || c === undefined || c === cursoNum;
+                return isSameProgram && matchCurso;
+            });
+
+            if (!matchProgCurso) return false;
+
+            if (asig.periodo) {
+                const pAsig = normalizeText(asig.periodo);
+                if (pAsig.includes('anual')) return true;
+                const esPrimero = detectedPeriodo.includes('primer') || detectedPeriodo.includes('1');
+                const esSegundo = detectedPeriodo.includes('segundo') || detectedPeriodo.includes('2');
+                if (esPrimero) {
+                    return pAsig.includes('primer') || pAsig.includes('1') || pAsig.includes('s1');
+                }
+                if (esSegundo) {
+                    return pAsig.includes('segundo') || pAsig.includes('2') || pAsig.includes('s2');
+                }
+                if (detectedPeriodo) {
+                    return pAsig.includes(detectedPeriodo) || detectedPeriodo.includes(pAsig);
+                }
+            }
+            return true;
+        });
+
+        return filtradas.map(a => ({ value: a.id, label: a.nombre, keywords: a.codigo_plan }));
+
+  }, [listaAsignaturas, bloques, detectedPrograma, detectedPeriodo]);
+
+  const activeAsignaturaOptions = React.useMemo(() => {
+      return getAsignaturaOptionsForBlock(selectedBlockIndex);
+  }, [getAsignaturaOptionsForBlock, selectedBlockIndex]);
+
+  // [CORREGIDO] MOVIDO ANTES DEL RETURN
+  // Esto soluciona el error "React Hook is called conditionally"
+  const currentPlanId = React.useMemo(() => {
+    return listaProgramas.find((p) => p.nombre === infoForm.plan)?.id;
+  }, [listaProgramas, infoForm.plan]);
+
+  const programasOptions = React.useMemo(() => listaProgramas.map((p) => ({
+      value: p.id,
+      label: p.nombre,
+      keywords: p.tipo,
+  })), [listaProgramas]);
+
+  const aulaOptions = React.useMemo(() => listaAulas.map((a) => ({
+      value: a.id,
+      label: a.nombre,
+      keywords: a.codigo,
+  })), [listaAulas]);
+
+  // --- ACTIONS ---
 
   const handleUpdateDraft = (newHorario: HorarioExtraido) => {
     setDraftHorario(newHorario);
@@ -400,14 +352,13 @@ export default function RevisionHorarioPage({ params }: Props) {
     horarioActualizado.plan = infoForm.plan;
     horarioActualizado.periodo = infoForm.periodo;
     horarioActualizado.titulo = `${infoForm.plan} - ${infoForm.periodo}`;
-
     setIsRefining(true);
     try {
         const nuevoHorario = await refineHorario(horarioActualizado as unknown as HorarioTemporalOut);
         handleUpdateDraft(nuevoHorario as unknown as HorarioExtraido);
         setIsEditInfoOpen(false);
         toast({ title: 'Horario Actualizado', description: 'Contexto actualizado.' });
-    } catch (error) {
+    } catch {
         handleUpdateDraft(horarioActualizado);
         setIsEditInfoOpen(false);
     } finally {
@@ -415,47 +366,52 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
-  const toggleSessionValidation = (sesIndex: number, isValid: boolean) => {
-    if (!draftHorario) return;
-    const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
-    const sesion = cloned.horarios[selectedBlockIndex]?.sesiones?.[sesIndex];
-    if (sesion) {
-        sesion.manual_validated = isValid;
-        handleUpdateDraft(cloned);
-    }
-  };
-
   const handleDeleteSession = (sesIndex: number) => {
     if (!draftHorario) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
-    const bloque = cloned.horarios[selectedBlockIndex];
-    if (bloque && bloque.sesiones) {
-        bloque.sesiones.splice(sesIndex, 1);
-        handleUpdateDraft(cloned);
-        toast({ title: 'Eliminada', description: 'Sesión eliminada.' });
-    }
+    
+    const targetBlock = cloned.horarios[selectedBlockIndex];
+    if (!targetBlock?.sesiones?.[sesIndex]) return;
+    
+    const targetSession = targetBlock.sesiones[sesIndex];
+    const targetId = generateSemanticId(targetSession, unifiedNamesMap);
+    const targetCurso = targetBlock.curso;
+
+    let deletedCount = 0;
+    cloned.horarios.forEach(bloque => {
+      if (bloque.curso !== targetCurso) return; 
+
+      const prevLen = bloque.sesiones.length;
+      bloque.sesiones = bloque.sesiones.filter(s => 
+        generateSemanticId(s, unifiedNamesMap) !== targetId
+      );
+      if (bloque.sesiones.length < prevLen) deletedCount++;
+    });
+
+    handleUpdateDraft(cloned);
+    toast({ title: 'Eliminada', description: `Se ha eliminado la sesión de ${deletedCount} grupo(s).` });
   };
 
-  // Nueva función para manejar el borrado desde el modal de edición
   const handleDeleteFromModal = () => {
     if (!editingLocation) return;
-    
     handleDeleteSession(editingLocation.sessionIndex);
     closeEditSesion();
   };
 
   const openEditSesion = (session: Session) => {
     if (!horario) return;
-    const [blockStr, sesStr] = String(session.id).split('-');
-    const blockIndex = Number(blockStr);
-    const sessionIndex = Number(sesStr);
-    if (Number.isNaN(blockIndex) || Number.isNaN(sessionIndex)) return;
+    
+    const bloque = horario.horarios[selectedBlockIndex];
+    const sessionIndex = bloque.sesiones.findIndex(s => 
+      generateSemanticId(s, unifiedNamesMap) === session.id
+    );
+    
+    if (sessionIndex === -1) return; 
 
-    const bloque = horario.horarios[blockIndex];
-    const sesion = bloque?.sesiones?.[sessionIndex];
-    if (!bloque || !sesion) return;
+    const sesion = bloque.sesiones[sessionIndex];
+    if (!sesion) return;
 
-    setEditingLocation({ blockIndex, sessionIndex });
+    setEditingLocation({ blockIndex: selectedBlockIndex, sessionIndex });
     setEditingForm({
       asignatura: sesion.asignatura_sugerida || sesion.asignatura || '',
       aula: sesion.aula ?? '',
@@ -485,7 +441,7 @@ export default function RevisionHorarioPage({ params }: Props) {
     const sesion = cloned.horarios[blockIndex]?.sesiones?.[sessionIndex];
 
     if (sesion) {
-      Object.assign(sesion, {
+      const updates = {
         asignatura: editingForm.asignatura,
         aula: editingForm.aula,
         dia: editingForm.dia,
@@ -494,13 +450,36 @@ export default function RevisionHorarioPage({ params }: Props) {
         tipo: editingForm.tipo,
         grupo: editingForm.grupo || null,
         manual_validated: true,
-        asignatura_sugerida: editingForm.asignatura
+        asignatura_sugerida: editingForm.asignatura 
+      };
+      Object.assign(sesion, updates);
+
+      // PROPAGACIÓN DE EDICIÓN
+      const targetName = normalizeText(updates.asignatura || '');
+      const targetGroup = normalizeText(updates.grupo || '');
+      
+      cloned.horarios.forEach((bloque, idx) => {
+        if (idx === blockIndex) return; 
+        if (bloque.curso !== cloned.horarios[blockIndex].curso) return;
+
+        bloque.sesiones.forEach(s => {
+           const sName = normalizeText(s.asignatura_sugerida || s.asignatura || '');
+           const sGroup = normalizeText(s.grupo || '');
+           
+           if (sName === targetName && sGroup === targetGroup) {
+               s.dia = updates.dia;
+               s.hora_inicio = updates.hora_inicio;
+               s.hora_fin = updates.hora_fin;
+               s.aula = updates.aula;
+           }
+        });
       });
     }
     handleUpdateDraft(cloned);
     closeEditSesion();
   };
 
+  // --- CREACIÓN ---
   const openCreateDialog = () => {
     setCreateTab(canCreateSession ? 'session' : 'block');
     setCreateSessionForm(DEFAULT_SESSION_FORM);
@@ -513,17 +492,32 @@ export default function RevisionHorarioPage({ params }: Props) {
   const handleCreateSession = () => {
     if (!canCreateSession) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
-    const bloque = cloned.horarios[selectedBlockIndex];
-    if (!bloque.sesiones) bloque.sesiones = [];
-    bloque.sesiones.push({
+    const currentBlock = cloned.horarios[selectedBlockIndex];
+    
+    const newSession = {
       ...createSessionForm,
       grupo: createSessionForm.grupo || null,
       match_status: 'MANUAL',
-      manual_validated: true
+      manual_validated: true,
+      asignatura_sugerida: createSessionForm.asignatura
+    };
+
+    const targetCurso = currentBlock.curso;
+    let addedCount = 0;
+
+    cloned.horarios.forEach(bloque => {
+      if (bloque.curso === targetCurso) {
+        if (!bloque.sesiones) bloque.sesiones = [];
+        bloque.sesiones.push(JSON.parse(JSON.stringify(newSession)));
+        addedCount++;
+      }
     });
+
     handleUpdateDraft(cloned);
     setIsCreateOpen(false);
+    toast({ title: 'Creada', description: `Sesión añadida a ${addedCount} horario(s) del curso ${targetCurso}.` });
   };
+
   const handleCreateBlock = () => {
     const curso = newBlockForm.curso.trim();
     if (!curso) return;
@@ -539,7 +533,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     handleUpdateDraft(cloned);
     setIsCreateOpen(false);
   };
-
   const openEditBlockDialog = () => {
     const bloque = bloques[selectedBlockIndex];
     if (!bloque) return;
@@ -559,15 +552,29 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const handleSessionMove = (session: Session, newDayIndex: number, newStartTime: string) => {
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
-    const [blockStr, sesStr] = String(session.id).split('-');
-    const sesion = cloned.horarios[Number(blockStr)]?.sesiones?.[Number(sesStr)];
-    if (sesion) {
-      const duration = timeToMinutes(sesion.hora_fin) - timeToMinutes(sesion.hora_inicio);
-      const startMin = timeToMinutes(newStartTime);
-      sesion.dia = DIAS_SEMANA[newDayIndex];
-      sesion.hora_inicio = newStartTime;
-      sesion.hora_fin = minutesToTimeLabel(startMin + duration);
-      handleUpdateDraft(cloned);
+    
+    const targetId = session.id; 
+    let updatedCount = 0;
+
+    cloned.horarios.forEach((bloque) => {
+      bloque.sesiones.forEach((sesion) => {
+        const currentId = generateSemanticId(sesion, unifiedNamesMap);
+        
+        if (currentId === targetId) {
+             const duration = timeToMinutes(sesion.hora_fin) - timeToMinutes(sesion.hora_inicio);
+             const startMin = timeToMinutes(newStartTime);
+             
+             sesion.dia = DIAS_SEMANA[newDayIndex];
+             sesion.hora_inicio = newStartTime;
+             sesion.hora_fin = minutesToTimeLabel(startMin + duration);
+             
+             updatedCount++;
+        }
+      });
+    });
+    
+    if (updatedCount > 0) {
+        handleUpdateDraft(cloned);
     }
   };
 
@@ -593,13 +600,12 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
-  const currentPlanId = React.useMemo(() => listaProgramas.find((p) => p.nombre === infoForm.plan)?.id, [listaProgramas, infoForm.plan]);
-
+  // RETORNO TEMPRANO (AQUÍ YA ES SEGURO PORQUE LOS HOOKS ESTÁN ANTES)
   if (!item || !horario) return <div className="p-8"><Card><CardContent className="p-6">Cargando...</CardContent></Card></div>;
 
   const editingBloque = editingLocation && horario?.horarios ? horario.horarios[editingLocation.blockIndex] : null;
 
-  // OPCIONES para el modal de edición
+  // Variables calculadas (NO Hooks, pero dependen de Hooks anteriores)
   const editingOptions = editingLocation 
     ? getAsignaturaOptionsForBlock(editingLocation.blockIndex) 
     : activeAsignaturaOptions;
@@ -635,8 +641,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         <CardHeader><CardTitle className="flex justify-between">Resumen <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100" /></CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div><p className="text-xs text-muted-foreground">Plan Detectado</p><p className="font-medium text-primary">{detectedPrograma ? `✔ ${detectedPrograma.nombre}` : `⚠ ${displayPlan} (No encontrado)`}</p></div>
-            <div><p className="text-xs text-muted-foreground">Periodo</p><p className="font-medium capitalize">{displayPeriodo.replace(/_/g, ' ')}</p></div>
+            <div><p className="text-xs text-muted-foreground">Plan Detectado</p><p className="font-medium text-primary">{displayPlan}</p></div>
             <div><p className="text-xs text-muted-foreground">Total</p><p className="font-medium">{bloques.length} cursos · {totalSessions} sesiones</p></div>
           </div>
         </CardContent>
@@ -664,18 +669,9 @@ export default function RevisionHorarioPage({ params }: Props) {
         <ReviewDashboard 
            bloque={bloques[selectedBlockIndex] as unknown as ReviewBlock}
            onEditSession={(idx) => {
-               setEditingLocation({ blockIndex: selectedBlockIndex, sessionIndex: idx });
                const sesion = bloques[selectedBlockIndex].sesiones[idx];
-               setEditingForm({
-                   asignatura: sesion.asignatura_sugerida || sesion.asignatura,
-                   aula: sesion.aula || '',
-                   dia: sesion.dia || '',
-                   hora_inicio: sesion.hora_inicio || '',
-                   hora_fin: sesion.hora_fin || '',
-                   tipo: sesion.tipo || 'TEORÍA',
-                   grupo: sesion.grupo || ''
-               });
-               setIsEditOpen(true);
+               const fakeSession = { id: generateSemanticId(sesion, unifiedNamesMap) } as Session;
+               openEditSesion(fakeSession);
            }}
            onDeleteSession={handleDeleteSession}
         />
@@ -722,10 +718,14 @@ export default function RevisionHorarioPage({ params }: Props) {
             />
           )}
           {editingForm && (
-            <SessionFormFieldsSmart form={editingForm} onChange={handleEditFieldChange} asignaturaOptions={editingOptions} aulaOptions={aulaOptions} />
+            <SessionFormFieldsSmart 
+              form={editingForm} 
+              onChange={handleEditFieldChange} 
+              asignaturaOptions={editingOptions} 
+              aulaOptions={aulaOptions} 
+            />
           )}
           <DialogFooter className="mt-4 flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
-            {/* BOTÓN DE ELIMINAR (Lado Izquierdo) */}
             <Button 
               type="button"
               variant="ghost" 
@@ -735,15 +735,9 @@ export default function RevisionHorarioPage({ params }: Props) {
               <Trash2 className="mr-2 h-4 w-4" />
               Eliminar Sesión
             </Button>
-
-            {/* ACCIONES PRINCIPALES (Lado Derecho) */}
             <div className="flex flex-col-reverse sm:flex-row gap-2">
-              <Button variant="outline" onClick={closeEditSesion}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveSesion}>
-                Guardar Cambios
-              </Button>
+              <Button variant="outline" onClick={closeEditSesion}>Cancelar</Button>
+              <Button onClick={handleSaveSesion}>Guardar Cambios</Button>
             </div>
           </DialogFooter>
         </DialogContent>
@@ -756,7 +750,14 @@ export default function RevisionHorarioPage({ params }: Props) {
             <Button size="sm" variant={createTab === 'session' ? 'default' : 'secondary'} disabled={!canCreateSession} onClick={() => setCreateTab('session')}>Nueva sesión</Button>
             <Button size="sm" variant={createTab === 'block' ? 'default' : 'secondary'} onClick={() => setCreateTab('block')}>Nuevo horario</Button>
           </div>
-          {createTab === 'session' && <SessionFormFieldsSmart form={createSessionForm} onChange={handleCreateFieldChange} asignaturaOptions={activeAsignaturaOptions} aulaOptions={aulaOptions} />}
+          {createTab === 'session' && (
+            <SessionFormFieldsSmart 
+                form={createSessionForm} 
+                onChange={handleCreateFieldChange} 
+                asignaturaOptions={activeAsignaturaOptions} 
+                aulaOptions={aulaOptions} 
+            />
+          )}
           {createTab === 'block' && (
             <div className="space-y-3 py-2 text-sm">
               <div className="grid gap-2"><Label>Curso</Label><Input value={newBlockForm.curso} onChange={(e) => setNewBlockForm({ ...newBlockForm, curso: e.target.value })} /></div>
@@ -805,17 +806,30 @@ function SessionFormFieldsSmart({
     <div className="space-y-3 py-2 text-sm">
       <div className="grid gap-2">
         <Label>Asignatura</Label>
-        <SimpleAutocomplete options={asignaturaOptions} value={selectedAsigId} initialValue={form.asignatura} onChange={(val) => {
-            const selected = asignaturaOptions.find((o) => o.value === val);
-            if (selected) onChange('asignatura', selected.label);
-          }} placeholder="Buscar..." emptyText="No se encontraron asignaturas para este curso/plan" />
+        <SimpleAutocomplete 
+          options={asignaturaOptions} 
+          value={selectedAsigId} 
+          initialValue={form.asignatura} 
+          onChange={(val) => {
+             const selected = asignaturaOptions.find((o) => o.value === val);
+             if (selected) onChange('asignatura', selected.label);
+          }} 
+          placeholder="Buscar..." 
+          emptyText="No se encontraron asignaturas"
+        />
       </div>
       <div className="grid gap-2">
         <Label>Aula</Label>
-        <SimpleAutocomplete options={aulaOptions} value={selectedAulaId} initialValue={form.aula} onChange={(val) => {
-            const selected = aulaOptions.find((o) => o.value === val);
-            if (selected) onChange('aula', selected.label);
-          }} placeholder="Buscar..." />
+        <SimpleAutocomplete 
+          options={aulaOptions} 
+          value={selectedAulaId} 
+          initialValue={form.aula} 
+          onChange={(val) => {
+             const selected = aulaOptions.find((o) => o.value === val);
+             if (selected) onChange('aula', selected.label);
+          }} 
+          placeholder="Buscar..." 
+        />
       </div>
       <div className="grid gap-2">
         <Label>Día</Label>
@@ -838,19 +852,35 @@ function SessionFormFieldsSmart({
   );
 }
 
-// --- HELPERS ---
+// --- HELPERS IMPORTANTES ---
+
+function generateSemanticId(sesion: HorarioExtraidoSesion, unifiedMap: Map<string, string>): string {
+  const rawName = normalizeText(sesion.asignatura || '');
+  const unifiedName = unifiedMap.get(rawName) || rawName || 'UNK';
+  
+  const sName = unifiedName.trim().toUpperCase().replace(/\s+/g, '_');
+  const sType = (sesion.tipo || 'GEN').trim().toUpperCase().replace(/\s+/g, '_');
+  
+  const groupSource = sesion.grupo_codigo || sesion.grupo || 'U';
+  const sGroup = groupSource.trim().toUpperCase().replace(/\s+/g, '_');
+  
+  const sDay = (sesion.dia || 'UNK').trim().toUpperCase();
+  const sStart = (sesion.hora_inicio || '00:00').trim();
+
+  return `${sName}|${sType}|${sGroup}|${sDay}|${sStart}`;
+}
 
 function normalizeText(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-function mapHorarioToSessions(horario: HorarioExtraido): Session[] {
+function mapHorarioToSessions(horario: HorarioExtraido, unifiedMap: Map<string, string>): Session[] {
   const sessions: Session[] = [];
-  (horario.horarios || []).forEach((b, i) => sessions.push(...mapBloqueToSessions(b, i)));
+  (horario.horarios || []).forEach((b, i) => sessions.push(...mapBloqueToSessions(b, i, unifiedMap)));
   return sessions;
 }
 
-function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number): Session[] {
+function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number, unifiedMap: Map<string, string>): Session[] {
   const sessions: Session[] = [];
   (bloque.sesiones || []).forEach((sesion, sesionIndex) => {
     const dayIndex = diaToDayIndex(sesion.dia);
@@ -863,10 +893,11 @@ function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number)
     if (!hasAsignatura || !hasAula) color = 'red';
     else color = 'blue';
 
-    const displayName = sesion.asignatura_sugerida || sesion.asignatura;
+    const rawName = normalizeText(sesion.asignatura || '');
+    const displayName = sesion.asignatura_sugerida || unifiedMap.get(rawName) || sesion.asignatura;
 
     sessions.push({
-      id: `${bloqueIndex}-${sesionIndex}`,
+      id: generateSemanticId(sesion, unifiedMap), 
       courseId: buildCourseIdFromCurso(bloque.curso),
       dayIndex,
       start: normalizeTime(sesion.hora_inicio),
@@ -875,10 +906,6 @@ function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number)
       room: sesion.aula ?? '—',
       teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : '',
       color: color,
-      
-      originalName: sesion.asignatura,
-      suggestedName: sesion.asignatura_sugerida,
-      matchStatus: sesion.match_status,
     } as unknown as Session); 
   });
   return sessions;
@@ -928,7 +955,6 @@ function parseCursoNumerico(cursoTexto: string): number {
     if (txt.includes('3') || txt.includes('tercer')) return 3;
     if (txt.includes('4') || txt.includes('cuarto')) return 4;
     if (txt.includes('5') || txt.includes('quinto')) return 5;
-    if (txt.includes('6') || txt.includes('sexto')) return 6;
     return 0; 
 }
 
