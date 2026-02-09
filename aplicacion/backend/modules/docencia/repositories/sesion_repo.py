@@ -14,7 +14,7 @@ from datetime import datetime, time
 
 from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, AsignaturaMencion, Mencion, ProgramaAsignatura
 from modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
-from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana
+from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana, Periodo
 
 
 class SesionRepository:
@@ -189,6 +189,48 @@ class SesionRepository:
         db.delete(obj)
         db.flush()
         return True
+    
+    def delete_by_schedule_params(
+        self, 
+        db: Session, 
+        programa_id: int, 
+        curso: int, 
+        cuatrimestre: int, 
+        mencion: Optional[str] = None
+    ) -> int:
+        """
+        Borra sesiones filtrando por la jerarquía de Programa -> Asignatura -> Grupo -> Sesion.
+        """
+
+        # 1. Mapeo según Periodo en models.py: PRIMERO para cuatri 1, SEGUNDO para cuatri 2
+        periodo_enum = Periodo.PRIMER_CUATRIMESTRE if cuatrimestre == 1 else Periodo.SEGUNDO_CUATRIMESTRE
+
+        # 2. Construir la consulta base
+        # En tu models.py, Asignatura tiene el atributo 'curso'
+        query = db.query(Sesion).join(GrupoDocente).join(Asignatura).join(ProgramaAsignatura)
+        
+        filters = [
+            ProgramaAsignatura.programa_id == programa_id,
+            ProgramaAsignatura.curso == curso,     
+            Asignatura.periodo == periodo_enum
+        ]
+
+        # 3. Filtro por mención
+        if mencion:
+            query = query.join(AsignaturaMencion).join(Mencion)
+            filters.append(Mencion.nombre == mencion)
+
+        # 4. Obtener IDs y ejecutar borrado
+        ids_to_delete = [s.id for s in query.filter(*filters).all()]
+        
+        if not ids_to_delete:
+            return 0
+
+        # Al borrar Sesion, se limpian las relaciones N:M por las FKs definidas
+        count = db.query(Sesion).filter(Sesion.id.in_(ids_to_delete)).delete(synchronize_session=False)
+        
+        db.flush() 
+        return count
 
     # ==========================
     # GESTIÓN DE PROFESORES

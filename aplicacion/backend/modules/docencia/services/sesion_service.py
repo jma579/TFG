@@ -338,6 +338,38 @@ class SesionService:
         sesion_repository.delete(db, id)
         db.commit()
 
+    def borrar_horario(
+        self, 
+        db: Session, 
+        programa_id: int, 
+        curso: int, 
+        cuatrimestre: int, 
+        mencion: Optional[str] = None
+    ) -> int:
+        """
+        Lógica de negocio para eliminar un horario completo.
+        """
+        try:
+            # 1. (Opcional) Podrías llamar al repositorio de conflictos para limpiar 
+            # registros huérfanos antes, aunque si usas CASCADE en DB no es necesario.
+            
+            # 2. Ejecutar borrado masivo
+            num_borrados = sesion_repository.delete_by_schedule_params(
+                db, programa_id, curso, cuatrimestre, mencion
+            )
+            
+            db.commit()
+            logging.info(f"Horario eliminado: {num_borrados} sesiones de Programa {programa_id}, Curso {curso}")
+            return num_borrados
+            
+        except Exception as e:
+            db.rollback()
+            logging.error(f"Error al borrar horario: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error interno al intentar eliminar las sesiones del horario."
+            )
+
     def get_by_id(self, db: Session, id: int) -> SesionOut:
         sesion = sesion_repository.get_by_id(db, id)
         if not sesion:

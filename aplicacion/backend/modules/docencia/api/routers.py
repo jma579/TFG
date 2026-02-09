@@ -1345,6 +1345,35 @@ async def confirm_horario(
     """
     return horarios_pipeline_service.confirmar_horario(db, payload)
 
+@router.delete(
+    "/horarios",
+    status_code=status.HTTP_200_OK,
+    summary="Eliminar un horario completo",
+    description="Elimina todas las sesiones asociadas a un programa, curso y cuatrimestre específico."
+)
+def delete_horario(
+    programa_id: int = Query(..., gt=0),
+    curso: int = Query(..., ge=1),
+    cuatrimestre: int = Query(..., ge=1, le=2),
+    mencion: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    num_deleted = sesion_service.borrar_horario(
+        db, programa_id, curso, cuatrimestre, mencion
+    )
+    
+    if num_deleted == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontraron sesiones para los criterios especificados."
+        )
+        
+    return {
+        "status": "success",
+        "message": f"Se han eliminado {num_deleted} sesiones correctamente.",
+        "deleted_count": num_deleted
+    }
+
 
 # ============================================================
 #  ENDPOINTS DE DASHBOARD (VISTA AGREGADA)

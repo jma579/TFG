@@ -104,3 +104,18 @@ export async function refineHorario(
   // Si devuelve el objeto AxiosResponse, response.data es la data.
   return response.data ?? response;
 }
+
+/**
+ * Elimina un horario completo basado en los criterios de filtrado.
+ */
+export async function deleteHorario(params: {
+  programa_id: number;
+  curso: number;
+  cuatrimestre: number;
+  mencion?: string;
+}) {
+  const { data } = await api.delete('/v0/docencia/horarios', {
+    params, // Los enviamos como Query Params siguiendo la definición del Backend
+  });
+  return data;
+}

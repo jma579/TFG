@@ -1,22 +1,33 @@
 import React from 'react';
-// CORRECCIÓN: Importamos desde el archivo local 'data' en lugar de 'types/dashboard'
 import { ScheduleSummary } from './data'; 
-import { Calendar, AlertTriangle, CheckCircle, ArrowRight, BookOpen, Layers, Loader2 } from 'lucide-react';
+import { Calendar, AlertTriangle, CheckCircle, ArrowRight, BookOpen, Layers, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
+// Definición de la interfaz corregida para eliminar el error de la línea 173
 interface ScheduleCardProps {
   data: ScheduleSummary;
   onView: (data: ScheduleSummary) => void;
-  onSolve: (data: ScheduleSummary) => void;
+  onDelete: (data: ScheduleSummary) => void; // Cambiado de onSolve a onDelete
 }
 
-export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolve }) => {
+export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onDelete }) => {
   const isConflict = data.estado === 'CONFLICTO';
   const isProcessing = data.estado === 'PROCESANDO';
 
-  // Lógica: Si la lista está vacía es curso general, si no, mostramos la mención.
+  // Lógica de visualización de itinerario
   const esCursoGeneral = data.menciones.length === 0;
   const nombreItinerario = esCursoGeneral ? "Curso General / Troncal" : data.menciones[0];
 
@@ -25,7 +36,7 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolv
       isConflict ? 'border-l-red-500' : isProcessing ? 'border-l-blue-500' : 'border-l-green-500'
     } shadow-sm hover:shadow-md transition-all duration-200`}>
       
-      {/* CABECERA: Título y Estado */}
+      {/* CABECERA */}
       <CardHeader className="pb-2 space-y-1">
         <div className="flex justify-between items-start">
           <div>
@@ -41,10 +52,8 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolv
             <Badge 
               variant="destructive" 
               className="bg-red-100 text-red-700 border-red-200 hover:bg-red-200 px-2 py-1"
-              title={`Se han detectado ${data.conflictos_count} incidencias únicas en este horario`}
             >
               <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />
-              {/* Muestra "Conflictos" en lugar de "Sesiones" */}
               {data.conflictos_count} {data.conflictos_count === 1 ? 'Conflicto' : 'Conflictos'}
             </Badge>
           ) : isProcessing ? (
@@ -62,14 +71,12 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolv
       </CardHeader>
 
       <CardContent className="flex-1 pb-4 flex flex-col gap-4">
-        
-        {/* ZONA SUPERIOR: Itinerario (Justo debajo del título) */}
+        {/* ITINERARIO */}
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs text-gray-500 font-medium uppercase">
             <Layers className="w-3.5 h-3.5" />
             <span>Itinerario</span>
           </div>
-          
           <div className={`flex items-center gap-2 px-3 py-2 rounded-md border text-sm font-medium w-full ${
             esCursoGeneral 
               ? "bg-gray-50 text-gray-700 border-gray-200" 
@@ -81,7 +88,7 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolv
           </div>
         </div>
 
-        {/* ZONA INFERIOR: Métricas (Resumen de contenido) */}
+        {/* MÉTRICAS */}
         <div className="mt-auto grid grid-cols-2 gap-3">
           <div className="bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
             <span className="text-xl font-bold text-gray-900">{data.total_sesiones}</span>
@@ -98,26 +105,49 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onSolv
             </div>
           </div>
         </div>
-
       </CardContent>
 
-      {/* PIE: Acciones */}
+      {/* PIE DE TARJETA: ACCIONES */}
       <CardFooter className="pt-3 pb-3 flex gap-3 border-t bg-gray-50/30">
-        {isConflict ? (
-          <Button 
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white shadow-sm h-9"
-            onClick={() => onSolve(data)}
-          >
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Resolver
-          </Button>
-        ) : (
-          <div className="flex-1"></div> 
-        )}
         
+        {/* BOTÓN ELIMINAR CON DIÁLOGO DE CONFIRMACIÓN */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 h-9 transition-colors"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Eliminar
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro de eliminar este horario?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción eliminará permanentemente la planificación de <strong>{data.curso}º Curso</strong>
+                {/* Lógica condicional para la mención */}
+                {!esCursoGeneral ? (
+                  <> con mención en <strong>{nombreItinerario}</strong></>
+                ) : null}
+                . Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => onDelete(data)}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Eliminar Horario
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
+        {/* BOTÓN VER HORARIO */}
         <Button 
-          variant={isConflict ? "outline" : "default"}
-          className={`flex-1 h-9 ${!isConflict ? 'bg-blue-600 hover:bg-blue-700 shadow-sm' : 'border-gray-300'}`}
+          className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 shadow-sm text-white"
           onClick={() => onView(data)}
         >
           Ver Horario <ArrowRight className="w-4 h-4 ml-2" />
