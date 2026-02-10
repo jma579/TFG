@@ -234,7 +234,7 @@ export default function RevisionHorarioPage({ params }: Props) {
   
   const canCreateSession = bloques.length > 0;
 
-  // --- HELPERS DE FILTRADO (DEFINIDOS ANTES DEL RETURN) ---
+  // --- HELPERS DE FILTRADO ---
   const detectedPrograma = React.useMemo(() => {
     if (!horario || !listaProgramas.length) return null;
     const planTexto = normalizeText(horario.plan || horario.titulo?.split(' - ')[0] || '');
@@ -306,8 +306,6 @@ export default function RevisionHorarioPage({ params }: Props) {
       return getAsignaturaOptionsForBlock(selectedBlockIndex);
   }, [getAsignaturaOptionsForBlock, selectedBlockIndex]);
 
-  // [CORREGIDO] MOVIDO ANTES DEL RETURN
-  // Esto soluciona el error "React Hook is called conditionally"
   const currentPlanId = React.useMemo(() => {
     return listaProgramas.find((p) => p.nombre === infoForm.plan)?.id;
   }, [listaProgramas, infoForm.plan]);
@@ -323,6 +321,33 @@ export default function RevisionHorarioPage({ params }: Props) {
       label: a.nombre,
       keywords: a.codigo,
   })), [listaAulas]);
+
+  // --- 🧠 LÓGICA DE NEGOCIO: ASIGNATURA COMÚN ---
+  // Determina si una asignatura es troncal/común basándose en el catálogo
+  const checkIsAsignaturaComun = React.useCallback((nombreAsignatura: string) => {
+    if (!detectedPrograma || !listaAsignaturas.length) return false;
+    
+    const norm = normalizeText(nombreAsignatura);
+    const found = listaAsignaturas.find(a => normalizeText(a.nombre) === norm);
+    
+    // Si no la encontramos en catálogo, no podemos saber su tipo -> Asumimos NO COMÚN (conservador)
+    if (!found?.titulaciones) return false;
+
+    // Buscamos la ficha de la asignatura para este programa
+    // eslint-disable-next-line eqeqeq
+    const vinculacion = found.titulaciones.find(t => t.programa?.id == detectedPrograma.id);
+    if (!vinculacion) return false;
+
+    // Obtenemos el tipo (adaptar 'tipo' o 'tipo_asignatura' según tu API real)
+    // @ts-expect-error - Acceso dinámico por si la API varía nombre
+    const tipo = (vinculacion.tipo || vinculacion.tipo_asignatura || '').toString().toUpperCase();
+    
+    // HEURÍSTICA: Es común si es Básica u Obligatoria
+    return tipo.includes('BASICA') || 
+           tipo.includes('BÁSICA') || 
+           tipo.includes('OBLIGATORIA') || 
+           tipo.includes('TRONCAL');
+  }, [listaAsignaturas, detectedPrograma]);
 
   // --- ACTIONS ---
 
@@ -366,6 +391,7 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
+  // --- [MODIFICADO] BORRADO QUIRÚRGICO O PROPAGADO ---
   const handleDeleteSession = (sesIndex: number) => {
     if (!draftHorario) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
@@ -377,19 +403,33 @@ export default function RevisionHorarioPage({ params }: Props) {
     const targetId = generateSemanticId(targetSession, unifiedNamesMap);
     const targetCurso = targetBlock.curso;
 
-    let deletedCount = 0;
-    cloned.horarios.forEach(bloque => {
-      if (bloque.curso !== targetCurso) return; 
+    // Verificar si es común
+    const nombreOficial = targetSession.asignatura_sugerida || targetSession.asignatura;
+    const esComun = checkIsAsignaturaComun(nombreOficial);
 
-      const prevLen = bloque.sesiones.length;
-      bloque.sesiones = bloque.sesiones.filter(s => 
-        generateSemanticId(s, unifiedNamesMap) !== targetId
-      );
-      if (bloque.sesiones.length < prevLen) deletedCount++;
-    });
+    let deletedCount = 0;
+
+    if (esComun) {
+        // MODO TRONCAL: Borrar de todos los grupos (Comportamiento sincronizado)
+        cloned.horarios.forEach(bloque => {
+          if (bloque.curso !== targetCurso) return; 
+          const prevLen = bloque.sesiones.length;
+          bloque.sesiones = bloque.sesiones.filter(s => 
+            generateSemanticId(s, unifiedNamesMap) !== targetId
+          );
+          if (bloque.sesiones.length < prevLen) deletedCount++;
+        });
+        toast({ title: 'Eliminada', description: `Se ha eliminado la sesión troncal de ${deletedCount} grupo(s).` });
+    } else {
+        // MODO OPTATIVA/ESPECÍFICA: Borrar SOLO de este bloque (Corrección de errores)
+        if (targetBlock.sesiones) {
+            targetBlock.sesiones.splice(sesIndex, 1);
+            deletedCount = 1;
+        }
+        toast({ title: 'Eliminada', description: 'Se ha eliminado la sesión solo de este horario.' });
+    }
 
     handleUpdateDraft(cloned);
-    toast({ title: 'Eliminada', description: `Se ha eliminado la sesión de ${deletedCount} grupo(s).` });
   };
 
   const handleDeleteFromModal = () => {
@@ -454,26 +494,30 @@ export default function RevisionHorarioPage({ params }: Props) {
       };
       Object.assign(sesion, updates);
 
-      // PROPAGACIÓN DE EDICIÓN
+      // PROPAGACIÓN DE EDICIÓN (Solo si es común o comparte ID previamente)
+      // Simplificación: Propagamos si coincide nombre y grupo en el mismo curso
       const targetName = normalizeText(updates.asignatura || '');
       const targetGroup = normalizeText(updates.grupo || '');
-      
-      cloned.horarios.forEach((bloque, idx) => {
-        if (idx === blockIndex) return; 
-        if (bloque.curso !== cloned.horarios[blockIndex].curso) return;
+      const esComun = checkIsAsignaturaComun(updates.asignatura);
 
-        bloque.sesiones.forEach(s => {
-           const sName = normalizeText(s.asignatura_sugerida || s.asignatura || '');
-           const sGroup = normalizeText(s.grupo || '');
-           
-           if (sName === targetName && sGroup === targetGroup) {
-               s.dia = updates.dia;
-               s.hora_inicio = updates.hora_inicio;
-               s.hora_fin = updates.hora_fin;
-               s.aula = updates.aula;
-           }
-        });
-      });
+      if (esComun) {
+          cloned.horarios.forEach((bloque, idx) => {
+            if (idx === blockIndex) return; 
+            if (bloque.curso !== cloned.horarios[blockIndex].curso) return;
+
+            bloque.sesiones.forEach(s => {
+              const sName = normalizeText(s.asignatura_sugerida || s.asignatura || '');
+              const sGroup = normalizeText(s.grupo || '');
+              
+              if (sName === targetName && sGroup === targetGroup) {
+                  s.dia = updates.dia;
+                  s.hora_inicio = updates.hora_inicio;
+                  s.hora_fin = updates.hora_fin;
+                  s.aula = updates.aula;
+              }
+            });
+          });
+      }
     }
     handleUpdateDraft(cloned);
     closeEditSesion();
@@ -489,6 +533,7 @@ export default function RevisionHorarioPage({ params }: Props) {
   const closeCreateDialog = () => setIsCreateOpen(false);
   const handleCreateFieldChange = <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => setCreateSessionForm((p) => ({ ...p, [f]: v }));
   
+  // --- [MODIFICADO] CREACIÓN INTELIGENTE ---
   const handleCreateSession = () => {
     if (!canCreateSession) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
@@ -503,19 +548,35 @@ export default function RevisionHorarioPage({ params }: Props) {
     };
 
     const targetCurso = currentBlock.curso;
+    const esComun = checkIsAsignaturaComun(newSession.asignatura);
+    
     let addedCount = 0;
 
-    cloned.horarios.forEach(bloque => {
-      if (bloque.curso === targetCurso) {
-        if (!bloque.sesiones) bloque.sesiones = [];
-        bloque.sesiones.push(JSON.parse(JSON.stringify(newSession)));
-        addedCount++;
-      }
-    });
+    // 1. Siempre añadir al bloque actual
+    if (!currentBlock.sesiones) currentBlock.sesiones = [];
+    currentBlock.sesiones.push(JSON.parse(JSON.stringify(newSession)));
+    addedCount++;
+
+    // 2. Propagar solo si es ASIGNATURA COMÚN (Básica/Obligatoria)
+    if (esComun) {
+        cloned.horarios.forEach((bloque, idx) => {
+          if (idx === selectedBlockIndex) return;
+          if (bloque.curso !== targetCurso) return;
+
+          if (!bloque.sesiones) bloque.sesiones = [];
+          bloque.sesiones.push(JSON.parse(JSON.stringify(newSession)));
+          addedCount++;
+        });
+    }
 
     handleUpdateDraft(cloned);
     setIsCreateOpen(false);
-    toast({ title: 'Creada', description: `Sesión añadida a ${addedCount} horario(s) del curso ${targetCurso}.` });
+    
+    if (esComun && addedCount > 1) {
+        toast({ title: 'Creada', description: `Sesión troncal añadida a ${addedCount} grupos.` });
+    } else {
+        toast({ title: 'Creada', description: `Sesión añadida solo a este grupo (Optativa).` });
+    }
   };
 
   const handleCreateBlock = () => {
@@ -550,6 +611,7 @@ export default function RevisionHorarioPage({ params }: Props) {
     setIsEditBlockOpen(false);
   };
 
+  // --- HANDLE MOVE ---
   const handleSessionMove = (session: Session, newDayIndex: number, newStartTime: string) => {
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     
@@ -600,12 +662,10 @@ export default function RevisionHorarioPage({ params }: Props) {
     }
   };
 
-  // RETORNO TEMPRANO (AQUÍ YA ES SEGURO PORQUE LOS HOOKS ESTÁN ANTES)
   if (!item || !horario) return <div className="p-8"><Card><CardContent className="p-6">Cargando...</CardContent></Card></div>;
 
   const editingBloque = editingLocation && horario?.horarios ? horario.horarios[editingLocation.blockIndex] : null;
 
-  // Variables calculadas (NO Hooks, pero dependen de Hooks anteriores)
   const editingOptions = editingLocation 
     ? getAsignaturaOptionsForBlock(editingLocation.blockIndex) 
     : activeAsignaturaOptions;
@@ -882,9 +942,19 @@ function mapHorarioToSessions(horario: HorarioExtraido, unifiedMap: Map<string, 
 
 function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number, unifiedMap: Map<string, string>): Session[] {
   const sessions: Session[] = [];
+  const seenIds = new Set<string>();
+
   (bloque.sesiones || []).forEach((sesion, sesionIndex) => {
     const dayIndex = diaToDayIndex(sesion.dia);
     if (dayIndex < 0) return;
+
+    const id = generateSemanticId(sesion, unifiedMap);
+    
+    // Evitamos duplicados en la visualización
+    if (seenIds.has(id)) {
+        return; 
+    }
+    seenIds.add(id);
 
     let color: Session['color'] = 'blue';
     const hasAsignatura = sesion.asignatura_sugerida || sesion.manual_validated || sesion.match_status === 'EXACT' || sesion.match_status === 'ALIAS_DB';
@@ -897,7 +967,7 @@ function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number,
     const displayName = sesion.asignatura_sugerida || unifiedMap.get(rawName) || sesion.asignatura;
 
     sessions.push({
-      id: generateSemanticId(sesion, unifiedMap), 
+      id: id, 
       courseId: buildCourseIdFromCurso(bloque.curso),
       dayIndex,
       start: normalizeTime(sesion.hora_inicio),
@@ -954,7 +1024,6 @@ function parseCursoNumerico(cursoTexto: string): number {
     if (txt.includes('2') || txt.includes('segundo')) return 2;
     if (txt.includes('3') || txt.includes('tercer')) return 3;
     if (txt.includes('4') || txt.includes('cuarto')) return 4;
-    if (txt.includes('5') || txt.includes('quinto')) return 5;
     return 0; 
 }
 
