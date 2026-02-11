@@ -48,24 +48,21 @@ class SlotSemanal(BaseModel):
 # -----------------------------------------------------------------------------
 
 class SesionRef(BaseModel):
-    """
-    DTO de sesión enriquecido.
-    Incluye asignatura y grupo para detectar colisiones de plan de estudios.
-    """
     id: int
-    aula_id: Optional[int] = None # Puede ser null si aún no se asignó aula
+    aula_id: Optional[int] = None
     profesor_ids: List[int] = Field(default_factory=list)
-    
-    # Nuevos campos para reglas de negocio
     asignatura_id: int 
     grupo_id: int
+    curso: int = 0
+    periodo: str = "" 
+    tipo_grupo: str = "TEORIA"
+    grupo_codigo: str = "UNICO"
+    mencion_ids: List[int] = Field(default_factory=list)
     
-    curso: int = 0                  # Ej: 1, 2, 3...
-    periodo: str = ""             # ANUAL, SEMESTRAL, TRIMESTRAL...
-    tipo_grupo: str = "TEORIA"      # TEORIA, PRACTICA, LABORATORIO...
-    grupo_codigo: str = "UNICO"     # "A", "B", "1", "UNICO"
-    mencion_ids: List[int] = Field(default_factory=list) # IDs de menciones asociadas
-    
+    grado_nombre: str = "Plan de Estudios"
+    mencion_nombre: Optional[str] = None
+    periodo_nombre: str = ""
+
     tipo_recurrencia: Literal["SEMANAL", "FECHADA"]
     slot: Optional[SlotSemanal] = None
     intervalo: Optional[Intervalo] = None

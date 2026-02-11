@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 from datetime import datetime, time
 
-from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, AsignaturaMencion, Mencion, ProgramaAsignatura
+from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, Mencion, ProgramaAsignatura
 from modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
 from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana, Periodo
 
@@ -36,6 +36,24 @@ class SesionRepository:
             )\
             .filter(Sesion.id == id)\
             .first()
+    
+    def get_sesiones_for_engine(self, db: Session) -> List[Sesion]:
+        """
+        Recupera todas las sesiones con los JOINS necesarios para el motor.
+        Implementa la nueva lógica contextual de menciones.
+        """
+        return db.query(Sesion).options(
+            joinedload(Sesion.profesores_sesiones),
+            joinedload(Sesion.aula),
+            joinedload(Sesion.grupo_docente)
+                .joinedload(GrupoDocente.asignatura)
+                .joinedload(Asignatura.programa_asignaturas)
+                .joinedload(ProgramaAsignatura.mencion),
+            joinedload(Sesion.grupo_docente)
+                .joinedload(GrupoDocente.asignatura)
+                .joinedload(Asignatura.programa_asignaturas)
+                .joinedload(ProgramaAsignatura.programa)
+        ).all()
 
     def get_multi(
         self,
@@ -52,28 +70,28 @@ class SesionRepository:
         Recupera sesiones con filtros avanzados. 
         Cruza con Asignatura y ProgramaAsignatura para filtrar por contexto académico.
         """
+        # Partimos de Sesion -> GrupoDocente -> Asignatura
         query = db.query(Sesion).join(Sesion.grupo_docente).join(GrupoDocente.asignatura)
 
-        # Filtro por Programa y/o Curso (vía ProgramaAsignatura)
-        if programa_id or curso:
+        # Filtro Académico Contextual (Programa, Curso, Mención)
+        # Usamos la nueva tabla ProgramaAsignatura para todo el contexto del Grado/Máster
+        if programa_id or curso or mencion_id:
             query = query.join(Asignatura.programa_asignaturas)
+            
             if programa_id:
                 query = query.filter(ProgramaAsignatura.programa_id == programa_id)
             if curso:
                 query = query.filter(ProgramaAsignatura.curso == curso)
+            if mencion_id:
+                query = query.filter(ProgramaAsignatura.mencion_id == mencion_id)
 
-        # --- CAMBIO CRÍTICO: Filtro por Periodo (Cuatrimestre) ---
+        # Filtro por Periodo (Cuatrimestre / Anual)
         if periodo:
             query = query.filter(Asignatura.periodo == periodo)
 
         # Filtro por Aula
         if aula_id:
             query = query.filter(Sesion.aula_id == aula_id)
-
-        # Filtro por Mención
-        if mencion_id:
-            query = query.join(Asignatura.asignatura_menciones)\
-                         .filter(AsignaturaMencion.mencion_id == mencion_id)
 
         # Optimizaciones de carga (Eager Loading)
         query = query.options(
@@ -164,8 +182,11 @@ class SesionRepository:
 
         # 3. Filtro por mención
         if mencion:
-            query = query.join(AsignaturaMencion).join(Mencion)
+            query = query.join(ProgramaAsignatura.mencion)
             filters.append(Mencion.nombre == mencion)
+        else:
+            # PROTECCIÓN: Si no pasan mención, borramos SOLO las asignaturas del tronco general
+            filters.append(ProgramaAsignatura.mencion_id.is_(None))
 
         # 4. Obtener IDs y ejecutar borrado
         ids_to_delete = [s.id for s in query.filter(*filters).all()]

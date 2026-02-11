@@ -72,13 +72,7 @@ class AsignaturaService:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Asignatura no encontrada")
         
         rels = self.programa_asignatura_repo.get_by_asignatura(db, asignatura_id)
-        return [
-            AsignaturaProgramaOut(
-                programa=r.programa, 
-                curso=r.curso, 
-                tipo_asignatura=r.tipo_asignatura
-            ) for r in rels
-        ]
+        return [AsignaturaProgramaOut.model_validate(r) for r in rels]
 
     def get_profesores_de_asignatura(self, db: Session, asignatura_id: int) -> List[ProfesorOut]:
         """Obtiene los profesores asignados a una asignatura."""

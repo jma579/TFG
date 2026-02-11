@@ -7,7 +7,7 @@ como el 'curso' y el 'tipo de asignatura' (Obligatoria, Optativa, etc.).
 
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
-from database.models import ProgramaAsignatura
+from database.models import ProgramaAsignatura, Mencion
 from constants.enums import TipoAsignatura
 
 class ProgramaAsignaturaRepository:
@@ -20,6 +20,7 @@ class ProgramaAsignaturaRepository:
         asignatura_id: int,
         curso: int,
         tipo_asignatura: TipoAsignatura,
+        mencion_id: Optional[int]=None
     ) -> ProgramaAsignatura:
         """
         Crea una nueva vinculación entre programa y asignatura.
@@ -27,6 +28,7 @@ class ProgramaAsignaturaRepository:
         rel = ProgramaAsignatura(
             programa_id=programa_id,
             asignatura_id=asignatura_id,
+            mencion_id=mencion_id,
             curso=curso,
             tipo_asignatura=tipo_asignatura,
         )
@@ -58,15 +60,17 @@ class ProgramaAsignaturaRepository:
             ProgramaAsignatura.asignatura_id == asignatura_id
         ).first() is not None
     
-    def update_tipo_curso(
+    def update_tipo_curso_mencion( 
         self, 
         db: Session, 
         programa_id: int, 
         asignatura_id: int, 
         curso: Optional[int] = None, 
-        tipo_asignatura: Optional[TipoAsignatura] = None
+        tipo_asignatura: Optional[TipoAsignatura] = None,
+        mencion_id: Optional[int] = None, # NUEVO
+        remove_mencion: bool = False # NUEVO: flag explícito para poner mencion a null
     ) -> Optional[ProgramaAsignatura]:
-        """Actualiza el curso o tipo de una relación existente."""
+        """Actualiza el curso, tipo o mención de una relación existente."""
         rel = self.get_by_programa_and_asignatura(db, programa_id, asignatura_id)
         if not rel:
             return None
@@ -75,6 +79,16 @@ class ProgramaAsignaturaRepository:
             rel.curso = curso
         if tipo_asignatura is not None:
             rel.tipo_asignatura = tipo_asignatura
+        
+        # NUEVO: Lógica de actualización de mención
+        if remove_mencion:
+            rel.mencion_id = None
+        elif mencion_id is not None:
+            # Validar que la mención pertenece al mismo programa
+            mencion = db.query(Mencion).filter(Mencion.id == mencion_id).first()
+            if not mencion or mencion.programa_id != programa_id:
+                raise ValueError("La mención proporcionada no pertenece al programa de esta vinculación.")
+            rel.mencion_id = mencion_id
             
         db.flush()
         db.refresh(rel)

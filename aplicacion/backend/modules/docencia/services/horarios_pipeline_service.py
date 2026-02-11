@@ -25,6 +25,7 @@ from modules.docencia.services.grupo_docente_service import grupo_docente_servic
 from modules.docencia.services.sesion_service import sesion_service
 from modules.docencia.repositories.grupo_docente_repo import grupo_docente_repository
 from modules.recursos.repositories.aula_repo import aula_repository
+from modules.catalogo.repositories.programa_asignatura_repo import programa_asignatura_repository
 
 from core.conflictos.engine import conflict_engine
 from modules.conflictos.repositories.conflictos_repo import conflictos_repository
@@ -35,7 +36,6 @@ from database.models import (
     Aula, 
     Programa, 
     Mencion, 
-    AsignaturaMencion, 
     GrupoDocente, 
     Sesion, 
     AsignaturaAlias
@@ -54,7 +54,7 @@ from modules.catalogo.services.asignatura_matcher import AsignaturaMatcher
 from modules.recursos.services.aula_matcher import AulaMatcher
 
 # Enums
-from constants.enums import TipoGrupoDocente, DiaSemana
+from constants.enums import TipoGrupoDocente, DiaSemana, TipoAsignatura
 
 logger = logging.getLogger(__name__)
 
@@ -315,12 +315,19 @@ class HorariosPipelineService:
 
                     # 4.4 Vincular Mención
                     if mencion_db:
-                        # Recuperamos por ID porque expire_all invalidó el objeto
-                        link_existe = db.query(AsignaturaMencion).filter_by(
-                            asignatura_id=asignatura.id, mencion_id=mencion_db.id
-                        ).first()
-                        if not link_existe:
-                            db.add(AsignaturaMencion(asignatura_id=asignatura.id, mencion_id=mencion_db.id))
+                        # Buscamos si ya existe la relación base creada por la Ficha Docente
+                        rel_prog_asig = programa_asignatura_repository.get_by_programa_and_asignatura(
+                            db, programa_id=programa_db.id, asignatura_id=asignatura.id
+                        )
+                        
+                        if rel_prog_asig:
+                            # Actualizamos la relación existente inyectando la mención descubierta
+                            programa_asignatura_repository.update_tipo_curso_mencion(
+                                db, 
+                                programa_id=programa_db.id, 
+                                asignatura_id=asignatura.id, 
+                                mencion_id=mencion_db.id
+                            )
 
                     # 4.5 Gestión de Grupo (CORREGIDO: USAR IDs)
                     codigo_grupo = sesion_norm.grupo_codigo.strip().upper() or "UNICO"

@@ -22,11 +22,17 @@ class AsignaturaRepository:
 
     def get_by_id(self, db: Session, asignatura_id: int) -> Optional[Asignatura]:
         """Busca una asignatura por su identificador primario."""
-        return db.query(Asignatura).filter(Asignatura.id == asignatura_id).first()
+        return db.query(Asignatura).options(
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa),
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.mencion)
+        ).filter(Asignatura.id == asignatura_id).first()
 
     def get_by_codigo(self, db: Session, codigo_plan: str) -> Optional[Asignatura]:
         """Busca una asignatura por su código de plan de estudios (único)."""
-        return db.query(Asignatura).filter(Asignatura.codigo_plan == codigo_plan).first()
+        return db.query(Asignatura).options(
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa),
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.mencion)
+        ).filter(Asignatura.codigo_plan == codigo_plan).first()
 
     def get_by_programa(
         self, db: Session, programa_id: int, skip: int = 0, limit: int = 100
@@ -38,7 +44,12 @@ class AsignaturaRepository:
             .filter(ProgramaAsignatura.programa_id == programa_id)
         )
         total = query.count()
-        items = query.offset(skip).limit(limit).all()
+        
+        items = query.offset(skip).limit(limit).options(
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa),
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.mencion)
+        ).all()
+        
         return items, total
 
     def get_multi(
@@ -68,7 +79,8 @@ class AsignaturaRepository:
         
         # Eager loading para optimizar rendimiento
         items = query.offset(skip).limit(limit).options(
-            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa)
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa),
+            joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.mencion)
         ).all()
 
         return items, total

@@ -57,13 +57,11 @@ class Asignatura(Base):
     # Relaciones
     grupos_docentes = relationship("GrupoDocente", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     programa_asignaturas = relationship("ProgramaAsignatura", back_populates="asignatura", passive_deletes=True)
-    asignatura_menciones = relationship("AsignaturaMencion", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     aliases = relationship("AsignaturaAlias", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
 
     # Conveniencia (solo lectura)
     programas = relationship("Programa", secondary="programas_asignaturas", viewonly=True, overlaps="programa_asignaturas,asignaturas")
-    menciones = relationship("Mencion", secondary="asignaturas_menciones", viewonly=True, overlaps="asignatura_menciones,asignaturas")
 
 class AsignaturaAlias(Base):
     __tablename__ = "asignaturas_aliases"
@@ -95,10 +93,9 @@ class Mencion(Base):
     )
 
     programa = relationship("Programa", back_populates="menciones", passive_deletes=True)
-    asignatura_menciones = relationship("AsignaturaMencion", back_populates="mencion", passive_deletes=True)
-
-    # Conveniencia (solo lectura)
-    asignaturas = relationship("Asignatura", secondary="asignaturas_menciones", viewonly=True, overlaps="asignatura_menciones,asignaturas")
+    
+    # La mención se asocia a las asignaturas a través de la tabla intermedia que las vincula al programa
+    programa_asignaturas = relationship("ProgramaAsignatura", back_populates="mencion", passive_deletes=True)
 
 
 # ============================
@@ -232,6 +229,10 @@ class ProgramaAsignatura(Base):
     id = Column(Integer, primary_key=True)
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
+    
+    # Clave foránea añadida para el contexto de la mención
+    mencion_id = Column(Integer, ForeignKey("menciones.id", ondelete="SET NULL"), nullable=True)
+    
     curso = Column(Integer)  # p.ej. 1..4
     tipo_asignatura = Column(Enum(TipoAsignatura))
 
@@ -239,26 +240,12 @@ class ProgramaAsignatura(Base):
         UniqueConstraint("programa_id", "asignatura_id", name="uq_programa_asignatura"),
         Index("ix_prog_asig_programa", "programa_id"),
         Index("ix_prog_asig_asignatura", "asignatura_id"),
+        Index("ix_prog_asig_mencion", "mencion_id"), # Índice para búsquedas rápidas por mención
     )
 
     programa = relationship("Programa", back_populates="programa_asignaturas", passive_deletes=True)
     asignatura = relationship("Asignatura", back_populates="programa_asignaturas", passive_deletes=True)
-
-
-class AsignaturaMencion(Base):
-    __tablename__ = "asignaturas_menciones"
-    id = Column(Integer, primary_key=True)
-    asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
-    mencion_id = Column(Integer, ForeignKey("menciones.id", ondelete="CASCADE"), nullable=False)
-
-    __table_args__ = (
-        UniqueConstraint("asignatura_id", "mencion_id", name="uq_asignatura_mencion"),
-        Index("ix_asig_men_asignatura", "asignatura_id"),
-        Index("ix_asig_men_mencion", "mencion_id"),
-    )
-
-    asignatura = relationship("Asignatura", back_populates="asignatura_menciones", passive_deletes=True)
-    mencion = relationship("Mencion", back_populates="asignatura_menciones", passive_deletes=True)
+    mencion = relationship("Mencion", back_populates="programa_asignaturas", passive_deletes=True)
 
 
 class ProfesorAsignatura(Base):

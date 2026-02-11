@@ -316,3 +316,14 @@ class MencionList(BaseModel):
             }
         }
     )
+
+
+class MencionResumen(BaseModel):
+    """
+    Schema de solo lectura (ligero) para anidar la mención 
+    dentro de relaciones (ej. AsignaturaProgramaOut).
+    """
+    id: int = Field(..., description="ID de la mención")
+    nombre: str = Field(..., description="Nombre de la mención")
+
+    model_config = ConfigDict(from_attributes=True)

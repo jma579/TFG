@@ -8,9 +8,9 @@ Responsabilidades:
 
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 
-from database.models import Conflicto, Sesion, GrupoDocente, Asignatura, ProgramaAsignatura, AsignaturaMencion
+from database.models import Conflicto, Sesion, GrupoDocente, Asignatura, ProgramaAsignatura
 from core.conflictos.types import ResultadoDeteccion
 from constants.enums import EstadoConflicto
 
@@ -47,17 +47,17 @@ class ConflictosRepository:
                 # 1. Aula
                 entidad_sesion.joinedload(Sesion.aula),
                 
-                # 2. Asignatura -> Menciones (Rama A)
-                entidad_sesion.joinedload(Sesion.grupo_docente)
-                    .joinedload(GrupoDocente.asignatura)
-                    .joinedload(Asignatura.asignatura_menciones)
-                    .joinedload(AsignaturaMencion.mencion),
-
-                # 3. Asignatura -> Programas (Rama B - Separada)
+                # 2. Asignatura -> Programa (Contexto Principal)
                 entidad_sesion.joinedload(Sesion.grupo_docente)
                     .joinedload(GrupoDocente.asignatura)
                     .joinedload(Asignatura.programa_asignaturas)
-                    .joinedload(ProgramaAsignatura.programa)
+                    .joinedload(ProgramaAsignatura.programa),
+                    
+                # 3. Asignatura -> Mención (A través del nuevo contexto)
+                entidad_sesion.joinedload(Sesion.grupo_docente)
+                    .joinedload(GrupoDocente.asignatura)
+                    .joinedload(Asignatura.programa_asignaturas)
+                    .joinedload(ProgramaAsignatura.mencion)
             ]
 
         query = db.query(Conflicto).options(
@@ -140,6 +140,12 @@ class ConflictosRepository:
             # db.flush() se hace en el servicio para evitar locks aquí
             
         return conflictos_orm
+    
+    def delete(self, db: Session, id: int) -> bool:
+        """Elimina un conflicto específico por su ID."""
+        eliminados = db.query(Conflicto).filter(Conflicto.id == id).delete()
+        # db.flush() se gestiona con el commit en el service
+        return eliminados > 0
 
     def delete_by_sesion_fisico(self, db: Session, sesion_id: int):
         """Elimina físicamente todos los conflictos relacionados con una sesión."""
@@ -168,8 +174,8 @@ class ConflictosRepository:
         # Delete masivo: Borra conflicto si s1 O s2 están en la lista de sesiones afectadas
         db.query(Conflicto).filter(
             or_(
-                Conflicto.sesion_id.in_(sq_sesiones),
-                Conflicto.sesion_2_id.in_(sq_sesiones)
+                Conflicto.sesion_id.in_(select(sq_sesiones)),
+                Conflicto.sesion_2_id.in_(select(sq_sesiones))
             )
         ).delete(synchronize_session=False) # False porque vamos a borrar las sesiones justo después
         

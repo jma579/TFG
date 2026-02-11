@@ -63,16 +63,16 @@ class ConflictDetectionEngine:
         # Usamos cadenas separadas para evitar el error de relación inválida.
         # SQLAlchemy fusionará automáticamente las ramas que parten del mismo nodo.
         db_sesiones = db.query(Sesion).options(
-            # 1. Básicos
             joinedload(Sesion.profesores),
             joinedload(Sesion.aula),
             
-            # 2. Rama Asignatura -> Menciones
+            # Rama corregida: Asignatura -> Contexto Programa -> Mención
             joinedload(Sesion.grupo_docente)
                 .joinedload(GrupoDocente.asignatura)
-                .joinedload(Asignatura.asignatura_menciones),
+                .joinedload(Asignatura.programa_asignaturas)
+                .joinedload(ProgramaAsignatura.mencion),
 
-            # 3. Rama Asignatura -> Programas (Separada explícitamente)
+            # Rama corregida: Asignatura -> Contexto Programa -> Nombre Grado
             joinedload(Sesion.grupo_docente)
                 .joinedload(GrupoDocente.asignatura)
                 .joinedload(Asignatura.programa_asignaturas)
@@ -108,16 +108,19 @@ class ConflictDetectionEngine:
                     
                     # Extraer datos extra
                     grado = "Plan de Estudios"
+                    mencion = ""
+                    
                     if asig.programa_asignaturas:
-                        grado = asig.programa_asignaturas[0].programa.nombre
+                        # Usamos la primera vinculación disponible como contexto
+                        pa_context = asig.programa_asignaturas[0]
+                        grado = pa_context.programa.nombre if pa_context.programa else grado
+                        # Ahora obtenemos la mención desde el contexto del programa
+                        if pa_context.mencion:
+                            mencion = pa_context.mencion.nombre
                     
                     periodo = asig.periodo.value if asig.periodo else ""
                     periodo = periodo.replace("_", " ").title()
                     
-                    mencion = ""
-                    if asig.asignatura_menciones:
-                        mencion = asig.asignatura_menciones[0].mencion.nombre
-
                     info_academica[asig.id] = {
                         "grado": grado,
                         "periodo": periodo,
@@ -151,11 +154,12 @@ class ConflictDetectionEngine:
         intervalo = None
         if s.inicio and s.fin: intervalo = Intervalo(inicio=s.inicio, fin=s.fin)
 
-        mencion_ids = [am.mencion_id for am in s.grupo_docente.asignatura.asignatura_menciones]
-
-        periodo_str = ""
-        if s.grupo_docente.asignatura.periodo:
-            periodo_str = str(s.grupo_docente.asignatura.periodo.value)
+        # Buscamos el primer programa asociado para extraer nombres
+        pa_context = s.grupo_docente.asignatura.programa_asignaturas[0] if s.grupo_docente.asignatura.programa_asignaturas else None
+        
+        grado = pa_context.programa.nombre if (pa_context and pa_context.programa) else "Grado"
+        mencion = pa_context.mencion.nombre if (pa_context and pa_context.mencion) else None
+        periodo_txt = s.grupo_docente.asignatura.periodo.value.replace("_", " ").title() if s.grupo_docente.asignatura.periodo else ""
 
         return SesionRef(
             id=s.id,
@@ -164,10 +168,16 @@ class ConflictDetectionEngine:
             asignatura_id=s.grupo_docente.asignatura_id,
             grupo_id=s.grupo_docente.id,
             curso=s.grupo_docente.curso or 0,
-            periodo=periodo_str,
-            tipo_grupo=str(s.grupo_docente.tipo).upper() if s.grupo_docente.tipo else "TEORIA",
-            grupo_codigo=str(s.grupo_docente.codigo).upper() if s.grupo_docente.codigo else "UNICO",
-            mencion_ids=mencion_ids,
+            periodo=str(s.grupo_docente.asignatura.periodo.value) if s.grupo_docente.asignatura.periodo else "",
+            tipo_grupo=str(s.grupo_docente.tipo).upper(),
+            grupo_codigo=str(s.grupo_docente.codigo).upper(),
+            mencion_ids=[pa_context.mencion_id] if (pa_context and pa_context.mencion_id) else [],
+            
+            # Inyectamos los strings para que el motor no haga queries
+            grado_nombre=grado,
+            mencion_nombre=mencion,
+            periodo_nombre=periodo_txt,
+            
             tipo_recurrencia="SEMANAL" if slot else "FECHADA",
             slot=slot,
             intervalo=intervalo
@@ -177,10 +187,6 @@ class ConflictDetectionEngine:
         resultados = []
         get_aula = lambda id: lookups["aulas"].get(id, f"Aula {id}")
         get_profe = lambda id: lookups["profesores"].get(id, f"Docente {id}")
-        get_asig = lambda id: lookups["asignaturas"].get(id, f"Asignatura {id}")
-        
-        def get_meta(asig_id): 
-            return lookups["info_academica"].get(asig_id, {"grado": "Grado Desconocido", "periodo": "", "mencion": ""})
 
         (sol_aula, sol_prof, sol_grupo, sol_conciliacion) = detectar_todos_los_conflictos_basicos(
             sesiones, mapa_conciliacion,
@@ -210,11 +216,10 @@ class ConflictDetectionEngine:
         # C. GRUPOS
         for s1, s2, asig_comun, motivo in sol_grupo:
             if asig_comun:
-                desc = f"Asignatura '{get_asig(asig_comun)}': {motivo}"
+                desc = f"Asignatura '{lookups['asignaturas'].get(asig_comun)}': {motivo}"
             else:
-                meta = get_meta(s1.asignatura_id)
-                mencion_txt = f" ({meta['mencion']})" if meta['mencion'] else ""
-                desc = f"Solape en {meta['grado']}: Curso {s1.curso}º, {meta['periodo']}{mencion_txt}"
+                mencion_txt = f" ({s1.mencion_nombre})" if s1.mencion_nombre else ""
+                desc = f"Solape en {s1.grado_nombre}: Curso {s1.curso}º, {s1.periodo_nombre}{mencion_txt}"
 
             resultados.append(ResultadoDeteccion(
                 tipo=TipoConflicto.SOLAPAMIENTO_GRUPO, severidad=SeveridadConflicto.CRITICO,

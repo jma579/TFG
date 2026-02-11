@@ -14,6 +14,7 @@ import re
 
 from constants.enums import Periodo, ModalidadAsignatura, Idioma, TipoAsignatura
 from modules.catalogo.schemas.programa import ProgramaOut
+from modules.catalogo.schemas.mencion import MencionResumen
 
 
 # ============================================================
@@ -312,6 +313,11 @@ class AsignaturaProgramaOut(BaseModel):
         description="Tipo de asignatura dentro del programa (OBLIGATORIA, OPTATIVA, ...)",
     )
 
+    mencion: Optional[MencionResumen] = Field(
+        None,
+        description="Mención o itinerario al que pertenece la asignatura en este programa específico"
+    )
+
     model_config = ConfigDict(
         from_attributes=True,
     )
@@ -366,11 +372,6 @@ class AsignaturaOut(AsignaturaBase):
             }
         }
     )
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
 
 
 # ============================================================

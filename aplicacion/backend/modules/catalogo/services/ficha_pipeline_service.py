@@ -234,8 +234,9 @@ class FichaPipelineService:
             else:
                 # Actualización de metadatos de la relación si difieren
                 if rel.curso != tit.curso or rel.tipo_asignatura != tit.tipo_asignatura:
-                    self._programa_asignatura_repo.update_tipo_curso(
-                        db, programa.id, asignatura_id, tit.curso, tit.tipo_asignatura
+                    self._programa_asignatura_repo.update_tipo_curso_mencion(
+                        db, programa_id=programa.id, asignatura_id=asignatura_id, 
+                        curso=tit.curso, tipo_asignatura=tit.tipo_asignatura
                     )
 
         return programas_ids

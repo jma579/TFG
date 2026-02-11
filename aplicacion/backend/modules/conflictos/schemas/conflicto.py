@@ -85,21 +85,23 @@ class ConflictoOut(ConflictoBase):
                     periodo_str = asig_obj.periodo.value.replace("_", " ").title() # ej: "Primer Cuatrimestre"
                 
                 # Extracción del Programa (Contexto Principal)
-                target_prog = None
+                target_pa = None
                 if asig_obj.programa_asignaturas:
+                    # Buscamos la vinculación exacta por curso
                     for pa in asig_obj.programa_asignaturas:
                         if pa.curso == curso_val:
-                            target_prog = pa.programa
+                            target_pa = pa
                             break
-                    if not target_prog and len(asig_obj.programa_asignaturas) > 0:
-                        target_prog = asig_obj.programa_asignaturas[0].programa
+                    # Fallback: el primero si no hay coincidencia
+                    if not target_pa and len(asig_obj.programa_asignaturas) > 0:
+                        target_pa = asig_obj.programa_asignaturas[0]
                 
-                if target_prog:
-                    titulacion = target_prog.nombre
-                    programa_id = target_prog.id
-
-                if asig_obj.asignatura_menciones:
-                    mencion = asig_obj.asignatura_menciones[0].mencion.nombre
+                if target_pa:
+                    if target_pa.programa:
+                        titulacion = target_pa.programa.nombre
+                        programa_id = target_pa.programa.id
+                    if target_pa.mencion:
+                        mencion = target_pa.mencion.nombre
 
         # Datos del Horario
         if hasattr(v, "dia_semana") and v.dia_semana:
