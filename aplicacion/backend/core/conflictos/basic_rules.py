@@ -72,14 +72,14 @@ def detectar_solapamientos_profesor(sesiones: List[SesionRef]) -> List[Solapamie
     Detecta si un profesor está asignado a dos sesiones simultáneas.
     """
     conflictos = []
-    # Indexar: Profesor -> [Sesiones]
+    # Indexar: (Profesor, Periodo) -> [Sesiones]
     mapa = defaultdict(list)
     for s in sesiones:
         for pid in s.profesor_ids:
-            mapa[pid].append(s)
+            mapa[(pid, s.periodo)].append(s)
             
     # Comparar pares dentro del mismo profesor
-    for pid, lista in mapa.items():
+    for (pid, _), lista in mapa.items():
         for i in range(len(lista)):
             for j in range(i + 1, len(lista)):
                 s1, s2 = lista[i], lista[j]
@@ -95,9 +95,9 @@ def detectar_solapamientos_aula(sesiones: List[SesionRef]) -> List[SolapamientoA
     mapa = defaultdict(list)
     for s in sesiones:
         if s.aula_id is not None:
-            mapa[s.aula_id].append(s)
+            mapa[(s.aula_id, s.periodo)].append(s)
             
-    for aid, lista in mapa.items():
+    for (aid, _), lista in mapa.items():
         for i in range(len(lista)):
             for j in range(i + 1, len(lista)):
                 s1, s2 = lista[i], lista[j]
@@ -123,9 +123,9 @@ def detectar_solapamientos_grupos(sesiones: List[SesionRef]) -> List[Solapamient
     mapa_curso = defaultdict(list)
     for s in sesiones:
         # Si no tiene curso definido (0), lo agrupamos aparte
-        mapa_curso[s.curso].append(s)
+        mapa_curso[(s.curso, s.periodo)].append(s)
         
-    for curso, lista in mapa_curso.items():
+    for _, lista in mapa_curso.items():
         for i in range(len(lista)):
             for j in range(i + 1, len(lista)):
                 s1, s2 = lista[i], lista[j]

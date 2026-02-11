@@ -153,6 +153,10 @@ class ConflictDetectionEngine:
 
         mencion_ids = [am.mencion_id for am in s.grupo_docente.asignatura.asignatura_menciones]
 
+        periodo_str = ""
+        if s.grupo_docente.asignatura.periodo:
+            periodo_str = str(s.grupo_docente.asignatura.periodo.value)
+
         return SesionRef(
             id=s.id,
             aula_id=s.aula_id,
@@ -160,6 +164,7 @@ class ConflictDetectionEngine:
             asignatura_id=s.grupo_docente.asignatura_id,
             grupo_id=s.grupo_docente.id,
             curso=s.grupo_docente.curso or 0,
+            periodo=periodo_str,
             tipo_grupo=str(s.grupo_docente.tipo).upper() if s.grupo_docente.tipo else "TEORIA",
             grupo_codigo=str(s.grupo_docente.codigo).upper() if s.grupo_docente.codigo else "UNICO",
             mencion_ids=mencion_ids,
