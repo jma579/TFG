@@ -101,8 +101,9 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
     params.set('programa_id', String(item.programa_id));
     params.set('curso', String(item.curso));
 
-    const periodoVal = (item as ScheduleSummary & { periodo?: number }).periodo || item.cuatrimestre;
-    if (periodoVal) params.set('periodo', String(periodoVal));
+    if (item.periodo) {
+      params.set('periodo', item.periodo);
+    }
     
     if (item.menciones && item.menciones.length > 0) {
         params.set('mencion', item.menciones[0]);
@@ -110,14 +111,16 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
 
     router.push(`/datos/horarios/detalle?${params.toString()}`);
   };
-
   // Lógica de borrado real conectada al Backend
   const handleDelete = async (item: ScheduleSummary) => {
     try {
+      // El endpoint DELETE del backend sigue esperando un número entero (1 o 2)
+      const numCuatri = item.periodo.includes('primer') ? 1 : 2;
+
       await deleteHorario({
         programa_id: item.programa_id,
         curso: item.curso,
-        cuatrimestre: item.cuatrimestre,
+        cuatrimestre: numCuatri, 
         mencion: item.menciones?.[0] || undefined
       });
 

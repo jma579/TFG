@@ -2,6 +2,7 @@ from typing import List, Optional
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, Field
+from constants.enums import Periodo
 
 class EstadoHorario(str, Enum):
     """
@@ -20,7 +21,7 @@ class ResumenHorarioOut(BaseModel):
     programa_id: int
     programa_nombre: str
     curso: int
-    cuatrimestre: int
+    periodo: Optional[Periodo] = None
     
     # Itinerario
     # Si la lista está vacía [], el frontend lo interpreta como "Curso General/Troncal".
@@ -47,4 +48,4 @@ class DashboardFiltros(BaseModel):
     """
     programa_id: Optional[int] = None
     curso: Optional[int] = None
-    cuatrimestre: Optional[int] = None
+    periodo: Optional[Periodo] = None

@@ -253,7 +253,8 @@ export default function DetalleHorarioPage() {
         size: 1000, 
         curso: Number(pCurso), 
         mencion: pMencion || undefined,
-        programa_id: Number(pProgramaId) 
+        programa_id: Number(pProgramaId) ,
+        periodo: pPeriodo || undefined
       });
       
       const sesionesFiltradas = (resSesiones.items || []).filter((s: BaseSesionOut) => 

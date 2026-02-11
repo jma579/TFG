@@ -42,102 +42,49 @@ class SesionRepository:
         db: Session,
         skip: int = 0,
         limit: int = 100,
-        grupo_docente_id: Optional[int] = None,
-        aula_id: Optional[int] = None,
-        profesor_id: Optional[int] = None,
-        dia_semana: Optional[DiaSemana] = None,
-        modalidad: Optional[ModalidadSesion] = None,
-        tipo_recurrencia: Optional[TipoRecurrencia] = None,
+        programa_id: Optional[int] = None,
         curso: Optional[int] = None,
-        mencion_id: Optional[int] = None,
-        mencion_nombre: Optional[str] = None,
-        programa_id: Optional[int] = None 
+        periodo: Optional[Periodo] = None,
+        aula_id: Optional[int] = None,
+        mencion_id: Optional[int] = None
     ) -> Tuple[List[Sesion], int]:
-        """Listar sesiones con filtros múltiples."""
-        query = db.query(Sesion)
-        
-        # Determinamos qué tablas necesitamos unir según los filtros activos
-        need_grupo_join = (
-            (curso is not None) or 
-            (mencion_id is not None) or 
-            (mencion_nombre is not None) or 
-            (programa_id is not None) # Si filtramos por programa, necesitamos el grupo
-        )
-        
-        if need_grupo_join or grupo_docente_id: # grupo_docente_id no necesita join si filtramos directo, pero por consistencia a veces ayuda
-             # Optimización: si ya filtramos por ID directo no hace falta join explícito para filtrado simple,
-             # pero aquí lo hacemos para acceder a propiedades de la relación
-             if need_grupo_join:
-                query = query.join(Sesion.grupo_docente)
-        
-        need_asignatura_join = (
-            (mencion_id is not None) or 
-            (mencion_nombre is not None) or 
-            (programa_id is not None) # Si filtramos por programa, necesitamos la asignatura
-        )
+        """
+        Recupera sesiones con filtros avanzados. 
+        Cruza con Asignatura y ProgramaAsignatura para filtrar por contexto académico.
+        """
+        query = db.query(Sesion).join(Sesion.grupo_docente).join(GrupoDocente.asignatura)
 
-        if need_asignatura_join:
-            query = query.join(GrupoDocente.asignatura)
-
-        # Joins específicos
-        if mencion_id is not None:
-            query = query.outerjoin(Asignatura.asignatura_menciones)
-        if mencion_nombre is not None:
-             query = query.outerjoin(Asignatura.asignatura_menciones).outerjoin(AsignaturaMencion.mencion)
-
-        if programa_id is not None:
+        # Filtro por Programa y/o Curso (vía ProgramaAsignatura)
+        if programa_id or curso:
             query = query.join(Asignatura.programa_asignaturas)
+            if programa_id:
+                query = query.filter(ProgramaAsignatura.programa_id == programa_id)
+            if curso:
+                query = query.filter(ProgramaAsignatura.curso == curso)
 
-        # --- Aplicación de Filtros ---
-        if grupo_docente_id:
-            query = query.filter(Sesion.grupo_docente_id == grupo_docente_id)
+        # --- CAMBIO CRÍTICO: Filtro por Periodo (Cuatrimestre) ---
+        if periodo:
+            query = query.filter(Asignatura.periodo == periodo)
+
+        # Filtro por Aula
         if aula_id:
             query = query.filter(Sesion.aula_id == aula_id)
-        if dia_semana:
-            query = query.filter(Sesion.dia_semana == dia_semana)
-        if modalidad:
-            query = query.filter(Sesion.modalidad == modalidad)
-        if tipo_recurrencia:
-            query = query.filter(Sesion.tipo_recurrencia == tipo_recurrencia)
-        if profesor_id:
-            query = query.join(Sesion.profesores_sesiones).filter(
-                ProfesorSesion.profesor_id == profesor_id
-            )
-        
-        # Filtros jerárquicos
-        if curso is not None:
-            if programa_id is not None:
-                # Modo Contextual: Filtramos por el curso definido en el PLAN DE ESTUDIOS
-                # Esto permite que una asignatura de 2º (origen) aparezca en el horario de 4º (destino)
-                query = query.filter(ProgramaAsignatura.curso == curso)
-            else:
-                # Modo Fallback: Filtramos por el curso de creación del grupo
-                query = query.filter(GrupoDocente.curso == curso)
-        
-        if programa_id is not None:
-            query = query.filter(ProgramaAsignatura.programa_id == programa_id)
-        
-        if mencion_id is not None:
-            query = query.filter(
-                or_(
-                    AsignaturaMencion.mencion_id == mencion_id,
-                    AsignaturaMencion.mencion_id.is_(None)
-                )
-            )
-            
-        if mencion_nombre is not None:
-            query = query.filter(
-                or_(
-                    Mencion.nombre.ilike(mencion_nombre),
-                    Mencion.id.is_(None) 
-                )
-            )
 
-        query = query.distinct()
+        # Filtro por Mención
+        if mencion_id:
+            query = query.join(Asignatura.asignatura_menciones)\
+                         .filter(AsignaturaMencion.mencion_id == mencion_id)
+
+        # Optimizaciones de carga (Eager Loading)
+        query = query.options(
+            joinedload(Sesion.aula),
+            joinedload(Sesion.grupo_docente).joinedload(GrupoDocente.asignatura),
+            joinedload(Sesion.profesores_sesiones).joinedload(ProfesorSesion.profesor)
+        ).distinct()
 
         total = query.count()
-        query = query.order_by(Sesion.dia_semana, Sesion.hora_inicio)
         items = query.offset(skip).limit(limit).all()
+
         return items, total
 
     # ==========================

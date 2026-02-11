@@ -35,7 +35,7 @@ from modules.docencia.services.grupo_docente_service import grupo_docente_servic
 from modules.docencia.services.sesion_service import sesion_service
 from modules.docencia.services.dashboard_service import dashboard_service
 from constants.enums import (
-    TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana
+    TipoGrupoDocente, ModalidadSesion, TipoRecurrencia, DiaSemana, Periodo
 )
 from modules.docencia.schemas.horarios import (
     HorarioTemporalOut,
@@ -617,104 +617,40 @@ def eliminar_grupo_docente(
     """,
     tags=["Sesiones"]
 )
-def listar_sesiones(
-    skip: int = Query(
-        0,
-        ge=0,
-        description="Número de registros a saltar (offset para paginación)",
-        examples=[0, 20, 40]
-    ),
-    limit: int = Query(
-        100,
-        ge=1,
-        le=1000,
-        description="Número máximo de registros a retornar",
-        examples=[10, 20, 50, 100]
-    ),
-    grupo_docente_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por grupo docente específico",
-        examples=[1, 42, 123]
-    ),
-    aula_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por aula específica",
-        examples=[1, 10, 200]
-    ),
-    modalidad: Optional[ModalidadSesion] = Query(
-        None,
-        description="Filtrar por modalidad",
-        examples=["presencial", "online", "hibrida"]
-    ),
-    tipo_recurrencia: Optional[TipoRecurrencia] = Query(
-        None,
-        description="Filtrar por tipo de recurrencia",
-        examples=["semanal", "quincenal", "mensual", "puntual"]
-    ),
-    dia_semana: Optional[DiaSemana] = Query(
-        None,
-        description="Filtrar por día de la semana (solo recurrentes)",
-        examples=["lunes", "martes", "miercoles"]
-    ),
-    curso: Optional[int] = Query(
-        None,
-        ge=1,
-        le=6,
-        description="Filtrar por curso académico (1, 2, 3...)",
-        examples=[1, 3, 4]
-    ),
-    mencion_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por ID de mención para itinerarios específicos",
-        examples=[1, 5]
-    ),
-    mencion_nombre: Optional[str] = Query(
-        None, 
-        alias="mencion",
-        description="Nombre de la mención (ej: 'Computación', 'Informática'). Case-insensitive."
-    ),
-    programa_id: Optional[int] = Query(
-        None, 
-        gt=0, 
-        description="Filtrar sesiones exclusivas de una titulación (Programa)"
-    ),
-    db: Session = Depends(get_db)
+def get_sesiones(
+    db: Session = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    programa_id: Optional[int] = Query(None, description="Filtrar por Programa"),
+    curso: Optional[int] = Query(None, description="Filtrar por Curso"),
+    periodo: Optional[Periodo] = Query(None, description="Filtrar por Cuatrimestre/Periodo"), # <--- NUEVO
+    aula_id: Optional[int] = Query(None, description="Filtrar por Aula"),
+    mencion_id: Optional[int] = Query(None, description="Filtrar por Mención")
 ):
     """
-    Listar sesiones con filtros y paginación.
-    
-    Returns:
-        SesionList con total, items, page y size
+    Lista sesiones con soporte para filtros académicos.
+    Ahora permite separar sesiones de 1C y 2C mediante el parámetro 'periodo'.
     """
-    # Obtener sesiones del service
     items, total = sesion_service.get_multi(
-        db=db,
-        skip=skip,
+        db, 
+        skip=skip, 
         limit=limit,
-        grupo_docente_id=grupo_docente_id,
-        aula_id=aula_id,
-        modalidad=modalidad,
-        tipo_recurrencia=tipo_recurrencia,
-        dia_semana=dia_semana,
+        programa_id=programa_id,
         curso=curso,
-        mencion_id=mencion_id,
-        mencion_nombre=mencion_nombre,
-        programa_id=programa_id
+        periodo=periodo,
+        aula_id=aula_id,
+        mencion_id=mencion_id
     )
     
-    # Calcular número de página actual
-    page = (skip // limit) + 1 if limit > 0 else 1
-    
-    # Retornar schema de lista paginada
-    return SesionList(
-        total=total,
-        items=items,
-        page=page,
-        size=limit
-    )
+    # Calcular la página actual basada en skip y limit
+    pagina_actual = (skip // limit) + 1 if limit > 0 else 1
+
+    return {
+        "items": items,
+        "total": total,
+        "page": pagina_actual,
+        "size": limit
+    }
 
 
 @router.get(
@@ -1423,24 +1359,14 @@ def delete_horario(
     tags=["Dashboard"]
 )
 def get_dashboard_resumen(
-    programa_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por ID de Programa (Titulación)"
-    ),
-    curso: Optional[int] = Query(
-        None,
-        ge=1,
-        le=6,
-        description="Filtrar por curso académico (1, 2, 3...)"
-    ),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    programa_id: Optional[int] = Query(None, gt=0),
+    curso: Optional[int] = Query(None, ge=1),
+    periodo: Optional[Periodo] = Query(None) # 
 ):
-    """
-    Obtener resumen agrupado de horarios para el Dashboard.
-    """
     filtros = DashboardFiltros(
         programa_id=programa_id,
-        curso=curso
+        curso=curso,
+        periodo=periodo 
     )
     return dashboard_service.get_resumen(db, filtros)

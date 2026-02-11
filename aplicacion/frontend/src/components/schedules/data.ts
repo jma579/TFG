@@ -4,7 +4,7 @@ export type ScheduleSummary = {
   // Identificadores compuestos para usar como key
   programa_id: number;
   curso: number;
-  cuatrimestre: number;
+  periodo:string;
   
   // Datos visuales
   programa_nombre: string;

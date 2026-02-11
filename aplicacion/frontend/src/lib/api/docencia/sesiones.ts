@@ -84,6 +84,7 @@ export type SesionFilters = {
   curso?: number;
   mencion?: string;
   programa_id?: number;
+  periodo?: string;
   page?: number;
   size?: number;
 };

@@ -31,6 +31,9 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onDele
   const esCursoGeneral = data.menciones.length === 0;
   const nombreItinerario = esCursoGeneral ? "Curso General / Troncal" : data.menciones[0];
 
+  // --- CORRECCIÓN FRONTEND: Extraer el número del cuatrimestre desde 'periodo' ---
+  const numCuatri = data.periodo.includes('primer') ? 1 : 2;
+
   return (
     <Card className={`flex flex-col h-full border-l-4 ${
       isConflict ? 'border-l-red-500' : isProcessing ? 'border-l-blue-500' : 'border-l-green-500'
@@ -41,7 +44,8 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onDele
         <div className="flex justify-between items-start">
           <div>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-              {data.cuatrimestre}º Cuatrimestre
+              {/* Usamos numCuatri en lugar de data.cuatrimestre vacío */}
+              {numCuatri}º Cuatrimestre
             </p>
             <CardTitle className="text-2xl font-bold text-gray-900">
               {data.curso}º Curso
