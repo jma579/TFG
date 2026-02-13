@@ -44,3 +44,18 @@ Thumbs.db
 /*.docx
 /*.csv
 /*.xlsx
+
+# Tests - Cache y resultados temporales  
+tests/**/__pycache__/
+tests/**/.pytest_cache/
+tests/**/results/
+tests/**/extraction_results/
+tests/**/extraction_result/
+tests/**/parsing_result/
+tests/**/*.pyc
+tests/**/*.pyo
+tests/**/.coverage
+tests/**/htmlcov/
+
+# Tests - Scripts de diagnóstico
+tests/**/diag_*.py
