@@ -1,20 +1,20 @@
 'use client';
 
-import * as React from 'react';
 import { 
-  CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, 
-  Sparkles, Edit, Trash2, AlertCircle, MapPin
-} from 'lucide-react';
+AlertCircle, AlertTriangle,   CheckCircle2, ChevronDown, ChevronUp, 
+Edit, MapPin,
+  Sparkles, Trash2} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// --- TIPOS ---
 export type ReviewSession = {
   originalIndex: number;
   asignatura: string;
@@ -42,7 +42,6 @@ interface ReviewDashboardProps {
   onDeleteSession: (originalIndex: number) => void;
 }
 
-// --- LÓGICA DE ESTADOS Y ORDENACIÓN ---
 
 type SessionStatusType = 'ERROR_ASIGNATURA' | 'ERROR_AULA' | 'SUGGESTED' | 'VALID';
 
@@ -55,7 +54,6 @@ interface SessionStatus {
 }
 
 const getSessionStatus = (session: ReviewSession): SessionStatus => {
-  // 1. ERROR: Asignatura no identificada
   const hasName = session.asignatura_sugerida || session.manual_validated;
   if (!hasName && (!session.match_status || session.match_status === 'NO_MATCH')) {
     return {
@@ -67,7 +65,6 @@ const getSessionStatus = (session: ReviewSession): SessionStatus => {
     };
   }
 
-  // 2. ERROR: Aula no detectada
   const aula = session.aula || "";
   if (!aula.trim() || aula === "POR DETERMINAR") {
     return {
@@ -79,7 +76,6 @@ const getSessionStatus = (session: ReviewSession): SessionStatus => {
     };
   }
 
-  // 3. SUGERENCIA (Fuzzy Match)
   const isExact = session.match_status === 'EXACT' || session.match_status === 'ALIAS_DB';
   if (session.asignatura_sugerida && !isExact && !session.manual_validated) {
     return {
@@ -91,7 +87,6 @@ const getSessionStatus = (session: ReviewSession): SessionStatus => {
     };
   }
 
-  // 4. VÁLIDO (Correcto)
   return {
     type: 'VALID',
     color: 'blue',
@@ -110,18 +105,15 @@ const sortSessions = (sessions: ReviewSession[]) => {
     const statusA = getSessionStatus(a);
     const statusB = getSessionStatus(b);
 
-    // 1. Prioridad: Errores (Rojos) primero
     const isRedA = statusA.color === 'red';
     const isRedB = statusB.color === 'red';
 
     if (isRedA && !isRedB) return -1;
     if (!isRedA && isRedB) return 1;
 
-    // 2. Prioridad secundaria: Sugerencias antes que Validados perfectos
     if (statusA.type === 'SUGGESTED' && statusB.type === 'VALID') return -1;
     if (statusA.type === 'VALID' && statusB.type === 'SUGGESTED') return 1;
 
-    // 3. Cronológico
     const dayA = DAY_ORDER[(a.dia || "").toUpperCase()] || 8;
     const dayB = DAY_ORDER[(b.dia || "").toUpperCase()] || 8;
     if (dayA !== dayB) return dayA - dayB;
@@ -131,23 +123,19 @@ const sortSessions = (sessions: ReviewSession[]) => {
 };
 
 
-// --- COMPONENTE PRINCIPAL ---
 
 export function ReviewDashboard({ 
   bloque, 
   onEditSession,
   onDeleteSession,
 }: ReviewDashboardProps) {
-  // CAMBIO: Inicializado a FALSE (Cerrado por defecto)
   const [isExpanded, setIsExpanded] = React.useState(false);
 
-  // 1. FILTRADO Y ORDENACIÓN
   const visibleSessions = React.useMemo(() => {
     if (!bloque.sesiones) return [];
     
     const withIndex = bloque.sesiones.map((s, idx) => ({ ...s, originalIndex: idx }));
 
-    // FILTRO: Ocultar los que son MATCH EXACTO o ALIAS DB o VALIDADOS MANUALMENTE
     const filtered = withIndex.filter(s => {
        const isExact = s.match_status === 'EXACT' || s.match_status === 'ALIAS_DB';
        if (s.manual_validated) return false; 
@@ -158,11 +146,9 @@ export function ReviewDashboard({
     return sortSessions(filtered);
   }, [bloque.sesiones]);
 
-  // Métricas
   const errorCount = visibleSessions.filter(s => getSessionStatus(s).color === 'red').length;
   const suggestionCount = visibleSessions.length - errorCount;
 
-  // Si no hay nada que revisar, no mostramos nada
   if (visibleSessions.length === 0) return null;
 
   return (
@@ -186,7 +172,6 @@ export function ReviewDashboard({
             <h3 className="font-semibold text-sm">
               {errorCount > 0 ? "Errores detectados" : "Sugerencias automáticas"}
             </h3>
-            {/* CAMBIO: Texto adaptado para diferenciar obligatoriedad */}
             <p className="text-xs text-muted-foreground mt-0.5">
               {errorCount > 0 ? (
                 <>
@@ -254,7 +239,6 @@ export function ReviewDashboard({
                             )}
                           >
                              {displayName}
-                             {/* Mantenemos el icono aquí para contexto en la lista */}
                              {status.type === 'SUGGESTED' && (
                                <Sparkles className="h-3 w-3 text-indigo-400" />
                              )}

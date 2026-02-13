@@ -22,9 +22,6 @@ class AulaRepository:
     Repositorio para operaciones de base de datos de Aula.
     """
     
-    # ==========================
-    # LECTURA
-    # ==========================
     
     def get_by_id(self, db: Session, id: int) -> Optional[Aula]:
         """Obtener aula por ID."""
@@ -54,7 +51,6 @@ class AulaRepository:
         """
         query = db.query(Aula)
         
-        # Filtros directos
         if tipo is not None:
             query = query.filter(Aula.tipo == tipo)
         if capacidad_min is not None:
@@ -64,7 +60,6 @@ class AulaRepository:
         if activo is not None:
             query = query.filter(Aula.activo == activo)
         
-        # Búsqueda textual (nombre o código)
         if busqueda is not None:
             busqueda_lower = busqueda.lower()
             query = query.filter(
@@ -80,9 +75,6 @@ class AulaRepository:
         
         return items, total
     
-    # ==========================
-    # ESCRITURA (Sin Commit)
-    # ==========================
     
     def create(self, db: Session, data: dict) -> Aula:
         """Crear aula."""
@@ -119,9 +111,6 @@ class AulaRepository:
         db.flush()
         return True
     
-    # ==========================
-    # VALIDACIONES
-    # ==========================
     
     def exists_by_codigo(self, db: Session, codigo: str, exclude_id: Optional[int] = None) -> bool:
         """Verificar si existe código (útil para validaciones)."""
@@ -138,5 +127,4 @@ class AulaRepository:
         return query.first() is not None
 
 
-# Instancia Singleton
 aula_repository = AulaRepository()

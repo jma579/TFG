@@ -1,6 +1,6 @@
 """
 Reglas y mapeos estáticos para la normalización de horarios.
-Aquí se definen las equivalencias entre texto crudo y Enums de negocio.
+Se definen las equivalencias entre texto crudo y Enums de negocio.
 """
 
 from typing import Dict, List
@@ -10,7 +10,6 @@ from constants.enums import (
     TipoAula
 )
 
-# Mapeo de texto a Enum DiaSemana
 DIA_SEMANA_MAP: Dict[str, DiaSemana] = {
     "LUNES": DiaSemana.LUNES, "LUN": DiaSemana.LUNES,
     "MARTES": DiaSemana.MARTES, "MAR": DiaSemana.MARTES,
@@ -21,7 +20,6 @@ DIA_SEMANA_MAP: Dict[str, DiaSemana] = {
     "DOMINGO": DiaSemana.DOMINGO, "DOM": DiaSemana.DOMINGO
 }
 
-# Mapeo de texto a Enum Periodo
 PERIODO_MAP: Dict[str, Periodo] = {
     "PRIMER CUATRIMESTRE": Periodo.PRIMER_CUATRIMESTRE,
     "1C": Periodo.PRIMER_CUATRIMESTRE,
@@ -34,7 +32,6 @@ PERIODO_MAP: Dict[str, Periodo] = {
     "SEGUNDO SEMESTRE": Periodo.SEGUNDO_SEMESTRE,
 }
 
-# Mapeo de texto a Curso (Entero)
 CURSO_MAP: Dict[str, int] = {
     "PRIMER": 1, "PRIMERO": 1, "1": 1, "1º": 1, "I": 1,
     "SEGUNDO": 2, "2": 2, "2º": 2, "II": 2,
@@ -44,15 +41,12 @@ CURSO_MAP: Dict[str, int] = {
     "SEXTO": 6, "6": 6, "6º": 6, "VI": 6
 }
 
-# Palabras clave para inferir TipoAula
 KEYWORDS_AULA: Dict[TipoAula, List[str]] = {
     TipoAula.INFORMATICA: ["INF", "ORDENADOR", "COMPUT", "LSC"],
     TipoAula.LABORATORIO: ["LAB", "FÍSICA", "FISICA", "QUÍMICA", "QUIMICA", "BIOLOGÍA", "LATC"],
     TipoAula.SEMINARIO: ["SEM", "SEMINARIO"],
     TipoAula.TALLER: ["TALLER"],
-    # El resto se considerará TEORICA por defecto
 }
 
-# Constantes de validación
 CURSO_MIN = 1
 CURSO_MAX = 6

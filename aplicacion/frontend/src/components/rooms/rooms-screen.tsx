@@ -1,16 +1,18 @@
 'use client';
 
 import * as React from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
-import { RoomsTable } from './table';
-import { RoomFormDialog } from './room-form-dialog';
-import type { Room } from './data';
-import {
-  deleteAula,
-  updateAula, // ✅ Importamos updateAula
-  type AulaOut,
-} from '@/lib/api/recursos/aulas';
 import { useToast } from '@/hooks/use-toast';
+import {
+  type AulaOut,
+  deleteAula,
+  updateAula, 
+} from '@/lib/api/recursos/aulas';
+
+import type { Room } from './data';
+import { RoomFormDialog } from './room-form-dialog';
+import { RoomsTable } from './table';
 
 export type RoomsScreenProps = {
   initialData: Room[];
@@ -23,7 +25,7 @@ function mapAulaToRoom(aula: AulaOut): Room {
     codigo: aula.codigo,
     tipo: aula.tipo,
     capacidad: aula.capacidad ?? null,
-    activo: aula.activo, // ✅ Mapeo
+    activo: aula.activo, 
   };
 }
 
@@ -34,7 +36,7 @@ function mapRoomToAulaOut(room: Room): AulaOut {
     codigo: room.codigo,
     tipo: room.tipo,
     capacidad: room.capacidad,
-    activo: room.activo, // ✅ Mapeo
+    activo: room.activo, 
   };
 }
 
@@ -55,13 +57,11 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
     setDialogOpen(true);
   };
 
-  // ✅ Nueva función para cambiar estado (Activar/Desactivar)
   const handleToggleActive = async (room: Room) => {
     try {
       const nuevoEstado = !room.activo;
       const result = await updateAula(Number(room.id), { activo: nuevoEstado });
       
-      // Actualizamos estado local
       handleSuccess(result);
       
       toast({
@@ -82,7 +82,6 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
     if (!confirm('¿Estás seguro? Esta acción eliminará el aula permanentemente de la base de datos.')) return;
 
     try {
-      // ✅ Enviamos true para borrado físico
       await deleteAula(Number(room.id), true); 
       setRows((prev) => prev.filter((r) => r.id !== room.id));
       toast({
@@ -91,7 +90,6 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
       });
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
-      // Si hay conflicto (tiene sesiones), el backend devuelve 409
       toast({
         variant: 'destructive',
         title: 'No se puede eliminar',
@@ -119,7 +117,7 @@ export function RoomsScreen({ initialData }: RoomsScreenProps) {
             data={rows} 
             onEdit={openEdit} 
             onDelete={handleDelete} 
-            onToggleActive={handleToggleActive} // ✅ Pasamos la nueva función
+            onToggleActive={handleToggleActive}
             onCreate={openNew}
           />
         </CardContent>

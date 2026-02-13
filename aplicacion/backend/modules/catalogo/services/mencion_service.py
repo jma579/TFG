@@ -23,18 +23,13 @@ from modules.catalogo.schemas.mencion import (
 
 
 class MencionService:
-    """
-    Service para lógica de negocio de Mencion.
-    Patrón: Singleton.
-    """
+    """Service para lógica de negocio de Mencion."""
     
     def __init__(self):
+        """Inicializa el servicio con los repositorios necesarios."""
         self.repo = mencion_repository
         self.programa_repo = programa_repository
     
-    # ============================================================
-    #  OPERACIONES DE LECTURA (GET)
-    # ============================================================
     
     def get_mencion(self, db: Session, mencion_id: int) -> MencionOut:
         """Obtiene una mención por su ID."""
@@ -63,30 +58,21 @@ class MencionService:
             size=limit
         )
     
-    # ============================================================
-    #  OPERACIONES DE ESCRITURA (Transaccionales)
-    # ============================================================
     
     def create_mencion(self, db: Session, mencion_in: MencionCreate) -> MencionOut:
-        """
-        Crea una nueva mención.
-        Valida que el programa exista y que el nombre sea único dentro del programa.
-        """
-        # 1. Validar programa
+        """Crea una nueva mención."""
         if not self.programa_repo.get_by_id(db, mencion_in.programa_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Programa con ID {mencion_in.programa_id} no encontrado"
             )
             
-        # 2. Validar duplicados
         if self.repo.exists_by_programa_nombre(db, mencion_in.programa_id, mencion_in.nombre):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"La mención '{mencion_in.nombre}' ya existe en este programa"
             )
         
-        # 3. Crear y COMMIT
         mencion = self.repo.create(db, mencion_in.model_dump())
         db.commit()
         db.refresh(mencion)
@@ -99,10 +85,7 @@ class MencionService:
         mencion_id: int,
         mencion_in: MencionUpdate
     ) -> MencionOut:
-        """
-        Actualiza una mención existente.
-        Valida integridad si se cambia el programa o el nombre.
-        """
+        """Actualiza una mención existente."""
         mencion = self.repo.get_by_id(db, mencion_id)
         if not mencion:
             raise HTTPException(
@@ -112,7 +95,6 @@ class MencionService:
         
         data = mencion_in.model_dump(exclude_unset=True)
         
-        # Validar consistencia si cambian campos clave
         programa_id = data.get("programa_id", mencion.programa_id)
         nombre = data.get("nombre", mencion.nombre)
         
@@ -128,7 +110,6 @@ class MencionService:
                 detail=f"Ya existe una mención '{nombre}' en el programa destino"
             )
 
-        # Update y COMMIT
         updated = self.repo.update(db, mencion_id, data)
         db.commit()
         db.refresh(updated)
@@ -136,9 +117,7 @@ class MencionService:
         return MencionOut.model_validate(updated)
     
     def delete_mencion(self, db: Session, mencion_id: int) -> dict:
-        """
-        Desactiva una mención (Soft Delete).
-        """
+        """Desactiva una mención (Soft Delete)."""
         if not self.repo.get_by_id(db, mencion_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

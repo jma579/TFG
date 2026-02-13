@@ -4,55 +4,44 @@
 // IMPORTS
 // ============================================================================
 
-import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-
-// Iconos
 import { 
-  ArrowLeft, Calendar, Loader2, Trash2, AlertTriangle, 
-  Save, X, Edit, Plus, BookOpen, Clock, 
-  Printer, ChevronDown, ChevronUp, ShieldCheck 
-} from 'lucide-react';
+AlertTriangle, 
+  ArrowLeft, BookOpen, Calendar, ChevronDown, ChevronUp, Clock, 
+Edit, Loader2, Plus,   Printer,   Save, ShieldCheck, 
+Trash2, X} from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import * as React from 'react';
 
-// Componentes UI Base
+import { columns } from '@/components/conflicts/columns';
+import { DataTable } from '@/components/conflicts/data-table';
+import { InteractiveScheduleGrid, type SessionWithConflict } from '@/components/solver/interactive-schedule-grid';
+import type { Session } from '@/components/solver/schedule-grid';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { type AutocompleteOption,SimpleAutocomplete } from '@/components/ui/simple-autocomplete';
 import { useToast } from '@/hooks/use-toast';
-
-// Componentes de Dominio (Horarios y Conflictos)
-// Importamos el tipo extendido si está exportado, o usamos la intersección aquí
-import { InteractiveScheduleGrid, type SessionWithConflict } from '@/components/solver/interactive-schedule-grid';
-import { DataTable } from '@/components/conflicts/data-table';
-import { columns } from '@/components/conflicts/columns';
-
-// Tipos del Grid Mock
-import type { Session } from '@/components/solver/schedule-mock';
-
-// APIs y Tipos
+import { type AsignaturaOut,listAsignaturas } from '@/lib/api/catalogo/asignaturas';
+import { getPrograma, type ProgramaOut } from '@/lib/api/catalogo/programas'; 
 import type { ConflictoOut } from '@/lib/api/conflictos';
 import { 
-  listSesiones, 
-  batchUpdateSesiones,
-  validateBatchSesiones, 
-  type SesionCreate, 
-  type SesionUpdateWithId,
-  type SesionOut as BaseSesionOut 
-} from '@/lib/api/docencia/sesiones';
-import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
-import { 
-  listGruposDocentes, 
   createGrupoDocente, 
-  type GrupoDocenteOut 
-} from '@/lib/api/docencia/grupos-docentes';
-import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
-import { getPrograma, type ProgramaOut } from '@/lib/api/catalogo/programas'; 
+  type GrupoDocenteOut, 
+  listGruposDocentes} from '@/lib/api/docencia/grupos-docentes';
+import { 
+  batchUpdateSesiones,
+  listSesiones, 
+  type SesionCreate, 
+  type SesionOut as BaseSesionOut, 
+  type SesionUpdateWithId,
+  validateBatchSesiones} from '@/lib/api/docencia/sesiones';
+import { type AulaOut,listAulas } from '@/lib/api/recursos/aulas';
 
 // ============================================================================
 // TIPOS EXTENDIDOS Y CONSTANTES
@@ -82,7 +71,6 @@ const TIPOS_GRUPO = [
   { value: 'taller', label: 'Taller' },
 ];
 
-// Interfaces auxiliares
 interface AsignaturaCompleta extends Omit<AsignaturaOut, 'titulaciones'> {
   id: number;
   nombre: string;
@@ -155,20 +143,11 @@ function minutesToTimeLabel(totalMin: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function formatPeriodoLabel(rawPeriodo: string | null): string {
-  if (!rawPeriodo) return 'PERIODO GENERAL';
-  const norm = normalizeText(String(rawPeriodo));
-  if (norm.includes('1') || norm.includes('primer')) return 'PRIMER CUATRIMESTRE';
-  if (norm.includes('2') || norm.includes('segundo')) return 'SEGUNDO CUATRIMESTRE';
-  if (norm.includes('anual')) return 'ANUAL';
-  return rawPeriodo.toUpperCase().replace(/_/g, ' ');
-}
-
 // ============================================================================
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-export default function DetalleHorarioPage() {
+function DetalleHorarioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -271,7 +250,7 @@ export default function DetalleHorarioPage() {
     } finally {
       setLoading(false);
     }
-  }, [pProgramaId, pCurso, pMencion, toast]);
+  }, [pProgramaId, pCurso, pMencion, pPeriodo, toast]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -327,7 +306,6 @@ export default function DetalleHorarioPage() {
       }));
   }, [asignaturasMap, pProgramaId, pCurso, pPeriodo]);
 
-  // --- GRID SESSIONS: Transformación con Indicadores Visuales ---
   const gridSessions = React.useMemo<SessionWithConflict[]>(() => {
     return localSesiones.map((dbSesion) => {
       const grupo = gruposMap.get(dbSesion.grupo_docente_id);
@@ -337,18 +315,15 @@ export default function DetalleHorarioPage() {
       const subtitle = grupo ? `Grupo ${grupo.codigo} (${grupo.tipo})` : 'Sin grupo';
       const dayIndex = normalizeDayToIndex(dbSesion.dia_semana);
 
-      // 1. Detectar si tiene conflictos
       const hasConflict = dbSesion.conflictos && dbSesion.conflictos.length > 0;
-
-      // 2. Determinar color base (Estado)
       let color: Session['color'] = 'blue';
       
       if (dbSesion.id < 0) {
-        color = 'green'; // Nuevo
+        color = 'green';
       } else if (pendingChanges.updated.has(dbSesion.id)) {
-        color = 'orange'; // Editado
+        color = 'orange';
       } else if (hasConflict) {
-        color = 'red'; // Conflictivo (Guardado)
+        color = 'red';
       }
 
       return {
@@ -363,7 +338,6 @@ export default function DetalleHorarioPage() {
         color: color,
         originalData: dbSesion,
         isNew: dbSesion.id < 0,
-        // 3. Pasar flag de conflicto explícito (independiente del color)
         hasConflict: hasConflict 
       } as GridSession & { hasConflict: boolean };
     });
@@ -429,11 +403,9 @@ export default function DetalleHorarioPage() {
     setHasChanges(true);
   };
 
-  // --- VALIDACIÓN GLOBAL ---
   const handleValidateAll = async () => {
     setIsValidatingGlobal(true);
     try {
-        // Preparamos payload
         const createdSessions = localSesiones.filter(s => s.id < 0).map(s => ({ 
             grupo_docente_id: s.grupo_docente_id, 
             aula_id: s.aula_id, 
@@ -443,28 +415,24 @@ export default function DetalleHorarioPage() {
             hora_inicio: s.hora_inicio, 
             hora_fin: s.hora_fin, 
             profesores: [],
-            temp_id: s.id // ID temporal para rastreo
+            temp_id: s.id
         } as SesionCreate));
         
         const updatedSessions = Array.from(pendingChanges.updated.values());
         const deletedIds = Array.from(pendingChanges.deleted);
         
-        // Simular en backend
         const conflictosSimulados = await validateBatchSesiones({
             created: createdSessions,
             updated: updatedSessions,
             deleted: deletedIds
         });
 
-        // Limpiar conflictos antiguos
         const sesionesLimpias = localSesiones.map(s => ({
             ...s, 
             conflictos: [] as ConflictoOut[] 
         }));
         
         const mapaSesiones = new Map(sesionesLimpias.map(s => [s.id, s]));
-        
-        // Asignar nuevos conflictos
         conflictosSimulados.forEach(conflicto => {
             if (conflicto.sesion_id && mapaSesiones.has(conflicto.sesion_id)) {
                 const s = mapaSesiones.get(conflicto.sesion_id)!;
@@ -691,14 +659,12 @@ export default function DetalleHorarioPage() {
                  <p className="font-semibold text-foreground">{asignaturasMap.get(gruposMap.get(editingSesion.grupo_docente_id)?.asignatura_id || 0)?.nombre}</p>
                  <p className="text-muted-foreground text-xs mt-0.5">Grupo {gruposMap.get(editingSesion.grupo_docente_id)?.codigo} • {gruposMap.get(editingSesion.grupo_docente_id)?.tipo}</p>
                  
-                 {/* VISUALIZACIÓN DE CONFLICTOS */}
                  {editingSesion.conflictos && editingSesion.conflictos.length > 0 && (
                   <div className="mt-3 bg-red-50 border border-red-200 rounded-md p-2 animate-in fade-in">
                     <div className="flex items-center gap-2 text-xs font-semibold text-red-800 mb-1">
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {/* shrink-0 evita que el icono se aplaste */}
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                       <span>Conflictos detectados:</span>
                     </div>
-                    {/* CAMBIOS AQUÍ: list-outside, ml-4, sin truncate, leading-relaxed */}
                     <ul className="list-disc list-outside ml-4 space-y-1 text-xs text-red-700/90 max-h-[100px] overflow-y-auto pr-1">
                       {editingSesion.conflictos.map((c, i) => (
                         <li key={i} className="leading-snug text-pretty">
@@ -724,5 +690,22 @@ export default function DetalleHorarioPage() {
       {/* MODAL CREACIÓN */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}><DialogContent className="sm:max-w-[500px]"><DialogHeader><DialogTitle>Nueva Sesión</DialogTitle></DialogHeader><div className="grid gap-4 py-4"><div className="grid gap-2"><Label>Asignatura</Label><SimpleAutocomplete options={asignaturaOptions} value={form.asignatura_id ?? undefined} onChange={(val) => setForm({...form, asignatura_id: Number(val)})} placeholder="Buscar asignatura..." /></div><div className="grid gap-2"><Label>Aula</Label><SimpleAutocomplete options={aulaOptions} value={form.aula_id ?? undefined} onChange={(val) => setForm({...form, aula_id: val ? Number(val) : null})} placeholder="Buscar aula..." /></div><div className="grid gap-2"><Label>Día</Label><Select value={form.dia_semana} onValueChange={(val) => setForm({...form, dia_semana: val})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{DIAS_OPTIONS.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent></Select></div><div className="grid grid-cols-2 gap-3"><div className="grid gap-2"><Label>Inicio</Label><Input type="time" value={form.hora_inicio} onChange={(e) => setForm({...form, hora_inicio: e.target.value})} /></div><div className="grid gap-2"><Label>Fin</Label><Input type="time" value={form.hora_fin} onChange={(e) => setForm({...form, hora_fin: e.target.value})} /></div></div><div className="grid gap-2"><Label>Tipo</Label><Select value={form.tipo_grupo} onValueChange={(val) => setForm({...form, tipo_grupo: val})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{TIPOS_GRUPO.map((t) => <SelectItem key={t.value} value={t.value}>{String(t.label)}</SelectItem>)}</SelectContent></Select></div><div className="grid gap-2"><Label>Grupo</Label><Input value={form.codigo_grupo} onChange={(e) => setForm({...form, codigo_grupo: e.target.value})} placeholder="Ej: A, G1" /></div></div><DialogFooter className="mt-4"><Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button><Button onClick={handleCreateSession} disabled={isCreatingGroup}>{isCreatingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Crear</Button></DialogFooter></DialogContent></Dialog>
     </div>
+  );
+}
+
+export default function DetalleHorarioPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Cargando horario...</p>
+          </div>
+        </div>
+      }
+    >
+      <DetalleHorarioContent />
+    </Suspense>
   );
 }

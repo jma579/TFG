@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
+
 import { cn } from '@/lib/cn';
 
 type Props = {
   onFiles: (files: File[]) => void;
-  accept?: string; // e.g. "application/pdf"
+  accept?: string;
 };
 
 export function DropzoneFichas({ onFiles, accept = 'application/pdf' }: Props) {

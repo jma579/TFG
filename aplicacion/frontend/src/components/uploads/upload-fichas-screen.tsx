@@ -1,8 +1,9 @@
 'use client';
 
-import * as React from 'react';
+import { Loader2,Play } from 'lucide-react';
 import { nanoid } from 'nanoid';
-import { Play, Loader2 } from 'lucide-react';
+import * as React from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,11 +14,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { processFicha } from '@/lib/api/catalogo/fichas';
+
 import { DropzoneFichas } from './dropzone-fichas';
 import { FileList } from './file-list';
 import type { UploadItem } from './types';
-import { processFicha } from '@/lib/api/catalogo/fichas';
-import { useToast } from '@/hooks/use-toast';
 
 export function UploadFichasScreen() {
   const [items, setItems] = React.useState<UploadItem[]>([]);
@@ -43,7 +45,6 @@ export function UploadFichasScreen() {
     setItems((prev) =>
       prev.map((i) => {
         if (i.id === id) {
-          // Creamos un nuevo objeto File con el nuevo nombre
           const renamedFile = new File([i.file], newName, { type: i.file.type });
           return { ...i, file: renamedFile };
         }

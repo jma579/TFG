@@ -1,12 +1,18 @@
-from typing import List, Dict, Any, Set
+"""
+Servicio para el Dashboard de Docencia: Resumen de Horarios
+Este servicio genera un resumen de tarjetas
+para el dashboard de docencia, agrupando por programa, curso, periodo y mención.
+Calcula la "salud" del horario basado en conflictos únicos detectados en las sesiones.
+"""
+
+from typing import List, Dict, Any
 from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
 
 from database.models import (
     GrupoDocente,
     Asignatura,
-    Programa,
-    Sesion, # ELIMINADO AsignaturaMencion
+    Sesion, 
     ProgramaAsignatura
 )
 from modules.docencia.schemas.dashboard import (
@@ -22,13 +28,11 @@ class DashboardService:
         Genera el resumen de tarjetas para el dashboard separando por Cuatrimestre.
         Calcula la salud contando CONFLICTOS ÚNICOS (Hashes) por cada periodo.
         """
-        # 1. Query Optimizada con JOIN a ProgramaAsignatura
         query = db.query(GrupoDocente)\
             .join(GrupoDocente.asignatura)\
             .join(Asignatura.programa_asignaturas)\
             .join(ProgramaAsignatura.programa)\
             .options(
-                # MODIFICADO: Carga contextual de la mención a través de ProgramaAsignatura
                 joinedload(GrupoDocente.asignatura)
                     .joinedload(Asignatura.programa_asignaturas)
                     .joinedload(ProgramaAsignatura.mencion),
@@ -38,7 +42,6 @@ class DashboardService:
                     .joinedload(Sesion.conflictos_sesion_2)
             )
 
-        # Filtros de búsqueda desde la UI
         if filtros.programa_id:
             query = query.filter(ProgramaAsignatura.programa_id == filtros.programa_id)
         if filtros.curso:
@@ -49,14 +52,12 @@ class DashboardService:
         agrupacion: Dict[tuple, Dict[str, Any]] = {}
 
         for gd in grupos:
-            # Determinamos el contexto (Programa y Curso)
             prog_id = filtros.programa_id or gd.asignatura.programa_asignaturas[0].programa_id
             pa_context = next((pa for pa in gd.asignatura.programa_asignaturas if pa.programa_id == prog_id), None)
             curso_context = pa_context.curso if pa_context else 1
             
             periodo_actual = gd.asignatura.periodo 
             
-            # --- MODIFICADO: Extraemos la mención desde el contexto exacto del programa ---
             mencion_str = ""
             if pa_context and pa_context.mencion:
                 mencion_str = pa_context.mencion.nombre
@@ -80,14 +81,12 @@ class DashboardService:
             stats["asignaturas_ids"].add(gd.asignatura_id)
             stats["total_sesiones"] += len(gd.sesiones)
 
-            # 3. Recolección de Conflictos Únicos del Periodo
             for sesion in gd.sesiones:
                 todos_conflictos = sesion.conflictos_sesion_1 + sesion.conflictos_sesion_2
                 for c in todos_conflictos:
                     if c.estado == EstadoConflicto.POR_REVISAR:
                         stats["conflictos_hashes"].add(c.hash_deteccion)
 
-        # 4. Transformación a Objetos de Salida (Pydantic)
         resultados = []
         for stats in agrupacion.values():
             if stats["total_sesiones"] == 0:
@@ -112,7 +111,6 @@ class DashboardService:
             )
             resultados.append(resumen)
 
-        # 5. Ordenación lógica
         resultados.sort(key=lambda x: (
             x.programa_id, 
             x.curso, 
@@ -120,5 +118,6 @@ class DashboardService:
         ))
 
         return resultados
+
 
 dashboard_service = DashboardService()

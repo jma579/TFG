@@ -1,9 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Conflict } from '@/components/conflicts/data';
+import type { ConflictoOut } from '@/lib/api/conflictos';
 
 type Props = {
-  conflict: Conflict;
+  conflict: ConflictoOut;
   description?: string;
 };
 
@@ -12,7 +12,7 @@ export function ConflictDetails({ conflict, description }: Props) {
     <Card>
       <CardHeader className="space-y-2">
         <CardTitle className="text-xl">
-          {conflict.titulo}
+          {conflict.descripcion}
         </CardTitle>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted-foreground">ID:</span>
@@ -28,7 +28,7 @@ export function ConflictDetails({ conflict, description }: Props) {
 
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">Estado:</span>
-          <Badge variant={conflict.estado === 'resuelto' ? 'outline' : 'default'}>
+          <Badge variant={conflict.estado === 'solucionado' ? 'outline' : 'default'}>
             {conflict.estado}
           </Badge>
         </div>

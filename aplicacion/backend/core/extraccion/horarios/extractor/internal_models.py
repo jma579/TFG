@@ -1,3 +1,5 @@
+"""Modelos internos para la representación espacial de texto y grid."""
+
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
@@ -23,18 +25,13 @@ class TextAtom:
 
 @dataclass
 class GridCell:
-    """
-    Representa una celda virtual en la rejilla detectada.
-    Es un contenedor geométrico para agrupar átomos.
-    """
+    """Representa una celda virtual en la rejilla detectada."""
     row_idx: int
     col_idx: int
     bbox: Tuple[float, float, float, float] # (x0, top, x1, bottom)
     
-    # Contenedor para los átomos que caigan geométricamente aquí dentro
     atoms: List[TextAtom] = field(default_factory=list)
     
-    # Texto final reconstruido tras el proceso de stitching
     final_text: str = None
     
     @property
@@ -47,11 +44,7 @@ class GridCell:
     def bottom(self): return self.bbox[3]
     
     def contains(self, atom: TextAtom, margin: float = -1.0) -> bool:
-        """
-        Verifica si el CENTROIDE del átomo cae en esta celda.
-        Usamos un margen negativo pequeño por defecto para ser conservadores
-        y evitar átomos que tocan el borde exacto.
-        """
+        """Verifica si el CENTROIDE del átomo cae en esta celda."""
         cx, cy = atom.center_x, atom.center_y
         return (self.x0 - margin <= cx <= self.x1 + margin) and \
                (self.top - margin <= cy <= self.bottom + margin)

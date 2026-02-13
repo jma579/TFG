@@ -9,22 +9,15 @@ Responsabilidades:
 
 from typing import Optional, Tuple, List, Dict, Any, Union
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_, or_
-from datetime import datetime, time
 
 from database.models import Sesion, ProfesorSesion, GrupoDocente, Asignatura, Mencion, ProgramaAsignatura
-from modules.docencia.schemas.sesion import SesionCreate, SesionUpdate
-from constants.enums import ModalidadSesion, TipoRecurrencia, DiaSemana, Periodo
+from constants.enums import Periodo
 
 
 class SesionRepository:
     """
     Gestor de persistencia para la entidad Sesion y sus relaciones.
     """
-
-    # ==========================
-    # LECTURA
-    # ==========================
 
     def get_by_id(self, db: Session, id: int) -> Optional[Sesion]:
         """Obtiene una sesión por su ID con sus relaciones cargadas."""
@@ -38,10 +31,7 @@ class SesionRepository:
             .first()
     
     def get_sesiones_for_engine(self, db: Session) -> List[Sesion]:
-        """
-        Recupera todas las sesiones con los JOINS necesarios para el motor.
-        Implementa la nueva lógica contextual de menciones.
-        """
+        """Recupera todas las sesiones con los JOINS necesarios para el motor."""
         return db.query(Sesion).options(
             joinedload(Sesion.profesores_sesiones),
             joinedload(Sesion.aula),
@@ -66,15 +56,9 @@ class SesionRepository:
         aula_id: Optional[int] = None,
         mencion_id: Optional[int] = None
     ) -> Tuple[List[Sesion], int]:
-        """
-        Recupera sesiones con filtros avanzados. 
-        Cruza con Asignatura y ProgramaAsignatura para filtrar por contexto académico.
-        """
-        # Partimos de Sesion -> GrupoDocente -> Asignatura
+        """Recupera sesiones con filtros avanzados. """
         query = db.query(Sesion).join(Sesion.grupo_docente).join(GrupoDocente.asignatura)
 
-        # Filtro Académico Contextual (Programa, Curso, Mención)
-        # Usamos la nueva tabla ProgramaAsignatura para todo el contexto del Grado/Máster
         if programa_id or curso or mencion_id:
             query = query.join(Asignatura.programa_asignaturas)
             
@@ -85,15 +69,12 @@ class SesionRepository:
             if mencion_id:
                 query = query.filter(ProgramaAsignatura.mencion_id == mencion_id)
 
-        # Filtro por Periodo (Cuatrimestre / Anual)
         if periodo:
             query = query.filter(Asignatura.periodo == periodo)
 
-        # Filtro por Aula
         if aula_id:
             query = query.filter(Sesion.aula_id == aula_id)
 
-        # Optimizaciones de carga (Eager Loading)
         query = query.options(
             joinedload(Sesion.aula),
             joinedload(Sesion.grupo_docente).joinedload(GrupoDocente.asignatura),
@@ -105,17 +86,10 @@ class SesionRepository:
 
         return items, total
 
-    # ==========================
-    # ESCRITURA (Sin Commit)
-    # ==========================
 
     def create(self, db: Session, data: Union[dict, Any]) -> Sesion:
-        """
-        Crea una sesión.
-        Nota: Los profesores se deben añadir posteriormente o mediante lógica en el service.
-        """
+        """Crea una sesión. Los profesores se deben añadir posteriormente o mediante lógica en el service."""
         if hasattr(data, "model_dump"):
-            # Excluimos profesores porque es una relación M:N que se gestiona aparte o después
             data_dict = data.model_dump(exclude={'profesores'}, exclude_unset=True)
         elif hasattr(data, "dict"):
             data_dict = data.dict(exclude={'profesores'}, exclude_unset=True)
@@ -166,12 +140,7 @@ class SesionRepository:
         """
         Borra sesiones filtrando por la jerarquía de Programa -> Asignatura -> Grupo -> Sesion.
         """
-
-        # 1. Mapeo según Periodo en models.py: PRIMERO para cuatri 1, SEGUNDO para cuatri 2
         periodo_enum = Periodo.PRIMER_CUATRIMESTRE if cuatrimestre == 1 else Periodo.SEGUNDO_CUATRIMESTRE
-
-        # 2. Construir la consulta base
-        # En tu models.py, Asignatura tiene el atributo 'curso'
         query = db.query(Sesion).join(GrupoDocente).join(Asignatura).join(ProgramaAsignatura)
         
         filters = [
@@ -180,29 +149,22 @@ class SesionRepository:
             Asignatura.periodo == periodo_enum
         ]
 
-        # 3. Filtro por mención
         if mencion:
             query = query.join(ProgramaAsignatura.mencion)
             filters.append(Mencion.nombre == mencion)
         else:
-            # PROTECCIÓN: Si no pasan mención, borramos SOLO las asignaturas del tronco general
             filters.append(ProgramaAsignatura.mencion_id.is_(None))
 
-        # 4. Obtener IDs y ejecutar borrado
         ids_to_delete = [s.id for s in query.filter(*filters).all()]
         
         if not ids_to_delete:
             return 0
 
-        # Al borrar Sesion, se limpian las relaciones N:M por las FKs definidas
         count = db.query(Sesion).filter(Sesion.id.in_(ids_to_delete)).delete(synchronize_session=False)
         
         db.flush() 
         return count
 
-    # ==========================
-    # GESTIÓN DE PROFESORES
-    # ==========================
 
     def add_profesor(
         self, 
@@ -236,17 +198,9 @@ class SesionRepository:
         sesion_id: int, 
         profesores_data: List[Dict[str, Any]]
     ):
-        """
-        Reemplazo completo de la lista de profesores de una sesión.
-        Útil para el PUT de sesión.
-        
-        Args:
-            profesores_data: Lista de dicts [{'profesor_id': 1, 'rol': 'T'}, ...]
-        """
-        # 1. Limpiar anteriores
+        """Reemplazo completo de la lista de profesores de una sesión."""
         db.query(ProfesorSesion).filter(ProfesorSesion.sesion_id == sesion_id).delete()
         
-        # 2. Insertar nuevos
         for p in profesores_data:
             self.add_profesor(
                 db, 

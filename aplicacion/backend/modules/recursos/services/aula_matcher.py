@@ -28,43 +28,36 @@ class AulaMatcher:
     Motor de resolución de entidades para Aulas.
     """
 
-    # Umbral de similitud para aceptar un match difuso.
     MIN_SCORE_THRESHOLD = 80
 
     def __init__(self, db: Session):
+        """Inicializa el matcher y carga la caché de aulas."""
         self.db = db
         
-        # Estructuras de datos en memoria (Caché)
         self._map_lookup: Dict[str, Aula] = {}
         self._keys_fuzzy: List[str] = []
         
-        # [NUEVO] Lista plana de aulas para iteración secuencial (Suffix Match)
         self._cached_aulas: List[Aula] = []
         
         self.refresh_cache()
 
     def refresh_cache(self):
-        """
-        Carga masiva de aulas en memoria.
-        """
+        """Carga masiva de aulas en memoria."""
         logger.info("Iniciando carga de caché de Aulas...")
         
         self._map_lookup = {}
         self._keys_fuzzy = []
         self._cached_aulas = []
         
-        # Consulta eficiente: solo aulas activas
         aulas = self.db.query(Aula).filter(Aula.activo == True).all()
         self._cached_aulas = aulas # Guardamos la lista pura
         
         count_indexed = 0
         for aula in aulas:
-            # 1. Indexar Nombre oficial
             if aula.nombre:
                 self._indexar_termino(aula.nombre, aula)
                 self._indexar_termino(aula.nombre.replace(" ", ""), aula)
             
-            # 2. Indexar Código oficial
             if aula.codigo:
                 self._indexar_termino(aula.codigo, aula)
                 self._indexar_termino(aula.codigo.replace(" ", ""), aula)
@@ -93,34 +86,27 @@ class AulaMatcher:
 
         query_norm = self._normalize(texto_aula)
         
-        # --- PASO 1: MATCH EXACTO ---
         if query_norm in self._map_lookup:
             return self._map_lookup[query_norm]
 
-        # --- PASO 2: MATCH EXACTO COMPRIMIDO ---
         query_compressed = query_norm.replace(" ", "")
         if query_compressed in self._map_lookup:
             return self._map_lookup[query_compressed]
 
-        # --- PASO 3: MATCH POR SUFIJO DE CÓDIGO (SMART MATCH) ---
-        # Limpiamos alfanuméricos para comparar esqueletos
         query_alnum = "".join(filter(str.isalnum, query_norm)).upper()
         
-        # Solo aplicamos si la query tiene suficiente entidad (evitar match con "1" o "A")
         if len(query_alnum) >= 2:
             for aula in self._cached_aulas:
                 if not aula.codigo: continue
                 
-                # Limpiamos el código de la BD también
                 code_alnum = "".join(filter(str.isalnum, aula.codigo)).upper()
                 
                 if code_alnum.endswith(query_alnum):
                     logger.info(
-                        f"🔗 Smart Suffix Match: '{texto_aula}' coincide con final de código '{aula.codigo}'"
+                        f"Smart Suffix Match: '{texto_aula}' coincide con final de código '{aula.codigo}'"
                     )
                     return aula
 
-        # --- PASO 4: FUZZY MATCH ---
         resultado = process.extractOne(
             query=query_norm,
             choices=self._keys_fuzzy,
@@ -131,7 +117,7 @@ class AulaMatcher:
         if resultado:
             match_key, score, _ = resultado
             logger.info(
-                f"🔍 Fuzzy Aula Match: '{texto_aula}' -> '{match_key}' (Score: {score:.1f})"
+                f"Fuzzy Aula Match: '{texto_aula}' -> '{match_key}' (Score: {score:.1f})"
             )
             return self._map_lookup[match_key]
 

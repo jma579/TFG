@@ -1,10 +1,13 @@
+"""
+Schemas Pydantic para el módulo de conflictos.
+"""
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
 from constants.enums import TipoConflicto, SeveridadConflicto, EstadoConflicto
 
-# 1. Definimos el sub-schema para los detalles
 class SesionResumen(BaseModel):
     id: int
     asignatura: str = "Desconocida"
@@ -30,8 +33,8 @@ class ConflictoEstadoUpdateIn(BaseModel):
 
 class ConflictoOut(ConflictoBase):
     id: int
-    sesion_id: int = Field(..., description="ID de la sesión principal afectada")
-    sesion_2_id: Optional[int] = Field(None, description="ID de la segunda sesión en conflicto (si existe)")
+    sesion_id: int = Field(...)
+    sesion_2_id: Optional[int] = Field(None)
     
     profesor_id: Optional[int] = None
     aula_id: Optional[int] = None
@@ -59,13 +62,11 @@ class ConflictoOut(ConflictoBase):
         titulacion = None
         mencion = None
         
-        # Variables de contexto
         periodo_str = None
         periodo_code = None
         programa_id = None
         curso_num = None
 
-        # Datos del Grupo y Asignatura
         if hasattr(v, "grupo_docente") and v.grupo_docente:
             tipo = v.grupo_docente.tipo.value if v.grupo_docente.tipo else "TEORIA"
             cod = v.grupo_docente.codigo or "UNICO"
@@ -79,20 +80,16 @@ class ConflictoOut(ConflictoBase):
                 asig_obj = v.grupo_docente.asignatura
                 asig = asig_obj.nombre
                 
-                # Extracción del Periodo
                 if asig_obj.periodo:
-                    periodo_code = asig_obj.periodo.value  # ej: "primer_cuatrimestre"
-                    periodo_str = asig_obj.periodo.value.replace("_", " ").title() # ej: "Primer Cuatrimestre"
+                    periodo_code = asig_obj.periodo.value 
+                    periodo_str = asig_obj.periodo.value.replace("_", " ").title()
                 
-                # Extracción del Programa (Contexto Principal)
                 target_pa = None
                 if asig_obj.programa_asignaturas:
-                    # Buscamos la vinculación exacta por curso
                     for pa in asig_obj.programa_asignaturas:
                         if pa.curso == curso_val:
                             target_pa = pa
                             break
-                    # Fallback: el primero si no hay coincidencia
                     if not target_pa and len(asig_obj.programa_asignaturas) > 0:
                         target_pa = asig_obj.programa_asignaturas[0]
                 
@@ -103,7 +100,6 @@ class ConflictoOut(ConflictoBase):
                     if target_pa.mencion:
                         mencion = target_pa.mencion.nombre
 
-        # Datos del Horario
         if hasattr(v, "dia_semana") and v.dia_semana:
             try:
                 dia = v.dia_semana.value.capitalize()
@@ -124,7 +120,6 @@ class ConflictoOut(ConflictoBase):
             mencion=mencion,
             periodo=periodo_str,
             
-            # Inyectamos los 3 datos clave
             programa_id=programa_id,
             curso_num=curso_num,
             periodo_code=periodo_code

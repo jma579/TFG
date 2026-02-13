@@ -1,11 +1,24 @@
 'use client';
 
-import { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
+import { 
+  AlertCircle, 
+  AlertTriangle, 
+  Building2, 
+  ChevronDown,
+  ChevronRight, 
+  ExternalLink, 
+  GraduationCap, 
+  Info, 
+  LucideIcon, 
+  Scale, 
+  Users} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,19 +28,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConflictoOut, ConflictoSeveridad, ConflictoTipo } from '@/lib/api/conflictos';
-import { 
-  AlertCircle, 
-  AlertTriangle, 
-  Info, 
-  ChevronRight, 
-  ChevronDown,
-  Users, 
-  Building2, 
-  GraduationCap, 
-  Scale, 
-  LucideIcon, 
-  ExternalLink 
-} from 'lucide-react';
 
 // ============================================================================
 // CONFIGURACIÓN VISUAL
@@ -84,7 +84,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
   const s1 = conflicto.sesion_1_detalle;
   const s2 = conflicto.sesion_2_detalle;
 
-  // Helper para construir la URL
   const getUrl = (progId?: number | null, curso?: number | null, periodoCode?: string | null) => {
     if (!progId || !curso) return '#';
     const params = new URLSearchParams();
@@ -94,10 +93,8 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
     return `/datos/horarios/detalle?${params.toString()}`;
   };
 
-  // CASO 1: Conflicto unitario
   if (!s2) {
     return (
-      // Estilo estándar outline, sin colores extra
       <Button asChild size="sm" variant="outline" className="h-8">
         <Link href={getUrl(s1?.programa_id, s1?.curso_num, s1?.periodo_code)}>
           Resolver
@@ -106,7 +103,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
     );
   }
 
-  // CASO 2: Analizar Contextos
   const ctx1 = { pid: s1?.programa_id, curso: s1?.curso_num, periodo: s1?.periodo_code };
   const ctx2 = { pid: s2?.programa_id, curso: s2?.curso_num, periodo: s2?.periodo_code };
 
@@ -115,7 +111,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
     ctx1.curso === ctx2.curso && 
     ctx1.periodo === ctx2.periodo;
 
-  // Si están en el mismo horario -> Botón Directo (Mismo estilo estándar)
   if (isSameContext) {
     return (
       <Button asChild size="sm" variant="outline" className="h-8">
@@ -126,7 +121,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
     );
   }
 
-  // CASO 3: Horarios distintos -> MODAL (Mismo estilo visual estándar)
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -147,7 +141,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* OPCIÓN A */}
           <div className="group relative flex flex-col gap-3 rounded-xl border p-4 transition-all hover:bg-muted/50 hover:shadow-md cursor-pointer" onClick={() => {
               setIsOpen(false);
               router.push(getUrl(s1?.programa_id, s1?.curso_num, s1?.periodo_code));
@@ -165,7 +158,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
             </Button>
           </div>
 
-          {/* OPCIÓN B */}
           <div className="group relative flex flex-col gap-3 rounded-xl border p-4 transition-all hover:bg-muted/50 hover:shadow-md cursor-pointer" onClick={() => {
               setIsOpen(false);
               router.push(getUrl(s2?.programa_id, s2?.curso_num, s2?.periodo_code));
@@ -193,7 +185,6 @@ const ResolverActionCell = ({ conflicto }: { conflicto: ConflictoOut }) => {
 // ============================================================================
 
 export const columns: ColumnDef<ConflictoOut>[] = [
-  // 1. Expansor
   {
     id: 'expander',
     header: () => null,
@@ -204,7 +195,6 @@ export const columns: ColumnDef<ConflictoOut>[] = [
     ),
   },
   
-  // 2. Severidad
   {
     accessorKey: 'severidad',
     header: () => <div className="text-center">Severidad</div>,
@@ -219,7 +209,6 @@ export const columns: ColumnDef<ConflictoOut>[] = [
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
 
-  // 3. Tipo
   {
     accessorKey: 'tipo',
     header: 'Tipo',
@@ -232,7 +221,6 @@ export const columns: ColumnDef<ConflictoOut>[] = [
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
 
-  // 4. Descripción
   {
     accessorKey: 'descripcion',
     header: 'Descripción del Conflicto',
@@ -245,7 +233,6 @@ export const columns: ColumnDef<ConflictoOut>[] = [
     ),
   },
 
-  // 5. Acciones
   {
     id: 'actions',
     header: () => <div className="text-right">Acciones</div>,

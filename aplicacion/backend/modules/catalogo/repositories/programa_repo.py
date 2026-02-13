@@ -15,9 +15,6 @@ from constants.enums import TipoPrograma
 class ProgramaRepository:
     """Gestor de persistencia para programas académicos."""
     
-    # ==========================
-    # LECTURA
-    # ==========================
 
     def get_by_id(self, db: Session, programa_id: int) -> Optional[Programa]:
         """Obtiene un programa por su ID."""
@@ -26,12 +23,9 @@ class ProgramaRepository:
     def get_by_nombre_tipo(
         self, db: Session, nombre: str, tipo: TipoPrograma
     ) -> Optional[Programa]:
-        """
-        Busca un programa por la combinación única de nombre y tipo.
-        Útil para evitar duplicados semánticos.
-        """
+        """Busca un programa por la combinación única de nombre y tipo.Útil para evitar duplicados semánticos."""
         return db.query(Programa).filter(
-            Programa.nombre.ilike(nombre),  # Búsqueda insensible a mayúsculas
+            Programa.nombre.ilike(nombre),  
             Programa.tipo == tipo,
         ).first()
 
@@ -55,9 +49,6 @@ class ProgramaRepository:
         items = query.offset(skip).limit(limit).all()
         return items, total
 
-    # ==========================
-    # ESCRITURA
-    # ==========================
 
     def create(self, db: Session, programa_data: dict) -> Programa:
         """Crea un nuevo programa y refresca la instancia con datos de BD."""
@@ -99,5 +90,4 @@ class ProgramaRepository:
         return query.first() is not None
 
 
-# Instancia única exportada
 programa_repository = ProgramaRepository()

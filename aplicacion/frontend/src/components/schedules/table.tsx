@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -8,15 +7,15 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import Link from 'next/link';
+import * as React from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+
 import type { ScheduleRow } from './data';
-import { ReadonlyScheduleGrid } from '@/components/schedules/readonly-schedule-grid';
-import { sessionsMock } from '@/components/solver/schedule-mock';
-import type { Session } from '@/components/solver/schedule-mock';
 
 function StatusBadge({ s }: { s: ScheduleRow['status'] }) {
   if (s === 'ok') return <Badge variant="secondary">OK</Badge>;
@@ -30,7 +29,7 @@ function ConflictsPanel({ row }: { row: ScheduleRow }) {
     <div className="rounded-md border bg-muted/30 p-3">
       <p className="mb-2 text-xs text-muted-foreground">Conflictos detectados:</p>
       <ul className="space-y-2">
-        {row.conflicts.map((c) => (
+        {row.conflicts.map((c: ScheduleRow['conflicts'][number]) => (
           <li key={c.id} className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{c.titulo}</p>
@@ -46,29 +45,8 @@ function ConflictsPanel({ row }: { row: ScheduleRow }) {
   );
 }
 
-// Mapeo simple de ejemplo: qué sesiones mostrar para cada horario
-function sessionsForSchedule(row: ScheduleRow): Session[] {
-  if (row.titulacion.includes('Matemáticas')) {
-    return sessionsMock.filter((s) => s.courseId === 'mat-3A');
-  }
-  if (row.titulacion.includes('Física')) {
-    return sessionsMock.filter((s) => s.courseId === 'fis-2B');
-  }
-  return [];
-}
-
-function ScheduleVisualPanel({ row }: { row: ScheduleRow }) {
-  const sessions = sessionsForSchedule(row);
-  return (
-    <div className="rounded-md border bg-muted/20 p-3">
-      <ReadonlyScheduleGrid sessions={sessions} />
-    </div>
-  );
-}
-
 export function SchedulesTable({ data }: { data: ScheduleRow[] }) {
   const [expandedConflictsId, setExpandedConflictsId] = React.useState<string | null>(null);
-  const [expandedVisualId, setExpandedVisualId] = React.useState<string | null>(null);
 
   const columns = React.useMemo<ColumnDef<ScheduleRow>[]>(() => [
     {
@@ -114,26 +92,7 @@ export function SchedulesTable({ data }: { data: ScheduleRow[] }) {
         );
       },
     },
-    {
-      id: 'ver',
-      header: '',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const open = expandedVisualId === row.original.id;
-        return (
-          <div className="flex justify-end">
-            <Button
-              size="sm"
-              variant={open ? 'default' : 'outline'}
-              onClick={() => setExpandedVisualId(open ? null : row.original.id)}
-            >
-              {open ? 'Ocultar horario' : 'Ver horario'}
-            </Button>
-          </div>
-        );
-      },
-    },
-  ], [expandedConflictsId, expandedVisualId]);
+  ], [expandedConflictsId]);
 
   const table = useReactTable<ScheduleRow>({
     data,
@@ -161,7 +120,6 @@ export function SchedulesTable({ data }: { data: ScheduleRow[] }) {
         <TableBody>
           {table.getRowModel().rows.map((row) => {
             const conflictsOpen = expandedConflictsId === row.original.id;
-            const visualOpen = expandedVisualId === row.original.id;
 
             return (
               <React.Fragment key={row.id}>
@@ -177,14 +135,6 @@ export function SchedulesTable({ data }: { data: ScheduleRow[] }) {
                   <TableRow>
                     <TableCell colSpan={colCount}>
                       <ConflictsPanel row={row.original} />
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                {visualOpen && (
-                  <TableRow>
-                    <TableCell colSpan={colCount}>
-                      <ScheduleVisualPanel row={row.original} />
                     </TableCell>
                   </TableRow>
                 )}

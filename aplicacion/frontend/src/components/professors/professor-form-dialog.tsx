@@ -1,16 +1,17 @@
 'use client';
 
 import * as React from 'react';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import type { Professor, TipoConciliacion } from './data';
 
 type ProfessorFormDialogProps = {
@@ -30,7 +32,7 @@ type ProfessorFormDialogProps = {
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion; // <--- Nuevo campo
+    conciliacion: TipoConciliacion; 
   }) => void;
   saving: boolean;
 };
@@ -66,7 +68,7 @@ export function ProfessorFormDialog({
         email: initial.email ?? '',
         departamento: initial.departamento ?? '',
         activo: initial.activo,
-        conciliacion: initial.conciliacion, // <--- Carga valor inicial
+        conciliacion: initial.conciliacion,
       });
     } else {
       setForm({
@@ -152,7 +154,6 @@ export function ProfessorFormDialog({
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            {/* SELECTOR DE CONCILIACIÓN */}
             <div className="space-y-1">
               <span className="text-xs font-medium text-muted-foreground">Conciliación</span>
               <Select

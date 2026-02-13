@@ -1,20 +1,19 @@
+import { PageTitle } from '@/components/common/page-title';
 import { columns } from '@/components/conflicts/columns';
 import { DataTable } from '@/components/conflicts/data-table';
-import { PageTitle } from '@/components/common/page-title';
-import { listConflictos, ConflictoOut } from '@/lib/api/conflictos';
+import { ConflictoOut, listConflictos } from '@/lib/api/conflictos';
 
-// Forzar renderizado dinámico para ver siempre los últimos conflictos
 export const dynamic = 'force-dynamic';
+
+const CONFLICTS_LIMIT = 100;
 
 export default async function ConflictosPage() {
   let data: ConflictoOut[] = [];
-  let error = null;
+  let error: string | null = null;
 
   try {
-    // Solo pedimos los 'por_revisar' (activo por defecto en la lógica de negocio, 
-    // pero explícito aquí para claridad).
     const response = await listConflictos({ 
-      limit: 100,
+      limit: CONFLICTS_LIMIT,
       estado: 'por_revisar' 
     });
     data = response.items;

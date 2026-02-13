@@ -1,6 +1,5 @@
 """
 Servicio de emparejamiento de Asignaturas (Entity Resolution).
-Versión Profesional: Incluye resolución de contexto (Programa) mediante Fuzzy Matching.
 """
 
 from typing import Optional, Tuple, Dict, List, Set
@@ -8,45 +7,32 @@ from sqlalchemy.orm import Session, joinedload
 from rapidfuzz import process, fuzz
 import logging
 
-from database.models import Asignatura, Programa, AsignaturaAlias
+from database.models import Asignatura, Programa
 
 logger = logging.getLogger(__name__)
 
 FUZZY_THRESHOLD = 88 
 MIN_CUTOFF = 65
-PROGRAMA_THRESHOLD = 85 # Umbral para detectar el plan de estudios
+PROGRAMA_THRESHOLD = 85 
 
 class AsignaturaMatcher:
-    """
-    Servicio de resolución de entidades para Asignaturas.
-    
-    Características:
-    - Cache in-memory de Asignaturas, Alias y Programas.
-    - Resolución automática de contexto (Plan de Estudios).
-    - Búsqueda en cascada optimizada.
-    """
+    """Servicio de resolución de entidades para Asignaturas."""
 
     def __init__(self, db: Session):
         self.db = db
-        # Índices de Asignaturas
         self._map_lookup: Dict[str, List[Asignatura]] = {}
         self._keys_by_context: Dict[int, Dict[int, Set[str]]] = {}
         self._keys_global: Set[str] = set()
         
-        # Índice de Programas (Nombre -> ID)
         self._programas_map: Dict[str, int] = {}
         self._programas_keys: List[str] = []
         
-        # Carga inicial inmediata
         self._cargar_cache()
 
     def _cargar_cache(self):
-        """
-        Carga masiva de Asignaturas y Programas.
-        """
+        """Carga masiva de Asignaturas y Programas. """
         logger.info("Cargando caché de Asignaturas y Programas...")
         
-        # 1. Cargar Programas (para resolución de contexto)
         programas = self.db.query(Programa).filter(Programa.activo == True).all()
         for prog in programas:
             key = self._normalize(prog.nombre)
@@ -54,7 +40,6 @@ class AsignaturaMatcher:
                 self._programas_map[key] = prog.id
         self._programas_keys = list(self._programas_map.keys())
 
-        # 2. Cargar Asignaturas y Alias
         asignaturas = (
             self.db.query(Asignatura)
             .filter(Asignatura.activo == True)
@@ -66,9 +51,7 @@ class AsignaturaMatcher:
         )
 
         for asig in asignaturas:
-            # Indexar nombre oficial
             self._indexar_termino(asig.nombre, asig)
-            # Indexar alias
             for alias_obj in asig.aliases:
                 self._indexar_termino(alias_obj.alias, asig)
 
@@ -78,17 +61,13 @@ class AsignaturaMatcher:
         """Helper para insertar claves en los índices."""
         key = self._normalize(texto)
         if not key: return
-
-        # A. Mapa Inverso
         if key not in self._map_lookup:
             self._map_lookup[key] = []
         if asig not in self._map_lookup[key]:
             self._map_lookup[key].append(asig)
         
-        # B. Índice Global
         self._keys_global.add(key)
 
-        # C. Índice Contextual (Programa -> Curso)
         for pa in asig.programa_asignaturas:
             prog_id = pa.programa_id
             curso = pa.curso or 0
@@ -99,7 +78,6 @@ class AsignaturaMatcher:
                 self._keys_by_context[prog_id][curso] = set()
                 
             self._keys_by_context[prog_id][curso].add(key)
-            # Bucket 0 (Todo el grado)
             if 0 not in self._keys_by_context[prog_id]:
                 self._keys_by_context[prog_id][0] = set()
             self._keys_by_context[prog_id][0].add(key)
@@ -116,18 +94,16 @@ class AsignaturaMatcher:
         if not query_norm:
             return None
 
-        # 1. Match Exacto
         if query_norm in self._programas_map:
             return self._programas_map[query_norm]
 
-        # 2. Fuzzy Match
         if not self._programas_keys:
             return None
             
         result = process.extractOne(
             query=query_norm,
             choices=self._programas_keys,
-            scorer=fuzz.token_set_ratio, # Token set ignora orden ("Grado Fisica" == "Fisica Grado")
+            scorer=fuzz.token_set_ratio, 
             score_cutoff=PROGRAMA_THRESHOLD
         )
 
@@ -147,39 +123,31 @@ class AsignaturaMatcher:
         curso: int = 0,
         strict_mode: bool = False
     ) -> Tuple[Optional[Asignatura], str, float]:
-        """
-        Busca la asignatura aplicando lógica de fallbacks en cascada.
-        """
+        """Busca la asignatura aplicando lógica de fallbacks en cascada."""
         query_norm = self._normalize(texto_raw)
         if len(query_norm) < 2:
             return None, "NO_MATCH", 0.0
 
-        # 1. MATCH EXACTO (O(1))
         if query_norm in self._map_lookup:
             candidates = self._map_lookup[query_norm]
             best = self._resolver_ambiguedad(candidates, prog_id, curso)
             return best, "EXACT", 100.0
 
-        # 2. DEFINIR UNIVERSO DE BÚSQUEDA
         search_universe: Set[str] = set()
         
-        # Nivel 1: Contexto Específico (Programa + Curso)
         if prog_id and curso > 0:
             prog_context = self._keys_by_context.get(prog_id, {})
             search_universe = prog_context.get(curso, set())
         
-        # Nivel 2: Fallback a Programa Completo
         if not search_universe and prog_id:
              search_universe = self._keys_by_context.get(prog_id, {}).get(0, set())
 
-        # Nivel 3: Fallback Global
         if not search_universe:
             search_universe = self._keys_global
 
         if not search_universe:
             return None, "NO_MATCH", 0.0
 
-        # 3. FUZZY MATCH
         result = process.extractOne(
             query=query_norm,
             choices=search_universe,
@@ -200,6 +168,7 @@ class AsignaturaMatcher:
         return None, "NO_MATCH", 0.0
 
     def _resolver_ambiguedad(self, candidates: List[Asignatura], prog_id: Optional[int], curso: int) -> Asignatura:
+        """Resuelve casos con múltiples asignaturas candidatas aplicando reglas de contexto."""
         if len(candidates) == 1: return candidates[0]
         if prog_id:
             filtrados = [a for a in candidates if any(pa.programa_id == prog_id for pa in a.programa_asignaturas)]

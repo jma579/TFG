@@ -1,74 +1,30 @@
 """
-Schemas Pydantic para la entidad Profesor.
-
-Estos modelos definen:
-- Validación de entrada (tipos, rangos, formatos)
-- Serialización de salida (respuestas API)
-- Documentación automática (OpenAPI)
-- Normalización de datos (strip, lowercase, etc.)
+Schemas Pydantic para Profesor.
 """
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator, EmailStr
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 import re
-from constants.enums import TipoConciliacion  # <--- IMPORTANTE: Importar el Enum
 
+from constants.enums import TipoConciliacion
 
-# ============================================================
-#  BASE: Campos comunes compartidos por Create/Update/Out
-# ============================================================
 
 class ProfesorBase(BaseModel):
-    """
-    Schema base con campos comunes de Profesor.
-    """
     
-    nombre: str = Field(
-        ...,
-        min_length=1,
-        max_length=120,
-        description="Nombre del profesor",
-        examples=["Juan", "María José", "Pedro"]
-    )
+    nombre: str = Field(..., min_length=1, max_length=120, examples=["Juan", "María José"])
     
-    apellidos: str = Field(
-        ...,
-        min_length=1,
-        max_length=200,
-        description="Apellidos del profesor",
-        examples=["García López", "Martínez", "Fernández García"]
-    )
+    apellidos: str = Field(..., min_length=1, max_length=200, examples=["García López", "Martínez"])
     
-    email: Optional[str] = Field(
-        None,
-        max_length=200,
-        description="Correo electrónico único del profesor",
-        examples=["juan.garcia@universidad.es", "maria.martinez@uam.es"]
-    )
+    email: Optional[str] = Field(None, max_length=200, examples=["juan.garcia@universidad.es"])
     
-    telefono: Optional[str] = Field(
-        None,
-        max_length=20,
-        description="Teléfono de contacto del profesor",
-        examples=["+34 912 345 678", "912345678", "+1-555-1234"]
-    )
+    telefono: Optional[str] = Field(None, max_length=20, examples=["+34 912 345 678"])
     
-    departamento: Optional[str] = Field(
-        None,
-        max_length=200,
-        description="Departamento al que pertenece el profesor",
-        examples=["Matemáticas", "Ingeniería Informática", "Física Aplicada"]
-    )
+    departamento: Optional[str] = Field(None, max_length=200, examples=["Matemáticas"])
     
-    activo: bool = Field(
-        default=True,
-        description="Indica si el profesor está activo (soft delete)"
-    )
-
-    # --- NUEVO CAMPO ---
+    activo: bool = Field(default=True)
     conciliacion: Optional[TipoConciliacion] = Field(
         None,
-        description="Preferencia de conciliación familiar (entrada tardía, salida temprana, mixta)",
+        description="Preferencia de conciliación familiar (entrada_tardia, salida_temprana, mixta)",
         examples=["entrada_tardia", "mixta"]
     )
     
@@ -99,10 +55,6 @@ class ProfesorBase(BaseModel):
         return v.strip()
 
 
-# ============================================================
-#  CREATE: Schema para crear profesor (POST)
-# ============================================================
-
 class ProfesorCreate(ProfesorBase):
     model_config = ConfigDict(
         json_schema_extra={
@@ -119,10 +71,6 @@ class ProfesorCreate(ProfesorBase):
     )
 
 
-# ============================================================
-#  UPDATE: Schema para actualizar profesor (PUT/PATCH)
-# ============================================================
-
 class ProfesorUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=120)
     apellidos: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -130,12 +78,7 @@ class ProfesorUpdate(BaseModel):
     telefono: Optional[str] = Field(None, max_length=20)
     departamento: Optional[str] = Field(None, max_length=200)
     activo: Optional[bool] = Field(None)
-    
-    # --- NUEVO CAMPO ---
-    conciliacion: Optional[TipoConciliacion] = Field(
-        None,
-        description="Actualizar preferencia de conciliación"
-    )
+    conciliacion: Optional[TipoConciliacion] = Field(None)
     
     @field_validator('nombre', 'apellidos', 'departamento', mode='before')
     @classmethod
@@ -166,12 +109,8 @@ class ProfesorUpdate(BaseModel):
     )
 
 
-# ============================================================
-#  OUT: Schema de respuesta (GET)
-# ============================================================
-
 class ProfesorOut(ProfesorBase):
-    id: int = Field(..., description="ID único autogenerado del profesor")
+    id: int
     
     model_config = ConfigDict(
         from_attributes=True,
@@ -188,13 +127,9 @@ class ProfesorOut(ProfesorBase):
     )
 
 
-# ============================================================
-#  LIST: Schema para listado paginado
-# ============================================================
-
 class ProfesorList(BaseModel):
     total: int = Field(..., ge=0)
-    items: list[ProfesorOut] = Field(...)
+    items: list[ProfesorOut] = Field(...) 
     page: int = Field(..., ge=1)
     size: int = Field(..., ge=1)
     

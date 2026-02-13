@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ProfessorsTable } from '@/components/professors/table';
+
 import type { Professor, TipoConciliacion } from '@/components/professors/data';
 import { ProfessorFormDialog } from '@/components/professors/professor-form-dialog';
+import { ProfessorsTable } from '@/components/professors/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfesor } from '@/lib/api/recursos/profesores'; 
 
@@ -31,7 +32,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion; // <--- Incluimos en submit
+    conciliacion: TipoConciliacion; 
   }) => {
     if (!editing) return;
     
@@ -44,7 +45,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
         email: values.email || null,
         departamento: values.departamento || null,
         activo: values.activo,
-        conciliacion: values.conciliacion, // <--- Envíamos a API
+        conciliacion: values.conciliacion,
       });
 
       setRows((prev) =>
@@ -57,7 +58,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
                 email: updated.email ?? null,
                 departamento: updated.departamento ?? null,
                 activo: updated.activo,
-                conciliacion: updated.conciliacion ?? null, // <--- Actualizamos vista local
+                conciliacion: updated.conciliacion ?? null, 
               }
             : row,
         ),

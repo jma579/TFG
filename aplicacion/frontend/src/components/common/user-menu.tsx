@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,19 +11,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const USER = {
   name: 'Usuario Demo',
   email: 'demo@universidad.es',
-  image: '', // puedes poner una URL si quieres
+  image: '',
 };
 
 export function UserMenu() {
   const router = useRouter();
 
   const onSignOut = () => {
-    // sin auth real: te enviamos a seleccionar cuenta
     router.push('/login?view=accounts');
   };
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 import { cn } from '@/lib/cn';
 
 type Props = React.ComponentProps<typeof Link> & {

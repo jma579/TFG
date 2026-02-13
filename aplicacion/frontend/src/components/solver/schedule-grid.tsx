@@ -1,9 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { generateTimeSlots, overlapsSlot } from '@/lib/time';
+
 import { cn } from '@/lib/cn';
-import type { Session } from './schedule-mock';
+import { generateTimeSlots, overlapsSlot } from '@/lib/time';
+
+export type Session = {
+  id: string;
+  courseId: string;
+  dayIndex: number;
+  start: string;
+  end: string;
+  title: string;
+  room: string;
+  teacher: string;
+  color?: 'blue' | 'green' | 'orange' | 'red' | 'purple';
+};
 
 type Props = {
   start?: string;
@@ -11,7 +23,7 @@ type Props = {
   stepMin?: number;
   className?: string;
   onCellClick?: (info: CellClickInfo) => void;
-  sessions?: Session[]; // ← NUEVO: sesiones para pintar
+  sessions?: Session[]; 
 };
 
 export type CellClickInfo = { dayIndex: number; time: string };
@@ -77,7 +89,6 @@ export function ScheduleGrid({
                   onClick={() => onCellClick?.({ dayIndex, time: t })}
                   aria-label={`Celda ${t}, día ${dayLabel(dayIndex)}`}
                 >
-                  {/* Render sencillo: “chips” por cada sesión que cae en este slot */}
                   <div className="absolute inset-1 flex flex-col gap-1">
                     {cellSessions.map((s) => (
                       <div

@@ -15,12 +15,12 @@ from modules.recursos.repositories.profesor_repo import profesor_repository
 from modules.recursos.schemas.profesor import ProfesorUpdate, ProfesorOut, ProfesorList
 
 class ProfesorService:
+    """Service para lógica de negocio de Profesor."""
+
     def __init__(self):
+        """Inicializa el servicio con el repositorio de profesores."""
         self.repo = profesor_repository
 
-    # ==========================
-    # LECTURA
-    # ==========================
 
     def get_profesores(
         self, db: Session, skip: int, limit: int, activo: Optional[bool]
@@ -41,9 +41,6 @@ class ProfesorService:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Profesor no encontrado")
         return ProfesorOut.model_validate(prof)
 
-    # ==========================
-    # ESCRITURA
-    # ==========================
 
     def update_profesor(
         self, db: Session, profesor_id: int, prof_in: ProfesorUpdate
@@ -56,19 +53,13 @@ class ProfesorService:
         if not prof: 
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Profesor no encontrado")
         
-        # Actualización de datos
         updated = self.repo.update(db, profesor_id, prof_in.model_dump(exclude_unset=True))
         db.commit()
         db.refresh(updated)
         return ProfesorOut.model_validate(updated)
 
     def delete_profesor(self, db: Session, profesor_id: int, physical: bool) -> dict:
-        """
-        Elimina un profesor.
-        
-        Args:
-            physical (bool): True para borrado físico, False para soft delete.
-        """
+        """Elimina un profesor."""
         if not self.repo.get_by_id(db, profesor_id):
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Profesor no encontrado")
         
@@ -81,5 +72,6 @@ class ProfesorService:
             
         db.commit()
         return {"message": msg}
+
 
 profesor_service = ProfesorService()

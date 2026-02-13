@@ -1,9 +1,6 @@
+import { AlertTriangle, ArrowRight, BookOpen, Calendar, CheckCircle, Layers, Loader2, Trash2 } from 'lucide-react';
 import React from 'react';
-import { ScheduleSummary } from './data'; 
-import { Calendar, AlertTriangle, CheckCircle, ArrowRight, BookOpen, Layers, Loader2, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,23 +12,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter,CardHeader, CardTitle } from '@/components/ui/card';
 
-// Definición de la interfaz corregida para eliminar el error de la línea 173
+import { ScheduleSummary } from './data'; 
+
 interface ScheduleCardProps {
   data: ScheduleSummary;
   onView: (data: ScheduleSummary) => void;
-  onDelete: (data: ScheduleSummary) => void; // Cambiado de onSolve a onDelete
+  onDelete: (data: ScheduleSummary) => void; 
 }
 
 export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onDelete }) => {
   const isConflict = data.estado === 'CONFLICTO';
   const isProcessing = data.estado === 'PROCESANDO';
 
-  // Lógica de visualización de itinerario
   const esCursoGeneral = data.menciones.length === 0;
   const nombreItinerario = esCursoGeneral ? "Curso General / Troncal" : data.menciones[0];
 
-  // --- CORRECCIÓN FRONTEND: Extraer el número del cuatrimestre desde 'periodo' ---
   const numCuatri = data.periodo.includes('primer') ? 1 : 2;
 
   return (
@@ -44,7 +43,6 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onDele
         <div className="flex justify-between items-start">
           <div>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-              {/* Usamos numCuatri en lugar de data.cuatrimestre vacío */}
               {numCuatri}º Cuatrimestre
             </p>
             <CardTitle className="text-2xl font-bold text-gray-900">
@@ -130,7 +128,6 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ data, onView, onDele
               <AlertDialogTitle>¿Estás seguro de eliminar este horario?</AlertDialogTitle>
               <AlertDialogDescription>
                 Esta acción eliminará permanentemente la planificación de <strong>{data.curso}º Curso</strong>
-                {/* Lógica condicional para la mención */}
                 {!esCursoGeneral ? (
                   <> con mención en <strong>{nombreItinerario}</strong></>
                 ) : null}

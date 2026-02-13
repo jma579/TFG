@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+
 import { Sidebar } from "@/components/common/sidebar";
 
 export default function DashboardLayout({

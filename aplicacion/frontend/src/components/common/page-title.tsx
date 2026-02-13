@@ -1,7 +1,7 @@
-// src/components/common/page-title.tsx
 'use client';
 
 import { usePathname } from 'next/navigation';
+
 import { cn } from '@/lib/utils';
 
 const LABELS: Record<string, string> = {
@@ -26,7 +26,6 @@ interface PageTitleProps {
 export function PageTitle({ title, subtitle, className }: PageTitleProps) {
   const pathname = usePathname() || '/';
   
-  // Lógica de fallback si no se pasa título explícito
   const parts = pathname.split('/').filter(Boolean).filter((seg) => seg !== '(dashboard)');
   const last = parts[parts.length - 1] ?? 'app';
   const autoTitle = LABELS[last] ?? capitalize(last);

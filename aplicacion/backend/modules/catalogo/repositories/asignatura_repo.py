@@ -16,10 +16,6 @@ from constants.enums import Periodo, ModalidadAsignatura, Idioma
 class AsignaturaRepository:
     """Gestor de persistencia para asignaturas."""
 
-    # ==========================
-    # LECTURA (Consultas)
-    # ==========================
-
     def get_by_id(self, db: Session, asignatura_id: int) -> Optional[Asignatura]:
         """Busca una asignatura por su identificador primario."""
         return db.query(Asignatura).options(
@@ -77,7 +73,6 @@ class AsignaturaRepository:
         total = query.count()
         query = query.order_by(Asignatura.codigo_plan.asc())
         
-        # Eager loading para optimizar rendimiento
         items = query.offset(skip).limit(limit).options(
             joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.programa),
             joinedload(Asignatura.programa_asignaturas).joinedload(ProgramaAsignatura.mencion)
@@ -85,9 +80,6 @@ class AsignaturaRepository:
 
         return items, total
 
-    # ==========================
-    # ESCRITURA (Sin Commit)
-    # ==========================
 
     def create(self, db: Session, asignatura_data: dict) -> Asignatura:
         """Crea una asignatura y hace flush para generar ID."""

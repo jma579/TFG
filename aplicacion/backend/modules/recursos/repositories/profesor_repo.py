@@ -11,9 +11,6 @@ from database.models import Profesor
 class ProfesorRepository:
     """Gestor de persistencia para profesores."""
 
-    # ==========================
-    # LECTURA
-    # ==========================
 
     def get_by_id(self, db: Session, profesor_id: int) -> Optional[Profesor]:
         """Busca un profesor por su ID."""
@@ -41,9 +38,6 @@ class ProfesorRepository:
         items = query.offset(skip).limit(limit).all()
         return items, total
 
-    # ==========================
-    # ESCRITURA (Sin Commit)
-    # ==========================
 
     def create(self, db: Session, data: dict) -> Profesor:
         """Crea un nuevo profesor."""

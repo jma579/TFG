@@ -1,9 +1,10 @@
 'use client';
 
 import { create } from 'zustand';
+
 import type { UploadItem } from '@/components/uploads/types';
-import { uid } from '@/lib/id';
 import { extractHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
+import { uid } from '@/lib/id';
 
 export type HorarioUploadItem = UploadItem & {
   progress: number;
@@ -76,15 +77,12 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
       }));
 
       try {
-        // 1. Llamada API (Ya devuelve HorarioTemporalOut directamente)
         const result = await extractHorario(item.file);
 
-        // 2. Validación de seguridad básica
         if (!result || !result.horarios) {
             throw new Error("La respuesta del servidor no contiene tablas de horarios.");
         }
 
-        // 3. Asignación directa (Eliminamos la lógica de normalización antigua)
         set((state) => ({
           items: state.items.map((i) =>
             i.id === id
@@ -93,7 +91,7 @@ export const useHorariosUploadsStore = create<State & Actions>((set, get) => ({
                   status: 'done',
                   progress: 100,
                   errorMessage: undefined,
-                  horarioTemporal: result, // <--- DIRECTO
+                  horarioTemporal: result, 
                 }
               : i,
           ),

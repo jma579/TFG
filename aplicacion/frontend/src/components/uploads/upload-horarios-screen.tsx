@@ -1,8 +1,14 @@
 'use client';
 
-import * as React from 'react';
+import { AlertTriangle,Loader2, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Play, Loader2, AlertTriangle } from 'lucide-react';
+import * as React from 'react';
+
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,14 +19,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useHorariosUploadsStore } from '@/stores/horarios-uploads';
+
 import { DropzoneHorarios } from './dropzone-horarios';
 import { FileListHorarios } from './file-list-horarios';
-import { useHorariosUploadsStore } from '@/stores/horarios-uploads';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
-  AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 export function UploadHorariosScreen() {
   const router = useRouter();
@@ -34,28 +36,25 @@ export function UploadHorariosScreen() {
   const isUploading = items.some((i) => i.status === 'uploading');
   const disabledAnalyze = items.length === 0 || isUploading;
 
-  // Cálculos para la alerta
   const pendientesAnalizar = items.filter((i) => i.status === 'pending' || i.status === 'uploading').length;
   const pendientesConfirmar = items.filter((i) => i.status === 'done' && !i.confirmed).length;
   const hayPendientes = pendientesAnalizar + pendientesConfirmar > 0;
 
   const [open, setOpen] = React.useState(false);
 
-  // Si no hay pendientes, limpia y va a la vista GENERAL de horarios
   const handleTerminarClick = () => {
     if (hayPendientes) {
-      setOpen(true); // Muestra la alerta
+      setOpen(true); 
     } else {
       clear();
-      router.push('/datos/horarios'); // Redirige a la consulta
+      router.push('/datos/horarios'); 
     }
   };
 
-  // Si el usuario confirma abandonar, limpia y va a la vista GENERAL
   const confirmarSalida = () => {
     setOpen(false);
     clear();
-    router.push('/datos/horarios'); // Redirige a la consulta
+    router.push('/datos/horarios'); 
   };
 
   return (
@@ -87,7 +86,6 @@ export function UploadHorariosScreen() {
       {items.length > 0 && (
         <CardFooter className="flex justify-between border-t bg-muted/40 px-6 py-4">
           <div className="text-sm text-muted-foreground">
-             {/* Espacio para info extra si se necesita */}
           </div>
           
           <div className="flex gap-3">

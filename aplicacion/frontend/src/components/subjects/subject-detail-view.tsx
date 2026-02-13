@@ -1,12 +1,13 @@
 'use client';
 
-import * as React from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import {
+  type AsignaturaOut,
   getAsignatura,
   getAsignaturaProgramas,
-  type AsignaturaOut,
 } from '@/lib/api/catalogo/asignaturas';
 import { getAsignaturaProfesores } from '@/lib/api/recursos/profesores';
 
@@ -41,7 +42,6 @@ function formatPeriodo(periodo?: string): string {
     case 'anual':
       return 'Anual';
     default:
-      // Fallback: Capitalizar la primera letra y reemplazar guiones bajos por espacios
       return periodo.charAt(0).toUpperCase() + periodo.slice(1).replace(/_/g, ' ');
   }
 }

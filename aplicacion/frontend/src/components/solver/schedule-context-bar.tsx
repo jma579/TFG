@@ -1,19 +1,20 @@
 'use client';
 
 import * as React from 'react';
+
 import { cn } from '@/lib/cn';
 
 export type CourseRef = {
   id: string;
-  label: string; // p.ej. "Grado en Matemáticas · 3ºA"
+  label: string; 
 };
 
 type Props = {
-  title?: string;                     // por si quieres cambiar "Horario interactivo"
-  courses: CourseRef[];               // 1 o 2 cursos implicados
-  value?: string;                     // id seleccionado (opcional: controlado desde fuera)
-  defaultValue?: string;              // id por defecto (si no es controlado)
-  onChange?: (id: string) => void;    // callback al cambiar pestaña
+  title?: string;                    
+  courses: CourseRef[];               
+  value?: string;                     
+  defaultValue?: string;              
+  onChange?: (id: string) => void;    
 };
 
 export function ScheduleContextBar({

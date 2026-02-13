@@ -1,4 +1,8 @@
-from __future__ import annotations
+"""
+Parser especializado para fichas académicas universitarias.
+
+Extrae y valida datos de fichas académicas a partir de texto plano.
+"""
 
 from typing import Any, Dict, List, Optional, Tuple
 import re
@@ -19,26 +23,16 @@ class FichaParser:
     """
     Parser especializado para fichas académicas universitarias.
     
-    Esta clase se encarga de extraer, validar y normalizar los datos relevantes de una ficha académica
-    (asignatura) a partir de texto plano, alineando la salida con los modelos de base de datos definidos.
-    
-    Principales responsabilidades:
-    - Preprocesar el texto fuente para facilitar la extracción.
-    - Extraer campos clave como código, nombre, créditos ECTS, periodo, modalidad, idioma y profesorado.
-    - Validar la integridad y formato de los datos extraídos.
-    - Normalizar la salida para su integración en sistemas de persistencia o análisis.
-    
-    Uso típico:
-        parser = FichaParser()
-        ficha = parser.parse_text(texto_extraido)
-        dict_normalizado = parser.to_normalized(ficha)
+    Extrae, valida y normaliza datos de fichas académicas desde texto plano,
+    alineando la salida con los modelos de base de datos.
     """
 
     def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """
-        Inicializa el parser de fichas académicas con la configuración por defecto o personalizada.
+        Inicializar parser con configuración personalizada.
+        
         Args:
-            config: Diccionario opcional con parámetros de configuración específicos.
+            config: Parámetros de configuración opcionales
         """
         cfg = BASE_PARSER_CONFIG.copy()
         if config:
@@ -49,24 +43,24 @@ class FichaParser:
 
     def parse_text(self, text: str, extraction_metadata: Optional[ExtractionMetadata] = None) -> SubjectSheet:
         """
-        Punto de entrada principal del parser. Extrae y valida todos los campos relevantes de la ficha académica.
+        Extraer y validar todos los campos de la ficha académica.
+        
         Args:
-            text: Texto plano extraído de la ficha.
-            metadata: Metadatos opcionales de la extracción.
+            text: Texto plano extraído de la ficha
+            extraction_metadata: Metadatos opcionales de extracción
+            
         Returns:
-            Objeto SubjectSheet con los datos estructurados y validados.
+            SubjectSheet con datos estructurados y validados
+            
         Raises:
-            ParserError: Si la validación de la ficha falla.
+            ParserError: Si la validación falla
         """
-        # Valores iniciales del parsing
         start_time = time.time()
         warnings: List[Warning] = []
         errors: List[str] = []
 
-        # Preprocesamiento del texto
         text = self.preprocess_text(text)
 
-        # Extracción de campos principales usando los extractores
         try:
             codigo, nombre = self._extract_codigo_nombre(text)
             if not codigo:
@@ -76,6 +70,7 @@ class FichaParser:
         except Exception as e:
             codigo, nombre = "", ""
             errors.append(f"Error extrayendo código/nombre: {e}")
+            
         try:
             titulaciones = self._extract_titulaciones(text)
             if not titulaciones:
@@ -86,11 +81,13 @@ class FichaParser:
         except Exception as e:
             titulaciones = []
             errors.append(f"Error extrayendo titulaciones: {e}")
+            
         try:
             ects = self._extract_ects(text)
         except Exception as e:
             ects = 0
             errors.append(f"Error extrayendo ECTS: {e}")
+            
         try:
             periodo = self._extract_periodo(text)
             if not periodo or periodo == "N.A.":
@@ -101,11 +98,13 @@ class FichaParser:
         except Exception as e:
             periodo = "N.A."
             errors.append(f"Error extrayendo periodo: {e}")
+            
         try:
             num_periodo = self._extract_num_periodo(text)
         except Exception as e:
             num_periodo = None
             errors.append(f"Error extrayendo número de periodo: {e}")
+            
         try:
             modalidad = self._extract_modalidad(text)
             if not modalidad or modalidad == "N.A.":
@@ -116,11 +115,13 @@ class FichaParser:
         except Exception as e:
             modalidad = "N.A."
             errors.append(f"Error extrayendo modalidad: {e}")
+            
         try:
             idioma, english_friendly = self._extract_idioma_ef(text)
         except Exception as e:
             idioma, english_friendly = "N.A.", False
             errors.append(f"Error extrayendo idioma/english friendly: {e}")
+            
         try:
             profesores = self._extract_profesorado(text)
             if not profesores:
@@ -131,6 +132,7 @@ class FichaParser:
         except Exception as e:
             profesores = []
             errors.append(f"Error extrayendo profesorado: {e}")
+            
         try:
             centro = self._extract_centro(text)
             if not centro:
@@ -141,6 +143,7 @@ class FichaParser:
         except Exception as e:
             centro = None
             errors.append(f"Error extrayendo centro: {e}")
+            
         try:
             departamento = self._extract_departamento(text)
             if not departamento:
@@ -152,7 +155,6 @@ class FichaParser:
             departamento = None
             errors.append(f"Error extrayendo departamento: {e}")
 
-        # Construcción de los metadatos de parsing
         parser_metadata = ParsingMetadata(
             parser_name=self.name,
             parser_version=self.config.get("version"),
@@ -162,7 +164,6 @@ class FichaParser:
             errors=errors,
         )
 
-        # Construcción del objeto SubjectSheet
         ficha = SubjectSheet(
             codigo_plan=codigo,
             nombre=nombre,
@@ -181,42 +182,37 @@ class FichaParser:
             extraction_metadata=extraction_metadata,
         )
 
-        # Validación de la ficha
         is_valid, errores = self.validate(ficha)
         if not is_valid:
             raise ParserError(f"Errores de validación: {errores}")
 
-        # Retorno del objeto tipado
         return ficha
 
-
-    # Extractores principales
     def _extract_codigo_nombre(self, text: str) -> Tuple[str, str]:
         """
-        Extrae el código y el nombre de la asignatura usando el patrón definido.
-        Args:
-            text: Texto plano de la ficha.
+        Extraer código y nombre de la asignatura.
+        
         Returns:
-            Tuple con el código (str) y el nombre (str) normalizados.
+            Tuple (código, nombre) normalizados
+            
         Raises:
-            ParserError: Si no se encuentra el patrón esperado.
+            ParserError: Si no se encuentra el patrón
         """
         match = re.search(PATTERN_CODIGO_NOMBRE, text, re.IGNORECASE)
         if not match:
             raise ParserError("No se pudo extraer el código y nombre de la asignatura.")
         codigo = match.group(1).strip()
         nombre = match.group(2).strip()
-        # Solo tomar la primera línea del nombre (evita capturar bloques enteros)
         nombre = nombre.split('\n')[0].strip()
         return codigo, nombre
     
     def _extract_titulaciones(self, text: str) -> List[Titulacion]:
         """
-        Extrae las titulaciones, tipo de asignatura y curso.
-        Ejemplo de línea: 'Grado en Física OBLIGATORIA 2'
+        Extraer titulaciones, tipo de asignatura y curso.
+        
+        Ejemplo: 'Grado en Física OBLIGATORIA 2'
         """
         titulaciones = []
-        # Busca líneas tipo: Grado en Física OBLIGATORIA 2
         patron = re.compile(PATTERN_TITULACION, re.IGNORECASE)
         for match in patron.finditer(text):
             programa_nombre = match.group(1).strip()
@@ -231,13 +227,10 @@ class FichaParser:
     
     def _extract_ects(self, text: str) -> int:
         """
-        Extrae el número de créditos ECTS de la asignatura.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Número de créditos ECTS como entero.
+        Extraer créditos ECTS.
+        
         Raises:
-            ParserError: Si el formato es incorrecto o el campo está ausente.
+            ParserError: Si el formato es incorrecto
         """
         match = re.search(PATTERN_ECTS, text, re.IGNORECASE)
         if not match:
@@ -250,13 +243,7 @@ class FichaParser:
         return int(ects)
 
     def _extract_periodo(self, text: str) -> str:
-        """
-        Extrae el periodo/cuatrimestre de impartición de la asignatura.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Periodo normalizado (str) o "N.A." si no se encuentra.
-        """
+        """Extraer periodo de impartición."""
         m = re.search(PATTERN_PERIODO, text, flags=re.IGNORECASE)
         if not m:
             return "N.A."
@@ -265,8 +252,9 @@ class FichaParser:
     
     def _extract_num_periodo(self, text: str) -> Optional[int]:
         """
-        Extrae el número de periodo/cuatrimestre si está presente en el texto.
-        Ejemplo: 'Nº: 1' -> 1
+        Extraer número de periodo/cuatrimestre.
+        
+        Ejemplo: 'Nº: 1' → 1
         """
         match = re.search(PATTERN_NUM_CUATRIMESTRE, text)
         if match:
@@ -277,13 +265,7 @@ class FichaParser:
         return None
 
     def _extract_modalidad(self, text: str) -> str:
-        """
-        Extrae la modalidad de impartición de la asignatura.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Modalidad normalizada (str) o "N.A." si no se encuentra.
-        """
+        """Extraer modalidad de impartición."""
         m = re.search(PATTERN_MODALIDAD, text, flags=re.IGNORECASE)
         if not m:
             return "N.A."
@@ -292,11 +274,10 @@ class FichaParser:
 
     def _extract_idioma_ef(self, text: str) -> Tuple[str, bool]:
         """
-        Extrae el idioma principal y si la asignatura es 'english friendly'.
-        Args:
-            text: Texto plano de la ficha.
+        Extraer idioma y english_friendly.
+        
         Returns:
-            Tupla (idioma normalizado, english_friendly: bool).
+            Tuple (idioma normalizado, english_friendly)
         """
         idioma = self.config.get("default_idioma", "ESPAÑOL")
         m = re.search(PATTERN_IDIOMA, text, flags=re.IGNORECASE)
@@ -313,7 +294,9 @@ class FichaParser:
 
     def _extract_profesorado(self, text: str) -> List[Teacher]:
         """
-        Extrae la lista de profesores. Incluye lógica especial para 'Profesor Externo' con ID.
+        Extraer lista de profesores.
+        
+        Incluye lógica especial para 'Profesor Externo' con ID.
         """
         profesores = []
         bloque = re.search(PATTERN_PROFESORADO, text, re.DOTALL | re.IGNORECASE)
@@ -323,11 +306,10 @@ class FichaParser:
         bloque_texto = bloque.group(1)
         patron_sufijos = re.compile('|'.join(PROFESOR_SUFIXES), re.IGNORECASE)
 
-        # Usamos las constantes importadas (asegúrate de que constants.py las tenga)
         institutions_regex = "|".join(PROFESOR_INSTITUTIONS)
         prefixes_regex = "|".join(PROFESOR_PREFIXES)
 
-        # 1. Separar instituciones pegadas (Ej: "JAVIERUniversidad" -> "JAVIER Universidad")
+        # Separar instituciones pegadas
         bloque_texto = re.sub(
             rf"([a-zñáéíóúü])({institutions_regex})", 
             r"\1 \2", 
@@ -335,7 +317,7 @@ class FichaParser:
             flags=re.IGNORECASE
         )
 
-        # 2. Reparar nombres divididos en dos líneas
+        # Reparar nombres divididos en dos líneas
         bloque_texto = re.sub(
             rf"(,\s*[A-ZÁÉÍÓÚÑÜ\s]+)\n\s*([A-ZÁÉÍÓÚÑÜ]+)\s+({institutions_regex})", 
             r"\1 \2 \3", 
@@ -345,79 +327,74 @@ class FichaParser:
 
         for linea in bloque_texto.splitlines():
             linea = linea.strip()
-            # Filtro básico para saltar encabezados de tabla
+            
             if not linea or ("PROFESOR" in linea.upper() and "APELLIDOS" in linea.upper()):
                 continue
             if "TIPO" in linea.upper() and len(linea) < 10:
                 continue
 
-            # 3. Separar Prefijos pegados al apellido (Ej: "CUJUNQUERA" -> "CU JUNQUERA")
+            # Separar prefijos pegados al apellido
             linea = re.sub(rf"^({prefixes_regex})([A-ZÁÉÍÓÚÑÜ])", r"\1 \2", linea)
 
-            # 4. Limpieza de prefijos estándar (Elimina 'EXT', 'CU', etc. del inicio)
-            # NOTA: Esto deja "PROFESOR EXTERNO 925147..." limpio al inicio
+            # Limpiar prefijos estándar
             linea_limpia = re.sub(r"^(?:(?:[A-Z\d]{1,2}|EXT)\s+)", "", linea, count=1).strip()
             
-            # 5. Limpieza de sufijos (Corta 'Universidad de Cantabria' y lo que siga)
+            # Limpiar sufijos
             linea_limpia = patron_sufijos.split(linea_limpia)[0].strip()
 
-            # 🟢 6. DETECCIÓN DE PROFESOR EXTERNO CON ID (CRÍTICO: HACER AQUÍ)
-            # Buscamos explícitamente "PROFESOR EXTERNO" seguido de dígitos.
-            # Al hacerlo aquí, el número 925147 aún existe en la cadena.
+            # Detectar profesor externo con ID
             match_externo = re.search(r"PROFESOR\s+EXTERNO[^\d]*(\d+)", linea_limpia, re.IGNORECASE)
             
             if match_externo:
                 id_externo = match_externo.group(1)
-                # ESTRATEGIA: Guardamos ID como Nombre para que la BD detecte unicidad
                 profesores.append(Teacher(nombre=id_externo, apellidos="Profesor Externo"))
-                continue # IMPORTANTE: Saltamos el resto para que no se procese como error
+                continue
 
-            # 7. Limpieza de columnas numéricas (Horas, créditos...)
-            # ESTE PASO ES EL QUE BORRABA EL ID ANTES.
+            # Limpiar columnas numéricas
             linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0].strip()
             
-            # 8. Extracción Estándar (Apellidos, Nombre)
+            # Extracción estándar (Apellidos, Nombre)
             match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea_limpia, re.IGNORECASE)
             
             if match:
                 apellidos = match.group(1).title().strip()
                 nombre = match.group(2).title().strip()
                 
-                if len(apellidos) < 2: continue
+                if len(apellidos) < 2:
+                    continue
                     
                 profesores.append(Teacher(nombre=nombre, apellidos=apellidos))
                 
         return profesores
 
     def _extract_centro(self, text: str) -> Optional[str]:
+        """Extraer centro responsable."""
         match = re.search(r'CENTRO RESPONSABLE\s*:\s*([^\n\r]+)', text, re.IGNORECASE)
         if match:
             centro = match.group(1).strip()
-            # Elimina números iniciales y espacios
             centro = re.sub(r'^\d+\s*', '', centro)
             return centro
         return None
 
     def _extract_departamento(self, text: str) -> Optional[str]:
+        """Extraer departamento responsable."""
         match = re.search(r'DEPARTAMENTO RESPONSABLE\s*:\s*([^\n\r]+)', text, re.IGNORECASE)
         if match:
             departamento = match.group(1).strip()
-            # Elimina números iniciales y espacios
             departamento = re.sub(r'^\d+\s*', '', departamento)
             return departamento
         return None
     
-    
-    # Validación y normalización
     def preprocess_text(self, text: str) -> str:
         """
-        Preprocesa el texto plano antes de la extracción (normaliza espacios, saltos de línea, etc.).
+        Preprocesar texto: normalizar espacios y saltos de línea.
+        
         Args:
-            text: Texto original extraído.
+            text: Texto original
+            
         Returns:
-            Texto preprocesado listo para parsing.
+            Texto normalizado
         """
-        # Elimina espacios dobles y normaliza saltos de línea
         text = re.sub(r'[ \t]+', ' ', text)
         text = re.sub(r'\r\n?', '\n', text)
         text = re.sub(r'\n{2,}', '\n', text)
@@ -425,11 +402,13 @@ class FichaParser:
 
     def validate(self, parsed: SubjectSheet) -> Tuple[bool, List[str]]:
         """
-        Valida que el objeto SubjectSheet cumple los requisitos mínimos de integridad y formato.
+        Validar integridad y formato del SubjectSheet.
+        
         Args:
-            parsed: Objeto SubjectSheet a validar.
+            parsed: SubjectSheet a validar
+            
         Returns:
-            Tupla (bool, lista de errores). True si es válido, False si hay errores.
+            Tuple (es_válido, lista_de_errores)
         """
         errores: List[str] = []
         if not re.match(r"^[A-Z]{1,2}\d{1,4}[A-Z]?$", parsed.codigo_plan):

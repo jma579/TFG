@@ -1,3 +1,10 @@
+"""
+Módulo principal de parsing de horarios académicos.
+
+Recibe el resultado de la extracción (tablas con celdas) y aplica lógica de
+interpretación semántica para generar sesiones estructuradas.
+"""
+
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta, time as dt_time
 import logging
@@ -10,31 +17,32 @@ from core.extraccion.horarios.extractor.constants import DIAS_SEMANA
 from core.extraccion.horarios.parser.cell_parser import CellParser, ParsedCellData, clean_subject_name
 
 class HorarioParser:
+    """
+    Clase principal encargada de transformar el resultado de extracción de tablas en un formato estructurado de horarios.
+    """
     
     def __init__(self, config: Optional[Dict] = None):
+        """Inicializa el parser con configuración opcional."""
         self.logger = logging.getLogger(__name__)
         self.cell_parser = CellParser()
         self.warnings = []
         self.errors = []
 
     def parse(self, extraction_result: HorarioExtractionResult) -> ParsingResult:
+        """Procesa el resultado de extracción y genera horarios estructurados."""
         start_time = datetime.now()
         horarios_parsed = []
 
-        # 1. RECUPERAR DATOS (Ahora viene el formato largo)
         raw_title = extraction_result.titulo
         if "|" in raw_title:
             titulo_grado, periodo_global = raw_title.split("|")
         else:
-            # Fallback actualizado a formato largo por consistencia
             titulo_grado, periodo_global = raw_title, "Primer Cuatrimestre"
 
-        # 2. TÍTULO FINAL (Ej: "Grado en Física - Segundo Cuatrimestre")
         titulo_final = f"{titulo_grado} - {periodo_global}"
 
         for tabla in extraction_result.tablas:
             try:
-                # El periodo completo se pasará ahora a cada objeto horario
                 horario = self._process_table(tabla, periodo_global)
                 if horario.sesiones:
                     horarios_parsed.append(horario)
@@ -43,8 +51,8 @@ class HorarioParser:
                 self.errors.append(f"Error en tabla {tabla.pagina}: {str(e)}")
 
         parsing_meta = ParsingMetadata(
-            parser_name="GridParserV2.1",
-            parser_version="2.1.0",
+            parser_name="GridParser",
+            parser_version="1.0.0",
             parse_timestamp=datetime.now(),
             parse_duration=(datetime.now() - start_time).total_seconds(),
             warnings=self.warnings,
@@ -61,10 +69,9 @@ class HorarioParser:
         )
 
     def _process_table(self, tabla, periodo_global: str) -> Horario:
+        """Procesa una tabla individual y extrae sus sesiones."""
         sesiones: List[Sesion] = []
         col_day_map = {idx: d for idx, d in enumerate(tabla.day_columns) if d in DIAS_SEMANA}
-        
-        # Estado de sesión activa por columna: { col_idx: { 'data': ParsedData, 'hora_inicio': ..., 'hora_fin': ... } }
         active_sessions: Dict[int, Dict] = {}
 
         for r_idx, hora_inicio_str in enumerate(tabla.time_rows):
@@ -84,28 +91,21 @@ class HorarioParser:
                 if c_idx in active_sessions:
                     prev = active_sessions[c_idx]
                     
-                    # --- LÓGICA DE FUSIÓN SEMÁNTICA ---
-                    # Comprobamos si la celda actual es la continuación ("cola") de la anterior ("cabeza")
                     continuation_type = self._check_continuation(prev['data'], parsed_data)
                     
                     if continuation_type != "NONE":
-                        # Extender hora fin
                         prev['hora_fin'] = hora_fin_estimada
                         
-                        # Si es una continuación de texto ("n empresa"), concatenamos el nombre
                         if continuation_type == "TEXT_TAIL":
                             new_name = f"{prev['data'].asignatura} {parsed_data.asignatura or ''}".strip()
                             prev['data'].asignatura = clean_subject_name(new_name)
                         
-                        # Mezclar otros datos (aula, grupo) si aparecieron ahora
                         self._merge_data(prev['data'], parsed_data)
                     
                     else:
-                        # Cerrar sesión anterior
                         sesiones.append(self._build_sesion(prev, day_name))
                         del active_sessions[c_idx]
                         
-                        # Iniciar nueva si aplica
                         if parsed_data.asignatura:
                             active_sessions[c_idx] = {
                                 'hora_inicio': hora_inicio,
@@ -120,13 +120,12 @@ class HorarioParser:
                             'data': parsed_data
                         }
 
-        # Cerrar remanentes
         for c_idx, session_info in active_sessions.items():
             sesiones.append(self._build_sesion(session_info, col_day_map[c_idx]))
 
         return Horario(
             curso=tabla.curso,
-            periodo=periodo_global, # Usamos el periodo detectado (1C o 2C)
+            periodo=periodo_global, 
             sesiones=sesiones,
             mencion=tabla.mencion,
             pagina=tabla.pagina
@@ -134,40 +133,40 @@ class HorarioParser:
     def _check_continuation(self, prev: ParsedCellData, curr: ParsedCellData) -> str:
         """
         Analiza si 'curr' es continuación de 'prev'.
-        Retorna: "NONE", "SAME_BLOCK" (misma clase), "TEXT_TAIL" (nombre partido).
+        
+        Returns:
+            "NONE": No es continuación
+            "SAME_BLOCK": Misma clase (celda fusionada)
+            "TEXT_TAIL": Nombre partido en múltiples líneas
         """
-        # 1. Si la celda actual está vacía visualmente -> NO es continuación (es un hueco libre)
         if not curr.raw_text:
             return "NONE"
 
-        # 2. Mismo texto exacto -> SAME_BLOCK (Celda fusionada en PDF)
         if prev.raw_text == curr.raw_text:
             return "SAME_BLOCK"
 
-        # 3. Detección de "Cola de Texto" (Nombre partido)
-        # Si la celda actual empieza con minúscula (y tiene texto), es muy probable que sea cola.
         if curr.raw_text and curr.raw_text[0].islower():
             return "TEXT_TAIL"
         
-        # Si la anterior terminó en conector (de, a, y...)
         if prev.asignatura and re.search(r'\b(de|a|y|en|con|del|la|los|las)\s*$', prev.asignatura, re.IGNORECASE):
             return "TEXT_TAIL"
 
-        # 4. Herencia de Aula (Sin asignatura nueva)
-        # Si actual no tiene asignatura pero tiene aula/grupo -> SAME_BLOCK (es la misma clase definiendo aula)
         if not curr.asignatura and (curr.aula or curr.grupo):
             return "SAME_BLOCK"
 
         return "NONE"
 
     def _merge_data(self, target: ParsedCellData, source: ParsedCellData):
-        if not target.aula and source.aula: target.aula = source.aula
-        if not target.grupo and source.grupo: target.grupo = source.grupo
-        # Si la actual definió un tipo más específico (ej: PRACTICA), actualizar
+        """Fusiona datos de dos celdas que pertenecen a la misma sesión."""
+        if not target.aula and source.aula: 
+            target.aula = source.aula
+        if not target.grupo and source.grupo: 
+            target.grupo = source.grupo
         if target.tipo == 'CLASE' and source.tipo != 'CLASE':
             target.tipo = source.tipo
 
     def _build_sesion(self, info: Dict, dia: str) -> Sesion:
+        """Construye una sesión completa a partir de la información acumulada."""
         data: ParsedCellData = info['data']
         return Sesion(
             asignatura=data.asignatura or "DESCONOCIDA",
@@ -180,6 +179,7 @@ class HorarioParser:
         )
 
     def _calculate_end_time(self, time_rows, current_idx, current_start):
+        """Calcula la hora de fin basándose en la siguiente fila de tiempo."""
         if current_idx + 1 < len(time_rows):
             next_time_str = time_rows[current_idx + 1]
             if next_time_str:
@@ -188,10 +188,13 @@ class HorarioParser:
         return dt.time()
 
     def _parse_time(self, t_str: str) -> dt_time:
+        """Parsea una cadena de tiempo en formato HH:MM."""
         try:
             parts = t_str.split(':')
             return dt_time(int(parts[0]), int(parts[1]))
-        except: return dt_time(0, 0)
+        except (ValueError, IndexError):
+            self.logger.warning(f"Error parseando tiempo: {t_str}")
+            return dt_time(0, 0)
 
     def _to_normalize(self, parsed_result: ParsingResult) -> Dict:
         return {

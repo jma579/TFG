@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { MarketingHeader } from '@/components/marketing/header';
-import { MarketingHero } from '@/components/marketing/hero';
+
 import { MarketingFeatures } from '@/components/marketing/features';
 import { MarketingFooter } from '@/components/marketing/footer';
+import { MarketingHeader } from '@/components/marketing/header';
+import { MarketingHero } from '@/components/marketing/hero';
 
 export const metadata: Metadata = {
   title: 'Detector de Conflictos — Inicio',

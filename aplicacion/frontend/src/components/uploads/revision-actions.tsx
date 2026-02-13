@@ -1,17 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
 import { useHorariosUploadsStore } from '@/stores/horarios-uploads';
-import Link from 'next/link';
 
 export function RevisionActions({ id }: { id: string }) {
   const router = useRouter();
   const confirm = useHorariosUploadsStore((s) => s.confirm);
 
   const onConfirm = () => {
-    confirm(id);                // marca como confirmado en la store
-    router.push('/uploads/horarios'); // vuelve al listado de subidas de horarios
+    confirm(id);               
+    router.push('/uploads/horarios'); 
   };
 
   return (

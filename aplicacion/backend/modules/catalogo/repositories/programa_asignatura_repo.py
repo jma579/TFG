@@ -22,9 +22,7 @@ class ProgramaAsignaturaRepository:
         tipo_asignatura: TipoAsignatura,
         mencion_id: Optional[int]=None
     ) -> ProgramaAsignatura:
-        """
-        Crea una nueva vinculación entre programa y asignatura.
-        """
+        """Crea una nueva vinculación entre programa y asignatura."""
         rel = ProgramaAsignatura(
             programa_id=programa_id,
             asignatura_id=asignatura_id,
@@ -67,8 +65,8 @@ class ProgramaAsignaturaRepository:
         asignatura_id: int, 
         curso: Optional[int] = None, 
         tipo_asignatura: Optional[TipoAsignatura] = None,
-        mencion_id: Optional[int] = None, # NUEVO
-        remove_mencion: bool = False # NUEVO: flag explícito para poner mencion a null
+        mencion_id: Optional[int] = None,
+        remove_mencion: bool = False
     ) -> Optional[ProgramaAsignatura]:
         """Actualiza el curso, tipo o mención de una relación existente."""
         rel = self.get_by_programa_and_asignatura(db, programa_id, asignatura_id)
@@ -80,11 +78,9 @@ class ProgramaAsignaturaRepository:
         if tipo_asignatura is not None:
             rel.tipo_asignatura = tipo_asignatura
         
-        # NUEVO: Lógica de actualización de mención
         if remove_mencion:
             rel.mencion_id = None
         elif mencion_id is not None:
-            # Validar que la mención pertenece al mismo programa
             mencion = db.query(Mencion).filter(Mencion.id == mencion_id).first()
             if not mencion or mencion.programa_id != programa_id:
                 raise ValueError("La mención proporcionada no pertenece al programa de esta vinculación.")
@@ -95,10 +91,7 @@ class ProgramaAsignaturaRepository:
         return rel
         
     def delete_all_by_asignatura(self, db: Session, asignatura_id: int) -> int:
-        """
-        Elimina todas las vinculaciones de una asignatura.
-        Útil para procesos de resincronización completa.
-        """
+        """Elimina todas las vinculaciones de una asignatura."""
         count = db.query(ProgramaAsignatura).filter(
             ProgramaAsignatura.asignatura_id == asignatura_id
         ).delete()
@@ -106,5 +99,4 @@ class ProgramaAsignaturaRepository:
         return count
 
 
-# Instancia única exportada
 programa_asignatura_repository = ProgramaAsignaturaRepository()

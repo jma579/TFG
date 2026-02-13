@@ -1,8 +1,5 @@
-// frontend/src/lib/api/conflictos.ts
-
 import { api } from '@/lib/api/config';
 
-// --- ENUMS ---
 export type ConflictoTipo =
   | 'solapamiento_profesor'
   | 'solapamiento_aula'
@@ -12,16 +9,13 @@ export type ConflictoTipo =
 export type ConflictoSeveridad = 'critico' | 'no_bloqueante' | 'leve';
 export type ConflictoEstado = 'por_revisar' | 'solucionado';
 
-// --- MODELOS ---
 
-// Estructura enriquecida que viene del backend
 export type SesionResumen = {
   id: number;
   asignatura: string;
   grupo: string;
   horario: string;
   curso: string;
-  // Campos nuevos para metadatos
   aula?: string;
   titulacion?: string;
   mencion?: string;
@@ -38,18 +32,15 @@ export type ConflictoOut = {
   estado: ConflictoEstado;
   descripcion: string;
   
-  // IDs Relacionales
   sesion_id: number;
   sesion_2_id?: number | null;
   profesor_id?: number | null;
   aula_id?: number | null;
   restriccion_id?: number | null;
 
-  // Objetos detallados
   sesion_1_detalle?: SesionResumen | null;
   sesion_2_detalle?: SesionResumen | null;
 
-  // Metadatos
   hash_deteccion: string;
   creado_en: string; 
   resuelto_en?: string | null;
@@ -73,7 +64,6 @@ export type ConflictoListFilters = {
   limit?: number;
 };
 
-// --- ENDPOINTS ---
 
 export async function listConflictos(
   filters: ConflictoListFilters = {}

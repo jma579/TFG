@@ -109,5 +109,4 @@ class ConflictoService:
         db.commit()
 
 
-# Instancia Singleton
 conflicto_service = ConflictoService()

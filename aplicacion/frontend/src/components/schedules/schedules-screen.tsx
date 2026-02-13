@@ -1,10 +1,14 @@
 'use client';
 
-import * as React from 'react';
+import { BookOpen, Filter, Loader2, Plus,Search } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Search, BookOpen, Loader2, Filter, Plus } from 'lucide-react';
+import { usePathname,useRouter, useSearchParams } from 'next/navigation';
+import * as React from 'react';
+
+import type { ScheduleSummary } from '@/components/schedules/data';
+import { ScheduleCard } from '@/components/schedules/schedule-card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -13,17 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-
-// Componentes y Tipos
-import { ScheduleCard } from '@/components/schedules/schedule-card';
-import type { ScheduleSummary } from '@/components/schedules/data';
-
-// APIs
-import { getDashboardResumen } from '@/lib/api/docencia/dashboard';
-import { deleteHorario } from '@/lib/api/docencia/horarios'; // Nueva importación
 import type { ProgramaOut } from '@/lib/api/catalogo/programas';
+import { getDashboardResumen } from '@/lib/api/docencia/dashboard';
+import { deleteHorario } from '@/lib/api/docencia/horarios'; 
 
 type SchedulesScreenProps = {
   programas: ProgramaOut[];
@@ -40,7 +37,6 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
   const [selectedProgram, setSelectedProgram] = React.useState<string>("");
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  // Función de carga de datos (extraída para poder reutilizarla tras borrar)
   const fetchData = React.useCallback(async () => {
     if (!selectedProgram) {
       setData([]);
@@ -76,7 +72,6 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
   }, [fetchData]);
 
   const filteredData = React.useMemo(() => {
-    // 1. Primero filtramos los que tienen al menos una sesión
     const withSessions = data.filter(item => item.total_sesiones > 0);
 
     if (!searchTerm) return withSessions;
@@ -111,10 +106,8 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
 
     router.push(`/datos/horarios/detalle?${params.toString()}`);
   };
-  // Lógica de borrado real conectada al Backend
   const handleDelete = async (item: ScheduleSummary) => {
     try {
-      // El endpoint DELETE del backend sigue esperando un número entero (1 o 2)
       const numCuatri = item.periodo.includes('primer') ? 1 : 2;
 
       await deleteHorario({
@@ -129,7 +122,6 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
         description: `Se han eliminado las sesiones de ${item.curso}º curso correctamente.`,
       });
 
-      // Refrescamos la lista para que la tarjeta desaparezca o se actualice
       fetchData();
     } catch (error: unknown) {
       const errorDetail = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail || "No se pudo eliminar el horario.";
@@ -209,7 +201,7 @@ export function SchedulesScreen({ programas }: SchedulesScreenProps) {
               key={`${item.programa_id}-${item.curso}-${idx}`}
               data={item}
               onView={handleView}
-              onDelete={handleDelete} // Prop actualizada
+              onDelete={handleDelete} 
             />
           ))}
         </div>
