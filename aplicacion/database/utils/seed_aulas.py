@@ -3,10 +3,10 @@ Script de sembrado (seeder) para poblar la tabla de Aulas.
 
 Formas de ejecución:
 1. Desde la raíz del proyecto (D:\\TFG):
-   python aplicacion/database/seed_aulas.py
+    python aplicacion/database/utils/seed_aulas.py
 
-2. Desde el directorio aplicacion/database:
-   python seed_aulas.py
+2. Desde el directorio aplicacion/database/utils:
+    python seed_aulas.py
 
 El script detecta automáticamente si las aulas ya existen y evita duplicados.
 """

@@ -1,10 +1,9 @@
 from sqlalchemy import (
-    Column, Integer, String, Numeric, Date, Time, Boolean, Text, Enum,
+    Column, Integer, String, Time, Boolean, Text, Enum,
     ForeignKey, UniqueConstraint, Index, DateTime, CheckConstraint, func
 )
 from sqlalchemy.orm import relationship, declarative_base
 
-# Importar enums desde constants (mantén la ruta que ya usas en tu proyecto)
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -94,7 +93,6 @@ class Mencion(Base):
 
     programa = relationship("Programa", back_populates="menciones", passive_deletes=True)
     
-    # La mención se asocia a las asignaturas a través de la tabla intermedia que las vincula al programa
     programa_asignaturas = relationship("ProgramaAsignatura", back_populates="mencion", passive_deletes=True)
 
 
@@ -115,7 +113,7 @@ class Profesor(Base):
 
     __table_args__ = (
         UniqueConstraint("nombre", "apellidos", name="uq_profesor_nombre_apellidos"),
-        Index("ix_profesor_nombre_apellidos", "nombre", "apellidos"),  # Índice para búsquedas
+        Index("ix_profesor_nombre_apellidos", "nombre", "apellidos"), 
     )
 
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="profesor", passive_deletes=True)
@@ -158,7 +156,7 @@ class Restriccion(Base):
     __table_args__ = (
         CheckConstraint("fin > inicio", name="ck_restriccion_fechas_coherentes"),
         Index("ix_restriccion_profesor", "profesor_id"),
-        Index("ix_restriccion_fechas", "inicio", "fin"), # Índice para búsquedas rápidas por rango
+        Index("ix_restriccion_fechas", "inicio", "fin"), 
     )
 
     profesor = relationship("Profesor", back_populates="restricciones")
@@ -175,8 +173,8 @@ class GrupoDocente(Base):
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
     codigo = Column(String(50), nullable=False)
     tipo = Column(Enum(TipoGrupoDocente), nullable=False)
-    curso = Column(Integer)  # opcional: 1,2,3,4...
-    turno = Column(String(30))  # opcional
+    curso = Column(Integer)  
+    turno = Column(String(30)) 
 
     __table_args__ = (
         UniqueConstraint("asignatura_id", "codigo", name="uq_grupo_asig_codigo"),
@@ -229,18 +227,16 @@ class ProgramaAsignatura(Base):
     id = Column(Integer, primary_key=True)
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
-    
-    # Clave foránea añadida para el contexto de la mención
     mencion_id = Column(Integer, ForeignKey("menciones.id", ondelete="SET NULL"), nullable=True)
     
-    curso = Column(Integer)  # p.ej. 1..4
+    curso = Column(Integer) 
     tipo_asignatura = Column(Enum(TipoAsignatura))
 
     __table_args__ = (
         UniqueConstraint("programa_id", "asignatura_id", name="uq_programa_asignatura"),
         Index("ix_prog_asig_programa", "programa_id"),
         Index("ix_prog_asig_asignatura", "asignatura_id"),
-        Index("ix_prog_asig_mencion", "mencion_id"), # Índice para búsquedas rápidas por mención
+        Index("ix_prog_asig_mencion", "mencion_id"),
     )
 
     programa = relationship("Programa", back_populates="programa_asignaturas", passive_deletes=True)
@@ -269,7 +265,7 @@ class ProfesorSesion(Base):
     id = Column(Integer, primary_key=True)
     profesor_id = Column(Integer, ForeignKey("profesores.id", ondelete="CASCADE"), nullable=False)
     sesion_id = Column(Integer, ForeignKey("sesiones.id", ondelete="CASCADE"), nullable=False)
-    rol_en_sesion = Column(String(30), nullable=True)  # p.ej. Docente, Apoyo...
+    rol_en_sesion = Column(String(30), nullable=True) 
 
     __table_args__ = (
         UniqueConstraint("profesor_id", "sesion_id", name="uq_profesor_sesion"),
@@ -331,7 +327,7 @@ class Documento(Base):
     id = Column(Integer, primary_key=True)
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     nombre = Column(String(250), nullable=False)
-    tipo = Column(String(30), nullable=False)  # p.ej. PDF, CSV...
+    tipo = Column(String(30), nullable=False) 
     ruta = Column(Text, nullable=False)
     creado_en = Column(DateTime, default=func.now(), nullable=False)
 
@@ -344,7 +340,7 @@ class ImportRun(Base):
     __tablename__ = "import_runs"
     id = Column(Integer, primary_key=True)
     documento_id = Column(Integer, ForeignKey("documentos.id", ondelete="CASCADE"), nullable=False)
-    estado = Column(String(20), nullable=False)  # Enum-like: SUCCESS, ERROR, PARTIAL
+    estado = Column(String(20), nullable=False) 
     inicio_en = Column(DateTime, default=func.now(), nullable=False)
     fin_en = Column(DateTime)
     resumen = Column(Text)
@@ -358,7 +354,7 @@ class Extraccion(Base):
     id = Column(Integer, primary_key=True)
     import_run_id = Column(Integer, ForeignKey("import_runs.id", ondelete="CASCADE"), nullable=False)
     documento_id = Column(Integer, ForeignKey("documentos.id", ondelete="CASCADE"), nullable=False)
-    tipo = Column(String(20), nullable=False)  # Enum-like: FICHA, HORARIO, METADATOS
+    tipo = Column(String(20), nullable=False) 
     bloque = Column(String(80), nullable=False)
     contenido = Column(Text, nullable=False)
     creado_en = Column(DateTime, default=func.now(), nullable=False)

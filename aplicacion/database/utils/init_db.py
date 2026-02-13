@@ -1,6 +1,6 @@
 from database.models import Base
 from db.session import engine
-from database.inspect_db import inspect_database
+from aplicacion.database.utils.inspect_db import inspect_database
 
 
 def init_db() -> None:
