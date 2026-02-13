@@ -1,11 +1,8 @@
 """
-Repository para la entidad Mencion.
+Repositorio para la entidad Mencion.
 
-Capa de acceso a datos (Data Access Layer).
-Responsable de todas las operaciones de base de datos para Menciones.
-
-Patrón: Singleton (una sola instancia compartida).
-Nota de Diseño: No realiza commits. Delega la gestión de la transacción al Service.
+Proporciona métodos CRUD y búsquedas especializadas mediante SQLAlchemy ORM.
+Delega la confirmación de transacciones (commit) a la capa de Servicio.
 """
 
 from sqlalchemy.orm import Session
@@ -19,11 +16,7 @@ class MencionRepository:
     """
     Gestor de persistencia para Menciones (Especializaciones de un Programa).
     """
-    
-    # ============================================================
-    #  MÉTODOS DE LECTURA (SELECT)
-    # ============================================================
-    
+        
     def get_by_id(self, db: Session, mencion_id: int) -> Optional[Mencion]:
         """Busca una mención por su identificador único."""
         return db.query(Mencion).filter(Mencion.id == mencion_id).first()
@@ -34,10 +27,7 @@ class MencionRepository:
         programa_id: int,
         nombre: str
     ) -> Optional[Mencion]:
-        """
-        Busca mención por clave compuesta (programa_id + nombre).
-        Útil para validaciones de unicidad.
-        """
+        """Busca mención por clave compuesta (programa_id + nombre)."""
         return db.query(Mencion).filter(
             and_(
                 Mencion.programa_id == programa_id,
@@ -53,9 +43,7 @@ class MencionRepository:
         programa_id: Optional[int] = None,
         activo: Optional[bool] = None
     ) -> Tuple[List[Mencion], int]:
-        """
-        Lista menciones con filtros y paginación.
-        """
+        """Lista menciones con filtros y paginación."""
         query = db.query(Mencion)
         
         if programa_id is not None:
@@ -70,18 +58,12 @@ class MencionRepository:
         
         return items, total
     
-    # ============================================================
-    #  MÉTODOS DE ESCRITURA (Transaccional - Sin Commit)
-    # ============================================================
-    
+
     def create(self, db: Session, mencion_data: dict) -> Mencion:
-        """
-        Crea una nueva mención.
-        Realiza flush para obtener ID, pero mantiene la transacción abierta.
-        """
+        """Crea una nueva mención."""
         mencion = Mencion(**mencion_data)
         db.add(mencion)
-        db.flush()  # Genera ID y valida constraints
+        db.flush() 
         db.refresh(mencion)
         return mencion
     
@@ -91,9 +73,7 @@ class MencionRepository:
         mencion_id: int,
         mencion_data: dict
     ) -> Optional[Mencion]:
-        """
-        Actualiza parcialmente una mención existente.
-        """
+        """Actualiza parcialmente una mención existente."""
         mencion = self.get_by_id(db, mencion_id)
         if not mencion:
             return None
@@ -107,9 +87,7 @@ class MencionRepository:
         return mencion
     
     def delete(self, db: Session, mencion_id: int) -> bool:
-        """
-        Soft-delete: marca la mención como inactiva.
-        """
+        """Soft-delete: marca la mención como inactiva."""
         mencion = self.get_by_id(db, mencion_id)
         if not mencion:
             return False
@@ -118,9 +96,6 @@ class MencionRepository:
         db.flush()
         return True
     
-    # ============================================================
-    #  VALIDACIONES
-    # ============================================================
     
     def exists_by_programa_nombre(
         self,
@@ -143,5 +118,4 @@ class MencionRepository:
         return db.query(query.exists()).scalar()
 
 
-# Instancia única exportada
 mencion_repository = MencionRepository()

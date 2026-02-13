@@ -1,9 +1,7 @@
 """
-Endpoints de la API REST para el Módulo Recursos (Profesores y Aulas).
+Endpoints REST para el Módulo de Recursos.
 
-Contenido:
-- Profesores: Listado, Detalle, Edición, Borrado Dual. (Creación vía PDF)
-- Aulas: CRUD Completo, Filtros, Borrado Dual.
+Gestión de profesores y aulas.
 """
 
 from typing import Optional
@@ -28,9 +26,7 @@ from modules.recursos.schemas.aula import (
 router = APIRouter()
 
 
-# =============================================================================
-#  PROFESORES
-# =============================================================================
+# Profesores
 
 @router.get("/profesores", response_model=ProfesorList, status_code=status.HTTP_200_OK)
 def listar_profesores(
@@ -39,7 +35,6 @@ def listar_profesores(
     activo: Optional[bool] = Query(None),
     db: Session = Depends(get_db)
 ):
-    """Listar profesores registrados."""
     return profesor_service.get_profesores(db, skip, limit, activo)
 
 
@@ -48,7 +43,6 @@ def obtener_profesor(
     profesor_id: int = Path(..., ge=1),
     db: Session = Depends(get_db)
 ):
-    """Obtener detalle de un profesor."""
     return profesor_service.get_profesor(db, profesor_id)
 
 
@@ -58,7 +52,6 @@ def actualizar_profesor(
     profesor_id: int = Path(..., ge=1),
     db: Session = Depends(get_db)
 ):
-    """Actualizar datos de profesor manualmente."""
     return profesor_service.update_profesor(db, profesor_id, profesor_in)
 
 
@@ -68,24 +61,20 @@ def eliminar_profesor(
     physical: bool = Query(False, description="True=Borrado Físico, False=Soft Delete"),
     db: Session = Depends(get_db)
 ):
-    """Eliminar profesor (Dual Delete)."""
     return profesor_service.delete_profesor(db, profesor_id, physical)
 
 
-# =============================================================================
-#  AULAS
-# =============================================================================
+# Aulas
 
 @router.get("/aulas", response_model=AulaList, status_code=status.HTTP_200_OK)
 def listar_aulas(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    tipo: Optional[TipoAula] = Query(None, description="Filtrar por tipo (TEORIA, etc)"),
-    activo: Optional[bool] = Query(None, description="Filtrar por estado"),
-    busqueda: Optional[str] = Query(None, description="Buscar por nombre o código"),
+    tipo: Optional[TipoAula] = Query(None),
+    activo: Optional[bool] = Query(None),
+    busqueda: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    """Listar aulas con filtros y búsqueda."""
     return aula_service.get_multi(db, skip, limit, tipo, activo, busqueda)
 
 
@@ -94,7 +83,6 @@ def obtener_aula(
     aula_id: int = Path(..., ge=1),
     db: Session = Depends(get_db)
 ):
-    """Obtener detalle de un aula."""
     return aula_service.get_by_id(db, aula_id)
 
 
@@ -103,7 +91,6 @@ def crear_aula(
     aula_in: AulaCreate,
     db: Session = Depends(get_db)
 ):
-    """Registrar una nueva aula."""
     return aula_service.create(db, aula_in)
 
 
@@ -113,7 +100,6 @@ def actualizar_aula(
     aula_id: int = Path(..., ge=1),
     db: Session = Depends(get_db)
 ):
-    """Actualizar datos de un aula."""
     return aula_service.update(db, aula_id, aula_in)
 
 
@@ -123,8 +109,4 @@ def eliminar_aula(
     physical: bool = Query(False, description="True=Borrado Físico, False=Soft Delete"),
     db: Session = Depends(get_db)
 ):
-    """
-    Eliminar aula (Dual Delete).
-    Cuidado: El borrado físico fallará si el aula tiene sesiones asignadas.
-    """
     return aula_service.delete(db, aula_id, physical)

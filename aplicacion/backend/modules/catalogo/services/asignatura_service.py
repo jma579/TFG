@@ -21,14 +21,17 @@ from modules.catalogo.schemas.asignatura import (
 from modules.recursos.schemas.profesor import ProfesorOut
 
 class AsignaturaService:
+    """
+    Service para gestionar la lógica de negocio de Asignaturas.
+    Patrón: Repository → Service → Router
+    """
+
     def __init__(self):
+        """Inicializa el servicio con los repositorios necesarios."""
         self.repo = asignatura_repository
         self.programa_asignatura_repo = programa_asignatura_repository
         self.profesor_asignatura_repo = profesor_asignatura_repository
 
-    # ==========================
-    # LECTURA (Consultas)
-    # ==========================
 
     def get_asignatura(self, db: Session, asignatura_id: int) -> AsignaturaOut:
         """Obtiene el detalle completo de una asignatura."""
@@ -82,21 +85,16 @@ class AsignaturaService:
         rels = self.profesor_asignatura_repo.get_by_asignatura(db, asignatura_id)
         return [ProfesorOut.model_validate(r.profesor) for r in rels]
 
-    # ==========================
-    # ESCRITURA (Restringida)
-    # ==========================
 
     def update_asignatura(self, db: Session, asignatura_id: int, asignatura_in: AsignaturaUpdate) -> AsignaturaOut:
         """
         Actualiza una asignatura existente.
         Valida unicidad de código si este cambia.
         """
-        # 1. Verificar existencia
         asignatura = self.repo.get_by_id(db, asignatura_id)
         if not asignatura:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Asignatura no encontrada")
         
-        # 2. Validar duplicidad de código (solo si se está intentando cambiar)
         if asignatura_in.codigo_plan and asignatura_in.codigo_plan != asignatura.codigo_plan:
             if self.repo.exists_by_codigo(db, asignatura_in.codigo_plan, exclude_id=asignatura_id):
                 raise HTTPException(
@@ -104,7 +102,6 @@ class AsignaturaService:
                     detail=f"El código '{asignatura_in.codigo_plan}' ya está en uso por otra asignatura"
                 )
 
-        # 3. Ejecutar actualización. Usamos model_dump(exclude_unset=True) para solo actualizar los campos enviados
         updated_asignatura = self.repo.update(db, asignatura_id, asignatura_in.model_dump(exclude_unset=True))
         
         db.commit()
@@ -113,13 +110,7 @@ class AsignaturaService:
         return self._map_to_out(updated_asignatura)
 
     def delete_asignatura(self, db: Session, asignatura_id: int, physical: bool = False) -> dict:
-        """
-        Elimina una asignatura.
-        
-        Args:
-            physical (bool): Si es True, realiza un borrado físico (SQL DELETE).
-                             Si es False, realiza un borrado lógico (activo=False).
-        """
+        """Elimina una asignatura."""
         if not self.repo.get_by_id(db, asignatura_id):
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Asignatura no encontrada")
         
@@ -130,12 +121,9 @@ class AsignaturaService:
             self.repo.delete(db, asignatura_id)
             msg = "Asignatura desactivada (Soft Delete)"
             
-        db.commit() # Commit explícito para la API
+        db.commit() 
         return {"message": msg}
 
-    # ==========================
-    # HELPERS
-    # ==========================
 
     def _map_to_out(self, asignatura) -> AsignaturaOut:
         """Helper para mapear ORM a Schema incluyendo conteos calculados."""
@@ -146,5 +134,6 @@ class AsignaturaService:
             AsignaturaProgramaOut.model_validate(pa) for pa in asignatura.programa_asignaturas
         ]
         return out
+
 
 asignatura_service = AsignaturaService()

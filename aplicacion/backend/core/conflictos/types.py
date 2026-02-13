@@ -1,18 +1,17 @@
 """
 Definiciones de tipos para el sistema de detección de conflictos.
-Actualizado para incluir contexto de asignatura y grupos.
 """
-from __future__ import annotations
+
 from typing import Optional, List, Literal
 from datetime import datetime, time
 from pydantic import BaseModel, field_validator, model_validator, Field
 from constants.enums import TipoConflicto, SeveridadConflicto
 
-# -----------------------------------------------------------------------------
+
 # Value Objects (tiempo)
-# -----------------------------------------------------------------------------
 
 class Intervalo(BaseModel):
+    """Intervalo de tiempo con inicio y fin."""
     inicio: datetime
     fin: datetime
     model_config = {"frozen": True}
@@ -23,9 +22,10 @@ class Intervalo(BaseModel):
             raise ValueError("Intervalo: fin debe ser posterior a inicio")
         return self
 
+
 class SlotSemanal(BaseModel):
-    # 0=Lunes, 6=Domingo
-    dia_semana: int
+    """Slot semanal recurrente (día y horario)."""
+    dia_semana: int  # 0=Lunes, 6=Domingo
     hora_inicio: time
     hora_fin: time
     model_config = {"frozen": True}
@@ -43,11 +43,11 @@ class SlotSemanal(BaseModel):
             raise ValueError("SlotSemanal: hora_fin debe ser posterior a hora_inicio")
         return self
 
-# -----------------------------------------------------------------------------
+
 # Entidades de entrada al motor (DTOs)
-# -----------------------------------------------------------------------------
 
 class SesionRef(BaseModel):
+    """Referencia a una sesión para el motor de detección."""
     id: int
     aula_id: Optional[int] = None
     profesor_ids: List[int] = Field(default_factory=list)
@@ -69,7 +69,9 @@ class SesionRef(BaseModel):
 
     model_config = {"frozen": True}
 
+
 class RestriccionRef(BaseModel):
+    """Referencia a una restricción docente."""
     id: int
     ambito: Literal["PROFESOR", "AULA"]
     profesor_id: Optional[int] = None
@@ -80,20 +82,22 @@ class RestriccionRef(BaseModel):
 
     model_config = {"frozen": True}
 
-# -----------------------------------------------------------------------------
+
 # Resultados
-# -----------------------------------------------------------------------------
 
 class ParametrosDeteccion(BaseModel):
+    """Parámetros de configuración para la detección."""
     incluir_solapamientos_profesor: bool = True
     incluir_solapamientos_aula: bool = True
     incluir_violaciones_restriccion: bool = True
-    incluir_solapamientos_grupo: bool = True # Nueva regla
+    incluir_solapamientos_grupo: bool = True
     severidad_minima: SeveridadConflicto = SeveridadConflicto.LEVE
     rango_fechas: Optional[tuple[datetime, datetime]] = None
     model_config = {"frozen": True}
 
+
 class ResultadoDeteccion(BaseModel):
+    """Resultado de la detección de un conflicto."""
     tipo: TipoConflicto
     severidad: SeveridadConflicto
     sesion_id: int

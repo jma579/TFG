@@ -1,11 +1,8 @@
 """
 Repositorio para la entidad AsignaturaAlias.
 
-Capa de Acceso a Datos (DAL).
-Responsabilidad:
-- Abstraer las consultas SQL mediante SQLAlchemy ORM.
-- Proporcionar métodos CRUD básicos y búsquedas especializadas.
-- Delegar la confirmación de transacciones (commit) a la capa de Servicio.
+Proporciona métodos CRUD y búsquedas especializadas para gestionar
+alias de asignaturas. Abstrae las consultas SQL mediante SQLAlchemy ORM.
 """
 
 from typing import Optional, List
@@ -16,14 +13,8 @@ from database.models import AsignaturaAlias
 
 
 class AsignaturaAliasRepository:
-    """
-    Gestor de persistencia para AsignaturaAlias.
-    """
+    """Gestor de persistencia para AsignaturaAlias."""
     
-    # ==========================
-    # LECTURA
-    # ==========================
-
     def get_by_texto(self, db: Session, asignatura_id: int, alias: str) -> Optional[AsignaturaAlias]:
         """Busca un alias por su texto (case insensitive) para una asignatura dada."""
         return db.query(AsignaturaAlias).filter(
@@ -37,32 +28,26 @@ class AsignaturaAliasRepository:
             AsignaturaAlias.asignatura_id == asignatura_id
         ).all()
 
-    # ==========================
-    # ESCRITURA (Sin Commit)
-    # ==========================
-
     def register_usage(
-            self,  db: Session, asignatura_id: int, alias: str, origen: str = "HORARIO_FEEDBACK"
+        self, db: Session, asignatura_id: int, alias: str, origen: str = "HORARIO_FEEDBACK"
     ) -> AsignaturaAlias:
-        """Registra el uso de un alias para una asignatura."""
-        # Normalización básica antes de buscar
+        """
+        Registra el uso de un alias para una asignatura.
+        
+        Si el alias ya existe, incrementa su contador de usos.
+        Si es nuevo, lo crea con contador en 1.
+        """
         alias_clean = " ".join(alias.strip().split())
         
         if not alias_clean:
-            # Si tras limpiar no queda texto, retornamos None o lanzamos error.
-            # Aquí optamos por seguridad y lanzamos ValueError.
             raise ValueError("El texto del alias no puede estar vacío")
 
         instance = self.get_by_texto(db, asignatura_id, alias_clean)
         
         if instance:
-            # Aprendizaje: Refuerzo positivo
             instance.veces_usado += 1
-            # No es necesario db.add(instance) explícito si ya está en sesión, 
-            # pero es buena práctica para asegurar estado dirty.
             db.add(instance)
         else:
-            # Aprendizaje: Nuevo conocimiento
             instance = AsignaturaAlias(
                 asignatura_id=asignatura_id,
                 alias=alias_clean,
@@ -71,25 +56,20 @@ class AsignaturaAliasRepository:
             )
             db.add(instance)
         
-        # Flush para que el ID esté disponible y constraints validadas, 
-        # pero SIN COMMIT (responsabilidad del Service).
         db.flush()
         db.refresh(instance)
         
         return instance
 
     def delete(self, db: Session, id: int) -> bool:
-        """Elimina un alias (si fue un aprendizaje erróneo)."""
+        """Elimina un alias por su ID."""
         obj = db.query(AsignaturaAlias).filter(AsignaturaAlias.id == id).first()
         if not obj:
             return False
+        
         db.delete(obj)
         db.flush()
         return True
 
-
-# ============================================================
-#  INSTANCIA SINGLETON
-# ============================================================
 
 alias_repository = AsignaturaAliasRepository()

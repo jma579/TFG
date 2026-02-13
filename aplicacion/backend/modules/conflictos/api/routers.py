@@ -1,11 +1,7 @@
-"""Endpoints REST API para el módulo de Conflictos.
+"""
+Endpoints REST para el Módulo de Conflictos.
 
-Responsabilidades:
-- Listar conflictos con filtros y paginación
-- Listar conflictos por sesión
-- Actualizar el estado de un conflicto (ABIERTO, RESUELTO, IGNORADO)
-
-El prefijo /v0/conflictos se define en main.py al registrar este router.
+Gestión de conflictos de horarios con filtros, paginación y actualización de estados.
 """
 
 from typing import Optional, List
@@ -35,64 +31,19 @@ router = APIRouter(
     "",
     response_model=ConflictoList,
     summary="Listar conflictos",
-    description="""Listar conflictos con filtros opcionales y paginación.
-
-Filtros disponibles:
-- tipo: tipo de conflicto (solapamiento profesor, aula, restricción, etc.)
-- severidad: severidad mínima a considerar
-- estado: estado del conflicto (ABIERTO, RESUELTO, IGNORADO)
-- profesor_id, aula_id, sesion_id
-
-Paginación:
-- skip: número de registros a saltar (offset)
-- limit: tamaño de página (máx. 100)
-""",
+    description="Listar conflictos con filtros opcionales (tipo, severidad, estado, profesor_id, aula_id, sesion_id) y paginación."
 )
 async def listar_conflictos(
-    skip: int = Query(
-        0,
-        ge=0,
-        description="Número de registros a saltar (offset)",
-        examples=[0, 10, 20],
-    ),
-    limit: int = Query(
-        20,
-        ge=1,
-        le=100,
-        description="Número máximo de registros a retornar",
-        examples=[10, 20, 50],
-    ),
-    tipo: Optional[TipoConflicto] = Query(
-        None,
-        description="Filtrar por tipo de conflicto",
-    ),
-    severidad: Optional[SeveridadConflicto] = Query(
-        None,
-        description="Filtrar por severidad del conflicto",
-    ),
-    estado: Optional[EstadoConflicto] = Query(
-        None,
-        description="Filtrar por estado del conflicto",
-    ),
-    profesor_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por profesor implicado",
-    ),
-    aula_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por aula implicada",
-    ),
-    sesion_id: Optional[int] = Query(
-        None,
-        gt=0,
-        description="Filtrar por sesión implicada",
-    ),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    tipo: Optional[TipoConflicto] = Query(None),
+    severidad: Optional[SeveridadConflicto] = Query(None),
+    estado: Optional[EstadoConflicto] = Query(None),
+    profesor_id: Optional[int] = Query(None, gt=0),
+    aula_id: Optional[int] = Query(None, gt=0),
+    sesion_id: Optional[int] = Query(None, gt=0),
     db: Session = Depends(get_db),
 ):
-    """Listar conflictos con filtros y paginación."""
-
     items, total = conflicto_service.get_multi(
         db=db,
         skip=skip,
@@ -114,19 +65,12 @@ async def listar_conflictos(
     "/sesion/{sesion_id}",
     response_model=List[ConflictoOut],
     summary="Listar conflictos de una sesión",
-    description="""Listar todos los conflictos en los que participa una sesión concreta.
-
-Incluye conflictos donde la sesión es sesion_id o sesion_2_id.
-No utiliza paginación ya que se muestran todos para el contexto visual (tooltip).
-""",
+    description="Listar todos los conflictos donde participa una sesión (sesion_id o sesion_2_id)."
 )
 async def listar_conflictos_por_sesion(
-    sesion_id: int = Path(
-        ..., gt=0, description="ID de la sesión cuyas conflictos se quieren consultar"
-    ),
+    sesion_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
 ):
-    """Listar conflictos asociados a una sesión concreta."""
     items = conflicto_service.get_by_sesion(
         db=db,
         sesion_id=sesion_id
@@ -140,23 +84,13 @@ async def listar_conflictos_por_sesion(
     response_model=ConflictoOut,
     status_code=status.HTTP_200_OK,
     summary="Actualizar estado de un conflicto",
-    description="""Actualizar el estado de un conflicto existente.
-
-Permite marcar conflictos como ABIERTO, RESUELTO o IGNORADO.
-""",
+    description="Actualizar el estado de un conflicto (ABIERTO, RESUELTO, IGNORADO)."
 )
 async def actualizar_estado_conflicto(
     id: int = Path(..., gt=0, description="ID del conflicto a actualizar"),
-    body: ConflictoEstadoUpdateIn = Body(
-        ..., description="Nuevo estado del conflicto (ABIERTO, RESUELTO, IGNORADO)"
-    ),
+    body: ConflictoEstadoUpdateIn = Body(...),
     db: Session = Depends(get_db),
 ):
-    """Actualizar el estado de un conflicto.
-
-    Delegado en la capa de servicio para aplicar reglas de negocio.
-    """
-
     return conflicto_service.update_estado(
         db=db,
         conflicto_id=id,

@@ -8,15 +8,13 @@ para garantizar consistencia y validación de datos.
 from enum import Enum
 from datetime import time
 
+
 # Horario Lectivo del Centro
-# Define los límites para calcular conciliaciones (entradas tardías/salidas tempranas)
-HORA_APERTURA_CENTRO = time(8, 0)   # 08:00
-HORA_CIERRE_CENTRO = time(21, 0)    # 21:00
+HORA_APERTURA_CENTRO = time(8, 0)
+HORA_CIERRE_CENTRO = time(21, 0)
 
 
-# ============================
 # Catálogo Académico
-# ============================
 
 class TipoPrograma(str, Enum):
     """Tipos de programas académicos."""
@@ -58,9 +56,7 @@ class Idioma(str, Enum):
     GALLEGO = "gallego"
 
 
-# ============================
 # Recursos e Infraestructura
-# ============================
 
 class TipoAula(str, Enum):
     """Tipos de aulas disponibles."""
@@ -75,9 +71,7 @@ class TipoAula(str, Enum):
     VIRTUAL = "virtual"
 
 
-# ============================
 # Docencia y Planificación
-# ============================
 
 class ModalidadSesion(str, Enum):
     """Modalidades de las sesiones de clase."""
@@ -102,7 +96,7 @@ class TipoRecurrencia(str, Enum):
     SEMANAL = "semanal"
     QUINCENAL = "quincenal"
     MENSUAL = "mensual"
-    PUNTUAL = "puntual"  # Sesión única en fecha específica
+    PUNTUAL = "puntual"
 
 
 class DiaSemana(str, Enum):
@@ -115,6 +109,7 @@ class DiaSemana(str, Enum):
     SABADO = "sabado"
     DOMINGO = "domingo"
 
+
 class TipoAsignatura(str, Enum):
     """Tipos de asignaturas."""
     OBLIGATORIA = "obligatoria"
@@ -122,9 +117,7 @@ class TipoAsignatura(str, Enum):
     BASICA = "basica"
 
 
-# ============================
-# Conciliacion Docente y Restricicones
-# ============================
+# Conciliación Docente y Restricciones
 
 class TipoConciliacion(str, Enum):
     """Tipos de conciliaciones docentes."""
@@ -132,21 +125,22 @@ class TipoConciliacion(str, Enum):
     SALIDA_TEMPRANA = "salida_temprana"
     MIXTA = "mixta"
 
-# Margen de horas para la conciliación
-HORAS_CONCILIACION_NORMAL = 2  # Para Entrada Tardía o Salida Temprana
-HORAS_CONCILIACION_MIXTA = 1   # Para el caso Mixto (1h inicio + 1h fin)
+
+HORAS_CONCILIACION_NORMAL = 2
+HORAS_CONCILIACION_MIXTA = 1
+
 
 class TipoRestriccion(str, Enum):
+    """Tipos de restricciones docentes."""
     pass
+
 
 class DurezaRestriccion(str, Enum):
+    """Niveles de dureza de las restricciones."""
     pass
 
 
-
-# ============================
 # Detección de Conflictos
-# ============================
 
 class TipoConflicto(str, Enum):
     """Tipos de conflictos detectados."""
@@ -158,66 +152,36 @@ class TipoConflicto(str, Enum):
 
 class SeveridadConflicto(str, Enum):
     """Niveles de severidad de los conflictos."""
-    CRITICO = "critico"            # Imposibilidad física (ej: Aula ocupada)
-    NO_BLOQUEANTE = "no_bloqueante" # Problema grave pero posible (ej: Preferencia docente fuerte)
-    LEVE = "leve"                  # Aviso menor (ej: Preferencia docente suave)
+    CRITICO = "critico"
+    NO_BLOQUEANTE = "no_bloqueante"
+    LEVE = "leve"
 
 
 class EstadoConflicto(str, Enum):
     """Estados del ciclo de vida del conflicto."""
-    POR_REVISAR = "por_revisar"    # Detectado y pendiente de acción
-    SOLUCIONADO = "solucionado"    # El usuario lo ha arreglado o aceptado
+    POR_REVISAR = "por_revisar"
+    SOLUCIONADO = "solucionado"
 
 
-# ============================
 # Utilidades y Helpers
-# ============================
 
 def get_enum_values(enum_class: type[Enum]) -> list[str]:
-    """
-    Obtiene todos los valores de un enum como lista.
-    
-    Args:
-        enum_class: Clase del enum
-        
-    Returns:
-        list[str]: Lista con todos los valores del enum
-    """
+    """Obtiene todos los valores de un enum como lista."""
     return [item.value for item in enum_class]
 
 
 def get_enum_choices(enum_class: type[Enum]) -> list[tuple[str, str]]:
-    """
-    Obtiene las opciones de un enum para formularios.
-    
-    Args:
-        enum_class: Clase del enum
-        
-    Returns:
-        list[tuple[str, str]]: Lista de tuplas (value, label) para formularios
-    """
+    """Obtiene las opciones de un enum para formularios."""
     return [(item.value, item.value.replace('_', ' ').title()) for item in enum_class]
 
 
 def validate_enum_value(enum_class: type[Enum], value: str) -> bool:
-    """
-    Valida si un valor pertenece a un enum específico.
-    
-    Args:
-        enum_class: Clase del enum
-        value: Valor a validar
-        
-    Returns:
-        bool: True si el valor es válido, False en caso contrario
-    """
+    """Valida si un valor pertenece a un enum específico."""
     return value in get_enum_values(enum_class)
 
 
-# ============================
 # Constantes de mapeo
-# ============================
 
-# Mapeo de días de semana a números (útil para ordenación y cálculos)
 DIA_SEMANA_TO_NUMBER = {
     DiaSemana.LUNES: 1,
     DiaSemana.MARTES: 2,
@@ -225,15 +189,13 @@ DIA_SEMANA_TO_NUMBER = {
     DiaSemana.JUEVES: 4,
     DiaSemana.VIERNES: 5,
     DiaSemana.SABADO: 6,
-    DiaSemana.DOMINGO: 0,  # Domingo = 0 (estándar ISO)
+    DiaSemana.DOMINGO: 0,
 }
 
-# Mapeo inverso: número a día de semana
 NUMBER_TO_DIA_SEMANA = {v: k for k, v in DIA_SEMANA_TO_NUMBER.items()}
 
-# Colores para UI (Mapeados a las nuevas severidades)
 SEVERIDAD_COLORS = {
-    SeveridadConflicto.CRITICO: "#dc3545",       # Rojo
-    SeveridadConflicto.NO_BLOQUEANTE: "#fd7e14", # Naranja
-    SeveridadConflicto.LEVE: "#ffc107",          # Amarillo
+    SeveridadConflicto.CRITICO: "#dc3545",
+    SeveridadConflicto.NO_BLOQUEANTE: "#fd7e14",
+    SeveridadConflicto.LEVE: "#ffc107",
 }

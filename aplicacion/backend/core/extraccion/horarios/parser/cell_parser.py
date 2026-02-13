@@ -21,30 +21,24 @@ class CellParser:
         if not text or not text.strip():
             return ParsedCellData()
 
-        # 0. FILTRO DE RUIDO (Notas al pie)
-        # Si la celda empieza explícitamente por (*), la descartamos como asignatura
         if text.strip().startswith('(*)'):
-            return ParsedCellData(raw_text=text) # Devuelve vacío de datos, solo raw
+            return ParsedCellData(raw_text=text) 
 
-        # 1. Normalización y Corrección OCR
         clean_text = text.replace('\n', ' ').strip()
         clean_text = apply_ocr_corrections(clean_text)
         
-        # 2. Extracción de AULA
         aula = None
         match_aula = RE_AULA.search(clean_text)
         if match_aula:
             aula = match_aula.group(0).strip()
             clean_text = clean_text[:match_aula.start()] + " " + clean_text[match_aula.end():]
 
-        # 3. Extracción de GRUPO
         grupo = None
         match_grupo = RE_GRUPO.search(clean_text)
         if match_grupo:
             grupo = match_grupo.group(0).strip()
             clean_text = clean_text[:match_grupo.start()] + " " + clean_text[match_grupo.end():]
 
-        # 4. Inferencia de TIPO
         tipo = TIPO_GENERICO
         if grupo:
             grupo_upper = grupo.upper()
@@ -57,10 +51,8 @@ class CellParser:
             else:
                 tipo = TIPO_TEORIA
         
-        # 5. Asignatura
         asignatura = clean_subject_name(clean_text)
         
-        # Filtro de longitud mínima
         if len(asignatura) < 3:
             asignatura = None
 

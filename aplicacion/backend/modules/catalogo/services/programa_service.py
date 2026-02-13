@@ -31,9 +31,6 @@ class ProgramaService:
     def __init__(self):
         self.repo = programa_repository
     
-    # ============================================================
-    #  LECTURA
-    # ============================================================
     
     def get_programa(self, db: Session, programa_id: int) -> ProgramaOut:
         """Obtiene un programa por ID."""
@@ -62,9 +59,6 @@ class ProgramaService:
             size=limit
         )
 
-    # ============================================================
-    #  ESCRITURA (Transaccional)
-    # ============================================================
 
     def create_programa(self, db: Session, programa_in: ProgramaCreate) -> ProgramaOut:
         """Crea un nuevo programa validando duplicados."""
@@ -96,7 +90,6 @@ class ProgramaService:
         
         data = programa_in.model_dump(exclude_unset=True)
         
-        # Validar duplicados solo si cambian nombre o tipo
         if "nombre" in data or "tipo" in data:
             nuevo_nombre = data.get("nombre", prog.nombre)
             nuevo_tipo = data.get("tipo", prog.tipo)

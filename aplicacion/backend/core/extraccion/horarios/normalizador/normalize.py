@@ -2,15 +2,11 @@
 Normalización de datos extraídos de horarios académicos.
 """
 
-from __future__ import annotations
-
 import re
 import logging
-from typing import List, Optional, Tuple, Dict
-from datetime import time
+from typing import List, Optional, Tuple
 import copy
 
-# Entidades del Pipeline
 from core.extraccion.horarios.entities import (
     ParsingResult,
     Horario as ParsedHorario,
@@ -19,7 +15,6 @@ from core.extraccion.horarios.entities import (
     NormalizedSesionHorarioData,
 )
 
-# Enums del Dominio
 from constants.enums import (
     DiaSemana,
     Periodo,
@@ -29,14 +24,11 @@ from constants.enums import (
     TipoRecurrencia
 )
 
-# Reglas de normalización (Importadas)
 from core.extraccion.horarios.normalizador.normalization_rules import (
     DIA_SEMANA_MAP,
     PERIODO_MAP,
     CURSO_MAP,
     KEYWORDS_AULA,
-    CURSO_MIN,
-    CURSO_MAX
 )
 
 logger = logging.getLogger(__name__)
@@ -45,10 +37,10 @@ logger = logging.getLogger(__name__)
 class HorarioDataNormalizer:
     """
     Normalizador de datos de horarios.
-    Convierte ParsingResult -> List[NormalizedHorarioTablaData].
-    """
+    Toma los datos parseados (ParsingResult) y los transforma en estructuras normalizadas"""
 
     def normalize_horarios(self, parsed: ParsingResult) -> List[NormalizedHorarioTablaData]:
+        """Normaliza el resultado completo de la extracción de horarios."""
         resultados: List[NormalizedHorarioTablaData] = []
         
         programa_global = self._normalize_nombre(parsed.titulo)
@@ -76,11 +68,9 @@ class HorarioDataNormalizer:
         programa_fallback: str, 
         periodo_fallback: Optional[Periodo]
     ) -> Optional[NormalizedHorarioTablaData]:
-        
-        # 1. Curso
+        """Normaliza una tabla de horario individual."""
         curso_int = self._parse_curso(horario.curso)
         
-        # 2. Periodo
         periodo_enum = periodo_fallback
         if horario.periodo:
             periodo_local = self._infer_periodo_from_text(horario.periodo)
@@ -90,20 +80,14 @@ class HorarioDataNormalizer:
         if not periodo_enum:
             periodo_enum = Periodo.PRIMER_CUATRIMESTRE 
 
-        # 3. Mención
         mencion_norm = self._normalize_nombre(horario.mencion) if horario.mencion else None
 
-        # 4. Sesiones (EXPANSIÓN DE GRUPOS)
-        # Aquí también aplicamos la división para el guardado en BD
         sesiones_norm: List[NormalizedSesionHorarioData] = []
         for sesion in horario.sesiones:
             try:
-                # Paso previo: Detectar si hay múltiples grupos
                 grupos_detectados = self.detectar_y_dividir_grupos(sesion.grupo)
                 
                 for grupo_individual in grupos_detectados:
-                    # Creamos una copia virtual de la sesión para cada grupo
-                    # Ojo: Parseamos la sesión original pero inyectando el grupo individual
                     sesion_clonada = copy.deepcopy(sesion)
                     sesion_clonada.grupo = grupo_individual
                     
@@ -125,6 +109,7 @@ class HorarioDataNormalizer:
         )
 
     def _normalize_sesion(self, sesion: ParsedSesion) -> Optional[NormalizedSesionHorarioData]:
+        """Normaliza una sesión de horario individual."""
         if not sesion.asignatura or sesion.asignatura == "DESCONOCIDA":
             return None
         if "(*)" in sesion.asignatura:
@@ -138,7 +123,6 @@ class HorarioDataNormalizer:
         aula_nom = self._normalize_aula(sesion.aula)
         aula_tipo = self._infer_aula_tipo(aula_nom)
 
-        # Inferencia
         grupo_cod, tipo_grupo = self.infer_grupo_y_tipo(sesion.grupo, aula_nom)
 
         return NormalizedSesionHorarioData(
@@ -154,25 +138,29 @@ class HorarioDataNormalizer:
             tipo_recurrencia=TipoRecurrencia.SEMANAL
         )
 
-    # --- Helpers ---
+
 
     def _normalize_nombre(self, text: str) -> str:
+        """Normaliza un nombre de asignatura o programa."""
         if not text: return ""
         clean = re.sub(r'\s+', ' ', text).strip()
         return clean.title()
 
     def _normalize_aula(self, text: str) -> str:
+        """Normaliza un nombre de aula."""
         if not text or text == "POR DETERMINAR":
             return "POR DETERMINAR"
         clean = re.sub(r'\s+', ' ', text).strip().upper()
         return clean
 
     def _map_dia_semana(self, dia_str: str) -> Optional[DiaSemana]:
+        """Mapea un string a un valor de DiaSemana."""
         if not dia_str: return None
         norm = dia_str.upper().replace('Á', 'A').replace('É', 'E').replace('Í', 'I').replace('Ó', 'O')
         return DIA_SEMANA_MAP.get(norm)
 
     def _infer_periodo_from_text(self, text: str) -> Optional[Periodo]:
+        """Intenta inferir el periodo académico a partir de un texto dado."""
         if not text: return None
         norm = text.upper()
         for key, val in PERIODO_MAP.items():
@@ -181,6 +169,7 @@ class HorarioDataNormalizer:
         return None
 
     def _parse_curso(self, curso_str: str) -> Optional[int]:
+        """Intenta parsear el curso a un entero, usando reglas de normalización."""
         if not curso_str: return None
         norm = curso_str.upper()
         for key, val in CURSO_MAP.items():
@@ -189,6 +178,7 @@ class HorarioDataNormalizer:
         return None
 
     def _infer_aula_tipo(self, aula_nombre: str) -> TipoAula:
+        """Intenta inferir el tipo de aula a partir del nombre del aula."""
         if aula_nombre == "POR DETERMINAR":
             return TipoAula.TEORICA 
         
@@ -200,68 +190,42 @@ class HorarioDataNormalizer:
         return TipoAula.TEORICA
 
     def detectar_y_dividir_grupos(self, grupo_raw: Optional[str]) -> List[str]:
-        """
-        Divide un string de grupo compuesto en una lista de grupos individuales.
-        Ejemplos:
-        - "PA1yPA2" -> ["PA1", "PA2"]
-        - "Grupo 1 y 2" -> ["Grupo 1", "2"]
-        - "PL1, PL2" -> ["PL1", "PL2"]
-        - "AULA 14" -> ["AULA 14"]
-        """
+        """Divide un string de grupo compuesto en una lista de grupos individuales."""
         if not grupo_raw:
-            return [""] # Retornamos uno vacío para que el bucle procese la sesión sin grupo
+            return [""]
 
         text = grupo_raw.strip()
-        
-        # Regex Explicación:
-        # 1. \s*[,/&+]\s* -> Separadores explícitos: coma, barra, ampersand, más (+).
-        # 2. \s+(?:y|e)\s+     -> Conjunción separada por espacios: " y ", " e ".
-        # 3. y(?=(?:PA|PL|Gr|G\.|[0-9])) -> La "y" pegada (caso PA1yPA2).
-        #    Solo separa si lo que sigue parece un inicio de grupo (PA, PL, Gr, G., o un número).
-        
         pattern = r'\s*[,/&+]\s*|\s+(?:y|e)\s+|y(?=(?:PA|PL|GR|G\.|[0-9]))'
-        
         partes = re.split(pattern, text, flags=re.IGNORECASE)
         
-        # Filtramos vacíos y limpiamos espacios
         return [p.strip() for p in partes if p.strip()]
 
     def infer_grupo_y_tipo(self, grupo_str: Optional[str], aula_str: str) -> Tuple[str, TipoGrupoDocente]:
-        """
-        Deduce el tipo y limpia el código de un UNICO grupo.
-        """
+        """Deduce el tipo y limpia el código de un UNICO grupo."""
         grupo_raw = (grupo_str or "").strip()
         
-        # 1. LIMPIEZA: "Grupo PL 3" -> "PL3"
         grupo_limpio = re.sub(r'^(GRUPO|GR\.|G\.)\s*', '', grupo_raw, flags=re.IGNORECASE)
         grupo_limpio = grupo_limpio.replace(" ", "").strip()
         
         grupo_upper = grupo_limpio.upper()
         aula_upper = (aula_str or "").strip().upper()
         
-        # CASO 0: Sin grupo
         if not grupo_limpio:
             return "", TipoGrupoDocente.TEORIA
 
-        # CASO 1: PA
         if "PA" in grupo_upper:
             return grupo_limpio, TipoGrupoDocente.PRACTICA
 
-        # Preparar entorno Lab
         keywords_lab = KEYWORDS_AULA.get(TipoAula.LABORATORIO, []) + KEYWORDS_AULA.get(TipoAula.INFORMATICA, [])
         es_entorno_lab = any(kw in aula_upper for kw in keywords_lab)
 
-        # CASO 2: Entorno Lab
         if es_entorno_lab:
             return grupo_limpio, TipoGrupoDocente.LABORATORIO
         
-        # CASO 3: Entorno Normal + PL
         if "PL" in grupo_upper:
             return grupo_limpio, TipoGrupoDocente.LABORATORIO
 
-        # CASO 4: Teoría
         return grupo_limpio, TipoGrupoDocente.TEORIA
 
 
-# Instancia singleton
 horario_data_normalizer = HorarioDataNormalizer()
