@@ -1,29 +1,28 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
 import { 
-  FileText, 
-  Clock, 
-  Loader2, 
-  CheckCircle2, 
   AlertCircle, 
-  XCircle, 
+  ArrowRight,
+  CheckCircle2, 
+  Clock, 
+  FileText, 
+  Loader2, 
   MoreVertical, 
   Trash2,
-  ArrowRight
-} from 'lucide-react';
+  XCircle} from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenu, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+DropdownMenuTrigger, } from '@/components/ui/dropdown-menu';
+import { Progress } from '@/components/ui/progress';
+
 import type { UploadItem } from './types';
 
-// 👇 TIPO CORREGIDO: Definimos un tipo extendido que incluye 'progress'
 type ExtendedUploadItem = UploadItem & { 
   confirmed?: boolean; 
   progress?: number; 
@@ -117,7 +116,6 @@ export function FileListHorarios({ items, onRemove }: Props) {
                 <div className="flex items-center gap-3">
                   <StatusBadge it={it} />
 
-                  {/* CTA cuando termine el análisis y no haya error */}
                   {it.status === 'done' && !it.confirmed && (
                   <Button asChild size="sm" variant="default" className="h-8 text-xs">
                       <Link href={reviewHref}>
@@ -149,10 +147,8 @@ export function FileListHorarios({ items, onRemove }: Props) {
                 </div>
               </div>
 
-              {/* Progreso individual */}
               <div className="mt-3">
                 {it.status === 'uploading' && (
-                  // 👇 Ahora TypeScript reconoce 'progress' gracias al tipo ExtendedUploadItem
                   <Progress value={it.progress} className="h-1" />
                 )}
                 {it.status === 'error' && it.errorMessage && (

@@ -1,22 +1,23 @@
 'use client';
 
 import * as React from 'react';
+
+import type { SubjectRow } from '@/components/subjects/data';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import type { SubjectRow } from '@/components/subjects/data';
+import { Label } from '@/components/ui/label';
 
 export type SubjectFormValues = {
   nombre: string;
-  ects: string; // se parsea a número al enviar
+  ects: string; 
   english_friendly: boolean;
   activo: boolean;
 };

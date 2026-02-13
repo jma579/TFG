@@ -1,5 +1,6 @@
-import { clsx, type ClassValue } from "clsx"
+import { type ClassValue,clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+
 import { MatchStatus } from '@/lib/api/docencia/horarios';
 
 export function cn(...inputs: ClassValue[]) {
@@ -15,13 +16,13 @@ export function getMatchColor(status?: MatchStatus | string | null): MatchColor 
     case 'EXACT':
     case 'ALIAS_DB':
     case 'FUZZY_AUTO':
-      return 'success'; // Verde: Todo OK
+      return 'success'; 
     
     case 'FUZZY_LOW_CONFIDENCE':
-      return 'warning'; // Naranja: Requiere revisión
+      return 'warning';
     
     case 'NO_MATCH':
-      return 'destructive'; // Rojo: Crítico
+      return 'destructive'; 
     
     default:
       return 'default';

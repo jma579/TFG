@@ -2,10 +2,11 @@
 
 import * as React from 'react';
 import { useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { SubjectsTable } from '@/components/subjects/table';
+
 import type { SubjectRow } from '@/components/subjects/data';
 import { SubjectFormDialog } from '@/components/subjects/subject-form-dialog';
+import { SubjectsTable } from '@/components/subjects/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { deleteAsignatura, updateAsignatura } from '@/lib/api/catalogo/asignaturas';
 import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
@@ -42,10 +43,8 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
   const handleToggleActive = async (row: SubjectRow) => {
     try {
       const nuevoEstado = !row.activo;
-      // Solo enviamos el campo activo
       await updateAsignatura(Number(row.id), { activo: nuevoEstado });
 
-      // Actualización optimista del estado local
       setRows((prev) =>
         prev.map((r) =>
           r.id === row.id ? { ...r, activo: nuevoEstado } : r
@@ -69,7 +68,7 @@ export function SubjectsScreen({ data }: SubjectsScreenProps) {
     if (!confirm('¿Estás seguro? Esta acción eliminará la asignatura permanentemente de la base de datos.')) return;
 
     try {
-      await deleteAsignatura(Number(row.id), true); // true = physical delete
+      await deleteAsignatura(Number(row.id), true); 
       setRows((prev) => prev.filter((r) => r.id !== row.id));
       toast({
         title: 'Asignatura eliminada',

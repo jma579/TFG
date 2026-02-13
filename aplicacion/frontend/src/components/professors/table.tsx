@@ -1,14 +1,13 @@
 'use client';
 
-import * as React from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 import {
@@ -17,18 +16,10 @@ import {
   Search,
   X
 } from 'lucide-react';
+import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableCell,
-  TableBody,
-} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +27,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -43,6 +35,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 import type { Professor } from './data';
 
@@ -137,7 +136,6 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
           </span>
         ),
       },
-      // --- NUEVA COLUMNA: Conciliación ---
       {
         accessorKey: 'conciliacion',
         header: 'Conciliación',
@@ -145,10 +143,8 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
           const val = row.original.conciliacion;
           if (!val) return <span className="text-muted-foreground text-xs">—</span>;
           
-          // FIX: Especificamos explícitamente que 'label' es un string
-          // para poder asignarle valores como "Entrada Tardía" que no están en el tipo original.
           let label: string = val;
-          let colorClass = "bg-slate-100 text-slate-700"; // Default
+          let colorClass = "bg-slate-100 text-slate-700";
 
           if (val === 'entrada_tardia') {
             label = "Entrada Tardía";
@@ -168,7 +164,6 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
           );
         },
       },
-      // -----------------------------------
       {
         accessorKey: 'activo',
         header: 'Estado',

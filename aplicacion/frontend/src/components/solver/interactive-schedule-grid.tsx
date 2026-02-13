@@ -1,20 +1,20 @@
 'use client';
 
+import { AlertTriangle } from 'lucide-react'; 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
-import type { Session } from '@/components/solver/schedule-mock';
-import { AlertTriangle } from 'lucide-react'; // <--- Icono de alerta
 
-// Extendemos el tipo Session para incluir la propiedad de conflicto visual
+import type { Session } from '@/components/solver/schedule-grid';
+import { cn } from '@/lib/utils';
+
 export type SessionWithConflict = Session & {
   hasConflict?: boolean;
 };
 
 type Props = {
-  sessions: SessionWithConflict[]; // Usamos el tipo extendido
-  start?: string; // HH:MM
-  end?: string; // HH:MM
-  stepMin?: number; // 30 por defecto
+  sessions: SessionWithConflict[]; 
+  start?: string; 
+  end?: string; 
+  stepMin?: number; 
   className?: string;
   onSessionClick?: (session: Session) => void;
   onSessionMove?: (session: Session, newDayIndex: number, newStartTime: string) => void;
@@ -157,7 +157,6 @@ export function InteractiveScheduleGrid({
                 !isDraggable && !isClickable ? 'cursor-default' : '',
                 isClickable && !isDraggable ? 'cursor-pointer hover:shadow-md' : '',
                 isDragging ? 'pointer-events-none opacity-80 z-0' : '',
-                // --- INDICADOR VISUAL DE CONFLICTO (Borde Rojo) ---
                 session.hasConflict && 'ring-2 ring-red-500 border-red-600'
               )}
               style={{

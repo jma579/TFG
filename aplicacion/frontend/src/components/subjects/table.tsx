@@ -1,40 +1,33 @@
 'use client';
 
-import * as React from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
-  FilterFn,
+  VisibilityState,
 } from '@tanstack/react-table';
 import {
+  ArrowUpDown,
   ChevronDown,
   ChevronRight,
   MoreHorizontal,
-  Search,
-  ArrowUpDown,
-  X,
-  Pencil, // ✅ Iconos añadidos
+  Pencil, 
   Power,
-  Trash2
-} from 'lucide-react';
+  Search,
+  Trash2,
+  X} from 'lucide-react';
+import * as React from 'react';
 
+import type { SubjectRow } from '@/components/subjects/data';
+import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -50,9 +44,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-import type { SubjectRow } from '@/components/subjects/data';
-import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { ProgramaOut } from '@/lib/api/catalogo/programas';
 
 // ------- Filtros personalizados -------
@@ -100,7 +98,7 @@ export type SubjectsTableProps = {
   data: SubjectRow[];
   onEdit: (row: SubjectRow) => void;
   onDelete: (row: SubjectRow) => void;
-  onToggleActive: (row: SubjectRow) => void; // ✅ Nueva prop
+  onToggleActive: (row: SubjectRow) => void;
   onDataUpdate: (
     id: string, 
     data: { 
@@ -265,7 +263,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onToggleActive, onDataUp
                   <Pencil className="mr-2 h-4 w-4" /> Editar
                 </DropdownMenuItem>
 
-                {/* ✅ NUEVO: Botón Activar/Desactivar */}
                 <DropdownMenuItem onClick={() => onToggleActive(item)}>
                   <Power className="mr-2 h-4 w-4" />
                   {item.activo ? 'Desactivar' : 'Activar'}
@@ -273,7 +270,6 @@ export function SubjectsTable({ data, onEdit, onDelete, onToggleActive, onDataUp
                 
                 <DropdownMenuSeparator />
                 
-                {/* ✅ NUEVO: Botón Eliminar Físico */}
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onClick={() => onDelete(item)}

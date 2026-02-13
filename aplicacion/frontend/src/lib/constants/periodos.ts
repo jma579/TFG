@@ -1,4 +1,3 @@
-// Mapeo basado en tu archivo enums.py
 export const PERIODOS = [
   { value: 'anual', label: 'Anual' },
   { value: 'primer_semestre', label: 'Primer Semestre' },

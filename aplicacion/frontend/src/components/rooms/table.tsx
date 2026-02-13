@@ -1,45 +1,36 @@
 'use client';
 
-import * as React from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 import {
   ArrowUpDown,
   MoreHorizontal,
-  Search,
+  Pencil,
   Plus,
   Power,
-  Trash2,
-  Pencil
-} from 'lucide-react';
+  Search,
+  Trash2} from 'lucide-react';
+import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableCell,
-  TableBody,
-} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -47,19 +38,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 import type { Room } from './data';
 
-// 1. AQUI DEFINIMOS QUE EL COMPONENTE ACEPTA onToggleActive
 type RoomsTableProps = {
   data: Room[];
   onEdit: (room: Room) => void;
   onDelete: (room: Room) => void;
-  onToggleActive: (room: Room) => void; // <--- ESTA LINEA ES LA CLAVE DEL ERROR
+  onToggleActive: (room: Room) => void;
   onCreate: () => void;
 };
 
-// 2. AÑADIMOS LA PROP A LA DESESTRUCTURACIÓN
 export function RoomsTable({ data, onEdit, onDelete, onToggleActive, onCreate }: RoomsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'codigo', desc: false }
@@ -111,7 +108,6 @@ export function RoomsTable({ data, onEdit, onDelete, onToggleActive, onCreate }:
         },
         cell: ({ row }) => <div>{row.getValue('nombre')}</div>,
       },
-      // 3. NUEVA COLUMNA VISUAL PARA EL ESTADO
       {
         accessorKey: 'activo',
         header: 'Estado',
@@ -172,7 +168,6 @@ export function RoomsTable({ data, onEdit, onDelete, onToggleActive, onCreate }:
                   <Pencil className="mr-2 h-4 w-4" /> Editar
                 </DropdownMenuItem>
                 
-                {/* 4. AQUI USAMOS LA NUEVA FUNCIÓN */}
                 <DropdownMenuItem onClick={() => onToggleActive(room)}>
                   <Power className="mr-2 h-4 w-4" />
                   {room.activo ? 'Desactivar' : 'Activar'}
@@ -284,7 +279,6 @@ export function RoomsTable({ data, onEdit, onDelete, onToggleActive, onCreate }:
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
-                    // Opcional: difuminar si está inactivo
                     className={!row.original.activo ? 'opacity-60 bg-muted/50' : ''}
                   >
                     {row.getVisibleCells().map((cell) => (

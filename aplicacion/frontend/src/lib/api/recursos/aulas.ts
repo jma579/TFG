@@ -40,7 +40,6 @@ export async function listAulas(filters: AulaFilters = {}): Promise<AulaListResp
   const { search, capacidadMin, capacidadMax, page = 1, size = 100, ...rest } = filters;
   const skip = (page - 1) * size;
 
-  // Mapeamos los filtros a los parámetros que espera el backend
   const params = {
     busqueda: search,
     capacidad_min: capacidadMin,

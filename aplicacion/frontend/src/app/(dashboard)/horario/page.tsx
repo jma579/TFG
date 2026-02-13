@@ -1,25 +1,14 @@
 'use client';
 
-import * as React from 'react';
-import { useRouter } from 'next/navigation'; 
 import { 
-  Loader2, Save, Plus, Trash2, 
-  Search, AlertCircle, AlertTriangle, Eraser,
-  ShieldCheck
-} from 'lucide-react';
+AlertCircle, AlertTriangle, Eraser,
+  Loader2, Plus, Save,   Search,   ShieldCheck,
+Trash2} from 'lucide-react';
+import { useRouter } from 'next/navigation'; 
+import * as React from 'react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
-import type { Session } from '@/components/solver/schedule-mock';
-
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
-import { Separator } from '@/components/ui/separator';
+import type { Session } from '@/components/solver/schedule-grid';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,26 +19,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-// --- APIS ---
-import { 
-  listSesiones, 
-  batchUpdateSesiones,
-  validateBatchSesiones, 
-  type SesionOut, 
-  type SesionCreate 
-} from '@/lib/api/docencia/sesiones';
-import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
-import { 
-  listGruposDocentes, 
-  createGrupoDocente, 
-  type GrupoDocenteOut 
-} from '@/lib/api/docencia/grupos-docentes';
-import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from '@/components/ui/separator';
+import { type AutocompleteOption,SimpleAutocomplete } from '@/components/ui/simple-autocomplete';
+import { useToast } from '@/hooks/use-toast';
+import { type AsignaturaOut,listAsignaturas } from '@/lib/api/catalogo/asignaturas';
 import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
 import { ConflictoOut } from '@/lib/api/conflictos';
+import { 
+  createGrupoDocente, 
+  type GrupoDocenteOut, 
+  listGruposDocentes} from '@/lib/api/docencia/grupos-docentes';
+import { 
+  batchUpdateSesiones,
+  listSesiones, 
+  type SesionCreate, 
+  type SesionOut, 
+  validateBatchSesiones} from '@/lib/api/docencia/sesiones';
+import { type AulaOut,listAulas } from '@/lib/api/recursos/aulas';
 
-// --- CONSTANTES ---
 const DIAS_BACKEND = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'] as const;
 const CURSOS = [1, 2, 3, 4, 5, 6];
 const PERIODOS = [
@@ -73,8 +66,8 @@ const TIPOS_GRUPO = [
 ];
 
 const CODIGO_GRUPO_TEORIA = 'UNICO';
+const API_PAGE_SIZE = 1000;
 
-// --- UTILIDADES ---
 function normalizeDayToIndex(dia: string | null | undefined): number {
   if (!dia) return 0;
   const d = dia.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -105,7 +98,6 @@ function minutesToTimeLabel(totalMin: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-// --- TIPOS EXTENDIDOS ---
 interface SesionWithConflicts extends SesionOut {
   conflictos?: ConflictoOut[];
 }
@@ -120,12 +112,10 @@ interface AsignaturaCompleta extends Omit<AsignaturaOut, 'titulaciones'> {
     programa_id?: number;                       
     curso?: number;
   }>;
-  menciones?: Array<{ id: number; nombre: string; }>;
 }
 
 interface GridSession extends Session {
   originalData: SesionWithConflicts;
-  isNew?: boolean; 
   hasConflict?: boolean; 
 }
 
@@ -144,23 +134,19 @@ export default function GestionHorarioPage() {
   const router = useRouter(); 
   const { toast } = useToast();
 
-  // --- ESTADOS SELECCIÓN ---
   const [selectedProgramaId, setSelectedProgramaId] = React.useState<number | null>(null);
   const [selectedCurso, setSelectedCurso] = React.useState<number | null>(null);
   const [selectedPeriodo, setSelectedPeriodo] = React.useState<string | null>(null);
 
-  // --- DATOS MAESTROS ---
   const [loading, setLoading] = React.useState(false);
   const [programas, setProgramas] = React.useState<ProgramaOut[]>([]);
   const [aulas, setAulas] = React.useState<AulaOut[]>([]);
   const [gruposMap, setGruposMap] = React.useState<Map<number, GrupoDocenteOut>>(new Map());
   const [asignaturasMap, setAsignaturasMap] = React.useState<Map<number, AsignaturaCompleta>>(new Map());
   
-  // --- ESTADO SESIONES ---
   const [localSesiones, setLocalSesiones] = React.useState<SesionWithConflicts[]>([]);
   const [existingSessionIds, setExistingSessionIds] = React.useState<number[]>([]);
 
-  // --- ESTADOS UI ---
   const [hasChanges, setHasChanges] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
@@ -173,42 +159,35 @@ export default function GestionHorarioPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = React.useState(false);
   const [isOverwriteAlertOpen, setIsOverwriteAlertOpen] = React.useState(false);
-
-  // --- ESTADOS VALIDACIÓN ---
   const [isValidating, setIsValidating] = React.useState(false);
 
-  // ==========================================================================
-  // CARGA INICIAL
-  // ==========================================================================
   React.useEffect(() => {
     async function loadCatalogs() {
       try {
         const [resProg, resAulas, resAsignaturas] = await Promise.all([
-          listProgramas({ limit: 1000 }), 
-          listAulas({ size: 1000 }),
-          // FIX: Cargamos TODAS las asignaturas (incluyendo inactivas) para poder identificar 
-          // sesiones viejas de asignaturas que ya no están activas pero siguen en BD.
-          listAsignaturas({ limit: 1000 }) 
+          listProgramas({ limit: API_PAGE_SIZE }), 
+          listAulas({ size: API_PAGE_SIZE }),
+          listAsignaturas({ limit: API_PAGE_SIZE }) 
         ]);
         setProgramas(resProg.items || []);
         setAulas(resAulas.items || []);
         
         const asigMap = new Map<number, AsignaturaCompleta>();
         (resAsignaturas.items || []).forEach((a: AsignaturaOut) => {
-           asigMap.set(a.id, a as unknown as AsignaturaCompleta);
+           asigMap.set(a.id, {
+             ...a,
+             periodo: a.periodo || ''
+           } as AsignaturaCompleta);
         });
         setAsignaturasMap(asigMap);
       } catch (e) {
-        console.error("Error cargando catálogos", e);
+        console.error("Error cargando catálogos:", e);
         toast({ title: "Error", description: "No se pudieron cargar los datos base.", variant: "destructive" });
       }
     }
     loadCatalogs();
   }, [toast]);
 
-  // ==========================================================================
-  // COMPROBACIÓN DATOS EXISTENTES
-  // ==========================================================================
   const checkExistingData = React.useCallback(async () => {
     setLocalSesiones([]); 
     setExistingSessionIds([]);
@@ -218,32 +197,24 @@ export default function GestionHorarioPage() {
     
     setLoading(true);
     try {
-      const resGrupos = await listGruposDocentes({ curso: selectedCurso, size: 1000 });
+      const resGrupos = await listGruposDocentes({ curso: selectedCurso, size: API_PAGE_SIZE });
       const gMap = new Map<number, GrupoDocenteOut>();
       (resGrupos.items || []).forEach((g: GrupoDocenteOut) => gMap.set(g.id, g));
       setGruposMap(gMap);
 
-      // Traemos todas las sesiones posibles de este Programa+Curso (sin filtrar periodo en backend)
       const resSesiones = await listSesiones({ 
-        size: 1000, 
+        size: API_PAGE_SIZE, 
         curso: selectedCurso,
         programa_id: selectedProgramaId 
       });
 
-      // Filtramos en memoria para decidir qué sesiones se deben borrar (las que coinciden en periodo)
       const sesionesParaBorrar = (resSesiones.items || []).filter((s: SesionOut) => {
          const grupo = gMap.get(s.grupo_docente_id);
          
-         // 🔴 LÓGICA DE LIMPIEZA DE ZOMBIS:
-         // Si la sesión existe en este curso/programa pero no tiene grupo o asignatura asociada,
-         // es un dato corrupto o viejo que causa conflictos. LO BORRAMOS por seguridad.
          if (!grupo) return true; 
          
          const asig = asignaturasMap.get(grupo.asignatura_id);
-         if (!asig) return true; // Asignatura desconocida -> Borrar sesión huérfana.
-
-         // 🟢 LÓGICA DE PERIODO:
-         // Si la sesión tiene datos válidos, verificamos si pertenece al periodo que estamos editando.
+         if (!asig) return true;
          const pPeriodoNorm = normalizeText(selectedPeriodo);
          const aPeriodoNorm = normalizeText(asig.periodo || '');
          
@@ -258,7 +229,6 @@ export default function GestionHorarioPage() {
              if (esSegundo) matchFuzzy = aPeriodoNorm.includes('segundo') || aPeriodoNorm.includes('2') || aPeriodoNorm.includes('s2');
          }
 
-         // Solo marcamos para borrar si coincide el periodo (o es anual)
          return esAnual || coincidePeriodo || matchFuzzy;
       });
 
@@ -267,19 +237,21 @@ export default function GestionHorarioPage() {
       }
 
     } catch (error) {
-      console.error(error);
+      console.error("Error verificando datos existentes:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron verificar los datos existentes.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
-  }, [selectedProgramaId, selectedCurso, selectedPeriodo, asignaturasMap]);
+  }, [selectedProgramaId, selectedCurso, selectedPeriodo, asignaturasMap, toast]);
 
   React.useEffect(() => {
     checkExistingData();
   }, [checkExistingData]);
 
-  // ==========================================================================
-  // MEMOS (Visualización)
-  // ==========================================================================
   const programaOptions = React.useMemo<AutocompleteOption[]>(() => 
     programas.map(p => ({ value: p.id, label: p.nombre })), 
   [programas]);
@@ -342,15 +314,10 @@ export default function GestionHorarioPage() {
         teacher: subtitle, 
         color: color, 
         originalData: dbSesion,
-        isNew: true, 
         hasConflict: hasConflict 
       } as GridSession;
     });
   }, [localSesiones, gruposMap, asignaturasMap, aulas]);
-
-  // ==========================================================================
-  // HANDLERS (Edición y Acciones)
-  // ==========================================================================
 
   const handleSessionClick = (session: Session) => {
     const original = (session as GridSession).originalData;
@@ -462,16 +429,12 @@ export default function GestionHorarioPage() {
       setHasChanges(true);
       setIsCreateOpen(false);
     } catch (e) {
-      console.error(e);
+      console.error("Error creando sesión:", e);
       toast({ title: "Error", description: "Error al gestionar grupo docente", variant: "destructive" });
     } finally {
       setIsCreatingGroup(false);
     }
   };
-
-  // ==========================================================================
-  // VALIDACIÓN Y GUARDADO
-  // ==========================================================================
 
   const handleValidate = async () => {
     if (localSesiones.length === 0) {
@@ -518,7 +481,7 @@ export default function GestionHorarioPage() {
         }
 
     } catch (e) {
-        console.error(e);
+        console.error("Error validando:", e);
         toast({ title: "Error", description: "Falló la validación.", variant: "destructive" });
     } finally {
         setIsValidating(false);
@@ -563,7 +526,7 @@ export default function GestionHorarioPage() {
       router.push(`/datos/horarios/detalle?${params.toString()}`);
 
     } catch (e) {
-      console.error(e);
+      console.error("Error guardando:", e);
       toast({ title: "Error", description: "No se pudo guardar el horario.", variant: "destructive" });
       setIsSaving(false);
     }
@@ -585,7 +548,6 @@ export default function GestionHorarioPage() {
         </div>
       </div>
 
-      {/* HEADER FLOTANTE */}
       <div className="px-6 pb-2 z-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 p-5 bg-background/80 backdrop-blur-md border rounded-2xl shadow-sm transition-all hover:shadow-md">
           
@@ -663,7 +625,6 @@ export default function GestionHorarioPage() {
                <Plus className="mr-2 h-4 w-4" /> Nueva Sesión
              </Button>
              
-             {/* BOTÓN VALIDAR */}
              <Button 
                 variant="secondary"
                 onClick={handleValidate}
@@ -686,7 +647,6 @@ export default function GestionHorarioPage() {
         </div>
       </div>
 
-      {/* GRID INTERACTIVO */}
       <div className="flex-1 overflow-hidden bg-muted/5 px-6 pb-6 pt-2">
         {loading ? (
            <div className="h-full flex flex-col items-center justify-center gap-4">
@@ -732,7 +692,6 @@ export default function GestionHorarioPage() {
         )}
       </div>
 
-      {/* ALERT SOBRESCRIBIR */}
       <AlertDialog open={isOverwriteAlertOpen} onOpenChange={setIsOverwriteAlertOpen}>
         <AlertDialogContent className="rounded-xl">
           <AlertDialogHeader>
@@ -757,7 +716,6 @@ export default function GestionHorarioPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* MODAL CREACIÓN */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-[500px] rounded-xl">
           <DialogHeader><DialogTitle>Nueva Sesión</DialogTitle></DialogHeader>
@@ -808,7 +766,6 @@ export default function GestionHorarioPage() {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL EDICIÓN CON CONFLICTOS */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-xl">
           <DialogHeader><DialogTitle>Editar Sesión</DialogTitle></DialogHeader>

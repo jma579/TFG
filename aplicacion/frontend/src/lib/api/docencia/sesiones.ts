@@ -1,4 +1,3 @@
-// src/lib/api/docencia/sesiones.ts
 import { api } from '@/lib/api/config';
 import { ConflictoOut } from '@/lib/api/conflictos';
 
@@ -10,13 +9,11 @@ export type SesionOut = {
   aula_id: number;
   modalidad: string;
   tipo_recurrencia: string;
-  // Campos de horario
   dia_semana?: string | null;
   hora_inicio?: string | null;
   hora_fin?: string | null;
   inicio?: string | null;
   fin?: string | null;
-  // Profesores
   profesores: Array<{
     profesor_id: number;
     rol_en_sesion?: string;
@@ -25,7 +22,6 @@ export type SesionOut = {
   }>;
 };
 
-// --- Tipos de Entrada (Creates & Updates) ---
 
 export type SesionCreate = {
   grupo_docente_id: number;
@@ -41,16 +37,14 @@ export type SesionCreate = {
     profesor_id: number;
     rol_en_sesion?: string;
   }>;
-  temp_id?: number; // Campo opcional para simulaciones
+  temp_id?: number; 
 };
 
 export type SesionUpdate = Partial<SesionCreate>;
 export type SesionUpdateWithId = SesionUpdate & { id: number };
 
-// Alias por compatibilidad
 export type SesionUpdateInput = SesionUpdate;
 
-// --- Integración con Conflictos ---
 
 export type SesionWithConflictosOut = {
   sesion: SesionOut;
@@ -63,7 +57,6 @@ export type SesionBatchRequest = {
   deleted: number[];
 };
 
-// AÑADIDO: Respuesta rica del backend para el Editor
 export type SesionBatchResponse = {
   status: string;
   created: SesionWithConflictosOut[];
@@ -94,7 +87,7 @@ export type SesionValidationResponse = {
   conflictos: ConflictoOut[];
 };
 
-// --- Funciones Actualizadas ---
+// Funciones 
 
 export async function listSesiones(filters: SesionFilters = {}): Promise<SesionListResponse> {
   const { page = 1, size = 100, ...rest } = filters;

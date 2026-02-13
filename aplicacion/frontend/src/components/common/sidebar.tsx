@@ -1,21 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   AlertTriangle,
-  CalendarRange,
-  CalendarClock,
-  Upload,
-  FileUp,
   BookOpen,
-  Users,
-  School,
+  CalendarClock,
+  CalendarRange,
+  FileUp,
   LayoutDashboard,
+  School,
+  Upload,
+  Users,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import { cn } from "@/lib/utils";
 
-// ... (navSections se mantiene igual, no hace falta repetirlo si no cambió) ...
 const navSections = [
   {
     label: "Planificación",

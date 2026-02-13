@@ -1,44 +1,77 @@
 'use client';
 
-import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { 
-  Pencil, CheckCircle2, 
-  Sparkles, XCircle, ArrowRight, Plus, AlertCircle,
-  Trash2
+  AlertCircle,
+  ArrowRight, 
+  CheckCircle2, 
+  Pencil, 
+  Plus, 
+  Sparkles, 
+  Trash2,
+  XCircle
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
 
 import { InteractiveScheduleGrid } from '@/components/solver/interactive-schedule-grid';
-import type { Session } from '@/components/solver/schedule-mock';
-
-import { useHorariosUploadsStore } from '@/stores/horarios-uploads';
-import { confirmHorario, refineHorario, type HorarioTemporalOut } from '@/lib/api/docencia/horarios';
-
+import { 
+  ReviewBlock,
+  ReviewDashboard 
+} from '@/components/solver/review-dashboard';
+import type { Session } from '@/components/solver/schedule-grid';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { 
+  type AutocompleteOption,
+  SimpleAutocomplete 
+} from '@/components/ui/simple-autocomplete';
 import { useToast } from '@/hooks/use-toast';
-import { SimpleAutocomplete, type AutocompleteOption } from '@/components/ui/simple-autocomplete';
-
-import { listAsignaturas, type AsignaturaOut } from '@/lib/api/catalogo/asignaturas';
-import { listAulas, type AulaOut } from '@/lib/api/recursos/aulas';
-import { listProgramas, type ProgramaOut } from '@/lib/api/catalogo/programas';
+import { 
+  type AsignaturaOut,
+  listAsignaturas 
+} from '@/lib/api/catalogo/asignaturas';
+import { 
+  listProgramas, 
+  type ProgramaOut 
+} from '@/lib/api/catalogo/programas';
+import { 
+  confirmHorario, 
+  type HorarioTemporalOut,
+  refineHorario 
+} from '@/lib/api/docencia/horarios';
+import { 
+  type AulaOut,
+  listAulas 
+} from '@/lib/api/recursos/aulas';
 import { PERIODOS } from '@/lib/constants/periodos';
+import { useHorariosUploadsStore } from '@/stores/horarios-uploads';
 
-import { ReviewDashboard, ReviewBlock } from '@/components/solver/review-dashboard';
+// ============================================================================
+// TIPOS
+// ============================================================================
 
 type RouteParams = { id: string };
 type Props = { params: Promise<RouteParams> };
 
-// --- TIPOS ---
 export type HorarioExtraido = {
   titulo: string;
   plan: string;
   periodo: string;
   horarios: HorarioExtraidoBloque[];
-  [key: string]: unknown;
 };
 
 export type HorarioExtraidoBloque = {
@@ -47,7 +80,6 @@ export type HorarioExtraidoBloque = {
   mencion: string | null;
   pagina: number;
   sesiones: HorarioExtraidoSesion[];
-  [key: string]: unknown;
 };
 
 export type HorarioExtraidoSesion = {
@@ -63,7 +95,6 @@ export type HorarioExtraidoSesion = {
   match_status?: string;       
   asignatura_sugerida?: string;
   manual_validated?: boolean;
-  [key: string]: unknown;
 };
 
 interface SesionFormState {
@@ -76,6 +107,10 @@ interface SesionFormState {
   grupo: string;
 }
 
+// ============================================================================
+// CONSTANTES
+// ============================================================================
+
 const DEFAULT_SESSION_FORM: SesionFormState = {
   asignatura: '',
   aula: '',
@@ -86,10 +121,29 @@ const DEFAULT_SESSION_FORM: SesionFormState = {
   grupo: '',
 };
 
-const TIPO_OPCIONES = ['TEORÍA', 'PRÁCTICAS DE AULA', 'PRÁCTICAS DE LABORATORIO'] as const;
-const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'] as const;
+const TIPO_OPCIONES = [
+  'TEORÍA', 
+  'PRÁCTICAS DE AULA', 
+  'PRÁCTICAS DE LABORATORIO'
+] as const;
 
-// --- COMPONENTE: MatchInfoCard ---
+const DIAS_SEMANA = [
+  'LUNES', 
+  'MARTES', 
+  'MIÉRCOLES', 
+  'JUEVES', 
+  'VIERNES'
+] as const;
+
+const API_PAGE_SIZE = 1000;
+
+// ============================================================================
+// SUBCOMPONENTES
+// ============================================================================
+
+/**
+ * Tarjeta informativa sobre el estado de coincidencia de una asignatura
+ */
 function MatchInfoCard({ status, originalName, suggestedName }: { status?: string; originalName: string; suggestedName?: string }) {
   if (!status) return null;
   const isExact = status === 'EXACT' || status === 'ALIAS_DB';
@@ -139,34 +193,47 @@ export default function RevisionHorarioPage({ params }: Props) {
   const item = React.useMemo(() => items.find((it) => it.id === id), [items, id]);
 
   const horarioTemporal: HorarioExtraido | undefined =
-    item?.horarioTemporal as unknown as HorarioExtraido | undefined;
+    item?.horarioTemporal as HorarioExtraido | undefined;
 
-  // --- DATOS MAESTROS ---
+  // Estados de datos maestros
   const [listaAsignaturas, setListaAsignaturas] = React.useState<AsignaturaOut[]>([]);
   const [listaAulas, setListaAulas] = React.useState<AulaOut[]>([]);
   const [listaProgramas, setListaProgramas] = React.useState<ProgramaOut[]>([]);
+  const [loadingError, setLoadingError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
+    
     async function loadData() {
       try {
+        setLoadingError(null);
         const [resProgramas, resAsig, resAulas] = await Promise.all([
-          listProgramas({ limit: 1000, activo: true }), 
-          listAsignaturas({ limit: 1000, activo: true }), 
-          listAulas({ size: 1000 }),
+          listProgramas({ limit: API_PAGE_SIZE, activo: true }), 
+          listAsignaturas({ limit: API_PAGE_SIZE, activo: true }), 
+          listAulas({ size: API_PAGE_SIZE }),
         ]);
+        
         if (mounted) {
           setListaProgramas(resProgramas.items || []);
           setListaAsignaturas(resAsig.items || []);
           setListaAulas(resAulas.items || []);
         }
       } catch (error) {
-        console.error('Error cargando catálogo', error);
+        console.error('Error cargando catálogo:', error);
+        if (mounted) {
+          setLoadingError('No se pudieron cargar los catálogos. Verifica la conexión.');
+          toast({
+            title: 'Error de carga',
+            description: 'No se pudieron cargar los catálogos necesarios.',
+            variant: 'destructive'
+          });
+        }
       }
     }
+    
     loadData();
     return () => { mounted = false; };
-  }, []);
+  }, [toast]);
 
   const [draftHorario, setDraftHorario] = React.useState<HorarioExtraido | null>(null);
 
@@ -178,13 +245,17 @@ export default function RevisionHorarioPage({ params }: Props) {
   }, [horarioTemporal]);
 
   const horario = draftHorario ?? horarioTemporal;
+  
+  // Estados de UI
   const [isConfirming, setIsConfirming] = React.useState(false);
   const [confirmError, setConfirmError] = React.useState<string | null>(null);
-
-  const bloques = React.useMemo(() => (horario?.horarios ?? []) as HorarioExtraidoBloque[], [horario]);
   const [selectedBlockIndex, setSelectedBlockIndex] = React.useState(0);
 
-  // --- AUTO-CURACIÓN Y MAPEO ---
+  // Memoizaciones
+  const bloques = React.useMemo(
+    () => (horario?.horarios ?? []) as HorarioExtraidoBloque[], 
+    [horario]
+  );
   const unifiedNamesMap = React.useMemo(() => {
     const map = new Map<string, string>();
     if (!horario) return map;
@@ -209,13 +280,27 @@ export default function RevisionHorarioPage({ params }: Props) {
     if (!horario || bloques.length === 0) return [];
     const bloque = bloques[selectedBlockIndex];
     if (!bloque) return [];
-    return mapBloqueToSessions(bloque, selectedBlockIndex, unifiedNamesMap);
+    return mapBloqueToSessions(bloque, unifiedNamesMap);
   }, [bloques, horario, selectedBlockIndex, unifiedNamesMap]);
+
+  const reviewBlock = React.useMemo(() => {
+    if (!horario || bloques.length === 0) return null;
+    const bloque = bloques[selectedBlockIndex];
+    if (!bloque) return null;
+    
+    return {
+      ...bloque,
+      sesiones: bloque.sesiones.map((s, idx) => ({
+        ...s,
+        originalIndex: idx
+      }))
+    } as ReviewBlock;
+  }, [bloques, horario, selectedBlockIndex]);
 
   const hasData = Boolean(horario && bloques.length > 0);
   const displayPlan = horario?.plan || horario?.titulo?.split(' - ')[0] || "Desconocido";
 
-  // --- FORM STATES ---
+  // Estados de formularios
   const [isEditInfoOpen, setIsEditInfoOpen] = React.useState(false);
   const [isRefining, setIsRefining] = React.useState(false);
   const [infoForm, setInfoForm] = React.useState({ plan: '', periodo: '' });
@@ -234,7 +319,7 @@ export default function RevisionHorarioPage({ params }: Props) {
   
   const canCreateSession = bloques.length > 0;
 
-  // --- HELPERS DE FILTRADO ---
+  // Detección de programa y periodo
   const detectedPrograma = React.useMemo(() => {
     if (!horario || !listaProgramas.length) return null;
     const planTexto = normalizeText(horario.plan || horario.titulo?.split(' - ')[0] || '');
@@ -268,8 +353,7 @@ export default function RevisionHorarioPage({ params }: Props) {
 
             const matchProgCurso = asig.titulaciones.some(t => {
                 const pid = t.programa?.id;
-                // eslint-disable-next-line eqeqeq
-                const matchId = pid != null && pid == detectedPrograma.id;
+                const matchId = pid != null && pid === detectedPrograma.id;
                 const tProgName = normalizeText(t.programa.nombre || '');
                 const matchName = tProgName.includes(planNameNorm) || planNameNorm.includes(tProgName);
                 const isSameProgram = matchId || matchName;
@@ -322,43 +406,54 @@ export default function RevisionHorarioPage({ params }: Props) {
       keywords: a.codigo,
   })), [listaAulas]);
 
-  // --- 🧠 LÓGICA DE NEGOCIO: ASIGNATURA COMÚN ---
-  // Determina si una asignatura es troncal/común basándose en el catálogo
+  /**
+   * Determina si una asignatura es común/troncal basándose en el catálogo
+   */
   const checkIsAsignaturaComun = React.useCallback((nombreAsignatura: string) => {
     if (!detectedPrograma || !listaAsignaturas.length) return false;
     
     const norm = normalizeText(nombreAsignatura);
     const found = listaAsignaturas.find(a => normalizeText(a.nombre) === norm);
     
-    // Si no la encontramos en catálogo, no podemos saber su tipo -> Asumimos NO COMÚN (conservador)
     if (!found?.titulaciones) return false;
 
-    // Buscamos la ficha de la asignatura para este programa
-    // eslint-disable-next-line eqeqeq
-    const vinculacion = found.titulaciones.find(t => t.programa?.id == detectedPrograma.id);
+    const vinculacion = found.titulaciones.find(
+      t => t.programa?.id === detectedPrograma.id
+    );
     if (!vinculacion) return false;
 
-    // Obtenemos el tipo (adaptar 'tipo' o 'tipo_asignatura' según tu API real)
-    // @ts-expect-error - Acceso dinámico por si la API varía nombre
-    const tipo = (vinculacion.tipo || vinculacion.tipo_asignatura || '').toString().toUpperCase();
+    // Acceso seguro al tipo de asignatura
+    type TitulacionConTipo = typeof vinculacion & { 
+      tipo?: string; 
+      tipo_asignatura?: string; 
+    };
     
-    // HEURÍSTICA: Es común si es Básica u Obligatoria
+    const tipo = (
+      (vinculacion as TitulacionConTipo).tipo || 
+      (vinculacion as TitulacionConTipo).tipo_asignatura || 
+      ''
+    ).toString().toUpperCase();
+    
     return tipo.includes('BASICA') || 
            tipo.includes('BÁSICA') || 
            tipo.includes('OBLIGATORIA') || 
            tipo.includes('TRONCAL');
   }, [listaAsignaturas, detectedPrograma]);
 
-  // --- ACTIONS ---
+  // ========================================================================
+  // HANDLERS
+  // ========================================================================
 
   const handleUpdateDraft = (newHorario: HorarioExtraido) => {
     setDraftHorario(newHorario);
-    if (item) updateHorario(item.id, newHorario as unknown as HorarioTemporalOut);
+    if (item) {
+      updateHorario(item.id, newHorario as HorarioTemporalOut);
+    }
   };
 
   const handleBack = () => {
     if (item && draftHorario) {
-      updateHorario(item.id, draftHorario as unknown as HorarioTemporalOut);
+      updateHorario(item.id, draftHorario as HorarioTemporalOut);
     }
     router.push('/uploads/horarios');
   };
@@ -377,21 +472,29 @@ export default function RevisionHorarioPage({ params }: Props) {
     horarioActualizado.plan = infoForm.plan;
     horarioActualizado.periodo = infoForm.periodo;
     horarioActualizado.titulo = `${infoForm.plan} - ${infoForm.periodo}`;
+    
     setIsRefining(true);
     try {
-        const nuevoHorario = await refineHorario(horarioActualizado as unknown as HorarioTemporalOut);
-        handleUpdateDraft(nuevoHorario as unknown as HorarioExtraido);
-        setIsEditInfoOpen(false);
-        toast({ title: 'Horario Actualizado', description: 'Contexto actualizado.' });
-    } catch {
-        handleUpdateDraft(horarioActualizado);
-        setIsEditInfoOpen(false);
+      const nuevoHorario = await refineHorario(horarioActualizado as HorarioTemporalOut);
+      handleUpdateDraft(nuevoHorario as HorarioExtraido);
+      setIsEditInfoOpen(false);
+      toast({ 
+        title: 'Horario Actualizado', 
+        description: 'Contexto actualizado correctamente.' 
+      });
+    } catch (error) {
+      console.error('Error refinando horario:', error);
+      handleUpdateDraft(horarioActualizado);
+      setIsEditInfoOpen(false);
+      toast({
+        title: 'Advertencia',
+        description: 'Se guardaron los cambios pero no se pudo refinar automáticamente.',
+        variant: 'destructive'
+      });
     } finally {
-        setIsRefining(false);
+      setIsRefining(false);
     }
   };
-
-  // --- [MODIFICADO] BORRADO QUIRÚRGICO O PROPAGADO ---
   const handleDeleteSession = (sesIndex: number) => {
     if (!draftHorario) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario)) as HorarioExtraido;
@@ -410,23 +513,27 @@ export default function RevisionHorarioPage({ params }: Props) {
     let deletedCount = 0;
 
     if (esComun) {
-        // MODO TRONCAL: Borrar de todos los grupos (Comportamiento sincronizado)
-        cloned.horarios.forEach(bloque => {
-          if (bloque.curso !== targetCurso) return; 
-          const prevLen = bloque.sesiones.length;
-          bloque.sesiones = bloque.sesiones.filter(s => 
-            generateSemanticId(s, unifiedNamesMap) !== targetId
-          );
-          if (bloque.sesiones.length < prevLen) deletedCount++;
-        });
-        toast({ title: 'Eliminada', description: `Se ha eliminado la sesión troncal de ${deletedCount} grupo(s).` });
+      cloned.horarios.forEach(bloque => {
+        if (bloque.curso !== targetCurso) return; 
+        const prevLen = bloque.sesiones.length;
+        bloque.sesiones = bloque.sesiones.filter(s => 
+          generateSemanticId(s, unifiedNamesMap) !== targetId
+        );
+        if (bloque.sesiones.length < prevLen) deletedCount++;
+      });
+      toast({ 
+        title: 'Eliminada', 
+        description: `Sesión común eliminada de ${deletedCount} grupo(s).` 
+      });
     } else {
-        // MODO OPTATIVA/ESPECÍFICA: Borrar SOLO de este bloque (Corrección de errores)
-        if (targetBlock.sesiones) {
-            targetBlock.sesiones.splice(sesIndex, 1);
-            deletedCount = 1;
-        }
-        toast({ title: 'Eliminada', description: 'Se ha eliminado la sesión solo de este horario.' });
+      if (targetBlock.sesiones) {
+        targetBlock.sesiones.splice(sesIndex, 1);
+        deletedCount = 1;
+      }
+      toast({ 
+        title: 'Eliminada', 
+        description: 'Sesión eliminada de este horario.' 
+      });
     }
 
     handleUpdateDraft(cloned);
@@ -507,13 +614,13 @@ export default function RevisionHorarioPage({ params }: Props) {
 
             bloque.sesiones.forEach(s => {
               const sName = normalizeText(s.asignatura_sugerida || s.asignatura || '');
-              const sGroup = normalizeText(s.grupo || '');
+                      const sGroup = normalizeText(s.grupo || '');
               
               if (sName === targetName && sGroup === targetGroup) {
-                  s.dia = updates.dia;
-                  s.hora_inicio = updates.hora_inicio;
-                  s.hora_fin = updates.hora_fin;
-                  s.aula = updates.aula;
+                s.dia = updates.dia;
+                s.hora_inicio = updates.hora_inicio;
+                s.hora_fin = updates.hora_fin;
+                s.aula = updates.aula;
               }
             });
           });
@@ -522,8 +629,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     handleUpdateDraft(cloned);
     closeEditSesion();
   };
-
-  // --- CREACIÓN ---
   const openCreateDialog = () => {
     setCreateTab(canCreateSession ? 'session' : 'block');
     setCreateSessionForm(DEFAULT_SESSION_FORM);
@@ -532,8 +637,6 @@ export default function RevisionHorarioPage({ params }: Props) {
   };
   const closeCreateDialog = () => setIsCreateOpen(false);
   const handleCreateFieldChange = <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => setCreateSessionForm((p) => ({ ...p, [f]: v }));
-  
-  // --- [MODIFICADO] CREACIÓN INTELIGENTE ---
   const handleCreateSession = () => {
     if (!canCreateSession) return;
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
@@ -552,30 +655,34 @@ export default function RevisionHorarioPage({ params }: Props) {
     
     let addedCount = 0;
 
-    // 1. Siempre añadir al bloque actual
     if (!currentBlock.sesiones) currentBlock.sesiones = [];
     currentBlock.sesiones.push(JSON.parse(JSON.stringify(newSession)));
     addedCount++;
 
-    // 2. Propagar solo si es ASIGNATURA COMÚN (Básica/Obligatoria)
     if (esComun) {
-        cloned.horarios.forEach((bloque, idx) => {
-          if (idx === selectedBlockIndex) return;
-          if (bloque.curso !== targetCurso) return;
+      cloned.horarios.forEach((bloque, idx) => {
+        if (idx === selectedBlockIndex) return;
+        if (bloque.curso !== targetCurso) return;
 
-          if (!bloque.sesiones) bloque.sesiones = [];
-          bloque.sesiones.push(JSON.parse(JSON.stringify(newSession)));
-          addedCount++;
-        });
+        if (!bloque.sesiones) bloque.sesiones = [];
+        bloque.sesiones.push(JSON.parse(JSON.stringify(newSession)));
+        addedCount++;
+      });
     }
 
     handleUpdateDraft(cloned);
     setIsCreateOpen(false);
     
     if (esComun && addedCount > 1) {
-        toast({ title: 'Creada', description: `Sesión troncal añadida a ${addedCount} grupos.` });
+      toast({ 
+        title: 'Creada', 
+        description: `Sesión común añadida a ${addedCount} grupos.` 
+      });
     } else {
-        toast({ title: 'Creada', description: `Sesión añadida solo a este grupo (Optativa).` });
+      toast({ 
+        title: 'Creada', 
+        description: `Sesión añadida a este grupo.` 
+      });
     }
   };
 
@@ -610,8 +717,6 @@ export default function RevisionHorarioPage({ params }: Props) {
     handleUpdateDraft(cloned);
     setIsEditBlockOpen(false);
   };
-
-  // --- HANDLE MOVE ---
   const handleSessionMove = (session: Session, newDayIndex: number, newStartTime: string) => {
     const cloned = JSON.parse(JSON.stringify(draftHorario ?? horario)) as HorarioExtraido;
     
@@ -623,20 +728,20 @@ export default function RevisionHorarioPage({ params }: Props) {
         const currentId = generateSemanticId(sesion, unifiedNamesMap);
         
         if (currentId === targetId) {
-             const duration = timeToMinutes(sesion.hora_fin) - timeToMinutes(sesion.hora_inicio);
-             const startMin = timeToMinutes(newStartTime);
-             
-             sesion.dia = DIAS_SEMANA[newDayIndex];
-             sesion.hora_inicio = newStartTime;
-             sesion.hora_fin = minutesToTimeLabel(startMin + duration);
-             
-             updatedCount++;
+          const duration = timeToMinutes(sesion.hora_fin) - timeToMinutes(sesion.hora_inicio);
+          const startMin = timeToMinutes(newStartTime);
+          
+          sesion.dia = DIAS_SEMANA[newDayIndex];
+          sesion.hora_inicio = newStartTime;
+          sesion.hora_fin = minutesToTimeLabel(startMin + duration);
+          
+          updatedCount++;
         }
       });
     });
     
     if (updatedCount > 0) {
-        handleUpdateDraft(cloned);
+      handleUpdateDraft(cloned);
     }
   };
 
@@ -647,22 +752,46 @@ export default function RevisionHorarioPage({ params }: Props) {
     try {
       const planAEnviar = horario.plan || horario.titulo?.split(' - ')[0] || "";
       const payload = { ...horario, plan: planAEnviar };
-      await confirmHorario(payload as unknown as HorarioTemporalOut);
+      await confirmHorario(payload as HorarioTemporalOut);
       confirm(item.id);
-      toast({ title: '¡Éxito!', description: 'El horario se ha guardado correctamente.' });
+      toast({ 
+        title: '¡Éxito!', 
+        description: 'El horario se ha guardado correctamente.' 
+      });
       router.push('/uploads/horarios'); 
     } catch (error: unknown) {
-      const msg = (error as { response?: { data?: { detail?: string } }; message?: string })?.response?.data?.detail 
+      const msg = (error as { 
+        response?: { data?: { detail?: string } }; 
+        message?: string;
+      })?.response?.data?.detail 
         || (error as { message?: string })?.message 
         || 'Error desconocido al confirmar.';
       setConfirmError(msg); 
-      toast({ title: 'No se puede guardar', description: 'Revisa los errores.', variant: 'destructive' });
+      toast({ 
+        title: 'No se puede guardar', 
+        description: 'Revisa los errores.', 
+        variant: 'destructive' 
+      });
     } finally {
       setIsConfirming(false);
     }
   };
 
-  if (!item || !horario) return <div className="p-8"><Card><CardContent className="p-6">Cargando...</CardContent></Card></div>;
+  // ========================================================================
+  // RENDER
+  // ========================================================================
+
+  if (!item || !horario) {
+    return (
+      <div className="p-8">
+        <Card>
+          <CardContent className="p-6">
+            Cargando horario...
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const editingBloque = editingLocation && horario?.horarios ? horario.horarios[editingLocation.blockIndex] : null;
 
@@ -671,8 +800,8 @@ export default function RevisionHorarioPage({ params }: Props) {
     : activeAsignaturaOptions;
 
   return (
-    <div className="space-y-6">
-      {/* HEADER */}
+    <div className="space-y-6 p-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Revisión de horario</h1>
@@ -686,6 +815,22 @@ export default function RevisionHorarioPage({ params }: Props) {
         </div>
       </div>
 
+      {/* Error de carga de catálogos */}
+      {loadingError && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-900 mb-1">
+                Advertencia
+              </h3>
+              <p className="text-sm text-amber-700">{loadingError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error de confirmación */}
       {confirmError && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 animate-in slide-in-from-top-2">
           <div className="flex items-start gap-3">
@@ -696,7 +841,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         </div>
       )}
 
-      {/* INFO CARD */}
+      {/* Tarjeta de resumen */}
       <Card className="cursor-pointer hover:bg-muted/50 group" onClick={openEditInfo}>
         <CardHeader><CardTitle className="flex justify-between">Resumen <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100" /></CardTitle></CardHeader>
         <CardContent>
@@ -707,7 +852,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      {/* SELECTOR BLOQUES */}
+      {/* Selector de bloques */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 rounded-md border bg-muted/40 px-4 py-3 text-sm flex flex-wrap gap-3 items-center">
           <p className="font-medium text-muted-foreground">Curso:</p>
@@ -725,18 +870,30 @@ export default function RevisionHorarioPage({ params }: Props) {
         </div>
       </div>
 
-      {hasData && (
+      {/* Dashboard de revisión */}
+      {hasData && reviewBlock && (
         <ReviewDashboard 
-           bloque={bloques[selectedBlockIndex] as unknown as ReviewBlock}
-           onEditSession={(idx) => {
-               const sesion = bloques[selectedBlockIndex].sesiones[idx];
-               const fakeSession = { id: generateSemanticId(sesion, unifiedNamesMap) } as Session;
-               openEditSesion(fakeSession);
-           }}
-           onDeleteSession={handleDeleteSession}
+          bloque={reviewBlock}
+          onEditSession={(idx) => {
+            const sesion = bloques[selectedBlockIndex].sesiones[idx];
+            const fakeSession: Session = { 
+              id: generateSemanticId(sesion, unifiedNamesMap),
+              courseId: '',
+              dayIndex: 0,
+              start: '',
+              end: '',
+              title: '',
+              room: '',
+              teacher: '',
+              color: 'blue'
+            };
+            openEditSesion(fakeSession);
+          }}
+          onDeleteSession={handleDeleteSession}
         />
       )}
 
+      {/* Grid interactivo */}
       {hasData && (
         <InteractiveScheduleGrid
           sessions={sessions}
@@ -745,6 +902,9 @@ export default function RevisionHorarioPage({ params }: Props) {
         />
       )}
 
+      {/* Diálogos */}
+      
+      {/* Dialog: Editar información general */}
       <Dialog open={isEditInfoOpen} onOpenChange={setIsEditInfoOpen}>
         <DialogContent className="overflow-visible">
           <DialogHeader><DialogTitle>Editar información</DialogTitle></DialogHeader>
@@ -767,6 +927,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog: Editar sesión */}
       <Dialog open={isEditOpen} onOpenChange={(open) => !open && closeEditSesion()}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader><DialogTitle>Editar sesión</DialogTitle></DialogHeader>
@@ -803,6 +964,7 @@ export default function RevisionHorarioPage({ params }: Props) {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog: Crear elemento */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && closeCreateDialog()}>
         <DialogContent>
           <DialogHeader><DialogTitle>Crear elemento</DialogTitle></DialogHeader>
@@ -812,10 +974,10 @@ export default function RevisionHorarioPage({ params }: Props) {
           </div>
           {createTab === 'session' && (
             <SessionFormFieldsSmart 
-                form={createSessionForm} 
-                onChange={handleCreateFieldChange} 
-                asignaturaOptions={activeAsignaturaOptions} 
-                aulaOptions={aulaOptions} 
+              form={createSessionForm} 
+              onChange={handleCreateFieldChange} 
+              asignaturaOptions={activeAsignaturaOptions} 
+              aulaOptions={aulaOptions} 
             />
           )}
           {createTab === 'block' && (
@@ -825,11 +987,20 @@ export default function RevisionHorarioPage({ params }: Props) {
             </div>
           )}
           <DialogFooter className="mt-4">
-            {createTab === 'session' ? <Button onClick={handleCreateSession} disabled={!canCreateSession}>Crear</Button> : <Button onClick={handleCreateBlock} disabled={!newBlockForm.curso}>Crear</Button>}
+            {createTab === 'session' ? (
+              <Button onClick={handleCreateSession} disabled={!canCreateSession}>
+                Crear
+              </Button>
+            ) : (
+              <Button onClick={handleCreateBlock} disabled={!newBlockForm.curso}>
+                Crear
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Dialog: Editar bloque */}
       <Dialog open={isEditBlockOpen} onOpenChange={setIsEditBlockOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Editar curso</DialogTitle></DialogHeader>
@@ -844,8 +1015,13 @@ export default function RevisionHorarioPage({ params }: Props) {
   );
 }
 
-// --- SUBCOMPONENTES ---
+// ============================================================================
+// COMPONENTES AUXILIARES
+// ============================================================================
 
+/**
+ * Formulario inteligente para editar/crear sesiones
+ */
 interface SessionFormFieldsProps {
   form: SesionFormState;
   onChange: <K extends keyof SesionFormState>(f: K, v: SesionFormState[K]) => void;
@@ -871,8 +1047,8 @@ function SessionFormFieldsSmart({
           value={selectedAsigId} 
           initialValue={form.asignatura} 
           onChange={(val) => {
-             const selected = asignaturaOptions.find((o) => o.value === val);
-             if (selected) onChange('asignatura', selected.label);
+            const selected = asignaturaOptions.find((o) => o.value === val);
+            if (selected) onChange('asignatura', selected.label);
           }} 
           placeholder="Buscar..." 
           emptyText="No se encontraron asignaturas"
@@ -885,8 +1061,8 @@ function SessionFormFieldsSmart({
           value={selectedAulaId} 
           initialValue={form.aula} 
           onChange={(val) => {
-             const selected = aulaOptions.find((o) => o.value === val);
-             if (selected) onChange('aula', selected.label);
+            const selected = aulaOptions.find((o) => o.value === val);
+            if (selected) onChange('aula', selected.label);
           }} 
           placeholder="Buscar..." 
         />
@@ -912,8 +1088,13 @@ function SessionFormFieldsSmart({
   );
 }
 
-// --- HELPERS IMPORTANTES ---
+// ============================================================================
+// FUNCIONES AUXILIARES
+// ============================================================================
 
+/**
+ * Genera un ID semántico único para una sesión basado en sus atributos
+ */
 function generateSemanticId(sesion: HorarioExtraidoSesion, unifiedMap: Map<string, string>): string {
   const rawName = normalizeText(sesion.asignatura || '');
   const unifiedName = unifiedMap.get(rawName) || rawName || 'UNK';
@@ -930,44 +1111,56 @@ function generateSemanticId(sesion: HorarioExtraidoSesion, unifiedMap: Map<strin
   return `${sName}|${sType}|${sGroup}|${sDay}|${sStart}`;
 }
 
+/**
+ * Normaliza texto removiendo acentos y convirtiendo a minúsculas
+ */
 function normalizeText(text: string): string {
+  if (!text) return '';
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+/**
+ * Mapea un horario completo a sesiones para el grid
+ */
 function mapHorarioToSessions(horario: HorarioExtraido, unifiedMap: Map<string, string>): Session[] {
   const sessions: Session[] = [];
-  (horario.horarios || []).forEach((b, i) => sessions.push(...mapBloqueToSessions(b, i, unifiedMap)));
+  (horario.horarios || []).forEach((bloque) => {
+    sessions.push(...mapBloqueToSessions(bloque, unifiedMap));
+  });
   return sessions;
 }
 
-function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number, unifiedMap: Map<string, string>): Session[] {
+/**
+ * Mapea un bloque de horario a sesiones para el grid
+ */
+function mapBloqueToSessions(bloque: HorarioExtraidoBloque, unifiedMap: Map<string, string>): Session[] {
   const sessions: Session[] = [];
   const seenIds = new Set<string>();
 
-  (bloque.sesiones || []).forEach((sesion, sesionIndex) => {
+  (bloque.sesiones || []).forEach((sesion) => {
     const dayIndex = diaToDayIndex(sesion.dia);
     if (dayIndex < 0) return;
 
     const id = generateSemanticId(sesion, unifiedMap);
     
-    // Evitamos duplicados en la visualización
-    if (seenIds.has(id)) {
-        return; 
-    }
+    if (seenIds.has(id)) return;
     seenIds.add(id);
 
-    let color: Session['color'] = 'blue';
-    const hasAsignatura = sesion.asignatura_sugerida || sesion.manual_validated || sesion.match_status === 'EXACT' || sesion.match_status === 'ALIAS_DB';
+    const hasAsignatura = sesion.asignatura_sugerida || 
+                          sesion.manual_validated || 
+                          sesion.match_status === 'EXACT' || 
+                          sesion.match_status === 'ALIAS_DB';
     const hasAula = sesion.aula && sesion.aula !== 'POR DETERMINAR';
 
-    if (!hasAsignatura || !hasAula) color = 'red';
-    else color = 'blue';
+    const color: Session['color'] = (!hasAsignatura || !hasAula) ? 'red' : 'blue';
 
     const rawName = normalizeText(sesion.asignatura || '');
-    const displayName = sesion.asignatura_sugerida || unifiedMap.get(rawName) || sesion.asignatura;
+    const displayName = sesion.asignatura_sugerida || 
+                        unifiedMap.get(rawName) || 
+                        sesion.asignatura;
 
     sessions.push({
-      id: id, 
+      id, 
       courseId: buildCourseIdFromCurso(bloque.curso),
       dayIndex,
       start: normalizeTime(sesion.hora_inicio),
@@ -975,12 +1168,16 @@ function mapBloqueToSessions(bloque: HorarioExtraidoBloque, bloqueIndex: number,
       title: displayName, 
       room: sesion.aula ?? '—',
       teacher: sesion.grupo ? `Grupo ${sesion.grupo}` : '',
-      color: color,
-    } as unknown as Session); 
+      color,
+    } as Session); 
   });
+  
   return sessions;
 }
 
+/**
+ * Convierte nombre de día a índice numérico (0-4)
+ */
 function diaToDayIndex(dia: string): number {
   const d = dia.trim().toUpperCase();
   if (d.startsWith('L')) return 0;
@@ -991,24 +1188,38 @@ function diaToDayIndex(dia: string): number {
   return -1;
 }
 
+/**
+ * Normaliza formato de hora a HH:MM
+ */
 function normalizeTime(value: string): string {
   if (!value) return value;
   const parts = value.split(':');
-  return parts.length >= 2 ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` : value;
+  return parts.length >= 2 
+    ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` 
+    : value;
 }
 
+/**
+ * Convierte hora HH:MM a minutos totales
+ */
 function timeToMinutes(value: string): number {
   if (!value) return 0;
   const [h, m] = value.split(':').map((n) => parseInt(n, 10) || 0);
   return h * 60 + m;
 }
 
+/**
+ * Convierte minutos totales a formato HH:MM
+ */
 function minutesToTimeLabel(totalMin: number): string {
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+/**
+ * Genera ID de curso para visualización
+ */
 function buildCourseIdFromCurso(cursoTexto: string): string {
   if (cursoTexto.includes('1') || cursoTexto.toLowerCase().includes('primer')) return '1º';
   if (cursoTexto.includes('2') || cursoTexto.toLowerCase().includes('segundo')) return '2º';
@@ -1018,15 +1229,22 @@ function buildCourseIdFromCurso(cursoTexto: string): string {
   return cursoTexto;
 }
 
+/**
+ * Extrae número de curso de texto descriptivo
+ */
 function parseCursoNumerico(cursoTexto: string): number {
     const txt = normalizeText(cursoTexto);
     if (txt.includes('1') || txt.includes('primer')) return 1;
     if (txt.includes('2') || txt.includes('segundo')) return 2;
     if (txt.includes('3') || txt.includes('tercer')) return 3;
     if (txt.includes('4') || txt.includes('cuarto')) return 4;
+    if (txt.includes('5') || txt.includes('quinto')) return 5;
     return 0; 
 }
 
+/**
+ * Genera etiqueta visual para un bloque de horario
+ */
 function buildBloqueLabel(bloque: HorarioExtraidoBloque): string {
   const base = buildCourseIdFromCurso(bloque.curso);
   if (!bloque.mencion) return base;

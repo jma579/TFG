@@ -1,27 +1,24 @@
 'use client';
 
 import * as React from 'react';
+
+import type { MatchStatus } from '@/lib/api/docencia/horarios';
 import { cn } from '@/lib/cn';
 import { generateTimeSlots, overlapsSlot } from '@/lib/time';
-// Importamos los tipos del API para tener autocompletado del status
-import type { MatchStatus } from '@/lib/api/docencia/horarios';
 
-// Definimos nuestra propia interfaz de Sesión para la UI, extendiendo lo básico
 export type GridSession = {
   id: string | number;
-  title: string;        // Nombre de la asignatura (ya procesado/sugerido)
-  originalName?: string;// Nombre original en el PDF (para comparar)
-  start: string;        // HH:MM
-  end: string;          // HH:MM
-  dayIndex: number;     // 0=Lunes, 4=Viernes
+  title: string;       
+  originalName?: string;
+  start: string;       
+  end: string;      
+  dayIndex: number;    
   room?: string;
   teacher?: string;
   
-  // Metadatos de inteligencia
   matchStatus?: MatchStatus | string | null;
   matchConfidence?: number | null;
   
-  // Mantenemos color opcional por si se usa en otros contextos sin IA
   color?: string; 
 };
 
@@ -93,7 +90,7 @@ export function ReadonlyScheduleGrid({
                         key={s.id}
                         className={cn(
                           'truncate rounded px-2 py-1 text-xs border shadow-sm transition-all',
-                          getStatusStyles(s.matchStatus, s.color)
+                          getStatusStyles(s.matchStatus)
                         )}
                         title={getTooltipText(s)}
                       >
@@ -118,28 +115,23 @@ export function ReadonlyScheduleGrid({
 
 // --- Lógica de Estilos e Inteligencia ---
 
-function getStatusStyles(status?: MatchStatus | string | null, fallbackColor?: string) {
+function getStatusStyles(status?: MatchStatus | string | null) {
   if (!status) {
-      // Fallback para sesiones manuales o antiguas
       return 'bg-secondary/50 text-secondary-foreground border-transparent hover:bg-secondary/70';
   }
 
   switch (status) {
     case 'EXACT':
     case 'ALIAS_DB':
-      // Verde Solido (Confianza Total)
       return 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
     
     case 'FUZZY_AUTO':
-      // Verde "Mágico" (Detectado automáticamente con alta confianza)
       return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
 
     case 'FUZZY_LOW_CONFIDENCE':
-      // Ámbar/Naranja (Atención requerida)
       return 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 ring-1 ring-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
 
     case 'NO_MATCH':
-      // Rojo (Error crítico)
       return 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200 ring-1 ring-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
 
     default:

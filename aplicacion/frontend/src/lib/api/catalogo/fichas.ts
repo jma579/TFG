@@ -8,7 +8,7 @@ export type FichaPipelineResult = {
 
 export async function processFicha(file: File): Promise<FichaPipelineResult> {
   const form = new FormData();
-  form.append('file', file); // 'file' coincide con el argumento Python
+  form.append('file', file); 
 
   return api.post('/v0/catalogo/fichas/process', form, {
     headers: {

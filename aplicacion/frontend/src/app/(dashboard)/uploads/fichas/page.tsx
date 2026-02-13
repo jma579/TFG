@@ -1,5 +1,5 @@
-import { UploadFichasScreen } from '@/components/uploads/upload-fichas-screen';
 import { PageTitle } from '@/components/common/page-title';
+import { UploadFichasScreen } from '@/components/uploads/upload-fichas-screen';
 
 export default function UploadFichasPage() {
   return (

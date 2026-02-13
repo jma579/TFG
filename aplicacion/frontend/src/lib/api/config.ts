@@ -8,7 +8,6 @@ if (!API_BASE_URL) {
   );
 }
 
-// 1. Definimos una clase de error personalizada que guarde el status
 export class ApiError extends Error {
   status: number;
   
@@ -26,7 +25,6 @@ export const api = axios.create({
   },
 });
 
-// Interceptor de Respuesta
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
@@ -49,7 +47,6 @@ api.interceptors.response.use(
       errorMessage = detail[0].msg;
     }
 
-    // 2. Lanzamos nuestro ApiError con el mensaje Y el status
     return Promise.reject(new ApiError(errorMessage, status));
   }
 );

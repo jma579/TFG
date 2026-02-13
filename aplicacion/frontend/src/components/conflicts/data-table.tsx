@@ -1,48 +1,46 @@
 'use client';
 
-import * as React from 'react';
+import { CheckIcon, Cross2Icon,PlusCircledIcon } from '@radix-ui/react-icons';
 import {
   Column,
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  getExpandedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from '@tanstack/react-table';
+import { 
+  Bookmark,
+  BookOpen, 
+  Building2, 
+  CalendarDays, 
+  Clock, 
+  LucideIcon, 
+  Users} from 'lucide-react';
+import * as React from 'react';
 
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { 
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator 
 } from '@/components/ui/command';
-import { CheckIcon, PlusCircledIcon, Cross2Icon } from '@radix-ui/react-icons';
-import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
 import { ConflictoOut, SesionResumen } from '@/lib/api/conflictos';
-import { 
-  Clock, 
-  Users, 
-  Building2, 
-  BookOpen, 
-  CalendarDays, 
-  Bookmark,
-  LucideIcon 
-} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// --- COMPONENTES VISUALES ---
 
 function MetadataBadge({ icon: Icon, text }: { icon: LucideIcon, text?: string }) {
   if (!text) return null;
@@ -109,13 +107,10 @@ function ExpandedConflictDetails({ conflicto }: { conflicto: ConflictoOut }) {
     <div className="p-4 bg-slate-50/50 border-t border-b border-slate-100 animate-in slide-in-from-top-2 duration-200">
       
       {!s2 ? (
-        // CASO 1: Conflicto de una sola sesión
         <div className="max-w-2xl mx-auto">
            <SessionCard data={s1} />
         </div>
       ) : (
-        // CASO 2: Conflicto entre dos sesiones
-        // Se muestran en grid simple, SIN elementos intermedios
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <div className="flex flex-col gap-2">
@@ -131,7 +126,6 @@ function ExpandedConflictDetails({ conflicto }: { conflicto: ConflictoOut }) {
   );
 }
 
-// --- FILTRO FACETADO ---
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>; 
@@ -209,7 +203,6 @@ function DataTableFacetedFilter<TData, TValue>({ column, title, options }: DataT
   );
 }
 
-// --- TABLA PRINCIPAL ---
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];

@@ -1,41 +1,42 @@
 'use client';
 
-import * as React from 'react';
 import { 
+  AlertCircle, 
+  CheckCircle2, 
+  Clock, 
   Eye, 
+  FileText,
+  Loader2, 
+  MoreVertical,
   Pencil, 
   Trash2, 
-  CheckCircle2, 
-  AlertCircle, 
-  XCircle, 
-  Clock, 
-  Loader2, 
-  FileText,
-  MoreVertical
-} from 'lucide-react';
+  XCircle} from 'lucide-react';
+import * as React from 'react';
+
+import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+
 import { UploadItem } from './types';
-import { SubjectDetailView } from '@/components/subjects/subject-detail-view';
 
 type Props = {
   items: UploadItem[];

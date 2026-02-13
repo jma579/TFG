@@ -1,7 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import { Loader2 } from 'lucide-react';
+import * as React from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,10 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createAula, updateAula, type AulaOut } from '@/lib/api/recursos/aulas';
 import { useToast } from '@/hooks/use-toast';
-// IMPORTANTE: Importamos ApiError
 import { ApiError } from '@/lib/api/config';
+import { type AulaOut,createAula, updateAula } from '@/lib/api/recursos/aulas';
 
 const TIPOS_AULA = [
   { value: 'teorica', label: 'Teórica' },
@@ -48,7 +48,6 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  // Estado para controlar errores específicos de campos
   const [codeError, setCodeError] = React.useState<string | null>(null);
 
   const [formData, setFormData] = React.useState({
@@ -56,11 +55,11 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
     codigo: '',
     tipo: 'teorica',
     capacidad: 40,
+    activo: true,
   });
 
   React.useEffect(() => {
     if (open) {
-      // Limpiamos errores al abrir el diálogo
       setCodeError(null); 
       
       if (initialData) {
@@ -69,6 +68,7 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
           codigo: initialData.codigo,
           tipo: initialData.tipo,
           capacidad: initialData.capacidad ?? 0,
+          activo: initialData.activo ?? true,
         });
       } else {
         setFormData({
@@ -76,6 +76,7 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
           codigo: '',
           tipo: 'teorica',
           capacidad: 40,
+          activo: true,
         });
       }
     }
@@ -84,7 +85,7 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setCodeError(null); // Limpiar errores previos al reintentar
+    setCodeError(null); 
 
     try {
       let result: AulaOut;
@@ -100,7 +101,6 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
       onSuccess?.(result);
       onOpenChange(false);
     } catch (error: unknown) {
-      // LÓGICA DE DETECCIÓN DE CONFLICTO (409)
       if (error instanceof ApiError && error.status === 409) {
         const msg = error.message.toLowerCase();
         if (msg.includes('código') || msg.includes('codigo') || msg.includes('code')) {
@@ -108,8 +108,6 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
            return;
         }
       }
-
-      // Fallback: Error genérico en Toast
       toast({
         variant: 'destructive',
         title: 'Error al guardar',
@@ -147,8 +145,7 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
             />
           </div>
 
-          {/* CAMPO CÓDIGO CON GESTIÓN DE ERROR */}
-          <div className="grid grid-cols-4 items-start gap-4"> {/* Cambiado items-center a items-start para alinear con el error */}
+          <div className="grid grid-cols-4 items-start gap-4"> 
             <Label htmlFor="codigo" className="text-right mt-3">
               Código
             </Label>
@@ -158,13 +155,12 @@ export function RoomFormDialog({ open, onOpenChange, initialData, onSuccess }: P
                 value={formData.codigo}
                 onChange={(e) => {
                   setFormData({ ...formData, codigo: e.target.value });
-                  if (codeError) setCodeError(null); // Limpiar error al escribir
+                  if (codeError) setCodeError(null); 
                 }}
                 className={codeError ? "border-red-500 focus-visible:ring-red-500" : ""}
                 placeholder="Ej. A1.1"
                 required
               />
-              {/* Mensaje de error debajo del input */}
               {codeError && (
                 <p className="text-sm text-red-500 mt-1 font-medium">
                   {codeError}
