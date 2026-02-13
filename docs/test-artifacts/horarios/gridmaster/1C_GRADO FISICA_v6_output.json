@@ -1,0 +1,742 @@
+{
+    "titulo": "GRADO EN FÍSICA PRIMER CUATRIMESTRE",
+    "tablas": [
+        {
+            "curso": "PRIMER",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "11:30",
+                "12:00",
+                "12:30",
+                "13:30",
+                "13:30",
+                "14:00",
+                "14:30",
+                "15:30",
+                "16:00",
+                "17:00",
+                "18:00",
+                "19:00",
+                "19:00"
+            ],
+            "celdas": [
+                [
+                    null,
+                    "MARTES",
+                    "MIÉRCOLES",
+                    null,
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    "Álgebra Lineal",
+                    "Cálculo Diferencial",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "AULA 4",
+                    "AULA 4",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Cálculo",
+                    "Diferencial AULA 4",
+                    "Álgebra Lineal",
+                    null,
+                    "Física Básica I Grupo 4 LAB",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "AULA 4",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Básica I AULA 4",
+                    null,
+                    null,
+                    "Física Básica",
+                    "Física Básica II AULA 4"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "AULA",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "Física Básica I AULA 4",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Física Básica II",
+                    null,
+                    null,
+                    "OD",
+                    "ODS"
+                ],
+                [
+                    "Física Básica I Grupo 3",
+                    "LAB",
+                    null,
+                    null,
+                    "AUL",
+                    "AULA 7"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Física Básica I Grupo 5",
+                    "Física Básica II",
+                    "Física Básica I Grupo 2",
+                    "Física Básica II",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "LAB",
+                    null,
+                    "Grupo 4 LAB",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "simulaciónsedaráaconocera",
+                    "principiodecurso.",
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:00",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "SEGUNDO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Mecánica Clásica y relatividad",
+                    "Electromagnetismo I AULA 4",
+                    "Mecánica Clásica y relatividad",
+                    "Electromagnetismo I AULA 4",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Herramientas",
+                    "AULA 4",
+                    "Electromagnetismo I AULA 4",
+                    "AULA 4",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Herramientas",
+                    null,
+                    "Termodinámica",
+                    null
+                ],
+                [
+                    "Termodinámica AULA 4",
+                    "Computacionales",
+                    "Termodinámica AULA 4",
+                    "AULA 4",
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    null,
+                    "MARTES",
+                    null,
+                    null,
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    "Métodos Numéricos",
+                    null,
+                    null,
+                    null,
+                    "Física Estadística"
+                ],
+                [
+                    null,
+                    "AULA 7",
+                    "Métodos AULA",
+                    "Numéricos 7",
+                    "Métodos Numéricos AULA 7",
+                    "AULA 2"
+                ],
+                [
+                    "Estadística 2",
+                    "Física Atómica y Molecular AULA 2",
+                    null,
+                    null,
+                    "Física Atómica y Molecular TE AULA 2",
+                    "Estructura de Moléculas y Sólidos AULA 2"
+                ],
+                [
+                    "de y Sólidos 2",
+                    "Estructura de Moléculas y Sólidos AULA 2",
+                    "Física Atómica AULA",
+                    "y Molecular 2",
+                    "Estructura de Moléculas y Sólidos AULA 2",
+                    "Física Atómica y Molecular AULA 2"
+                ],
+                [
+                    "y 2",
+                    "Electromagnetismo y Óptica Aula 2",
+                    "Electromagnetismo Aula",
+                    "y Óptica 2",
+                    "Física Estadística AULA 2",
+                    "Electromagnetismo y Óptica Aula 2"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "Laboratorio de Física II",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Laboratori o de física II PL1 (*)",
+                    null,
+                    "AULA 7",
+                    "Laboratorio de física II PL3 (*)",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "EN FÍSICA"
+                ],
+                [
+                    null,
+                    "MARTES",
+                    null,
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Advanced",
+                    "Experimental PL 1 AULA",
+                    "Techniques 6",
+                    "Fisica de materiales PL1",
+                    "Advanced Computatio",
+                    null,
+                    null
+                ],
+                [
+                    "Fisica de",
+                    null,
+                    null,
+                    null,
+                    null,
+                    "PL1 LSC 2",
+                    null,
+                    "Fisica de materiales PL2"
+                ],
+                [
+                    "AULA 5",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "General 8",
+                    null,
+                    "Mecánica AULA",
+                    "cuántica 8",
+                    null,
+                    null,
+                    "Mecánica AULA",
+                    "Mecánica AULA"
+                ],
+                [
+                    "cuántica 8",
+                    "Física",
+                    "de partículas AULA",
+                    "elementales 8",
+                    null,
+                    "Astrofísica AULA 8",
+                    "Física de partículas AULA",
+                    "Física de elementales AULA"
+                ],
+                [
+                    "Física de partículas",
+                    null,
+                    "Fotónica AULA",
+                    "8",
+                    null,
+                    null,
+                    "Relatividad AULA",
+                    "Fotónica AULA"
+                ],
+                [
+                    "s Grupo 2 (*) Aula 9",
+                    null,
+                    "Relatividad AULA",
+                    "General",
+                    "Advanced",
+                    "Computation",
+                    "Fotónica",
+                    "Relatividad AULA"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "LSC",
+                    "2",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "F. tierra",
+                    null,
+                    "Radiofísica AULA",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "F. AULA",
+                    "tierra 12",
+                    null,
+                    "F. tierra AULA 12"
+                ],
+                [
+                    "Química AULA 12",
+                    null,
+                    null,
+                    "Advanced Experimental Techniques PL 1",
+                    "Experimentación"
+                ],
+                [
+                    "Advanced",
+                    "AULA",
+                    "12/ ATC",
+                    null,
+                    "AULA 12/"
+                ],
+                [
+                    "AULA 8",
+                    null,
+                    "Fuentes de AULA",
+                    "energía",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "Prácticas de Grupo",
+                    "Radiofísica (*) 2",
+                    "Prácticas de Radiofísica (*) Grupo 1"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Advanced Computation PL"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    "LSC 2"
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 0.8197195529937744,
+        "page_count": 5,
+        "file_size_mb": 0.12938213348388672,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 5
+    }
+}

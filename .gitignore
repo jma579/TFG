@@ -1,36 +1,52 @@
-TFG.code-workspace
-.idea
-
-# Variables de entorno
+# --- Configuración y Secretos ---
 .env
+.env*.local
 
-# Python
+# --- IDE y Editores (JetBrains) ---
+.idea
+.idea/
+*.iml
+.vscode/
+
+# --- Backend: Python & FastAPI ---
+# Entornos virtuales (nombre común, ajusta si tu venv tiene otro nombre)
+venv/
+.venv/
+env/
+
+# Bytecode compilado
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
-# Base de datos
-*.db
-*.sqlite
+# Caché de Testing (Detectado en múltiples niveles)
+.pytest_cache/
+aplicacion/.pytest_cache/
+aplicacion/backend/.pytest_cache/
+
+# --- Frontend: Next.js ---
+# Dependencias
+aplicacion/frontend/node_modules/
+node_modules/
+
+# Builds de producción
+aplicacion/frontend/.next/
+.next/
+out/
+build/
+
+# Archivos de depuración de npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Lógica de Negocio y Datos Temporales ---
+# Artefactos generados durante las pruebas (Detectado en docs/)
+docs/test-artifacts/
+
+# Bases de datos locales (SQLite) si las usas en desarrollo
 *.sqlite3
+*.db
 
-# Logs
-*.log
-
-# Archivos subidos
-uploads/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
+# Archivos temporales del sistema
 .DS_Store
 Thumbs.db

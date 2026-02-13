@@ -6,10 +6,15 @@ para garantizar consistencia y validación de datos.
 """
 
 from enum import Enum
+from datetime import time
 
-# ============================
+
+# Horario Lectivo del Centro
+HORA_APERTURA_CENTRO = time(8, 0)
+HORA_CIERRE_CENTRO = time(21, 0)
+
+
 # Catálogo Académico
-# ============================
 
 class TipoPrograma(str, Enum):
     """Tipos de programas académicos."""
@@ -51,9 +56,7 @@ class Idioma(str, Enum):
     GALLEGO = "gallego"
 
 
-# ============================
 # Recursos e Infraestructura
-# ============================
 
 class TipoAula(str, Enum):
     """Tipos de aulas disponibles."""
@@ -68,9 +71,7 @@ class TipoAula(str, Enum):
     VIRTUAL = "virtual"
 
 
-# ============================
 # Docencia y Planificación
-# ============================
 
 class ModalidadSesion(str, Enum):
     """Modalidades de las sesiones de clase."""
@@ -95,7 +96,7 @@ class TipoRecurrencia(str, Enum):
     SEMANAL = "semanal"
     QUINCENAL = "quincenal"
     MENSUAL = "mensual"
-    PUNTUAL = "puntual"  # Sesión única en fecha específica
+    PUNTUAL = "puntual"
 
 
 class DiaSemana(str, Enum):
@@ -109,108 +110,78 @@ class DiaSemana(str, Enum):
     DOMINGO = "domingo"
 
 
-# ============================
-# Restricciones
-# ============================
+class TipoAsignatura(str, Enum):
+    """Tipos de asignaturas."""
+    OBLIGATORIA = "obligatoria"
+    OPTATIVA = "optativa"
+    BASICA = "basica"
+
+
+# Conciliación Docente y Restricciones
+
+class TipoConciliacion(str, Enum):
+    """Tipos de conciliaciones docentes."""
+    ENTRADA_TARDIA = "entrada_tardia"
+    SALIDA_TEMPRANA = "salida_temprana"
+    MIXTA = "mixta"
+
+
+HORAS_CONCILIACION_NORMAL = 2
+HORAS_CONCILIACION_MIXTA = 1
+
 
 class TipoRestriccion(str, Enum):
-    """Tipos de restricciones de horarios."""
-    NO_DISPONIBLE = "no_disponible"
-    PREFERENCIA_NO = "preferencia_no"
-    PREFERENCIA_SI = "preferencia_si"
-    MANTENIMIENTO = "mantenimiento"
-    RESERVADO = "reservado"
-    CAPACIDAD_REDUCIDA = "capacidad_reducida"
+    """Tipos de restricciones docentes."""
+    pass
 
 
 class DurezaRestriccion(str, Enum):
     """Niveles de dureza de las restricciones."""
-    SUAVE = "suave"          # Preferencia, puede violarse si es necesario
-    DURA = "dura"            # Restricción fuerte, difícil de violar
-    CRITICA = "critica"      # No se puede violar bajo ninguna circunstancia
+    pass
 
 
-# ============================
 # Detección de Conflictos
-# ============================
 
 class TipoConflicto(str, Enum):
     """Tipos de conflictos detectados."""
-    SOLAPAMIENTO_PROFESOR = "solapamiento_profesor"
     SOLAPAMIENTO_AULA = "solapamiento_aula"
-    VIOLACION_RESTRICCION = "violacion_restriccion"
-    CAPACIDAD_INSUFICIENTE = "capacidad_insuficiente"
-    MODALIDAD_INCOMPATIBLE = "modalidad_incompatible"
-    RECURSOS_INSUFICIENTES = "recursos_insuficientes"
-    HORARIO_INVALIDO = "horario_invalido"
+    SOLAPAMIENTO_PROFESOR = "solapamiento_profesor"
+    SOLAPAMIENTO_GRUPO = "solapamiento_grupo"
+    INTERFERENCIA_CONCILIACION = "interferencia_conciliacion"
 
 
 class SeveridadConflicto(str, Enum):
     """Niveles de severidad de los conflictos."""
-    BAJA = "baja"
-    MEDIA = "media"
-    ALTA = "alta"
-    CRITICA = "critica"
+    CRITICO = "critico"
+    NO_BLOQUEANTE = "no_bloqueante"
+    LEVE = "leve"
 
 
 class EstadoConflicto(str, Enum):
-    """Estados de los conflictos en el sistema."""
-    ABIERTO = "abierto"
-    EN_REVISION = "en_revision"
-    RESUELTO = "resuelto"
-    IGNORADO = "ignorado"
-    FALSO_POSITIVO = "falso_positivo"
+    """Estados del ciclo de vida del conflicto."""
+    POR_REVISAR = "por_revisar"
+    SOLUCIONADO = "solucionado"
 
 
-# ============================
 # Utilidades y Helpers
-# ============================
 
 def get_enum_values(enum_class: type[Enum]) -> list[str]:
-    """
-    Obtiene todos los valores de un enum como lista.
-    
-    Args:
-        enum_class: Clase del enum
-        
-    Returns:
-        list[str]: Lista con todos los valores del enum
-    """
+    """Obtiene todos los valores de un enum como lista."""
     return [item.value for item in enum_class]
 
 
 def get_enum_choices(enum_class: type[Enum]) -> list[tuple[str, str]]:
-    """
-    Obtiene las opciones de un enum para formularios.
-    
-    Args:
-        enum_class: Clase del enum
-        
-    Returns:
-        list[tuple[str, str]]: Lista de tuplas (value, label) para formularios
-    """
+    """Obtiene las opciones de un enum para formularios."""
     return [(item.value, item.value.replace('_', ' ').title()) for item in enum_class]
 
 
 def validate_enum_value(enum_class: type[Enum], value: str) -> bool:
-    """
-    Valida si un valor pertenece a un enum específico.
-    
-    Args:
-        enum_class: Clase del enum
-        value: Valor a validar
-        
-    Returns:
-        bool: True si el valor es válido, False en caso contrario
-    """
+    """Valida si un valor pertenece a un enum específico."""
     return value in get_enum_values(enum_class)
 
 
-# ============================
 # Constantes de mapeo
-# ============================
 
-# Mapeo de días de semana a números (útil para ordenación y cálculos)
 DIA_SEMANA_TO_NUMBER = {
     DiaSemana.LUNES: 1,
     DiaSemana.MARTES: 2,
@@ -218,37 +189,13 @@ DIA_SEMANA_TO_NUMBER = {
     DiaSemana.JUEVES: 4,
     DiaSemana.VIERNES: 5,
     DiaSemana.SABADO: 6,
-    DiaSemana.DOMINGO: 0,  # Domingo = 0 (estándar ISO)
+    DiaSemana.DOMINGO: 0,
 }
 
-# Mapeo inverso: número a día de semana
 NUMBER_TO_DIA_SEMANA = {v: k for k, v in DIA_SEMANA_TO_NUMBER.items()}
 
-# Prioridades de severidad (para ordenación)
-SEVERIDAD_PRIORITY = {
-    SeveridadConflicto.BAJA: 1,
-    SeveridadConflicto.MEDIA: 2,
-    SeveridadConflicto.ALTA: 3,
-    SeveridadConflicto.CRITICA: 4,
-}
-
-# Colores asociados a severidades (para UI)
 SEVERIDAD_COLORS = {
-    SeveridadConflicto.BAJA: "#28a745",      # Verde
-    SeveridadConflicto.MEDIA: "#ffc107",     # Amarillo
-    SeveridadConflicto.ALTA: "#fd7e14",      # Naranja
-    SeveridadConflicto.CRITICA: "#dc3545",   # Rojo
-}
-
-# Estados que indican conflicto activo
-ESTADOS_CONFLICTO_ACTIVOS = {
-    EstadoConflicto.ABIERTO,
-    EstadoConflicto.EN_REVISION,
-}
-
-# Estados que indican conflicto cerrado
-ESTADOS_CONFLICTO_CERRADOS = {
-    EstadoConflicto.RESUELTO,
-    EstadoConflicto.IGNORADO,
-    EstadoConflicto.FALSO_POSITIVO,
+    SeveridadConflicto.CRITICO: "#dc3545",
+    SeveridadConflicto.NO_BLOQUEANTE: "#fd7e14",
+    SeveridadConflicto.LEVE: "#ffc107",
 }

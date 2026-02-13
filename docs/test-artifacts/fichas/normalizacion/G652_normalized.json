@@ -1,0 +1,33 @@
+{
+  "asignatura": {
+    "codigo_plan": "G652",
+    "nombre": "Algorítmica Y Complejidad",
+    "periodo": "segundo_cuatrimestre",
+    "ects": 6,
+    "modalidad": "presencial",
+    "idioma": "español",
+    "english_friendly": false
+  },
+  "titulaciones": [
+    {
+      "programa_nombre": "Grado En Ingeniería Informática",
+      "tipo_asignatura": "obligatoria",
+      "curso": 2
+    },
+    {
+      "programa_nombre": "Grado En Matemáticas",
+      "tipo_asignatura": "optativa",
+      "curso": 3
+    }
+  ],
+  "profesores": [
+    {
+      "nombre": "Alberto",
+      "apellidos": "Martinez Fernandez"
+    },
+    {
+      "nombre": "Camilo",
+      "apellidos": "Palazuelos Calderon"
+    }
+  ]
+}

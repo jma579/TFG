@@ -1,0 +1,1231 @@
+{
+    "titulo": "Grado en Ingeniería Informática - Segundo Cuatrimestre",
+    "horarios": [
+        {
+            "curso": "1º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Lógica 2",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estadística AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Lógica PL1",
+                    "aula": "AULA 13",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "10:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Est AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optimización 2",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Intr a los computa dores",
+                    "aula": "ATC",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL4"
+                },
+                {
+                    "asignatura": "Estadíst Optimiza ción programación 2",
+                    "aula": "AULA2",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "12:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA2"
+                },
+                {
+                    "asignatura": "Introducción a los Computadores",
+                    "aula": "AULA 2",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Métodos de progra mación",
+                    "aula": "AULA 13",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1 y PL2"
+                },
+                {
+                    "asignatura": "Intr a los computa dores",
+                    "aula": "ATC",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Métodos de Estadística",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optimización",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Métodos de programación",
+                    "aula": "AULA 2",
+                    "dia": "VIERNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "I Computadores",
+                    "aula": "AULA 2",
+                    "dia": "VIERNES",
+                    "hora_inicio": "13:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 1"
+                },
+                {
+                    "asignatura": "Introducción",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "a los",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Introducción",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "a los",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "2º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Algorítmica complejidad",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Bases de datos",
+                    "aula": "AULA 14",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Bases AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sistemas operativos",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sist Operativos",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Alg complejidad",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL 2"
+                },
+                {
+                    "asignatura": "Org Computadore s",
+                    "aula": "LATC",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Sistemas operativos",
+                    "aula": "LSC 1",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL3 y PL4"
+                },
+                {
+                    "asignatura": "Bases de datos",
+                    "aula": "AULA 14",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Org Computadores",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Org",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sistemas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Computadores",
+                    "aula": "LATC",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL2"
+                },
+                {
+                    "asignatura": "Sistemas de Informació",
+                    "aula": "AULA 9",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Org Comp",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "LSC",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                }
+            ]
+        },
+        {
+            "curso": "3º",
+            "mencion": "COMPUTADORES",
+            "sesiones": [
+                {
+                    "asignatura": "Sistemas informáticos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ingeniería",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de comp sist distribuidos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de software II 4 comp sist distribuidos 4",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "Arq e computadores LSC",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de software II",
+                    "aula": "AULA 4",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Sistemas de tiempo real",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "R comput sist",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "LTR",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1"
+                },
+                {
+                    "asignatura": "Redes de RC S Distrib",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "Ing de Softw II comp sist Distribuidos 4",
+                    "aula": "SEM INF",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Ing de Ingeniería de software",
+                    "aula": "AULA 13",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL3"
+                },
+                {
+                    "asignatura": "Distribuidos LTR",
+                    "aula": "LATC",
+                    "dia": "VIERNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL3"
+                },
+                {
+                    "asignatura": "Sistemas informático s",
+                    "aula": "AULA 4",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1 y PL4"
+                },
+                {
+                    "asignatura": "de computadores distribuidos distribuidos",
+                    "aula": "LATC",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "18:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL4"
+                },
+                {
+                    "asignatura": "Optativas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Obligatorias",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "3º",
+            "mencion": "COMPUTACIÓN",
+            "sesiones": [
+                {
+                    "asignatura": "Sistemas informáticos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ingeniería software AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Lenguajes",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "formales",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de comp sist distribuidos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de sist AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de II 4 comp distribuidos 4",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "RC S Distrib",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "A A minería de datos",
+                    "aula": "SEM INF",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de sist AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ing de Softw II comp Distribuidos 4",
+                    "aula": "SEM INF",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Ingeniería de software",
+                    "aula": "AULA 13",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL3"
+                },
+                {
+                    "asignatura": "Sistemas informáti cos",
+                    "aula": "AULA 4",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1 y PL4"
+                },
+                {
+                    "asignatura": "Optativas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "3º",
+            "mencion": "I. SOFTWARE",
+            "sesiones": [
+                {
+                    "asignatura": "Sistemas informáticos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ingeniería software AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ingeniería",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de comp sist distribuidos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de sist AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de II 4 comp distribuidos 4",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "RC S Distrib",
+                    "aula": "AULA 4",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 2"
+                },
+                {
+                    "asignatura": "Ingeniería de requisitos",
+                    "aula": "AULA 4",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Redes de sist AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Ing de Softw II comp Distribuidos 4",
+                    "aula": "SEM INF",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA1"
+                },
+                {
+                    "asignatura": "Ingeniería de software",
+                    "aula": "AULA 13",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL3"
+                },
+                {
+                    "asignatura": "Sistemas informáti cos",
+                    "aula": "AULA 4",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "14:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL1 y PL4"
+                },
+                {
+                    "asignatura": "Optativas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "4º",
+            "mencion": "COMPUTADORES",
+            "sesiones": [
+                {
+                    "asignatura": "Informática",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "industrial semanas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "A A minería de datos",
+                    "aula": "SEM INF",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electrónica",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Diseño sistemas AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión de informáticos",
+                    "aula": "L4",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "System and network secutity and assurance",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "proyectos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión de software SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "proyectos software INF de mención",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optativas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Obligatorias",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "4º",
+            "mencion": "COMPUTACIÓN",
+            "sesiones": [
+                {
+                    "asignatura": "semanas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electrónica",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Natural Language",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Natural AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Natural",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Processing",
+                    "aula": "Aula 8",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Lenguajes",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Language 8",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Lenguajes",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "System and network secutity and assurance",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión proyectos SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Language Processing 8 programación 8 proyectos software INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "software INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optativas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Obligatorias",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "4º",
+            "mencion": "I. SOFTWARE",
+            "sesiones": [
+                {
+                    "asignatura": "semanas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "A A minería de datos",
+                    "aula": "SEM INF",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "A A Servicios",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "13:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electrónica mineria datos sesiones sotware",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Servicios",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "sotware",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "System and network secutity and assurance",
+                    "aula": "AULA 14",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión proyectos SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Gestión proyectos SEM",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "INF software INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "INF software INF",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optativas",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Obligatorias",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "parser_name": "GridParserV2.1",
+        "parser_version": "2.1.0",
+        "parse_timestamp": "2025-12-08T19:09:26.123334",
+        "parse_duration": 0.004176,
+        "warnings": [],
+        "errors": []
+    }
+}

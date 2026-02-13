@@ -1,0 +1,57 @@
+{
+  "codigo_plan": "G652",
+  "nombre": "ALGORÍTMICA Y COMPLEJIDAD",
+  "titulaciones": [
+    {
+      "titulacion": "Grado en Ingeniería Informática",
+      "tipo_asignatura": "Obligatoria",
+      "curso": "2"
+    },
+    {
+      "titulacion": "Grado en Matemáticas",
+      "tipo_asignatura": "Optativa",
+      "curso": "3"
+    }
+  ],
+  "periodo": "CUATRIMESTRAL",
+  "num_periodo": 2,
+  "ects": 6,
+  "profesores": [
+    {
+      "nombre": "Alberto",
+      "apellidos": "Martinez Fernandez"
+    },
+    {
+      "nombre": "Camilo",
+      "apellidos": "Palazuelos Calderon"
+    }
+  ],
+  "modalidad": "OBLIGATORIA",
+  "idioma": "ESPAÑOL",
+  "english_friendly": false,
+  "centro": "FACULTAD DE CIENCIAS",
+  "departamento": "DPTO. MATEMATICAS, ESTADISTICA Y COMPUTACION",
+  "raw_text": "ESPACIO EUROPEO DE EDUCACIÓN SUPERIOR : PLAN DOCENTE ANUAL DEL CURSO / \nIMPRESO Nº 1: DATOS GENERALES\nDATOS DEL TITULO\nDENOMINACIÓN DEL TÍTULO Tipo Curso\nGrado en Ingeniería Informática OBLIGATORIA 2\nGrado en Matemáticas OPTATIVA 3\nDATOS DE LA ASIGNATURA\nCENTRO RESPONSABLE : 32 FACULTAD DE CIENCIAS\nCODIGO Y DENOMINACION : G652 ALGORÍTMICA Y COMPLEJIDAD\nDEPARTAMENTO RESPONSABLE : 21 DPTO. MATEMATICAS, ESTADISTICA Y COMPUTACION\nIMPARTICIÓN: Presencial Nº CRÉDITOS ECTS: 6,00SECUENCIA: Cuatrimestral Nº: 2ALUMNOS: 0\nMODALIDADES ORGANIZATIVAS Y MÉTODOS DOCENTES\nPRESENCIALES NO PRESENCIALES\nTOTALCLASES SEGUIMIENTOTOTAL TGTATU−NP EV−NP TOTAL\nTEPAPLEPLO CLTOTAL TUEVTOTAL\nHORAS PROGRAMA 30,,00 0,,00 0,,,00 5,,,,,00 0,00 0,,,00\nHORAS IMPARTIDAS 30,,00 0,,00 0,,00\nESPACIO EUROPEO DE EDUCACIÓN SUPERIOR : PLAN DOCENTE ANUAL DEL CURSO / \nIMPRESO Nº 1: DATOS GENERALES\nASIGNATURA G652 Algorítmica y Complejidad\nDATOS DEL PROFESORADO\nTIPO\nPROFESORAPELLIDOS Y NOMBRE UNIVERSIDAD RTE PA PLE PLO CLTOTAL%\nSEGU.\nSU MARTINEZ FERNANDEZ, ALBERTO Universidad de Cantabria N 0,,00 0,,00 0,,,00\nPO PALAZUELOS CALDERON, CAMILO Universidad de Cantabria S 30,,00 0,,00 0,,,00\nTOTAL 120,,00\nDESGLOSE DE LA ASIGNATURA\nTIPO PARTE / PRÁCTICA HORAS Nº GRUPOS Nº PROFESORES X GRUPO HORAS IMPARTIDAS\nO ,,00\nT T,,00\nA A,,00\nTOTALES: 60,,00\nFecha de acuerdo del Consejo de Departamento: 14−05− Fecha de acuerdo de la Junta de Centro:\nC\nVº Bº El/La Decano/a − Director/a del centro\nFdo:",
+  "parsing_metadata": {
+    "parser_name": "FichaParser",
+    "parser_version": null,
+    "parse_timestamp": "2025-10-23T18:22:04.516154Z",
+    "parse_duration": 0.004651784896850586,
+    "warnings": [],
+    "errors": []
+  },
+  "extraction_metadata": {
+    "quality": "excellent",
+    "confidence": 0.9333711718434724,
+    "status": "completed",
+    "processing_time_seconds": 0.03623008728027344,
+    "page_count": 2,
+    "file_size_mb": 0.045500755310058594,
+    "has_embedded_text": true,
+    "char_count": 1459,
+    "word_count": 214,
+    "errors": [],
+    "warnings": [],
+    "pages_with_text": 2
+  }
+}

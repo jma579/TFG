@@ -1,0 +1,33 @@
+{
+  "subject": {
+    "codigo_plan": "G49",
+    "nombre": "MECÁNICA CLÁSICA Y RELATIVIDAD",
+    "titulaciones": [
+      {
+        "titulacion": "Grado en Física",
+        "tipo_asignatura": "Obligatoria",
+        "curso": "2"
+      }
+    ],
+    "periodo": "CUATRIMESTRAL",
+    "num_periodo": 1,
+    "ects": 6,
+    "modalidad": "OBLIGATORIA",
+    "idioma": "ESPAÑOL",
+    "english_friendly": true
+  },
+  "teaching_staff": [
+    {
+      "nombre": "Miguel",
+      "apellidos": "Ruiz Granda"
+    },
+    {
+      "nombre": "Angel Alberto",
+      "apellidos": "Valle Gutierrez"
+    }
+  ],
+  "_meta": {
+    "source": "ficha",
+    "chars": 1904
+  }
+}

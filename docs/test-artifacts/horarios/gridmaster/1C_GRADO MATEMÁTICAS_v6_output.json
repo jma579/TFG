@@ -1,0 +1,797 @@
+{
+    "titulo": "GRADO EN MATEMÁTICAS PRIMER CUATRIMESTRE",
+    "tablas": [
+        {
+            "curso": "PRIMER",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:00",
+                "12:30",
+                "13:30",
+                "14:00",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "PRIMER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    "Álgebra Lineal AULA 1",
+                    "Introducción al lenguaje matemático AULA 1",
+                    "Álgebra Lineal AULA 1",
+                    "Cálculo Diferencial",
+                    "Álgebra Lineal AULA 1"
+                ],
+                [
+                    "Introducción al lenguaje matemático AULA 1",
+                    "Álgebra Lineal AULA 1",
+                    "Introducción al lenguaje matemático AULA 1",
+                    "AULA 1",
+                    "Introducción al lenguaje matemático AULA 1"
+                ],
+                [
+                    "Cálculo Diferencial Grupo 1 AULA 1",
+                    "Física Básica Ex",
+                    "Cálculo Diferencial AULA 1",
+                    "Física Básica Ex AULA 1",
+                    "Física Básica Ex AULA 1"
+                ],
+                [
+                    null,
+                    "Laboratorio (*)",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Física Básica Ex",
+                    null,
+                    "Física Básica Ex",
+                    null,
+                    null
+                ],
+                [
+                    "Laboratorio (*)",
+                    "Física Básica Ex",
+                    "Laboratorio (*)",
+                    "ODS AULA 1",
+                    "ODS AULA 1"
+                ],
+                [
+                    null,
+                    "Laboratorio (*)",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 0
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "SEGUNDO CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Cálculo de Probabilidades",
+                    "Ampl. Cálculo Dif. Grupo 1 AULA 1",
+                    "Ampl. Cálculo Dif. Grupo 2 AULA 8",
+                    "Cálculo de Probabilidades",
+                    "Ampl. Cálculo Dif. Grupo 1 AULA 1"
+                ],
+                [
+                    "AULA 1",
+                    null,
+                    null,
+                    "AULA 1",
+                    null
+                ],
+                [
+                    "Ecuaciones Dif.",
+                    "AULA",
+                    "1",
+                    "Ecuaciones Dif.",
+                    "AULA"
+                ],
+                [
+                    "AULA 1",
+                    "Álgebra AULA",
+                    "Lineal II 1",
+                    "AULA 1",
+                    null
+                ],
+                [
+                    null,
+                    "Álgebra AULA",
+                    "Lineal II 1",
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 1
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "TERCER CURSO",
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "LUNES",
+                    "MARTES",
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    "Cálculo Numérico II",
+                    null,
+                    "Cálculo Numérico II"
+                ],
+                [
+                    null,
+                    null,
+                    "PL 1 LSC 1",
+                    "Cálculo Numérico II",
+                    "PL 2 LSC 1"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    "PL 3 LSC 1",
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "Cálculo de",
+                    "Teoría de Galois",
+                    "Espacios de Hilbert",
+                    "Teoría de Galois",
+                    "Cálculo de"
+                ],
+                [
+                    "Probabilidades AULA 1",
+                    "AULA 14",
+                    "AULA 14",
+                    "AULA 14",
+                    "Probabilidades AULA 14"
+                ],
+                [
+                    "Espacios de Hilbert",
+                    "Cálculo Numérico II AULA 14",
+                    null,
+                    "Cálculo Numérico II AULA 14",
+                    "Teoría global de"
+                ],
+                [
+                    "AULA 14",
+                    "Teoría global de superficies AULA 14",
+                    null,
+                    "Teoría global de superficies AULA 14",
+                    "superficies AULA 14"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 2
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    "MENCIÓN EN MATEMÁTICA",
+                    "PURA Y APLICADA"
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    "Ampliación de Análisis",
+                    "Teoría",
+                    "Cualitativa de",
+                    "V.Diferenciables",
+                    "Teoría Cualitativa de",
+                    "V.Diferenciables"
+                ],
+                [
+                    "AULA 7",
+                    "AULA",
+                    "9",
+                    "AULA 9",
+                    "EDO AULA 9",
+                    "AULA 9"
+                ],
+                [
+                    "Top.Algebraica",
+                    "Ampliación",
+                    "de Análisis",
+                    "Top.Algebraica",
+                    "Adv. Statistics",
+                    "Adv. Statistics"
+                ],
+                [
+                    "AULA 9",
+                    "AULA",
+                    "7",
+                    "AULA 9",
+                    "Aula 3",
+                    "Aula 3"
+                ],
+                [
+                    "Análisis Funcional",
+                    "Análisis AULA",
+                    "Funcional 9",
+                    "Análisis Funcional AULA 9",
+                    "Advanced Probability",
+                    "Advanced Probability"
+                ],
+                [
+                    "AULA 9",
+                    "Economía",
+                    "y ADE",
+                    "Economía y ADE",
+                    "AULA 3",
+                    "AULA 3"
+                ],
+                [
+                    null,
+                    "AULA",
+                    "9",
+                    "AULA 9",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 3
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:30",
+                "16:30",
+                "17:30",
+                "18:30"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    null,
+                    "MECIÓN EN INFORMÁTICA"
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Introducción a los sistemas inteligentes"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "PL3 AULA 13"
+                ],
+                [
+                    null,
+                    "Introducción sistemas AULA",
+                    "a los inteligentes 14",
+                    "Introducción a los sistemas inteligentes AULA 14",
+                    null,
+                    "Introducción a los sistemas inteligentes"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "PL2 AULA 13"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Introducción a los sistemas inteligentes"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "PL1 AULA 13"
+                ],
+                [
+                    "Modelos de cálculo",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "AULA 13",
+                    "Métodos",
+                    "de",
+                    null,
+                    "Estructuras de Datos AULA 2",
+                    "Métodos de"
+                ],
+                [
+                    null,
+                    "Aula",
+                    "9",
+                    null,
+                    "Estructuras de Datos TE /PA1 AULA 2",
+                    "Programación Aula 9"
+                ],
+                [
+                    null,
+                    "Estructura",
+                    "de Datos",
+                    "Modelos de cálculo AULA 13",
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "AULA",
+                    "2",
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 4
+        },
+        {
+            "curso": "1º",
+            "day_columns": [
+                "LUNES",
+                "MARTES",
+                "MIÉRCOLES",
+                "MIÉRCOLES",
+                "JUEVES",
+                "VIERNES"
+            ],
+            "time_rows": [
+                null,
+                null,
+                "08:30",
+                "09:30",
+                "10:30",
+                "11:30",
+                "12:30",
+                "13:30",
+                "14:30",
+                "15:00",
+                "16:00",
+                "17:00",
+                "18:00"
+            ],
+            "celdas": [
+                [
+                    "CUARTO CURSO",
+                    null,
+                    null,
+                    null,
+                    "MENCIÓN EN",
+                    "ECONOMIA Y FINANZAS"
+                ],
+                [
+                    "LUNES",
+                    null,
+                    null,
+                    "MIÉRCOLES",
+                    "JUEVES",
+                    "VIERNES"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    "Análisis y de",
+                    "evaluación Inversiones",
+                    "Análisis y evaluación de Inversiones",
+                    "Herramientas para la decisión en operaciones",
+                    "Herramientas para la decisión en operaciones"
+                ],
+                [
+                    null,
+                    "3º D A7 (F. C.",
+                    "GADE Económicas y",
+                    "3º D GADE A7 (F. C. Económicas y Emp)",
+                    "3º D GADE A7 (F. C. Económicas y Emp)",
+                    "3º D GADE A7 (F. C. Económicas y Emp)"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            ],
+            "mencion": null,
+            "pagina": 5
+        }
+    ],
+    "metadata": {
+        "quality": "good",
+        "confidence": 0.98,
+        "status": "completed",
+        "processing_time_seconds": 0.7108876705169678,
+        "page_count": 6,
+        "file_size_mb": 0.12401199340820312,
+        "has_embedded_text": true,
+        "char_count": 0,
+        "word_count": 0,
+        "errors": [],
+        "warnings": [],
+        "pages_with_text": 6
+    }
+}

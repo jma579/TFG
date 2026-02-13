@@ -1,0 +1,628 @@
+{
+    "titulo": "Grado en Física - Segundo Cuatrimestre",
+    "horarios": [
+        {
+            "curso": "1º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Cálculo Integral",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "C D",
+                    "aula": "AULA 14",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Program AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA 5"
+                },
+                {
+                    "asignatura": "Física Básica AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "III 14",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física Básica IV",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Programación AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PA4"
+                }
+            ]
+        },
+        {
+            "curso": "2º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Electromagnetismo II",
+                    "aula": "AULA 2",
+                    "dia": "LUNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electromagnetismo II",
+                    "aula": "AULA 2",
+                    "dia": "MARTES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Fundamentos física cuántica",
+                    "aula": "AULA 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Métodos numéricos",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Métodos numéricos",
+                    "aula": "AULA 7",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Métodos numéricos",
+                    "aula": "AULA 7",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Fundamentos física cuántica",
+                    "aula": "AULA 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Fundamentos física cuántica",
+                    "aula": "AULA 1",
+                    "dia": "VIERNES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Met Mat II Ecuaciones der",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Electromagnetismo II",
+                    "aula": "AULA 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Met Mat II Ecuaciones der Parciales",
+                    "aula": "AULA 1",
+                    "dia": "JUEVES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Parciales",
+                    "aula": "AULA 1",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "3º",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Experimental Optics",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 2"
+                },
+                {
+                    "asignatura": "física IV",
+                    "aula": "AULA 12",
+                    "dia": "VIERNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "11:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupos 3 y 4"
+                },
+                {
+                    "asignatura": "Física del Estado Sólido",
+                    "aula": "AULA 1",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física del AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Estado 1",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "12:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Astronomía",
+                    "aula": "AULA 13",
+                    "dia": "LUNES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Astronom",
+                    "aula": "AULA 12",
+                    "dia": "MARTES",
+                    "hora_inicio": "11:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física Nuclear de Partículas",
+                    "aula": "AULA 14",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Física AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Nuclear de 14",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Astronomy PO AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "13:30",
+                    "hora_fin": "14:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Experimental Grupo",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Optics 1",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "4º",
+            "mencion": "FÍSICA FUNDAMENTAL Y APLICADA",
+            "sesiones": [
+                {
+                    "asignatura": "Panorama",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Physics of Materials",
+                    "aula": "Aula 5",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Experimental Techniques Th",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Advanced Experimental Techniques Th",
+                    "aula": "Lab AULA 5",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Physics 5",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Physics on weeks without lab",
+                    "aula": "AULA 5",
+                    "dia": "VIERNES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Phys 5 6 weeks en Física",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle on weeks AULA asignaturas de",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Physics with lab 5 mención",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Physics son",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Fundamental",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        },
+        {
+            "curso": "N.A.",
+            "mencion": null,
+            "sesiones": [
+                {
+                    "asignatura": "Astronomy",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "08:30",
+                    "hora_fin": "09:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de física III",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 1"
+                },
+                {
+                    "asignatura": "Experimental Optics",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 2"
+                },
+                {
+                    "asignatura": "Lab",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "de física III",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "09:30",
+                    "hora_fin": "10:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 2"
+                },
+                {
+                    "asignatura": "Experimental Optics",
+                    "aula": "AULA 12",
+                    "dia": "VIERNES",
+                    "hora_inicio": "10:30",
+                    "hora_fin": "11:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "AULA",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "12:30",
+                    "hora_fin": "13:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Panorama",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "15:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Materials",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Proyectos",
+                    "aula": "AULA 13",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "14:30",
+                    "hora_fin": "16:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "of Materials",
+                    "aula": "POR DETERMINAR",
+                    "dia": "VIERNES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "16:30",
+                    "tipo": "PRÁCTICA",
+                    "grupo": "PL2"
+                },
+                {
+                    "asignatura": "Experi mental Optics",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MARTES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "TEORÍA",
+                    "grupo": "Grupo 1"
+                },
+                {
+                    "asignatura": "Experimental Techniques Th",
+                    "aula": "AULA 5",
+                    "dia": "MARTES",
+                    "hora_inicio": "15:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Physics",
+                    "aula": "POR DETERMINAR",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "16:30",
+                    "hora_fin": "17:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Experimental 5",
+                    "aula": "POR DETERMINAR",
+                    "dia": "LUNES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Physics",
+                    "aula": "AULA 5",
+                    "dia": "MARTES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "on weeks without lab",
+                    "aula": "AULA 5",
+                    "dia": "MIÉRCOLES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "18:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Phys 5 6 weeks",
+                    "aula": "POR DETERMINAR",
+                    "dia": "JUEVES",
+                    "hora_inicio": "17:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                },
+                {
+                    "asignatura": "Particle Physics on weeks with lab",
+                    "aula": "AULA 5",
+                    "dia": "MARTES",
+                    "hora_inicio": "18:30",
+                    "hora_fin": "19:30",
+                    "tipo": "CLASE",
+                    "grupo": null
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "parser_name": "GridParserV2.1",
+        "parser_version": "2.1.0",
+        "parse_timestamp": "2025-12-08T19:09:23.655679",
+        "parse_duration": 0.002005,
+        "warnings": [],
+        "errors": []
+    }
+}

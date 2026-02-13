@@ -1,71 +1,66 @@
-from __future__ import annotations
+"""
+Parser especializado para fichas académicas universitarias.
+
+Extrae y valida datos de fichas académicas a partir de texto plano.
+"""
 
 from typing import Any, Dict, List, Optional, Tuple
 import re
 from datetime import datetime
 import time
 
-from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata
+from core.extraccion.common.entities import ExtractionMetadata, ParserError, ParsingMetadata, Warning
 
 from core.extraccion.fichas.constants import (
     BASE_PARSER_CONFIG, PATTERN_CODIGO_NOMBRE, PATTERN_TITULACION, PATTERN_ECTS, PATTERN_PERIODO,
     PATTERN_MODALIDAD, PATTERN_IDIOMA, PATTERN_ENGLISH_FRIENDLY, PATTERN_PROFESORADO,
-    PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA
+    PATTERN_NUM_CUATRIMESTRE, PROFESOR_SUFIXES, MAP_MODALIDAD, MAP_PERIODO, MAP_IDIOMA,
+    PROFESOR_INSTITUTIONS, PROFESOR_PREFIXES
 )
 from core.extraccion.fichas.entities import SubjectSheet, Teacher, Titulacion
 
-class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura de Warning
+class FichaParser:  
     """
     Parser especializado para fichas académicas universitarias.
     
-    Esta clase se encarga de extraer, validar y normalizar los datos relevantes de una ficha académica
-    (asignatura) a partir de texto plano, alineando la salida con los modelos de base de datos definidos.
-    
-    Principales responsabilidades:
-    - Preprocesar el texto fuente para facilitar la extracción.
-    - Extraer campos clave como código, nombre, créditos ECTS, periodo, modalidad, idioma y profesorado.
-    - Validar la integridad y formato de los datos extraídos.
-    - Normalizar la salida para su integración en sistemas de persistencia o análisis.
-    
-    Uso típico:
-        parser = FichaParser()
-        ficha = parser.parse_text(texto_extraido)
-        dict_normalizado = parser.to_normalized(ficha)
+    Extrae, valida y normaliza datos de fichas académicas desde texto plano,
+    alineando la salida con los modelos de base de datos.
     """
 
     def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """
-        Inicializa el parser de fichas académicas con la configuración por defecto o personalizada.
+        Inicializar parser con configuración personalizada.
+        
         Args:
-            config: Diccionario opcional con parámetros de configuración específicos.
+            config: Parámetros de configuración opcionales
         """
         cfg = BASE_PARSER_CONFIG.copy()
         if config:
             cfg.update(config)
         self.config = cfg
-        self.name = self.__class__.__name__ # TODO: Si ya se asigna en la clase padre revisar
+        self.name = self.__class__.__name__
 
 
     def parse_text(self, text: str, extraction_metadata: Optional[ExtractionMetadata] = None) -> SubjectSheet:
         """
-        Punto de entrada principal del parser. Extrae y valida todos los campos relevantes de la ficha académica.
+        Extraer y validar todos los campos de la ficha académica.
+        
         Args:
-            text: Texto plano extraído de la ficha.
-            metadata: Metadatos opcionales de la extracción.
+            text: Texto plano extraído de la ficha
+            extraction_metadata: Metadatos opcionales de extracción
+            
         Returns:
-            Objeto SubjectSheet con los datos estructurados y validados.
+            SubjectSheet con datos estructurados y validados
+            
         Raises:
-            ParserError: Si la validación de la ficha falla.
+            ParserError: Si la validación falla
         """
-        # Valores iniciales del parsing
         start_time = time.time()
-        warnings: List[str] = []
+        warnings: List[Warning] = []
         errors: List[str] = []
 
-        # Preprocesamiento del texto
         text = self.preprocess_text(text)
 
-        # Extracción de campos principales usando los extractores
         try:
             codigo, nombre = self._extract_codigo_nombre(text)
             if not codigo:
@@ -75,75 +70,100 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         except Exception as e:
             codigo, nombre = "", ""
             errors.append(f"Error extrayendo código/nombre: {e}")
+            
         try:
             titulaciones = self._extract_titulaciones(text)
             if not titulaciones:
-                warnings.append("No se encontraron titulaciones asociadas.")
+                warnings.append(Warning(
+                    message="No se encontraron titulaciones asociadas.",
+                    severity="moderate"
+                ))
         except Exception as e:
             titulaciones = []
             errors.append(f"Error extrayendo titulaciones: {e}")
+            
         try:
             ects = self._extract_ects(text)
         except Exception as e:
             ects = 0
             errors.append(f"Error extrayendo ECTS: {e}")
+            
         try:
             periodo = self._extract_periodo(text)
             if not periodo or periodo == "N.A.":
-                warnings.append("No se pudo extraer el periodo de impartición.")
+                warnings.append(Warning(
+                    message="No se pudo extraer el periodo de impartición.",
+                    severity="moderate"
+                ))
         except Exception as e:
             periodo = "N.A."
             errors.append(f"Error extrayendo periodo: {e}")
+            
         try:
             num_periodo = self._extract_num_periodo(text)
         except Exception as e:
             num_periodo = None
             errors.append(f"Error extrayendo número de periodo: {e}")
+            
         try:
             modalidad = self._extract_modalidad(text)
             if not modalidad or modalidad == "N.A.":
-                warnings.append("No se pudo extraer la modalidad de impartición.")
+                warnings.append(Warning(
+                    message="No se pudo extraer la modalidad de impartición.",
+                    severity="minor"
+                ))
         except Exception as e:
             modalidad = "N.A."
             errors.append(f"Error extrayendo modalidad: {e}")
+            
         try:
             idioma, english_friendly = self._extract_idioma_ef(text)
         except Exception as e:
             idioma, english_friendly = "N.A.", False
             errors.append(f"Error extrayendo idioma/english friendly: {e}")
+            
         try:
             profesores = self._extract_profesorado(text)
             if not profesores:
-                warnings.append("No se extrajo ningún profesor.")
+                warnings.append(Warning(
+                    message="No se extrajo ningún profesor.",
+                    severity="moderate"
+                ))
         except Exception as e:
             profesores = []
             errors.append(f"Error extrayendo profesorado: {e}")
+            
         try:
             centro = self._extract_centro(text)
             if not centro:
-                warnings.append("No se pudo extraer el centro responsable.")
+                warnings.append(Warning(
+                    message="No se pudo extraer el centro responsable.",
+                    severity="minor"
+                ))
         except Exception as e:
             centro = None
             errors.append(f"Error extrayendo centro: {e}")
+            
         try:
             departamento = self._extract_departamento(text)
             if not departamento:
-                warnings.append("No se pudo extraer el departamento responsable.")
+                warnings.append(Warning(
+                    message="No se pudo extraer el departamento responsable.",
+                    severity="minor"
+                ))
         except Exception as e:
             departamento = None
             errors.append(f"Error extrayendo departamento: {e}")
 
-        # Construcción de los metadatos de parsing
         parser_metadata = ParsingMetadata(
             parser_name=self.name,
             parser_version=self.config.get("version"),
-            parse_timestamp=datetime.now().isoformat() + 'Z',
+            parse_timestamp=datetime.now(),
             parse_duration=time.time() - start_time,
             warnings=warnings,
             errors=errors,
         )
 
-        # Construcción del objeto SubjectSheet
         ficha = SubjectSheet(
             codigo_plan=codigo,
             nombre=nombre,
@@ -162,49 +182,44 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
             extraction_metadata=extraction_metadata,
         )
 
-        # Validación de la ficha
         is_valid, errores = self.validate(ficha)
         if not is_valid:
             raise ParserError(f"Errores de validación: {errores}")
 
-        # Retorno del objeto tipado
         return ficha
 
-
-    # Extractores principales
     def _extract_codigo_nombre(self, text: str) -> Tuple[str, str]:
         """
-        Extrae el código y el nombre de la asignatura usando el patrón definido.
-        Args:
-            text: Texto plano de la ficha.
+        Extraer código y nombre de la asignatura.
+        
         Returns:
-            Tuple con el código (str) y el nombre (str) normalizados.
+            Tuple (código, nombre) normalizados
+            
         Raises:
-            ParserError: Si no se encuentra el patrón esperado.
+            ParserError: Si no se encuentra el patrón
         """
         match = re.search(PATTERN_CODIGO_NOMBRE, text, re.IGNORECASE)
         if not match:
             raise ParserError("No se pudo extraer el código y nombre de la asignatura.")
         codigo = match.group(1).strip()
         nombre = match.group(2).strip()
-        # Solo tomar la primera línea del nombre (evita capturar bloques enteros)
         nombre = nombre.split('\n')[0].strip()
         return codigo, nombre
     
     def _extract_titulaciones(self, text: str) -> List[Titulacion]:
         """
-        Extrae las titulaciones, tipo de asignatura y curso.
-        Ejemplo de línea: 'Grado en Física OBLIGATORIA 2'
+        Extraer titulaciones, tipo de asignatura y curso.
+        
+        Ejemplo: 'Grado en Física OBLIGATORIA 2'
         """
         titulaciones = []
-        # Busca líneas tipo: Grado en Física OBLIGATORIA 2
         patron = re.compile(PATTERN_TITULACION, re.IGNORECASE)
         for match in patron.finditer(text):
-            titulacion = match.group(1).strip()
+            programa_nombre = match.group(1).strip()
             tipo = match.group(2).strip().capitalize()
             curso = match.group(3).strip()
             titulaciones.append(Titulacion(
-                titulacion=titulacion,
+                programa_nombre=programa_nombre,
                 tipo_asignatura=tipo,
                 curso=curso
             ))
@@ -212,13 +227,10 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
     
     def _extract_ects(self, text: str) -> int:
         """
-        Extrae el número de créditos ECTS de la asignatura.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Número de créditos ECTS como entero.
+        Extraer créditos ECTS.
+        
         Raises:
-            ParserError: Si el formato es incorrecto o el campo está ausente.
+            ParserError: Si el formato es incorrecto
         """
         match = re.search(PATTERN_ECTS, text, re.IGNORECASE)
         if not match:
@@ -231,13 +243,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         return int(ects)
 
     def _extract_periodo(self, text: str) -> str:
-        """
-        Extrae el periodo/cuatrimestre de impartición de la asignatura.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Periodo normalizado (str) o "N.A." si no se encuentra.
-        """
+        """Extraer periodo de impartición."""
         m = re.search(PATTERN_PERIODO, text, flags=re.IGNORECASE)
         if not m:
             return "N.A."
@@ -246,8 +252,9 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
     
     def _extract_num_periodo(self, text: str) -> Optional[int]:
         """
-        Extrae el número de periodo/cuatrimestre si está presente en el texto.
-        Ejemplo: 'Nº: 1' -> 1
+        Extraer número de periodo/cuatrimestre.
+        
+        Ejemplo: 'Nº: 1' → 1
         """
         match = re.search(PATTERN_NUM_CUATRIMESTRE, text)
         if match:
@@ -258,13 +265,7 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         return None
 
     def _extract_modalidad(self, text: str) -> str:
-        """
-        Extrae la modalidad de impartición de la asignatura.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Modalidad normalizada (str) o "N.A." si no se encuentra.
-        """
+        """Extraer modalidad de impartición."""
         m = re.search(PATTERN_MODALIDAD, text, flags=re.IGNORECASE)
         if not m:
             return "N.A."
@@ -273,11 +274,10 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
 
     def _extract_idioma_ef(self, text: str) -> Tuple[str, bool]:
         """
-        Extrae el idioma principal y si la asignatura es 'english friendly'.
-        Args:
-            text: Texto plano de la ficha.
+        Extraer idioma y english_friendly.
+        
         Returns:
-            Tupla (idioma normalizado, english_friendly: bool).
+            Tuple (idioma normalizado, english_friendly)
         """
         idioma = self.config.get("default_idioma", "ESPAÑOL")
         m = re.search(PATTERN_IDIOMA, text, flags=re.IGNORECASE)
@@ -294,64 +294,107 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
 
     def _extract_profesorado(self, text: str) -> List[Teacher]:
         """
-        Extrae la lista de profesores y sus tipos desde el bloque de profesorado.
-        Args:
-            text: Texto plano de la ficha.
-        Returns:
-            Lista de objetos Teacher con nombre, apellidos y tipo.
+        Extraer lista de profesores.
+        
+        Incluye lógica especial para 'Profesor Externo' con ID.
         """
         profesores = []
         bloque = re.search(PATTERN_PROFESORADO, text, re.DOTALL | re.IGNORECASE)
         if not bloque:
             return []
+        
         bloque_texto = bloque.group(1)
         patron_sufijos = re.compile('|'.join(PROFESOR_SUFIXES), re.IGNORECASE)
+
+        institutions_regex = "|".join(PROFESOR_INSTITUTIONS)
+        prefixes_regex = "|".join(PROFESOR_PREFIXES)
+
+        # Separar instituciones pegadas
+        bloque_texto = re.sub(
+            rf"([a-zñáéíóúü])({institutions_regex})", 
+            r"\1 \2", 
+            bloque_texto, 
+            flags=re.IGNORECASE
+        )
+
+        # Reparar nombres divididos en dos líneas
+        bloque_texto = re.sub(
+            rf"(,\s*[A-ZÁÉÍÓÚÑÜ\s]+)\n\s*([A-ZÁÉÍÓÚÑÜ]+)\s+({institutions_regex})", 
+            r"\1 \2 \3", 
+            bloque_texto, 
+            flags=re.IGNORECASE
+        )
+
         for linea in bloque_texto.splitlines():
             linea = linea.strip()
-            if not linea or "PROFESOR" in linea.upper() or "TIPO" in linea.upper():
+            
+            if not linea or ("PROFESOR" in linea.upper() and "APELLIDOS" in linea.upper()):
                 continue
-            # Elimina posibles columnas de tipo al principio (una o dos letras y espacio)
-            linea = re.sub(r'^[A-Z]{1,2}\s+', '', linea)
-            # Solo considera la parte antes de la universidad o de los números
-            linea = patron_sufijos.split(linea)[0]
-            linea = re.split(r'\s+\d+([,.]\d+)?\s*', linea)[0]
-            # Busca patrón "APELLIDOS, NOMBRE"
-            match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea, re.IGNORECASE)
+            if "TIPO" in linea.upper() and len(linea) < 10:
+                continue
+
+            # Separar prefijos pegados al apellido
+            linea = re.sub(rf"^({prefixes_regex})([A-ZÁÉÍÓÚÑÜ])", r"\1 \2", linea)
+
+            # Limpiar prefijos estándar
+            linea_limpia = re.sub(r"^(?:(?:[A-Z\d]{1,2}|EXT)\s+)", "", linea, count=1).strip()
+            
+            # Limpiar sufijos
+            linea_limpia = patron_sufijos.split(linea_limpia)[0].strip()
+
+            # Detectar profesor externo con ID
+            match_externo = re.search(r"PROFESOR\s+EXTERNO[^\d]*(\d+)", linea_limpia, re.IGNORECASE)
+            
+            if match_externo:
+                id_externo = match_externo.group(1)
+                profesores.append(Teacher(nombre=id_externo, apellidos="Profesor Externo"))
+                continue
+
+            # Limpiar columnas numéricas
+            linea_limpia = re.split(r'\s+\d+([,.]\d+)?\s*', linea_limpia)[0].strip()
+            
+            # Extracción estándar (Apellidos, Nombre)
+            match = re.match(r"^([A-ZÁÉÍÓÚÑÜ\s]+),\s*([A-ZÁÉÍÓÚÑÜ\s]+)$", linea_limpia, re.IGNORECASE)
+            
             if match:
                 apellidos = match.group(1).title().strip()
                 nombre = match.group(2).title().strip()
+                
+                if len(apellidos) < 2:
+                    continue
+                    
                 profesores.append(Teacher(nombre=nombre, apellidos=apellidos))
+                
         return profesores
 
     def _extract_centro(self, text: str) -> Optional[str]:
+        """Extraer centro responsable."""
         match = re.search(r'CENTRO RESPONSABLE\s*:\s*([^\n\r]+)', text, re.IGNORECASE)
         if match:
             centro = match.group(1).strip()
-            # Elimina números iniciales y espacios
             centro = re.sub(r'^\d+\s*', '', centro)
             return centro
         return None
 
     def _extract_departamento(self, text: str) -> Optional[str]:
+        """Extraer departamento responsable."""
         match = re.search(r'DEPARTAMENTO RESPONSABLE\s*:\s*([^\n\r]+)', text, re.IGNORECASE)
         if match:
             departamento = match.group(1).strip()
-            # Elimina números iniciales y espacios
             departamento = re.sub(r'^\d+\s*', '', departamento)
             return departamento
         return None
     
-    
-    # Validación y normalización
     def preprocess_text(self, text: str) -> str:
         """
-        Preprocesa el texto plano antes de la extracción (normaliza espacios, saltos de línea, etc.).
+        Preprocesar texto: normalizar espacios y saltos de línea.
+        
         Args:
-            text: Texto original extraído.
+            text: Texto original
+            
         Returns:
-            Texto preprocesado listo para parsing.
+            Texto normalizado
         """
-        # Elimina espacios dobles y normaliza saltos de línea
         text = re.sub(r'[ \t]+', ' ', text)
         text = re.sub(r'\r\n?', '\n', text)
         text = re.sub(r'\n{2,}', '\n', text)
@@ -359,11 +402,13 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
 
     def validate(self, parsed: SubjectSheet) -> Tuple[bool, List[str]]:
         """
-        Valida que el objeto SubjectSheet cumple los requisitos mínimos de integridad y formato.
+        Validar integridad y formato del SubjectSheet.
+        
         Args:
-            parsed: Objeto SubjectSheet a validar.
+            parsed: SubjectSheet a validar
+            
         Returns:
-            Tupla (bool, lista de errores). True si es válido, False si hay errores.
+            Tuple (es_válido, lista_de_errores)
         """
         errores: List[str] = []
         if not re.match(r"^[A-Z]{1,2}\d{1,4}[A-Z]?$", parsed.codigo_plan):
@@ -373,39 +418,3 @@ class FichaParser:  #TODO: Modificar los warnings de acuerdo con la estructura d
         if parsed.ects <= 0:
             errores.append("ECTS no válido.")
         return (len(errores) == 0, errores)
-
-    def to_normalized(self, parsed: SubjectSheet) -> Dict[str, Any]:
-        """
-        Convierte el objeto SubjectSheet a un dict alineado con los modelos de BD.
-        """
-        return {
-            "subject": {
-                "codigo_plan": parsed.codigo_plan,
-                "nombre": parsed.nombre,
-                "titulaciones": [
-                    {
-                        "titulacion": t.titulacion,
-                        "tipo_asignatura": t.tipo_asignatura,
-                        "curso": t.curso,
-                    }
-                    for t in (parsed.titulaciones or [])
-                ],
-                "periodo": parsed.periodo,
-                "num_periodo": parsed.num_periodo,  
-                "ects": parsed.ects,
-                "modalidad": parsed.modalidad,
-                "idioma": parsed.idioma,
-                "english_friendly": parsed.english_friendly,
-            },
-            "teaching_staff": [
-                {
-                    "nombre": t.nombre,
-                    "apellidos": t.apellidos,
-                }
-                for t in (parsed.profesores or [])
-            ],
-            "_meta": {
-                "source": "ficha",
-                "chars": len(parsed.raw_text or ""),
-            },
-        }

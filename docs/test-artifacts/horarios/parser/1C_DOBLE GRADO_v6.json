@@ -1,0 +1,1230 @@
+{
+  "titulo": "DOBLE GRADO EN FÍSICA Y MATEMÁTICAS",
+  "plan": "DOBLE GRADO EN FÍSICA Y MATEMÁTICAS",
+  "periodo": "PRIMER CUATRIMESTRE",
+  "horarios": [
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 0,
+      "sesiones": [
+        {
+          "asignatura": "Introducción al l en guaje",
+          "aula": "AULA 1",
+          "dia": "LUNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "12:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introducción al l en guaje",
+          "aula": "AULA 1",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Difer en cial",
+          "aula": "AULA 1",
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introducción al l en guaje",
+          "aula": "AULA 1",
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introducción al l en guaje",
+          "aula": "AULA 1",
+          "dia": "LUNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "12:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Difer en cial",
+          "aula": "AULA 1",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "12:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introducción al l en guaje",
+          "aula": "AULA 1",
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Introducción al l en guaje",
+          "aula": "AULA 1",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica I",
+          "aula": "AULA 4",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Difer en cial",
+          "aula": "AULA 1",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica I/II",
+          "aula": "AULA 4",
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "AULA 4",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "DESCONOCIDA",
+          "dia": "LUNES",
+          "hora_inicio": "12:00",
+          "hora_fin": "15:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica I",
+          "aula": "DESCONOCIDA",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:00",
+          "hora_fin": "15:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "AULA 4",
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica I",
+          "aula": "AULA 4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "LAB",
+          "dia": "MARTES",
+          "hora_inicio": "13:30",
+          "hora_fin": "16:30",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL3"
+        },
+        {
+          "asignatura": "Física Básica I/II",
+          "aula": "AULA 7",
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "AULA 7",
+          "dia": "VIERNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Básica II",
+          "aula": "LAB",
+          "dia": "MARTES",
+          "hora_inicio": "17:00",
+          "hora_fin": "19:00",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL5"
+        },
+        {
+          "asignatura": "Física Básica I",
+          "aula": "LAB",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:00",
+          "hora_fin": "19:00",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL2"
+        },
+        {
+          "asignatura": "Básica II",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "17:00",
+          "hora_fin": "19:00",
+          "tipo": "TEORÍA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 1,
+      "sesiones": [
+        {
+          "asignatura": "Ampl. Cálculo Dif. Cálculo",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampl. Ampl. Cálculo Dif. Cálculo",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "14:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica Clásicarelatividad",
+          "aula": "AULA 4",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampl. Cálculo Dif. Cálculo",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica Clásica y relatividad",
+          "aula": "AULA 4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampl. Ampl. Cálculo Dif. Cálculo",
+          "aula": "AULA 1",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampl.",
+          "aula": "AULA 4",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "17:30",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL2"
+        },
+        {
+          "asignatura": "Topología",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Topología",
+          "aula": "AULA 1",
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ecuaciones Dif.",
+          "aula": "AULA 1",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal II",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ecuaciones Dif.",
+          "aula": "AULA 1",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal II Práct. Lineal II",
+          "aula": "AULA 4",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL2"
+        },
+        {
+          "asignatura": "Termodinámica",
+          "aula": "DESCONOCIDA",
+          "dia": "LUNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal II",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Termodinámica",
+          "aula": "DESCONOCIDA",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Termodinámica",
+          "aula": "AULA 4",
+          "dia": "JUEVES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Termodinámica",
+          "aula": "AULA 4",
+          "dia": "LUNES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Álgebra Lineal II",
+          "aula": "AULA 1",
+          "dia": "MARTES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Termodinámica",
+          "aula": "AULA 4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "19:30",
+          "hora_fin": "21:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 2,
+      "sesiones": [
+        {
+          "asignatura": "Física Estadística",
+          "aula": "AULA 2",
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "10:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "DESCONOCIDA",
+          "dia": "LUNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas y Sólidos",
+          "aula": "DESCONOCIDA",
+          "dia": "VIERNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de",
+          "aula": "AULA 2",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas y",
+          "aula": "AULA 2",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "DESCONOCIDA",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas y",
+          "aula": "AULA 2",
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "AULA 2",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de",
+          "aula": "AULA 2",
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Estructura de Moléculas y",
+          "aula": "AULA 2",
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "AULA 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "AULA 2",
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Atómica y Molecular",
+          "aula": "AULA 2",
+          "dia": "VIERNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "AULA 2",
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo I",
+          "aula": "AULA 4",
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo I",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "14:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo de",
+          "aula": "AULA 1",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Espacios de Hilbert",
+          "aula": "AULA 14",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo I",
+          "aula": "AULA 4",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo de Probabilida de s",
+          "aula": "AULA 14",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Espacios de Hilbert",
+          "aula": "AULA 14",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Electromagnetismo I",
+          "aula": "AULA 4",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 3,
+      "sesiones": [
+        {
+          "asignatura": "Física Estadística",
+          "aula": "AULA 2",
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "DESCONOCIDA",
+          "dia": "LUNES",
+          "hora_inicio": "10:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Experim en tal",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "10:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced",
+          "aula": "DESCONOCIDA",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "10:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "AULA 2",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Experim en tal",
+          "aula": "AULA 6",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL1"
+        },
+        {
+          "asignatura": "Cálculo Numérico II",
+          "aula": "LSC 1",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "14:30",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL2"
+        },
+        {
+          "asignatura": "Advanced",
+          "aula": "AULA 8",
+          "dia": "LUNES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física Estadística",
+          "aula": "AULA 2",
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría de Galois",
+          "aula": "AULA 14",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Espacios de Hilbert",
+          "aula": "AULA 14",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría de Galois",
+          "aula": "AULA 14",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Numérico II",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Cálculo Numérico II",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Espacios de Hilbert",
+          "aula": "AULA 14",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría global de superficies",
+          "aula": "AULA 14",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría global de superficies",
+          "aula": "AULA 14",
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría global de superficies",
+          "aula": "AULA 14",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría global de superficies",
+          "aula": "AULA 14",
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Computation",
+          "aula": "LSC 2",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "PRÁCTICA",
+          "grupo": "PL2"
+        },
+        {
+          "asignatura": "Teoría global de superficies",
+          "aula": "AULA 14",
+          "dia": "JUEVES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        }
+      ]
+    },
+    {
+      "curso": "1º",
+      "periodo": "PRIMER CUATRIMESTRE",
+      "mencion": null,
+      "pagina": 4,
+      "sesiones": [
+        {
+          "asignatura": "Ampliación de",
+          "aula": "AULA 7",
+          "dia": "LUNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría Cualitativa de EDO",
+          "aula": "AULA 9",
+          "dia": "MARTES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "V.Difer en ciables",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Teoría Cualitativa de EDO",
+          "aula": "AULA 9",
+          "dia": "JUEVES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "V.Difer en ciables",
+          "aula": "AULA 9",
+          "dia": "VIERNES",
+          "hora_inicio": "09:30",
+          "hora_fin": "11:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Top.Algebraica",
+          "aula": "AULA 9",
+          "dia": "LUNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Ampliación de Análisis",
+          "aula": "AULA 7",
+          "dia": "MARTES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Top.Algebraica",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "11:30",
+          "hora_fin": "12:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Adv. Statistics",
+          "aula": "AULA 3",
+          "dia": "JUEVES",
+          "hora_inicio": "11:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Adv. Statistics",
+          "aula": "AULA 3",
+          "dia": "VIERNES",
+          "hora_inicio": "11:30",
+          "hora_fin": "13:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "12:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": "DESCONOCIDA",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "12:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": "AULA 9",
+          "dia": "LUNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": "AULA 9",
+          "dia": "MARTES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Análisis Funcional",
+          "aula": "AULA 9",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "13:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Probability",
+          "aula": "AULA 3",
+          "dia": "JUEVES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Advanced Probability",
+          "aula": "AULA 3",
+          "dia": "VIERNES",
+          "hora_inicio": "13:30",
+          "hora_fin": "14:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad",
+          "aula": "DESCONOCIDA",
+          "dia": "LUNES",
+          "hora_inicio": "14:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica cuántica",
+          "aula": "DESCONOCIDA",
+          "dia": "MARTES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica cuántica",
+          "aula": "DESCONOCIDA",
+          "dia": "JUEVES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Mecánica cuántica",
+          "aula": "DESCONOCIDA",
+          "dia": "VIERNES",
+          "hora_inicio": "14:30",
+          "hora_fin": "15:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad",
+          "aula": "AULA 8",
+          "dia": "LUNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física de partículas elem en tales",
+          "aula": "AULA 8",
+          "dia": "MARTES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Astrofísica",
+          "aula": "AULA 8",
+          "dia": "MIÉRCOLES",
+          "hora_inicio": "15:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física de partículas elem en tales",
+          "aula": "AULA 8",
+          "dia": "JUEVES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Física de partículas elem en tales",
+          "aula": "AULA 8",
+          "dia": "VIERNES",
+          "hora_inicio": "15:30",
+          "hora_fin": "16:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad",
+          "aula": "AULA 8",
+          "dia": "LUNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Fotónica",
+          "aula": "AULA 8",
+          "dia": "MARTES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "JUEVES",
+          "hora_inicio": "16:30",
+          "hora_fin": "18:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Fotónica",
+          "aula": "AULA 8",
+          "dia": "VIERNES",
+          "hora_inicio": "16:30",
+          "hora_fin": "17:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Astrofísica",
+          "aula": "AULA 8",
+          "dia": "LUNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "MARTES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "JUEVES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "VIERNES",
+          "hora_inicio": "17:30",
+          "hora_fin": "19:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "MARTES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "JUEVES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        },
+        {
+          "asignatura": "Relatividad G en eral",
+          "aula": "AULA 8",
+          "dia": "VIERNES",
+          "hora_inicio": "18:30",
+          "hora_fin": "20:30",
+          "tipo": "TEORÍA",
+          "grupo": null
+        }
+      ]
+    }
+  ],
+  "parsing_metadata": {
+    "parser_name": "HorarioParser",
+    "parser_version": "0.1.0",
+    "parse_timestamp": "2025-11-16T12:33:24.588515Z",
+    "parse_duration": 0.01763153076171875,
+    "warnings": [
+      {
+        "message": "Sesión con duración menor a 60 min: 30 min - Asignatura: Introducción al l en guaje, Día: LUNES, 11:30:00-12:00:00",
+        "severity": "low"
+      },
+      {
+        "message": "Sesión con duración menor a 60 min: 30 min - Asignatura: Cálculo Difer en cial, Día: MIÉRCOLES, 11:30:00-12:00:00",
+        "severity": "low"
+      }
+    ],
+    "errors": []
+  },
+  "extraction_metadata": {
+    "quality": "good",
+    "confidence": 0.7618871794871794,
+    "status": "completed",
+    "processing_time_seconds": 1.0330398082733154,
+    "page_count": 5,
+    "file_size_mb": 0.13126754760742188,
+    "has_embedded_text": true,
+    "char_count": 4745,
+    "word_count": 772,
+    "errors": [],
+    "warnings": [],
+    "pages_with_text": 5
+  }
+}

@@ -1,0 +1,433 @@
+{
+  "metadata": {
+    "quality": "excellent",
+    "confidence": 0.9748,
+    "status": "completed",
+    "processing_time_seconds": 7.593127489089966,
+    "page_count": 2,
+    "file_size_mb": 0.29559803009033203,
+    "has_embedded_text": true,
+    "char_count": 1594,
+    "word_count": 296,
+    "errors": [],
+    "warnings": [
+      {
+        "message": "1 hojas no contenían bloques de horarios válidos.",
+        "severity": "minor"
+      },
+      {
+        "message": "No se detectaron celdas combinadas; las sesiones largas podrían no estar identificadas.",
+        "severity": "minor"
+      },
+      {
+        "message": "Cobertura global baja (51.2%). Muchos intervalos sin contenido.",
+        "severity": "moderate"
+      }
+    ],
+    "pages_with_text": 1
+  },
+  "result": {
+    "clean_tables": [
+      {
+        "time_axis": [
+          "08:00",
+          "08:30",
+          "09:00",
+          "09:30",
+          "10:00",
+          "10:30",
+          "11:00",
+          "11:30",
+          "12:00",
+          "12:30",
+          "13:00",
+          "13:30",
+          "14:00",
+          "14:30",
+          "15:00",
+          "15:30",
+          "16:00",
+          "16:30",
+          "17:00",
+          "17:30",
+          "18:00",
+          "18:30",
+          "19:00",
+          "19:30",
+          "20:00",
+          "20:30"
+        ],
+        "days": [
+          "LUNES",
+          "MARTES",
+          "MIÉRCOLES",
+          "JUEVES",
+          "VIERNES"
+        ],
+        "cells": [
+          [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "Cálculo Diferencial AULA 4",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "",
+            "",
+            "Álgebra Lineal AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        ],
+        "source": "excel",
+        "sheet": "Primer cuatrimestre",
+        "page": null,
+        "lane_index": null,
+        "block_id": "Primer cuatrimestre!R4",
+        "titulacion": null,
+        "curso": null,
+        "mencion": null,
+        "row_spans": [
+          1,
+          2,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "raw_tables": [
+      {
+        "data": [
+          [
+            "HORA",
+            "LUNES",
+            "MARTES",
+            "MIÉRCOLES",
+            "JUEVES",
+            "VIERNES"
+          ],
+          [
+            "8:30 9:30",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "Cálculo Diferencial AULA 4",
+            "Física Básica I Grupo 4 LAB",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "9:30 10:30",
+            "",
+            "Cálculo Diferencial AULA 4",
+            "Álgebra Lineal AULA 4",
+            "",
+            ""
+          ]
+        ],
+        "source": "excel",
+        "sheet": "Primer cuatrimestre",
+        "page": null,
+        "lane_index": null,
+        "block_id": "Primer cuatrimestre!R4",
+        "header_row": 4,
+        "data_start_row": 5,
+        "data_end_row": 9,
+        "time_col": 33,
+        "day_cols": [
+          34,
+          36,
+          40,
+          44,
+          46
+        ],
+        "row_hour_ranges": [
+          [
+            "08:30",
+            "09:30"
+          ],
+          null,
+          null,
+          null,
+          [
+            "09:30",
+            "10:30"
+          ]
+        ],
+        "merge_span_matrix": [
+          [
+            8,
+            4,
+            4,
+            10,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            4,
+            8,
+            0,
+            4
+          ]
+        ],
+        "titulacion": null,
+        "curso": null,
+        "mencion": null,
+        "extra": {}
+      }
+    ],
+    "extraccion_metadata": {
+      "quality": "excellent",
+      "confidence": 0.9748,
+      "status": "completed",
+      "processing_time_seconds": 7.593127489089966,
+      "page_count": 2,
+      "file_size_mb": 0.29559803009033203,
+      "has_embedded_text": true,
+      "char_count": 1594,
+      "word_count": 296,
+      "errors": [],
+      "warnings": [
+        {
+          "message": "1 hojas no contenían bloques de horarios válidos.",
+          "severity": "minor"
+        },
+        {
+          "message": "No se detectaron celdas combinadas; las sesiones largas podrían no estar identificadas.",
+          "severity": "minor"
+        },
+        {
+          "message": "Cobertura global baja (51.2%). Muchos intervalos sin contenido.",
+          "severity": "moderate"
+        }
+      ],
+      "pages_with_text": 1
+    }
+  }
+}

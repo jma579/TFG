@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "quality": "unusable",
+    "confidence": 0.0,
+    "status": "failed",
+    "processing_time_seconds": 5.6889989376068115,
+    "page_count": 2,
+    "file_size_mb": 0.29559803009033203,
+    "has_embedded_text": false,
+    "char_count": 0,
+    "word_count": 0,
+    "errors": [
+      "Warning() takes no keyword arguments"
+    ],
+    "warnings": [
+      {
+        "message": "Error de extracción: Warning() takes no keyword arguments",
+        "severity": "severe"
+      }
+    ],
+    "pages_with_text": 0
+  },
+  "result": {
+    "clean_tables": [],
+    "raw_tables": [],
+    "extraccion_metadata": {
+      "quality": "unusable",
+      "confidence": 0.0,
+      "status": "failed",
+      "processing_time_seconds": 5.6889989376068115,
+      "page_count": 2,
+      "file_size_mb": 0.29559803009033203,
+      "has_embedded_text": false,
+      "char_count": 0,
+      "word_count": 0,
+      "errors": [
+        "Warning() takes no keyword arguments"
+      ],
+      "warnings": [
+        {
+          "message": "Error de extracción: Warning() takes no keyword arguments",
+          "severity": "severe"
+        }
+      ],
+      "pages_with_text": 0
+    }
+  }
+}

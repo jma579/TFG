@@ -1,19 +1,18 @@
 from sqlalchemy import (
-    Column, Integer, String, Numeric, Date, Time, Boolean, Text, Enum,
+    Column, Integer, String, Time, Boolean, Text, Enum,
     ForeignKey, UniqueConstraint, Index, DateTime, CheckConstraint, func
 )
 from sqlalchemy.orm import relationship, declarative_base
 
-# Importar enums desde constants (mantén la ruta que ya usas en tu proyecto)
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from backend.constants.enums import (
+from constants.enums import (
     TipoPrograma, Periodo, ModalidadAsignatura, Idioma, TipoAula,
     ModalidadSesion, TipoGrupoDocente, TipoRecurrencia, DiaSemana,
     TipoRestriccion, DurezaRestriccion, SeveridadConflicto,
-    TipoConflicto, EstadoConflicto
+    TipoConflicto, EstadoConflicto, TipoAsignatura, TipoConciliacion
 )
 
 Base = declarative_base()
@@ -46,7 +45,7 @@ class Asignatura(Base):
     __tablename__ = "asignaturas"
     id = Column(Integer, primary_key=True)
     codigo_plan = Column(String(6), nullable=False, unique=True)
-    nombre = Column(String(250), nullable=False, unique=True)
+    nombre = Column(String(250), nullable=False)
     periodo = Column(Enum(Periodo), nullable=False)
     ects = Column(Integer)
     modalidad = Column(Enum(ModalidadAsignatura), nullable=False)
@@ -57,12 +56,27 @@ class Asignatura(Base):
     # Relaciones
     grupos_docentes = relationship("GrupoDocente", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     programa_asignaturas = relationship("ProgramaAsignatura", back_populates="asignatura", passive_deletes=True)
-    asignatura_menciones = relationship("AsignaturaMencion", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
+    aliases = relationship("AsignaturaAlias", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
 
     # Conveniencia (solo lectura)
     programas = relationship("Programa", secondary="programas_asignaturas", viewonly=True, overlaps="programa_asignaturas,asignaturas")
-    menciones = relationship("Mencion", secondary="asignaturas_menciones", viewonly=True, overlaps="asignatura_menciones,asignaturas")
+
+class AsignaturaAlias(Base):
+    __tablename__ = "asignaturas_aliases"
+    id = Column(Integer, primary_key=True)
+    asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
+    alias = Column(String(250), nullable=False)
+    origen = Column(String(50), default="MANUAL")
+    veces_usado = Column(Integer, default=0)
+    creado_en = Column(DateTime, default=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("alias", name="uq_asignatura_alias_texto"),
+        Index("ix_asignatura_alias_lookup", "alias"),
+    )
+
+    asignatura = relationship("Asignatura", back_populates="aliases", passive_deletes=True)
 
 
 class Mencion(Base):
@@ -78,10 +92,8 @@ class Mencion(Base):
     )
 
     programa = relationship("Programa", back_populates="menciones", passive_deletes=True)
-    asignatura_menciones = relationship("AsignaturaMencion", back_populates="mencion", passive_deletes=True)
-
-    # Conveniencia (solo lectura)
-    asignaturas = relationship("Asignatura", secondary="asignaturas_menciones", viewonly=True, overlaps="asignatura_menciones,asignaturas")
+    
+    programa_asignaturas = relationship("ProgramaAsignatura", back_populates="mencion", passive_deletes=True)
 
 
 # ============================
@@ -94,9 +106,15 @@ class Profesor(Base):
     nombre = Column(String(120), nullable=False)
     apellidos = Column(String(200), nullable=False)
     email = Column(String(200), unique=True)
-    telefono = Column(String(20))
+    telefono = Column(String(20), unique=True)
     departamento = Column(String(200))
     activo = Column(Boolean, default=True, nullable=False)
+    conciliacion = Column(Enum(TipoConciliacion), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("nombre", "apellidos", name="uq_profesor_nombre_apellidos"),
+        Index("ix_profesor_nombre_apellidos", "nombre", "apellidos"), 
+    )
 
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="profesor", passive_deletes=True)
     profesores_sesiones = relationship("ProfesorSesion", back_populates="profesor", passive_deletes=True)
@@ -106,27 +124,22 @@ class Profesor(Base):
     # Conveniencia (solo lectura)
     asignaturas = relationship("Asignatura", secondary="profesores_asignaturas", viewonly=True, overlaps="profesores_asignaturas,profesores")
     sesiones = relationship("Sesion", secondary="profesores_sesiones", viewonly=True, overlaps="profesores_sesiones,sesiones")
-    conflictos = relationship("Conflicto", back_populates="profesor", passive_deletes=True)
-
-    # Conveniencia (solo lectura)
-    asignaturas = relationship("Asignatura", secondary="profesores_asignaturas", viewonly=True, overlaps="profesores_asignaturas,asignaturas")
-    sesiones = relationship("Sesion", secondary="profesores_sesiones", viewonly=True, overlaps="profesores_sesiones,sesiones")
 
 
 class Aula(Base):
     __tablename__ = "aulas"
     id = Column(Integer, primary_key=True)
-    nombre = Column(String(200), nullable=False, unique=True)
+    nombre = Column(String(200), nullable=False, unique=False)
     codigo = Column(String(50), nullable=False, unique=True)
     tipo = Column(Enum(TipoAula), nullable=False)
     capacidad = Column(Integer)
+    activo = Column(Boolean, default=True, nullable=False)
 
     __table_args__ = (
         CheckConstraint("capacidad > 0", name="ck_aula_capacidad_positiva"),
     )
 
     sesiones = relationship("Sesion", back_populates="aula", passive_deletes=True)
-    restricciones = relationship("Restriccion", back_populates="aula", passive_deletes=True)
     conflictos = relationship("Conflicto", back_populates="aula", passive_deletes=True)
 
 
@@ -135,28 +148,18 @@ class Restriccion(Base):
     id = Column(Integer, primary_key=True)
     tipo = Column(Enum(TipoRestriccion), nullable=False)
     dureza = Column(Enum(DurezaRestriccion), nullable=False)
-    motivo = Column(Text)
+    motivo = Column(Text, nullable=True)
     profesor_id = Column(Integer, ForeignKey("profesores.id", ondelete="SET NULL"))
-    aula_id = Column(Integer, ForeignKey("aulas.id", ondelete="SET NULL"))
-    # Modelos de ventana: semanal o fechada
-    dia_semana = Column(Enum(DiaSemana))
-    hora_inicio = Column(Time)
-    hora_fin = Column(Time)
-    inicio = Column(DateTime)
-    fin = Column(DateTime)
+    inicio = Column(DateTime, nullable=False)
+    fin = Column(DateTime, nullable=False)
 
     __table_args__ = (
-        # XOR exacto: o profesor o aula, pero no ambos y no ninguno
-        CheckConstraint(
-            "((profesor_id IS NULL AND aula_id IS NOT NULL) OR (profesor_id IS NOT NULL AND aula_id IS NULL))",
-            name="ck_restriccion_exclusive_parent"
-        ),
+        CheckConstraint("fin > inicio", name="ck_restriccion_fechas_coherentes"),
         Index("ix_restriccion_profesor", "profesor_id"),
-        Index("ix_restriccion_aula", "aula_id"),
+        Index("ix_restriccion_fechas", "inicio", "fin"), 
     )
 
     profesor = relationship("Profesor", back_populates="restricciones")
-    aula = relationship("Aula", back_populates="restricciones")
     conflictos = relationship("Conflicto", back_populates="restriccion", passive_deletes=True)
 
 
@@ -170,8 +173,8 @@ class GrupoDocente(Base):
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
     codigo = Column(String(50), nullable=False)
     tipo = Column(Enum(TipoGrupoDocente), nullable=False)
-    curso = Column(Integer)  # opcional: 1,2,3,4...
-    turno = Column(String(30))  # opcional
+    curso = Column(Integer)  
+    turno = Column(String(30)) 
 
     __table_args__ = (
         UniqueConstraint("asignatura_id", "codigo", name="uq_grupo_asig_codigo"),
@@ -186,7 +189,7 @@ class Sesion(Base):
     __tablename__ = "sesiones"
     id = Column(Integer, primary_key=True)
     grupo_docente_id = Column(Integer, ForeignKey("grupos_docentes.id", ondelete="CASCADE"), nullable=False)
-    aula_id = Column(Integer, ForeignKey("aulas.id", ondelete="SET NULL"), nullable=False)
+    aula_id = Column(Integer, ForeignKey("aulas.id", ondelete="RESTRICT"), nullable=False)
     modalidad = Column(Enum(ModalidadSesion), nullable=False)
     tipo_recurrencia = Column(Enum(TipoRecurrencia), nullable=False)
 
@@ -224,33 +227,21 @@ class ProgramaAsignatura(Base):
     id = Column(Integer, primary_key=True)
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
-    curso = Column(Integer)  # p.ej. 1..4
-    obligatoria = Column(Boolean, default=False, nullable=False)
+    mencion_id = Column(Integer, ForeignKey("menciones.id", ondelete="SET NULL"), nullable=True)
+    
+    curso = Column(Integer) 
+    tipo_asignatura = Column(Enum(TipoAsignatura))
 
     __table_args__ = (
         UniqueConstraint("programa_id", "asignatura_id", name="uq_programa_asignatura"),
         Index("ix_prog_asig_programa", "programa_id"),
         Index("ix_prog_asig_asignatura", "asignatura_id"),
+        Index("ix_prog_asig_mencion", "mencion_id"),
     )
 
     programa = relationship("Programa", back_populates="programa_asignaturas", passive_deletes=True)
     asignatura = relationship("Asignatura", back_populates="programa_asignaturas", passive_deletes=True)
-
-
-class AsignaturaMencion(Base):
-    __tablename__ = "asignaturas_menciones"
-    id = Column(Integer, primary_key=True)
-    asignatura_id = Column(Integer, ForeignKey("asignaturas.id", ondelete="CASCADE"), nullable=False)
-    mencion_id = Column(Integer, ForeignKey("menciones.id", ondelete="CASCADE"), nullable=False)
-
-    __table_args__ = (
-        UniqueConstraint("asignatura_id", "mencion_id", name="uq_asignatura_mencion"),
-        Index("ix_asig_men_asignatura", "asignatura_id"),
-        Index("ix_asig_men_mencion", "mencion_id"),
-    )
-
-    asignatura = relationship("Asignatura", back_populates="asignatura_menciones", passive_deletes=True)
-    mencion = relationship("Mencion", back_populates="asignatura_menciones", passive_deletes=True)
+    mencion = relationship("Mencion", back_populates="programa_asignaturas", passive_deletes=True)
 
 
 class ProfesorAsignatura(Base):
@@ -274,7 +265,7 @@ class ProfesorSesion(Base):
     id = Column(Integer, primary_key=True)
     profesor_id = Column(Integer, ForeignKey("profesores.id", ondelete="CASCADE"), nullable=False)
     sesion_id = Column(Integer, ForeignKey("sesiones.id", ondelete="CASCADE"), nullable=False)
-    rol_en_sesion = Column(String(30), nullable=True)  # p.ej. Docente, Apoyo...
+    rol_en_sesion = Column(String(30), nullable=True) 
 
     __table_args__ = (
         UniqueConstraint("profesor_id", "sesion_id", name="uq_profesor_sesion"),
@@ -295,7 +286,7 @@ class Conflicto(Base):
     id = Column(Integer, primary_key=True)
     tipo = Column(Enum(TipoConflicto), nullable=False)
     severidad = Column(Enum(SeveridadConflicto), nullable=False)
-    estado = Column(Enum(EstadoConflicto), nullable=False, default=EstadoConflicto.ABIERTO)
+    estado = Column(Enum(EstadoConflicto), nullable=False, default=EstadoConflicto.POR_REVISAR)
 
     sesion_id = Column(Integer, ForeignKey("sesiones.id", ondelete="CASCADE"), nullable=False)
     sesion_2_id = Column(Integer, ForeignKey("sesiones.id", ondelete="CASCADE"), nullable=True)
@@ -336,7 +327,7 @@ class Documento(Base):
     id = Column(Integer, primary_key=True)
     programa_id = Column(Integer, ForeignKey("programas.id", ondelete="CASCADE"), nullable=False)
     nombre = Column(String(250), nullable=False)
-    tipo = Column(String(30), nullable=False)  # p.ej. PDF, CSV...
+    tipo = Column(String(30), nullable=False) 
     ruta = Column(Text, nullable=False)
     creado_en = Column(DateTime, default=func.now(), nullable=False)
 
@@ -349,7 +340,7 @@ class ImportRun(Base):
     __tablename__ = "import_runs"
     id = Column(Integer, primary_key=True)
     documento_id = Column(Integer, ForeignKey("documentos.id", ondelete="CASCADE"), nullable=False)
-    estado = Column(String(20), nullable=False)  # Enum-like: SUCCESS, ERROR, PARTIAL
+    estado = Column(String(20), nullable=False) 
     inicio_en = Column(DateTime, default=func.now(), nullable=False)
     fin_en = Column(DateTime)
     resumen = Column(Text)
@@ -363,7 +354,7 @@ class Extraccion(Base):
     id = Column(Integer, primary_key=True)
     import_run_id = Column(Integer, ForeignKey("import_runs.id", ondelete="CASCADE"), nullable=False)
     documento_id = Column(Integer, ForeignKey("documentos.id", ondelete="CASCADE"), nullable=False)
-    tipo = Column(String(20), nullable=False)  # Enum-like: FICHA, HORARIO, METADATOS
+    tipo = Column(String(20), nullable=False) 
     bloque = Column(String(80), nullable=False)
     contenido = Column(Text, nullable=False)
     creado_en = Column(DateTime, default=func.now(), nullable=False)

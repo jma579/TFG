@@ -1,0 +1,24 @@
+{
+  "source": {
+    "file": "G652.pdf",
+    "path": "D:\\TFG\\Fichas\\GRADO\\G652.pdf",
+    "date": "2025-10-23T16:21:24.554182"
+  },
+  "extraction": {
+    "text_length": 1174,
+    "has_error": false,
+    "error_message": null
+  },
+  "metadata": {
+    "status": "completed",
+    "quality": "acceptable",
+    "confidence": 0.5313183915388983,
+    "processing_time_seconds": 0.03316617012023926,
+    "page_count": 2,
+    "file_size_mb": 0.045500755310058594,
+    "has_embedded_text": true,
+    "char_count": 1174,
+    "word_count": 168,
+    "pages_with_text": 2
+  }
+}
