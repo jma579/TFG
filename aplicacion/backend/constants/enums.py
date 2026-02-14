@@ -117,29 +117,6 @@ class TipoAsignatura(str, Enum):
     BASICA = "basica"
 
 
-# Conciliación Docente y Restricciones
-
-class TipoConciliacion(str, Enum):
-    """Tipos de conciliaciones docentes."""
-    ENTRADA_TARDIA = "entrada_tardia"
-    SALIDA_TEMPRANA = "salida_temprana"
-    MIXTA = "mixta"
-
-
-HORAS_CONCILIACION_NORMAL = 2
-HORAS_CONCILIACION_MIXTA = 1
-
-
-class TipoRestriccion(str, Enum):
-    """Tipos de restricciones docentes."""
-    pass
-
-
-class DurezaRestriccion(str, Enum):
-    """Niveles de dureza de las restricciones."""
-    pass
-
-
 # Detección de Conflictos
 
 class TipoConflicto(str, Enum):
@@ -147,7 +124,7 @@ class TipoConflicto(str, Enum):
     SOLAPAMIENTO_AULA = "solapamiento_aula"
     SOLAPAMIENTO_PROFESOR = "solapamiento_profesor"
     SOLAPAMIENTO_GRUPO = "solapamiento_grupo"
-    INTERFERENCIA_CONCILIACION = "interferencia_conciliacion"
+    INCUMPLIMIENTO_RESTRICCION = "incumplimiento_restriccion"
 
 
 class SeveridadConflicto(str, Enum):
