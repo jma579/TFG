@@ -1,5 +1,6 @@
-import React from 'react';
 import { Calendar, Clock, Loader2 } from 'lucide-react';
+import React from 'react';
+
 import {
   Dialog,
   DialogContent,

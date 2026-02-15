@@ -1,12 +1,13 @@
 'use client';
 
+import { Calendar,Clock, Plus, Trash2 } from 'lucide-react';
 import * as React from 'react';
-import { Trash2, Plus, Clock, Calendar } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { api } from '@/lib/api/config';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api/config';
 
 type Restriccion = {
   id: number;
