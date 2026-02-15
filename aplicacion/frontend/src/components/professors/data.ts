@@ -5,4 +5,5 @@ export type Professor = {
   email: string | null;
   departamento: string | null;
   activo: boolean;
+  total_restricciones?: number;
 };

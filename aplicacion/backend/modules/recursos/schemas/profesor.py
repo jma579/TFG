@@ -90,7 +90,7 @@ class ProfesorUpdate(BaseModel):
 
 class ProfesorOut(ProfesorBase):
     id: int
-    
+    total_restricciones: int = Field(0, ge=0)
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
@@ -99,7 +99,8 @@ class ProfesorOut(ProfesorBase):
                 "nombre": "Juan",
                 "apellidos": "García López",
                 "email": "juan.garcia@universidad.es",
-                "activo": True
+                "activo": True,
+                "total_restricciones": 0
             }
         }
     )
@@ -114,7 +115,7 @@ class ProfesorList(BaseModel):
         json_schema_extra={
             "example": {
                 "total": 85,
-                "items": [{"id": 1, "nombre": "Juan"}],
+                "items": [{"id": 1, "nombre": "Juan", "total_restricciones": 0}],
                 "page": 1,
                 "size": 20
             }

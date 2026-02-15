@@ -7,7 +7,9 @@ import { ProfessorFormDialog } from '@/components/professors/professor-form-dial
 import { ProfessorsTable } from '@/components/professors/table';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfesor } from '@/lib/api/recursos/profesores'; 
+import { listProfesores, updateProfesor } from '@/lib/api/recursos/profesores'; 
+
+const PROFESSORS_LIMIT = 1000;
 
 type ProfessorsScreenProps = {
   data: Professor[];
@@ -20,6 +22,37 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
   const [editing, setEditing] = React.useState<Professor | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+
+  const refreshRows = async () => {
+    try {
+      const resp = await listProfesores({ limit: PROFESSORS_LIMIT });
+      const nextRows = resp.items.map((p) => ({
+        id: String(p.id),
+        nombre: p.nombre,
+        apellidos: p.apellidos,
+        email: p.email ?? null,
+        departamento: p.departamento ?? null,
+        activo: p.activo,
+      }));
+
+      nextRows.sort((a, b) => {
+        const nameA = `${a.nombre} ${a.apellidos}`.toLowerCase();
+        const nameB = `${b.nombre} ${b.apellidos}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
+      setRows(nextRows);
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al refrescar',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'No se pudieron recargar los profesores.',
+      });
+    }
+  };
 
   const handleEdit = (row: Professor) => {
     setEditing(row);
@@ -56,6 +89,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
                 email: updated.email ?? null,
                 departamento: updated.departamento ?? null,
                 activo: updated.activo,
+                total_restricciones: row.total_restricciones,
               }
             : row,
         ),
@@ -88,7 +122,8 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
         <CardContent className="pt-6">
           <ProfessorsTable 
             data={rows} 
-            onEdit={handleEdit} 
+            onEdit={handleEdit}
+            onRefresh={refreshRows}
           />
         </CardContent>
       </Card>

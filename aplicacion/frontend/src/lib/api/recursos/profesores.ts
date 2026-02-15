@@ -8,6 +8,7 @@ export type ProfesorAPI = {
   telefono?: string | null;
   departamento?: string | null;
   activo: boolean;
+  total_restricciones?: number;
   [key: string]: unknown;
 };
 
