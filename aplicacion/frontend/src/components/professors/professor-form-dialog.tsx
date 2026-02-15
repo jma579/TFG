@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { Professor, TipoConciliacion } from './data';
+import type { Professor } from './data';
 
 type ProfessorFormDialogProps = {
   open: boolean;
@@ -32,7 +32,6 @@ type ProfessorFormDialogProps = {
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion; 
   }) => void;
   saving: boolean;
 };
@@ -50,14 +49,12 @@ export function ProfessorFormDialog({
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion;
   }>({
     nombre: '',
     apellidos: '',
     email: '',
     departamento: '',
     activo: true,
-    conciliacion: null,
   });
 
   React.useEffect(() => {
@@ -68,7 +65,6 @@ export function ProfessorFormDialog({
         email: initial.email ?? '',
         departamento: initial.departamento ?? '',
         activo: initial.activo,
-        conciliacion: initial.conciliacion,
       });
     } else {
       setForm({
@@ -77,7 +73,6 @@ export function ProfessorFormDialog({
         email: '',
         departamento: '',
         activo: true,
-        conciliacion: null,
       });
     }
   }, [initial, open]);
@@ -154,24 +149,6 @@ export function ProfessorFormDialog({
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Conciliación</span>
-              <Select
-                value={form.conciliacion ?? 'none'} 
-                onValueChange={(value) => handleChange('conciliacion', value === 'none' ? null : value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sin preferencia" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Ninguna</SelectItem>
-                  <SelectItem value="entrada_tardia">Entrada Tardía (+2h)</SelectItem>
-                  <SelectItem value="salida_temprana">Salida Temprana (-2h)</SelectItem>
-                  <SelectItem value="mixta">Mixta (±1h)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-1">
               <span className="text-xs font-medium text-muted-foreground">Estado</span>
               <Select

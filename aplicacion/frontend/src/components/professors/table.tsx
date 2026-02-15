@@ -137,34 +137,6 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
         ),
       },
       {
-        accessorKey: 'conciliacion',
-        header: 'Conciliación',
-        cell: ({ row }) => {
-          const val = row.original.conciliacion;
-          if (!val) return <span className="text-muted-foreground text-xs">—</span>;
-          
-          let label: string = val;
-          let colorClass = "bg-slate-100 text-slate-700";
-
-          if (val === 'entrada_tardia') {
-            label = "Entrada Tardía";
-            colorClass = "bg-indigo-50 text-indigo-700 border-indigo-200";
-          } else if (val === 'salida_temprana') {
-            label = "Salida Temprana";
-            colorClass = "bg-rose-50 text-rose-700 border-rose-200";
-          } else if (val === 'mixta') {
-            label = "Mixta (±1h)";
-            colorClass = "bg-violet-50 text-violet-700 border-violet-200";
-          }
-
-          return (
-            <Badge variant="outline" className={`whitespace-nowrap ${colorClass}`}>
-              {label}
-            </Badge>
-          );
-        },
-      },
-      {
         accessorKey: 'activo',
         header: 'Estado',
         cell: ({ row }) => (
