@@ -5,7 +5,7 @@ Contiene la lógica de negocio, validaciones y orquesta la importación de Excel
 
 import os
 import tempfile
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -94,7 +94,7 @@ class RestriccionService:
 
     # Importacion masiva (DROP & LOAD)
 
-    def importar_excel(self, db: Session, file_bytes: bytes) -> ImportacionRestriccionesResponse:
+    def importar_excel(self, db: Session, file: UploadFile) -> ImportacionRestriccionesResponse:
         """
         Orquesta el flujo: 
         1. FASE 2 (Extractor -> Parser -> Normalizer)
@@ -104,6 +104,7 @@ class RestriccionService:
         tmp_path = ""
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+                file_bytes = file.file.read()
                 tmp.write(file_bytes)
                 tmp_path = tmp.name
 

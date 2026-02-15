@@ -126,14 +126,12 @@ def eliminar_aula(
     response_model=ImportacionRestriccionesResponse, 
     status_code=status.HTTP_200_OK
 )
-async def importar_restricciones_excel(
+def importar_restricciones_excel(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     """Importa restricciones desde un archivo Excel."""
-    # Leemos el archivo en memoria de forma asíncrona
-    file_bytes = await file.read()
-    return restriccion_service.importar_excel(db, file_bytes)
+    return restriccion_service.importar_excel(db, file)
 
 
 @router.get(

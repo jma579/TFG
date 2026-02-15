@@ -35,6 +35,7 @@ type ProfessorFormDialogProps = {
     activo: boolean;
   }) => void;
   saving: boolean;
+  onRestriccionesChanged?: () => void;
 };
 
 export function ProfessorFormDialog({
@@ -43,6 +44,7 @@ export function ProfessorFormDialog({
   initial,
   onSubmit,
   saving,
+  onRestriccionesChanged,
 }: ProfessorFormDialogProps) {
   const [form, setForm] = React.useState<{
     nombre: string;
@@ -80,6 +82,13 @@ export function ProfessorFormDialog({
 
   const handleChange = (field: string, value: string | boolean | null) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && onRestriccionesChanged) {
+      onRestriccionesChanged();
+    }
+    onOpenChange(newOpen);
   };
 
   const basicForm = (
@@ -159,7 +168,7 @@ export function ProfessorFormDialog({
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{initial ? 'Gestionar Profesor' : 'Nuevo profesor'}</DialogTitle>
@@ -177,7 +186,7 @@ export function ProfessorFormDialog({
             </TabsContent>
 
             <TabsContent value="restricciones">
-              <ProfessorRestriccionesTab profesorId={initial.id} />
+              <ProfessorRestriccionesTab profesorId={initial.id} onRestriccionesChanged={onRestriccionesChanged} />
             </TabsContent>
           </Tabs>
         ) : (

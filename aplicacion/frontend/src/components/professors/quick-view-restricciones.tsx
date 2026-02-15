@@ -1,28 +1,41 @@
-'use client';
-
+import React from 'react';
 import { Calendar, Clock, Loader2 } from 'lucide-react';
-import * as React from 'react';
-
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { api } from '@/lib/api/config';
+import { getRestriccionesByProfesor, type Restriccion } from '@/lib/api/recursos/restricciones';
 
-type Restriccion = {
-  id: number;
-  dia_semana: string;
-  hora_inicio: string;
-  hora_fin: string;
-};
-
-type QuickViewRestriccionesProps = {
+interface QuickViewRestriccionesProps {
   profesorId: string | null;
   profesorNombre: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+// Mapeo de días para convertir número o enum a texto
+const DIAS_MAP: Record<number | string, string> = {
+  1: 'Lunes',
+  2: 'Martes',
+  3: 'Miércoles',
+  4: 'Jueves',
+  5: 'Viernes',
+  6: 'Sábado',
+  7: 'Domingo',
+  'MONDAY': 'Lunes',
+  'TUESDAY': 'Martes',
+  'WEDNESDAY': 'Miércoles',
+  'THURSDAY': 'Jueves',
+  'FRIDAY': 'Viernes',
+  'SATURDAY': 'Sábado',
+  'SUNDAY': 'Domingo',
+};
+
+const capitalizeFirstLetter = (str: string): string => {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 export function QuickViewRestricciones({
@@ -39,11 +52,18 @@ export function QuickViewRestricciones({
       const fetchRestricciones = async () => {
         setLoading(true);
         try {
-          // Llamada al endpoint que creamos en el backend
-          const res = await api.get<Restriccion[]>(`/v0/recursos/profesores/${profesorId}/restricciones`);
-          setRestricciones(res.data ?? []);
+          // La función ya devuelve Promise<Restriccion[]> según restricciones.ts
+          const data = await getRestriccionesByProfesor(profesorId);
+          
+          // Verificamos que sea un array antes de asignar
+          if (Array.isArray(data)) {
+            setRestricciones(data);
+          } else {
+            setRestricciones([]);
+          }
         } catch (error) {
           console.error("Error cargando restricciones:", error);
+          setRestricciones([]);
         } finally {
           setLoading(false);
         }
@@ -75,12 +95,14 @@ export function QuickViewRestricciones({
                 >
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium capitalize">{r.dia_semana}</span>
+                    <span className="text-sm font-medium">
+                      {capitalizeFirstLetter(DIAS_MAP[r.dia_semana] || String(r.dia_semana))}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      {r.hora_inicio.substring(0, 5)} - {r.hora_fin.substring(0, 5)}
+                      {r.hora_inicio?.substring(0, 5)} - {r.hora_fin?.substring(0, 5)}
                     </span>
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import * as React from 'react';
 import type { Professor } from '@/components/professors/data';
 import { ProfessorFormDialog } from '@/components/professors/professor-form-dialog';
 import { ProfessorsTable } from '@/components/professors/table';
+import { UploadRestriccionesDialog } from '@/components/professors/upload-restricciones-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { listProfesores, updateProfesor } from '@/lib/api/recursos/profesores'; 
@@ -22,6 +23,9 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
   const [editing, setEditing] = React.useState<Professor | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [refreshKey, setRefreshKey] = React.useState(0);
+  const [uploadOpen, setUploadOpen] = React.useState(false);
+  
 
   const refreshRows = async () => {
     try {
@@ -33,6 +37,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
         email: p.email ?? null,
         departamento: p.departamento ?? null,
         activo: p.activo,
+        total_restricciones: p.total_restricciones,
       }));
 
       nextRows.sort((a, b) => {
@@ -57,6 +62,16 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
   const handleEdit = (row: Professor) => {
     setEditing(row);
     setDialogOpen(true);
+  };
+
+  const handleUploadSuccess = () => {
+    refreshRows();
+    setRefreshKey((prev) => prev + 1);
+
+    toast({
+      title: 'Datos actualizados',
+      description: 'La lista de profesores se ha refrescado correctamente.',
+    });
   };
 
   const handleSubmit = async (values: {
@@ -121,6 +136,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
       <Card>
         <CardContent className="pt-6">
           <ProfessorsTable 
+            key={refreshKey}
             data={rows} 
             onEdit={handleEdit}
             onRefresh={refreshRows}
@@ -137,6 +153,13 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
         initial={editing}
         onSubmit={handleSubmit}
         saving={saving}
+        onRestriccionesChanged={refreshRows}
+      />
+
+      <UploadRestriccionesDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        onSuccess={handleUploadSuccess}
       />
     </div>
   );

@@ -21,6 +21,7 @@ export default async function ProfesoresPage() {
       email: p.email ?? null,
       departamento: p.departamento ?? null,
       activo: p.activo,
+      total_restricciones: p.total_restricciones, 
     }));
 
     // Ordenar alfabéticamente por nombre completo

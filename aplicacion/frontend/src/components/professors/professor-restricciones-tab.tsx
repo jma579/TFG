@@ -15,7 +15,13 @@ type Restriccion = {
   hora_fin: string;
 };
 
-export function ProfessorRestriccionesTab({ profesorId }: { profesorId: string }) {
+export function ProfessorRestriccionesTab({ 
+  profesorId,
+  onRestriccionesChanged 
+}: { 
+  profesorId: string;
+  onRestriccionesChanged?: () => void;
+}) {
   const { toast } = useToast();
   const [restricciones, setRestricciones] = React.useState<Restriccion[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -46,7 +52,8 @@ export function ProfessorRestriccionesTab({ profesorId }: { profesorId: string }
         hora_fin: `${fin}:00`
       });
       toast({ title: "Restricción añadida" });
-      cargar();
+      await cargar();
+      if (onRestriccionesChanged) onRestriccionesChanged();
     } catch {
       toast({ variant: "destructive", title: "Error al añadir" });
     }
@@ -57,6 +64,7 @@ export function ProfessorRestriccionesTab({ profesorId }: { profesorId: string }
       await api.delete(`/v0/recursos/restricciones/${id}`);
       setRestricciones(prev => prev.filter(r => r.id !== id));
       toast({ title: "Restricción eliminada" });
+      if (onRestriccionesChanged) onRestriccionesChanged();
     } catch {
       toast({ variant: "destructive", title: "Error al eliminar" });
     }
