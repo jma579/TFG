@@ -4,7 +4,7 @@ export type ConflictoTipo =
   | 'solapamiento_profesor'
   | 'solapamiento_aula'
   | 'solapamiento_grupo'
-  | 'interferencia_restriccion';
+  | 'incumplimiento_restriccion';
 
 export type ConflictoSeveridad = 'critico' | 'no_bloqueante' | 'leve';
 export type ConflictoEstado = 'por_revisar' | 'solucionado';
