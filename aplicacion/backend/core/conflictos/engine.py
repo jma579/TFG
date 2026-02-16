@@ -9,7 +9,7 @@ from core.conflictos.types import SesionRef, RestriccionRef, ResultadoDeteccion,
 from core.conflictos.basic_rules import detectar_todos_los_conflictos_basicos
 from core.conflictos.hashing import generar_hash_conflicto
 
-from database.models import Sesion, GrupoDocente, Asignatura, ProgramaAsignatura, Restriccion
+from database.models import Sesion, GrupoDocente, Asignatura, ProgramaAsignatura, ProfesorAsignatura, Restriccion
 from constants.enums import TipoConflicto, SeveridadConflicto
 
 DIAS_MAP = {
@@ -48,7 +48,11 @@ class ConflictDetectionEngine:
             joinedload(Sesion.grupo_docente)
                 .joinedload(GrupoDocente.asignatura)
                 .joinedload(Asignatura.programa_asignaturas)
-                .joinedload(ProgramaAsignatura.programa)
+                .joinedload(ProgramaAsignatura.programa),
+            joinedload(Sesion.grupo_docente)
+                .joinedload(GrupoDocente.asignatura)
+                .joinedload(Asignatura.profesores_asignaturas)
+                .joinedload(ProfesorAsignatura.profesor)
         ).all()
         
         sesiones_ref = []
@@ -70,6 +74,10 @@ class ConflictDetectionEngine:
                 if s.grupo_docente and s.grupo_docente.asignatura:
                     asig = s.grupo_docente.asignatura
                     nombres_asignaturas[asig.id] = asig.nombre
+                    
+                    for pa in asig.profesores_asignaturas:
+                        if pa.profesor:
+                            nombres_profesors[pa.profesor.id] = f"{pa.profesor.nombre} {pa.profesor.apellidos}"
                     
                     grado = "Plan de Estudios"
                     mencion = ""
@@ -95,16 +103,19 @@ class ConflictDetectionEngine:
         db_restricciones = db.query(Restriccion).all()
         for r in db_restricciones:
             if r.dia_semana is not None and r.hora_inicio and r.hora_fin:
-                slot = SlotSemanal(
-                    dia_semana=int(r.dia_semana), 
-                    hora_inicio=r.hora_inicio, 
-                    hora_fin=r.hora_fin
-                )
-                restricciones_ref.append(RestriccionRef(
-                    id=r.id,
-                    profesor_id=r.profesor_id,
-                    slot=slot
-                ))
+                dia_str = str(r.dia_semana).lower().split('.')[-1]
+                dia_int = DIAS_MAP.get(dia_str)
+                if dia_int is not None:
+                    slot = SlotSemanal(
+                        dia_semana=dia_int, 
+                        hora_inicio=r.hora_inicio, 
+                        hora_fin=r.hora_fin
+                    )
+                    restricciones_ref.append(RestriccionRef(
+                        id=r.id,
+                        profesor_id=r.profesor_id,
+                        slot=slot
+                    ))
 
         lookups = {
             "profesores": nombres_profesors,
@@ -143,10 +154,15 @@ class ConflictDetectionEngine:
         periodo_txt = (s.grupo_docente.asignatura.periodo.value.replace("_", " ").title() 
                       if s.grupo_docente.asignatura.periodo else "")
 
+        p_ids = [p.id for p in s.profesores]
+        
+        if not p_ids and s.grupo_docente and s.grupo_docente.asignatura:
+            p_ids = [pa.profesor_id for pa in s.grupo_docente.asignatura.profesores_asignaturas]
+
         return SesionRef(
             id=s.id,
             aula_id=s.aula_id,
-            profesor_ids=[p.id for p in s.profesores],
+            profesor_ids=p_ids,
             asignatura_id=s.grupo_docente.asignatura_id,
             grupo_id=s.grupo_docente.id,
             curso=s.grupo_docente.curso or 0,
