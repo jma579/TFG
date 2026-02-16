@@ -71,17 +71,13 @@ class SesionRef(BaseModel):
 
 
 class RestriccionRef(BaseModel):
-    """Referencia a una restricción docente."""
+    """Referencia a una restricción de profesor para el motor de detección."""
     id: int
-    ambito: Literal["PROFESOR", "AULA"]
-    profesor_id: Optional[int] = None
-    aula_id: Optional[int] = None
-    slot: Optional[SlotSemanal] = None
-    intervalo: Optional[Intervalo] = None
-    es_blanda: bool = False
+    profesor_id: int
+    slot: SlotSemanal
 
     model_config = {"frozen": True}
-
+    
 
 # Resultados
 

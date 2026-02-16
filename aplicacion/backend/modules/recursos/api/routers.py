@@ -4,8 +4,8 @@ Endpoints REST para el Módulo de Recursos.
 Gestión de profesores y aulas.
 """
 
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, Path, status
+from typing import Optional, List
+from fastapi import APIRouter, Depends, Query, Path, status, UploadFile, File
 from sqlalchemy.orm import Session
 
 from db.session import get_db
@@ -14,6 +14,7 @@ from constants.enums import TipoAula
 # Servicios
 from modules.recursos.services.profesor_service import profesor_service
 from modules.recursos.services.aula_service import aula_service
+from modules.recursos.services.restriccion_service import restriccion_service
 
 # Schemas
 from modules.recursos.schemas.profesor import (
@@ -21,6 +22,12 @@ from modules.recursos.schemas.profesor import (
 )
 from modules.recursos.schemas.aula import (
     AulaCreate, AulaUpdate, AulaOut, AulaList
+)
+from modules.recursos.schemas.restriccion import (
+    RestriccionCreate, 
+    RestriccionUpdate, 
+    RestriccionResponse, 
+    ImportacionRestriccionesResponse
 )
 
 router = APIRouter()
@@ -110,3 +117,71 @@ def eliminar_aula(
     db: Session = Depends(get_db)
 ):
     return aula_service.delete(db, aula_id, physical)
+
+
+# Restricciones
+
+@router.post(
+    "/restricciones/importar", 
+    response_model=ImportacionRestriccionesResponse, 
+    status_code=status.HTTP_200_OK
+)
+def importar_restricciones_excel(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa restricciones desde un archivo Excel."""
+    return restriccion_service.importar_excel(db, file)
+
+
+@router.get(
+    "/profesores/{profesor_id}/restricciones", 
+    response_model=List[RestriccionResponse], 
+    status_code=status.HTTP_200_OK
+)
+def listar_restricciones_profesor(
+    profesor_id: int = Path(..., ge=1, description="ID del profesor"),
+    db: Session = Depends(get_db)
+):
+    """Obtiene todas las restricciones asociadas a un profesor."""
+    return restriccion_service.get_restricciones_profesor(db, profesor_id)
+
+
+@router.post(
+    "/profesores/{profesor_id}/restricciones", 
+    response_model=RestriccionResponse, 
+    status_code=status.HTTP_201_CREATED
+)
+def crear_restriccion_manual(
+    restriccion_in: RestriccionCreate,
+    profesor_id: int = Path(..., ge=1, description="ID del profesor"),
+    db: Session = Depends(get_db)
+):
+    """Crea una nueva restricción para un profesor de forma manual desde la interfaz."""
+    return restriccion_service.crear_restriccion_manual(db, profesor_id, restriccion_in)
+
+
+@router.put(
+    "/restricciones/{restriccion_id}", 
+    response_model=RestriccionResponse, 
+    status_code=status.HTTP_200_OK
+)
+def actualizar_restriccion(
+    restriccion_in: RestriccionUpdate,
+    restriccion_id: int = Path(..., ge=1, description="ID de la restricción a modificar"),
+    db: Session = Depends(get_db)
+):
+    """Actualiza los horarios o el día de una restricción existente."""
+    return restriccion_service.actualizar_restriccion(db, restriccion_id, restriccion_in)
+
+
+@router.delete(
+    "/restricciones/{restriccion_id}", 
+    status_code=status.HTTP_200_OK
+)
+def eliminar_restriccion(
+    restriccion_id: int = Path(..., ge=1, description="ID de la restricción a eliminar"),
+    db: Session = Depends(get_db)
+):
+    """Elimina una restricción puntual."""
+    return restriccion_service.eliminar_restriccion(db, restriccion_id)

@@ -25,11 +25,17 @@ class ProfesorService:
     def get_profesores(
         self, db: Session, skip: int, limit: int, activo: Optional[bool]
     ) -> ProfesorList:
-        """Lista profesores con paginación."""
+        """Lista profesores con paginación incluyendo el conteo de restricciones."""
         items, total = self.repo.get_multi(db, skip, limit, activo)
+        profesores_out = []
+        for p in items:
+            p_data = ProfesorOut.model_validate(p)
+            p_data.total_restricciones = len(p.restricciones) if hasattr(p, 'restricciones') else 0
+            profesores_out.append(p_data)
+
         return ProfesorList(
             total=total, 
-            items=[ProfesorOut.model_validate(p) for p in items], 
+            items=profesores_out, 
             page=(skip // limit) + 1, 
             size=limit
         )

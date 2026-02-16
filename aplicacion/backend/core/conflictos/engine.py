@@ -5,19 +5,12 @@ Motor de Orquestación de Conflictos.
 from typing import List, Tuple, Dict
 from sqlalchemy.orm import Session as DbSession, joinedload
 
-from core.conflictos.types import SesionRef, ResultadoDeteccion, SlotSemanal, Intervalo
+from core.conflictos.types import SesionRef, RestriccionRef, ResultadoDeteccion, SlotSemanal, Intervalo
 from core.conflictos.basic_rules import detectar_todos_los_conflictos_basicos
 from core.conflictos.hashing import generar_hash_conflicto
 
-from database.models import Sesion, GrupoDocente, Asignatura, Profesor, ProgramaAsignatura
-from constants.enums import (
-    TipoConflicto, 
-    SeveridadConflicto, 
-    HORA_APERTURA_CENTRO, 
-    HORA_CIERRE_CENTRO, 
-    HORAS_CONCILIACION_NORMAL, 
-    HORAS_CONCILIACION_MIXTA
-)
+from database.models import Sesion, GrupoDocente, Asignatura, ProgramaAsignatura, ProfesorAsignatura, Restriccion
+from constants.enums import TipoConflicto, SeveridadConflicto
 
 DIAS_MAP = {
     "lunes": 0, "martes": 1, "miercoles": 2, "miércoles": 2,
@@ -34,16 +27,16 @@ class ConflictDetectionEngine:
         self, sesion_id: int, db: DbSession
     ) -> List[ResultadoDeteccion]:
         """Detecta conflictos para una sesión específica."""
-        sesiones_ref, mapa_conciliacion, lookups = self._db_to_refs(db)
-        resultados = self._execute_detection(sesiones_ref, mapa_conciliacion, lookups)
+        sesiones_ref, restricciones_ref, lookups = self._db_to_refs(db) 
+        resultados = self._execute_detection(sesiones_ref, restricciones_ref, lookups)
         return [r for r in resultados if sesion_id in (r.sesion_id, r.sesion_2_id or -1)]
 
     def detect_conflicts_for_range(self, db: DbSession) -> List[ResultadoDeteccion]:
         """Detecta conflictos para todas las sesiones."""
-        sesiones_ref, mapa_conciliacion, lookups = self._db_to_refs(db)
-        return self._execute_detection(sesiones_ref, mapa_conciliacion, lookups)
+        sesiones_ref, restricciones_ref, lookups = self._db_to_refs(db) 
+        return self._execute_detection(sesiones_ref, restricciones_ref, lookups)
 
-    def _db_to_refs(self, db: DbSession) -> Tuple[List[SesionRef], Dict[int, str], Dict[str, Dict]]:
+    def _db_to_refs(self, db: DbSession) -> Tuple[List[SesionRef], List[RestriccionRef], Dict[str, Dict]]:
         """Extrae datos de la base de datos y los convierte a referencias."""
         db_sesiones = db.query(Sesion).options(
             joinedload(Sesion.profesores),
@@ -55,13 +48,13 @@ class ConflictDetectionEngine:
             joinedload(Sesion.grupo_docente)
                 .joinedload(GrupoDocente.asignatura)
                 .joinedload(Asignatura.programa_asignaturas)
-                .joinedload(ProgramaAsignatura.programa)
+                .joinedload(ProgramaAsignatura.programa),
+            joinedload(Sesion.grupo_docente)
+                .joinedload(GrupoDocente.asignatura)
+                .joinedload(Asignatura.profesores_asignaturas)
+                .joinedload(ProfesorAsignatura.profesor)
         ).all()
         
-        db_profes_conciliacion = db.query(Profesor).filter(
-            Profesor.conciliacion.isnot(None)
-        ).all()
-
         sesiones_ref = []
         nombres_profesors = {}
         nombres_aulas = {}
@@ -81,6 +74,10 @@ class ConflictDetectionEngine:
                 if s.grupo_docente and s.grupo_docente.asignatura:
                     asig = s.grupo_docente.asignatura
                     nombres_asignaturas[asig.id] = asig.nombre
+                    
+                    for pa in asig.profesores_asignaturas:
+                        if pa.profesor:
+                            nombres_profesors[pa.profesor.id] = f"{pa.profesor.nombre} {pa.profesor.apellidos}"
                     
                     grado = "Plan de Estudios"
                     mencion = ""
@@ -102,9 +99,23 @@ class ConflictDetectionEngine:
             except ValueError:
                 continue
 
-        mapa_conciliacion = {p.id: p.conciliacion.value for p in db_profes_conciliacion}
-        for p in db_profes_conciliacion:
-            nombres_profesors[p.id] = f"{p.nombre} {p.apellidos}"
+        restricciones_ref = []
+        db_restricciones = db.query(Restriccion).all()
+        for r in db_restricciones:
+            if r.dia_semana is not None and r.hora_inicio and r.hora_fin:
+                dia_str = str(r.dia_semana).lower().split('.')[-1]
+                dia_int = DIAS_MAP.get(dia_str)
+                if dia_int is not None:
+                    slot = SlotSemanal(
+                        dia_semana=dia_int, 
+                        hora_inicio=r.hora_inicio, 
+                        hora_fin=r.hora_fin
+                    )
+                    restricciones_ref.append(RestriccionRef(
+                        id=r.id,
+                        profesor_id=r.profesor_id,
+                        slot=slot
+                    ))
 
         lookups = {
             "profesores": nombres_profesors,
@@ -113,7 +124,7 @@ class ConflictDetectionEngine:
             "info_academica": info_academica
         }
 
-        return sesiones_ref, mapa_conciliacion, lookups
+        return sesiones_ref, restricciones_ref, lookups
 
     def _convert_sesion(self, s: Sesion) -> SesionRef:
         """Convierte una sesión de SQLAlchemy a SesionRef."""
@@ -143,10 +154,15 @@ class ConflictDetectionEngine:
         periodo_txt = (s.grupo_docente.asignatura.periodo.value.replace("_", " ").title() 
                       if s.grupo_docente.asignatura.periodo else "")
 
+        p_ids = [p.id for p in s.profesores]
+        
+        if not p_ids and s.grupo_docente and s.grupo_docente.asignatura:
+            p_ids = [pa.profesor_id for pa in s.grupo_docente.asignatura.profesores_asignaturas]
+
         return SesionRef(
             id=s.id,
             aula_id=s.aula_id,
-            profesor_ids=[p.id for p in s.profesores],
+            profesor_ids=p_ids,
             asignatura_id=s.grupo_docente.asignatura_id,
             grupo_id=s.grupo_docente.id,
             curso=s.grupo_docente.curso or 0,
@@ -165,7 +181,7 @@ class ConflictDetectionEngine:
     def _execute_detection(
         self, 
         sesiones: List[SesionRef], 
-        mapa_conciliacion: Dict, 
+        restricciones: List[RestriccionRef],
         lookups: Dict
     ) -> List[ResultadoDeteccion]:
         """Ejecuta la detección y construye los resultados."""
@@ -173,11 +189,7 @@ class ConflictDetectionEngine:
         get_aula = lambda id: lookups["aulas"].get(id, f"Aula {id}")
         get_profe = lambda id: lookups["profesores"].get(id, f"Docente {id}")
 
-        (sol_aula, sol_prof, sol_grupo, sol_conciliacion) = detectar_todos_los_conflictos_basicos(
-            sesiones, mapa_conciliacion,
-            HORA_APERTURA_CENTRO, HORA_CIERRE_CENTRO,
-            HORAS_CONCILIACION_NORMAL, HORAS_CONCILIACION_MIXTA
-        )
+        (sol_aula, sol_prof, sol_grupo, sol_restriccion) = detectar_todos_los_conflictos_basicos(sesiones, restricciones)
 
         for s1, s2, aid in sol_aula:
             resultados.append(ResultadoDeteccion(
@@ -223,13 +235,19 @@ class ConflictDetectionEngine:
                 hash_deteccion="temp"
             ))
 
-        for sesion, pid, motivo in sol_conciliacion:
+        for s1, rest, pid in sol_restriccion:
+            h_ini = rest.slot.hora_inicio.strftime("%H:%M")
+            h_fin = rest.slot.hora_fin.strftime("%H:%M")
+            desc = f"Restricción de {get_profe(pid)}: No disponible de {h_ini} a {h_fin}."
+
             resultados.append(ResultadoDeteccion(
-                tipo=TipoConflicto.INTERFERENCIA_CONCILIACION,
+                tipo=TipoConflicto.INCUMPLIMIENTO_RESTRICCION,
                 severidad=SeveridadConflicto.NO_BLOQUEANTE,
-                sesion_id=sesion.id,
+                sesion_id=s1.id,
+                sesion_2_id=None,
                 profesor_id=pid,
-                descripcion=f"{get_profe(pid)}: {motivo}",
+                restriccion_id=rest.id,
+                descripcion=desc,
                 hash_deteccion="temp"
             ))
 
@@ -240,6 +258,5 @@ class ConflictDetectionEngine:
                 unique[r.hash_deteccion] = r
         
         return list(unique.values())
-
 
 conflict_engine = ConflictDetectionEngine()

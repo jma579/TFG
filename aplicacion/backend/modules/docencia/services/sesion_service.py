@@ -218,7 +218,7 @@ class SesionService:
                              sesion_repository.update_profesores(db, item.id, p_data)
 
             for create_item in payload.created:
-                sesion_data = create_item.model_dump(exclude={'temp_id'})
+                sesion_data = create_item.model_dump(exclude={'temp_id', 'profesores'})
                 new_sesion = sesion_repository.create(db, sesion_data)
                 if create_item.profesores:
                     for p in create_item.profesores:
@@ -227,6 +227,8 @@ class SesionService:
                     id_map[new_sesion.id] = create_item.temp_id
 
             db.flush() 
+
+            db.expire_all()
 
             resultados = conflict_engine.detect_conflicts_for_range(db)
             

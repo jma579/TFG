@@ -6,17 +6,17 @@ NO accede a base de datos. NO decide severidades.
 Solo responde: "¿X choca con Y?"
 """
 
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 from collections import defaultdict
-from datetime import datetime, date, timedelta, time
+from datetime import time
 
-from core.conflictos.types import SesionRef
+from core.conflictos.types import SesionRef, RestriccionRef
 
 # Definición de Primitivas de Retorno (Tuplas crudas)
 SolapamientoProfesor = Tuple[SesionRef, SesionRef, int] # (Sesión A, Sesión B, Profesor ID)
 SolapamientoAula = Tuple[SesionRef, SesionRef, int] # (Sesión A, Sesión B, Aula ID)
 SolapamientoGrupo = Tuple[SesionRef, SesionRef, int, str] # (Sesión A, Sesión B, Asignatura ID común o 0, Motivo específico) 
-InterferenciaConciliacion = Tuple[SesionRef, int, str] # (Sesión, Profesor ID, Motivo específico)
+IncumplimientoRestriccion = Tuple[SesionRef, RestriccionRef, int] # (Sesión infractora, Restricción incumplida, Profesor ID)
 
 
 # Motor Matemático Temporal
@@ -139,81 +139,48 @@ def detectar_solapamientos_grupos(sesiones: List[SesionRef]) -> List[Solapamient
     return conflictos
 
 
-# Reglas de Conciliación Docente
+# Reglas de Restricciones
 
-def detectar_interferencias_conciliacion(
-    sesiones: List[SesionRef],
-    mapa_conciliacion: Dict[int, str],
-    hora_apertura: time,
-    hora_cierre: time,
-    margen_normal: int,
-    margen_mixto: int
-) -> List[InterferenciaConciliacion]:
-    """Verifica si las sesiones respetan los derechos de conciliación."""
+def detectar_incumplimiento_restricciones(
+    sesiones: List[SesionRef], 
+    restricciones: List[RestriccionRef]
+) -> List[IncumplimientoRestriccion]:
+    """
+    Detecta si una sesión ha sido programada en una franja horaria donde 
+    el profesor tiene una restricción de disponibilidad.
+    """
     conflictos = []
     
-    def sumar_h(t: time, h: int) -> time:
-        return (datetime.combine(date.today(), t) + timedelta(hours=h)).time()
-    
-    def restar_h(t: time, h: int) -> time:
-        return (datetime.combine(date.today(), t) - timedelta(hours=h)).time()
-
-    limite_entrada = sumar_h(hora_apertura, margen_normal)
-    limite_salida = restar_h(hora_cierre, margen_normal)
-    limite_mix_am = sumar_h(hora_apertura, margen_mixto)
-    limite_mix_pm = restar_h(hora_cierre, margen_mixto)
-
+    restricciones_por_profesor = defaultdict(list)
+    for r in restricciones:
+        restricciones_por_profesor[r.profesor_id].append(r)
+        
     for s in sesiones:
-        if not s.slot:
+        if not s.profesor_ids or not s.slot:
             continue
-        
-        inicio = s.slot.hora_inicio
-        fin = s.slot.hora_fin
-        
+            
         for pid in s.profesor_ids:
-            tipo = mapa_conciliacion.get(pid)
-            if not tipo:
-                continue
-            
-            motivo = None
-            
-            if tipo == "entrada_tardia":
-                if inicio < limite_entrada:
-                    motivo = f"Clase inicia a las {inicio}, violando margen de entrada ({limite_entrada})."
-            
-            elif tipo == "salida_temprana":
-                if fin > limite_salida:
-                    motivo = f"Clase termina a las {fin}, violando margen de salida ({limite_salida})."
-            
-            elif tipo == "mixta":
-                if inicio < limite_mix_am:
-                    motivo = f"Violación margen entrada mixto ({inicio} < {limite_mix_am})."
-                elif fin > limite_mix_pm:
-                    motivo = f"Violación margen salida mixto ({fin} > {limite_mix_pm})."
-            
-            if motivo:
-                conflictos.append((s, pid, motivo))
-
+            if pid in restricciones_por_profesor:
+                for r in restricciones_por_profesor[pid]:
+                    if s.slot.dia_semana == r.slot.dia_semana:
+                        hay_solape = _solapamiento_horas(
+                            s.slot.hora_inicio, s.slot.hora_fin,
+                            r.slot.hora_inicio, r.slot.hora_fin
+                        )
+                        
+                        if hay_solape:
+                            conflictos.append((s, r, pid))
+                            
     return conflictos
 
 
 # Fachada Principal
 
-def detectar_todos_los_conflictos_basicos(
-    sesiones: List[SesionRef],
-    mapa_conciliacion: Dict[int, str],
-    hora_apertura: time,
-    hora_cierre: time,
-    margen_normal: int,
-    margen_mixto: int
-):
+def detectar_todos_los_conflictos_basicos(sesiones: List[SesionRef], restricciones: List[RestriccionRef] = None):
     """Ejecuta todas las reglas matemáticas en orden."""
     s_aula = detectar_solapamientos_aula(sesiones)
     s_prof = detectar_solapamientos_profesor(sesiones)
     s_grupo = detectar_solapamientos_grupos(sesiones)
-    s_conciliacion = detectar_interferencias_conciliacion(
-        sesiones, mapa_conciliacion, 
-        hora_apertura, hora_cierre, margen_normal, margen_mixto
-    )
+    s_restriccion = detectar_incumplimiento_restricciones(sesiones, restricciones)
     
-    return s_aula, s_prof, s_grupo, s_conciliacion
+    return s_aula, s_prof, s_grupo, s_restriccion
