@@ -70,7 +70,7 @@ const tipoConfig: Record<ConflictoTipo, TipoConfig> = {
   solapamiento_aula: { label: 'Aula', icon: Building2 },
   solapamiento_profesor: { label: 'Profesor', icon: GraduationCap },
   solapamiento_grupo: { label: 'Grupo', icon: Users },
-  interferencia_conciliacion: { label: 'Conciliación', icon: Scale },
+  interferencia_restriccion: { label: 'Restricción', icon: Scale },
 };
 
 // ============================================================================

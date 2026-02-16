@@ -261,7 +261,7 @@ export function DataTable<TData, TValue>({
                 { label: "Solape Aula", value: "SOLAPAMIENTO_AULA" },
                 { label: "Solape Profesor", value: "SOLAPAMIENTO_PROFESOR" },
                 { label: "Grupo/Plan", value: "SOLAPAMIENTO_GRUPO" },
-                { label: "Conciliación", value: "INTERFERENCIA_CONCILIACION" },
+                { label: "Restricción", value: "INTERFERENCIA_RESTRICCION" },
               ]}
             />
           )}
