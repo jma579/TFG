@@ -11,8 +11,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from constants.enums import (
     TipoPrograma, Periodo, ModalidadAsignatura, Idioma, TipoAula,
     ModalidadSesion, TipoGrupoDocente, TipoRecurrencia, DiaSemana,
-    TipoRestriccion, DurezaRestriccion, SeveridadConflicto,
-    TipoConflicto, EstadoConflicto, TipoAsignatura, TipoConciliacion
+    SeveridadConflicto, TipoConflicto, EstadoConflicto,
+    TipoAsignatura
 )
 
 Base = declarative_base()
@@ -109,7 +109,6 @@ class Profesor(Base):
     telefono = Column(String(20), unique=True)
     departamento = Column(String(200))
     activo = Column(Boolean, default=True, nullable=False)
-    conciliacion = Column(Enum(TipoConciliacion), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("nombre", "apellidos", name="uq_profesor_nombre_apellidos"),
@@ -118,7 +117,7 @@ class Profesor(Base):
 
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="profesor", passive_deletes=True)
     profesores_sesiones = relationship("ProfesorSesion", back_populates="profesor", passive_deletes=True)
-    restricciones = relationship("Restriccion", back_populates="profesor", passive_deletes=True)
+    restricciones = relationship("Restriccion", back_populates="profesor", cascade="all, delete-orphan", passive_deletes=True)
     conflictos = relationship("Conflicto", back_populates="profesor", passive_deletes=True)
 
     # Conveniencia (solo lectura)
@@ -146,18 +145,16 @@ class Aula(Base):
 class Restriccion(Base):
     __tablename__ = "restricciones"
     id = Column(Integer, primary_key=True)
-    tipo = Column(Enum(TipoRestriccion), nullable=False)
-    dureza = Column(Enum(DurezaRestriccion), nullable=False)
-    motivo = Column(Text, nullable=True)
-    profesor_id = Column(Integer, ForeignKey("profesores.id", ondelete="SET NULL"))
-    inicio = Column(DateTime, nullable=False)
-    fin = Column(DateTime, nullable=False)
+    profesor_id = Column(Integer, ForeignKey("profesores.id", ondelete="CASCADE"), nullable=False)
+    dia_semana = Column(Enum(DiaSemana), nullable=False)
+    hora_inicio = Column(Time, nullable=False)
+    hora_fin = Column(Time, nullable=False)
 
     __table_args__ = (
-        CheckConstraint("fin > inicio", name="ck_restriccion_fechas_coherentes"),
-        Index("ix_restriccion_profesor", "profesor_id"),
-        Index("ix_restriccion_fechas", "inicio", "fin"), 
-    )
+            CheckConstraint("hora_fin > hora_inicio", name="ck_restriccion_horas_coherentes"),
+            Index("ix_restriccion_profesor", "profesor_id"),
+            Index("ix_restriccion_franja", "dia_semana", "hora_inicio", "hora_fin"), 
+        )
 
     profesor = relationship("Profesor", back_populates="restricciones")
     conflictos = relationship("Conflicto", back_populates="restriccion", passive_deletes=True)

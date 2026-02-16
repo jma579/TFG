@@ -2,12 +2,15 @@
 
 import * as React from 'react';
 
-import type { Professor, TipoConciliacion } from '@/components/professors/data';
+import type { Professor } from '@/components/professors/data';
 import { ProfessorFormDialog } from '@/components/professors/professor-form-dialog';
 import { ProfessorsTable } from '@/components/professors/table';
+import { UploadRestriccionesDialog } from '@/components/professors/upload-restricciones-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfesor } from '@/lib/api/recursos/profesores'; 
+import { listProfesores, updateProfesor } from '@/lib/api/recursos/profesores'; 
+
+const PROFESSORS_LIMIT = 1000;
 
 type ProfessorsScreenProps = {
   data: Professor[];
@@ -20,10 +23,55 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
   const [editing, setEditing] = React.useState<Professor | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [refreshKey, setRefreshKey] = React.useState(0);
+  const [uploadOpen, setUploadOpen] = React.useState(false);
+  
+
+  const refreshRows = async () => {
+    try {
+      const resp = await listProfesores({ limit: PROFESSORS_LIMIT });
+      const nextRows = resp.items.map((p) => ({
+        id: String(p.id),
+        nombre: p.nombre,
+        apellidos: p.apellidos,
+        email: p.email ?? null,
+        departamento: p.departamento ?? null,
+        activo: p.activo,
+        total_restricciones: p.total_restricciones,
+      }));
+
+      nextRows.sort((a, b) => {
+        const nameA = `${a.nombre} ${a.apellidos}`.toLowerCase();
+        const nameB = `${b.nombre} ${b.apellidos}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
+      setRows(nextRows);
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al refrescar',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'No se pudieron recargar los profesores.',
+      });
+    }
+  };
 
   const handleEdit = (row: Professor) => {
     setEditing(row);
     setDialogOpen(true);
+  };
+
+  const handleUploadSuccess = () => {
+    refreshRows();
+    setRefreshKey((prev) => prev + 1);
+
+    toast({
+      title: 'Datos actualizados',
+      description: 'La lista de profesores se ha refrescado correctamente.',
+    });
   };
 
   const handleSubmit = async (values: {
@@ -32,7 +80,6 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion; 
   }) => {
     if (!editing) return;
     
@@ -45,7 +92,6 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
         email: values.email || null,
         departamento: values.departamento || null,
         activo: values.activo,
-        conciliacion: values.conciliacion,
       });
 
       setRows((prev) =>
@@ -58,7 +104,7 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
                 email: updated.email ?? null,
                 departamento: updated.departamento ?? null,
                 activo: updated.activo,
-                conciliacion: updated.conciliacion ?? null, 
+                total_restricciones: row.total_restricciones,
               }
             : row,
         ),
@@ -90,8 +136,10 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
       <Card>
         <CardContent className="pt-6">
           <ProfessorsTable 
+            key={refreshKey}
             data={rows} 
-            onEdit={handleEdit} 
+            onEdit={handleEdit}
+            onRefresh={refreshRows}
           />
         </CardContent>
       </Card>
@@ -105,6 +153,13 @@ export function ProfessorsScreen({ data }: ProfessorsScreenProps) {
         initial={editing}
         onSubmit={handleSubmit}
         saving={saving}
+        onRestriccionesChanged={refreshRows}
+      />
+
+      <UploadRestriccionesDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        onSuccess={handleUploadSuccess}
       />
     </div>
   );

@@ -12,8 +12,10 @@ import {
 } from '@tanstack/react-table';
 import {
   ArrowUpDown,
+  Clock,
   MoreHorizontal,
   Search,
+  Upload,
   X
 } from 'lucide-react';
 import * as React from 'react';
@@ -44,13 +46,16 @@ import {
 } from '@/components/ui/table';
 
 import type { Professor } from './data';
+import { QuickViewRestricciones } from './quick-view-restricciones';
+import { UploadRestriccionesDialog } from './upload-restricciones-dialog';
 
 type ProfessorsTableProps = {
   data: Professor[];
   onEdit: (row: Professor) => void;
+  onRefresh?: () => void;
 };
 
-export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
+export function ProfessorsTable({ data, onEdit, onRefresh }: ProfessorsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'nombre', desc: false }
   ]);
@@ -58,6 +63,14 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
     { id: 'activo', value: 'active' }
   ]);
   const [globalFilter, setGlobalFilter] = React.useState('');
+  const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
+  const [quickViewOpen, setQuickViewOpen] = React.useState(false);
+  const [selectedProf, setSelectedProf] = React.useState<Professor | null>(null);
+
+  const handleOpenQuickView = React.useCallback((prof: Professor) => {
+    setSelectedProf(prof);
+    setQuickViewOpen(true);
+  }, []);
 
   const columns = React.useMemo<ColumnDef<Professor>[]>(
     () => [
@@ -137,32 +150,22 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
         ),
       },
       {
-        accessorKey: 'conciliacion',
-        header: 'Conciliación',
+        accessorKey: 'restricciones',
+        header: 'Restricciones',
         cell: ({ row }) => {
-          const val = row.original.conciliacion;
-          if (!val) return <span className="text-muted-foreground text-xs">—</span>;
-          
-          let label: string = val;
-          let colorClass = "bg-slate-100 text-slate-700";
-
-          if (val === 'entrada_tardia') {
-            label = "Entrada Tardía";
-            colorClass = "bg-indigo-50 text-indigo-700 border-indigo-200";
-          } else if (val === 'salida_temprana') {
-            label = "Salida Temprana";
-            colorClass = "bg-rose-50 text-rose-700 border-rose-200";
-          } else if (val === 'mixta') {
-            label = "Mixta (±1h)";
-            colorClass = "bg-violet-50 text-violet-700 border-violet-200";
-          }
-
+          const count = row.original.total_restricciones ?? 0;
           return (
-            <Badge variant="outline" className={`whitespace-nowrap ${colorClass}`}>
-              {label}
-            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className={`h-7 px-2 text-xs gap-1.5 ${count > 0 ? 'border-primary/50 text-primary bg-primary/5' : ''}`}
+              onClick={() => handleOpenQuickView(row.original)}
+            >
+              <Clock className="h-3 w-3" />
+              {count > 0 ? `${count} franjas` : 'Sin asignar'}
+            </Button>
           );
-        },
+        }
       },
       {
         accessorKey: 'activo',
@@ -208,7 +211,7 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
         },
       },
     ],
-    [onEdit]
+    [handleOpenQuickView, onEdit]
   );
 
   const table = useReactTable({
@@ -254,6 +257,16 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
               <SelectItem value="inactive">Inactivos</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-2 ml-auto"
+            onClick={() => setUploadDialogOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            Subir restricciones
+          </Button>
           
           {(globalFilter || columnFilters.length > 1) && (
             <Button
@@ -328,6 +341,21 @@ export function ProfessorsTable({ data, onEdit }: ProfessorsTableProps) {
           {table.getFilteredRowModel().rows.length} profesores.
         </div>
       </div>
+
+      <UploadRestriccionesDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onSuccess={() => {
+          onRefresh?.();
+        }}
+      />
+
+      <QuickViewRestricciones
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+        profesorId={selectedProf?.id || null}
+        profesorNombre={selectedProf ? `${selectedProf.nombre} ${selectedProf.apellidos}` : ''}
+      />
     </div>
   );
 }

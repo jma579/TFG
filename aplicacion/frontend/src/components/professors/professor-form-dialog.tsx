@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,8 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import type { Professor, TipoConciliacion } from './data';
+import type { Professor } from './data';
+import { ProfessorRestriccionesTab } from './professor-restricciones-tab';
 
 type ProfessorFormDialogProps = {
   open: boolean;
@@ -32,9 +33,9 @@ type ProfessorFormDialogProps = {
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion; 
   }) => void;
   saving: boolean;
+  onRestriccionesChanged?: () => void;
 };
 
 export function ProfessorFormDialog({
@@ -43,6 +44,7 @@ export function ProfessorFormDialog({
   initial,
   onSubmit,
   saving,
+  onRestriccionesChanged,
 }: ProfessorFormDialogProps) {
   const [form, setForm] = React.useState<{
     nombre: string;
@@ -50,14 +52,12 @@ export function ProfessorFormDialog({
     email: string;
     departamento: string;
     activo: boolean;
-    conciliacion: TipoConciliacion;
   }>({
     nombre: '',
     apellidos: '',
     email: '',
     departamento: '',
     activo: true,
-    conciliacion: null,
   });
 
   React.useEffect(() => {
@@ -68,7 +68,6 @@ export function ProfessorFormDialog({
         email: initial.email ?? '',
         departamento: initial.departamento ?? '',
         activo: initial.activo,
-        conciliacion: initial.conciliacion,
       });
     } else {
       setForm({
@@ -77,7 +76,6 @@ export function ProfessorFormDialog({
         email: '',
         departamento: '',
         activo: true,
-        conciliacion: null,
       });
     }
   }, [initial, open]);
@@ -86,116 +84,123 @@ export function ProfessorFormDialog({
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && onRestriccionesChanged) {
+      onRestriccionesChanged();
+    }
+    onOpenChange(newOpen);
+  };
+
+  const basicForm = (
+    <div className="space-y-4 py-2">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground" htmlFor="nombre">
+            Nombre
+          </label>
+          <Input
+            id="nombre"
+            value={form.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
+          />
+        </div>
+        <div className="space-y-1">
+          <label
+            className="text-xs font-medium text-muted-foreground"
+            htmlFor="apellidos"
+          >
+            Apellidos
+          </label>
+          <Input
+            id="apellidos"
+            value={form.apellidos}
+            onChange={(e) => handleChange('apellidos', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground" htmlFor="email">
+          Email
+        </label>
+        <Input
+          id="email"
+          type="email"
+          value={form.email}
+          onChange={(e) => handleChange('email', e.target.value)}
+          placeholder="nombre.apellidos@universidad.es"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label
+          className="text-xs font-medium text-muted-foreground"
+          htmlFor="departamento"
+        >
+          Departamento
+        </label>
+        <Input
+          id="departamento"
+          value={form.departamento}
+          onChange={(e) => handleChange('departamento', e.target.value)}
+          placeholder="Departamento"
+        />
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-1">
+          <span className="text-xs font-medium text-muted-foreground">Estado</span>
+          <Select
+            value={form.activo ? 'active' : 'inactive'}
+            onValueChange={(value) => handleChange('activo', value === 'active')}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? 'Editar profesor' : 'Nuevo profesor'}</DialogTitle>
-          <DialogDescription>
-            {initial
-              ? 'Actualiza los datos y preferencias del profesor.'
-              : 'Introduce los datos del nuevo profesor.'}
-          </DialogDescription>
+          <DialogTitle>{initial ? 'Gestionar Profesor' : 'Nuevo profesor'}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground" htmlFor="nombre">
-                Nombre
-              </label>
-              <Input
-                id="nombre"
-                value={form.nombre}
-                onChange={(e) => handleChange('nombre', e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <label
-                className="text-xs font-medium text-muted-foreground"
-                htmlFor="apellidos"
-              >
-                Apellidos
-              </label>
-              <Input
-                id="apellidos"
-                value={form.apellidos}
-                onChange={(e) => handleChange('apellidos', e.target.value)}
-              />
-            </div>
-          </div>
+        {initial ? (
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="basic">Datos Basicos</TabsTrigger>
+              <TabsTrigger value="restricciones">Restricciones Horarias</TabsTrigger>
+            </TabsList>
 
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground" htmlFor="email">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              placeholder="nombre.apellidos@universidad.es"
-            />
-          </div>
+            <TabsContent value="basic" className="space-y-4 py-4">
+              {basicForm}
+            </TabsContent>
 
-          <div className="space-y-1">
-            <label
-              className="text-xs font-medium text-muted-foreground"
-              htmlFor="departamento"
-            >
-              Departamento
-            </label>
-            <Input
-              id="departamento"
-              value={form.departamento}
-              onChange={(e) => handleChange('departamento', e.target.value)}
-              placeholder="Departamento"
-            />
+            <TabsContent value="restricciones">
+              <ProfessorRestriccionesTab profesorId={initial.id} onRestriccionesChanged={onRestriccionesChanged} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="space-y-4 py-4">
+            {basicForm}
           </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Conciliación</span>
-              <Select
-                value={form.conciliacion ?? 'none'} 
-                onValueChange={(value) => handleChange('conciliacion', value === 'none' ? null : value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sin preferencia" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Ninguna</SelectItem>
-                  <SelectItem value="entrada_tardia">Entrada Tardía (+2h)</SelectItem>
-                  <SelectItem value="salida_temprana">Salida Temprana (-2h)</SelectItem>
-                  <SelectItem value="mixta">Mixta (±1h)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Estado</span>
-              <Select
-                value={form.activo ? 'active' : 'inactive'}
-                onValueChange={(value) => handleChange('activo', value === 'active')}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancelar
+            Cerrar
           </Button>
           <Button onClick={() => onSubmit(form)} disabled={saving}>
-            {saving ? 'Guardando…' : 'Guardar cambios'}
+            {saving ? 'Guardando…' : 'Guardar Datos'}
           </Button>
         </DialogFooter>
       </DialogContent>
