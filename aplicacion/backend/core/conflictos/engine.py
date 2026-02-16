@@ -5,11 +5,11 @@ Motor de Orquestación de Conflictos.
 from typing import List, Tuple, Dict
 from sqlalchemy.orm import Session as DbSession, joinedload
 
-from core.conflictos.types import SesionRef, ResultadoDeteccion, SlotSemanal, Intervalo
+from core.conflictos.types import SesionRef, RestriccionRef, ResultadoDeteccion, SlotSemanal, Intervalo
 from core.conflictos.basic_rules import detectar_todos_los_conflictos_basicos
 from core.conflictos.hashing import generar_hash_conflicto
 
-from database.models import Sesion, GrupoDocente, Asignatura, Profesor, ProgramaAsignatura
+from database.models import Sesion, GrupoDocente, Asignatura, ProgramaAsignatura, Restriccion
 from constants.enums import TipoConflicto, SeveridadConflicto
 
 DIAS_MAP = {
@@ -27,16 +27,16 @@ class ConflictDetectionEngine:
         self, sesion_id: int, db: DbSession
     ) -> List[ResultadoDeteccion]:
         """Detecta conflictos para una sesión específica."""
-        sesiones_ref, lookups = self._db_to_refs(db)
-        resultados = self._execute_detection(sesiones_ref, lookups)
+        sesiones_ref, restricciones_ref, lookups = self._db_to_refs(db) 
+        resultados = self._execute_detection(sesiones_ref, restricciones_ref, lookups)
         return [r for r in resultados if sesion_id in (r.sesion_id, r.sesion_2_id or -1)]
 
     def detect_conflicts_for_range(self, db: DbSession) -> List[ResultadoDeteccion]:
         """Detecta conflictos para todas las sesiones."""
-        sesiones_ref, lookups = self._db_to_refs(db)
-        return self._execute_detection(sesiones_ref, lookups)
+        sesiones_ref, restricciones_ref, lookups = self._db_to_refs(db) 
+        return self._execute_detection(sesiones_ref, restricciones_ref, lookups)
 
-    def _db_to_refs(self, db: DbSession) -> Tuple[List[SesionRef], Dict[str, Dict]]:
+    def _db_to_refs(self, db: DbSession) -> Tuple[List[SesionRef], List[RestriccionRef], Dict[str, Dict]]:
         """Extrae datos de la base de datos y los convierte a referencias."""
         db_sesiones = db.query(Sesion).options(
             joinedload(Sesion.profesores),
@@ -91,6 +91,21 @@ class ConflictDetectionEngine:
             except ValueError:
                 continue
 
+        restricciones_ref = []
+        db_restricciones = db.query(Restriccion).all()
+        for r in db_restricciones:
+            if r.dia_semana is not None and r.hora_inicio and r.hora_fin:
+                slot = SlotSemanal(
+                    dia_semana=int(r.dia_semana), 
+                    hora_inicio=r.hora_inicio, 
+                    hora_fin=r.hora_fin
+                )
+                restricciones_ref.append(RestriccionRef(
+                    id=r.id,
+                    profesor_id=r.profesor_id,
+                    slot=slot
+                ))
+
         lookups = {
             "profesores": nombres_profesors,
             "aulas": nombres_aulas,
@@ -98,7 +113,7 @@ class ConflictDetectionEngine:
             "info_academica": info_academica
         }
 
-        return sesiones_ref, lookups
+        return sesiones_ref, restricciones_ref, lookups
 
     def _convert_sesion(self, s: Sesion) -> SesionRef:
         """Convierte una sesión de SQLAlchemy a SesionRef."""
@@ -150,6 +165,7 @@ class ConflictDetectionEngine:
     def _execute_detection(
         self, 
         sesiones: List[SesionRef], 
+        restricciones: List[RestriccionRef],
         lookups: Dict
     ) -> List[ResultadoDeteccion]:
         """Ejecuta la detección y construye los resultados."""
@@ -157,7 +173,7 @@ class ConflictDetectionEngine:
         get_aula = lambda id: lookups["aulas"].get(id, f"Aula {id}")
         get_profe = lambda id: lookups["profesores"].get(id, f"Docente {id}")
 
-        (sol_aula, sol_prof, sol_grupo) = detectar_todos_los_conflictos_basicos(sesiones)
+        (sol_aula, sol_prof, sol_grupo, sol_restriccion) = detectar_todos_los_conflictos_basicos(sesiones, restricciones)
 
         for s1, s2, aid in sol_aula:
             resultados.append(ResultadoDeteccion(
@@ -199,6 +215,22 @@ class ConflictDetectionEngine:
                 sesion_id=s1.id,
                 sesion_2_id=s2.id,
                 asignatura_id=s1.asignatura_id,
+                descripcion=desc,
+                hash_deteccion="temp"
+            ))
+
+        for s1, rest, pid in sol_restriccion:
+            h_ini = rest.slot.hora_inicio.strftime("%H:%M")
+            h_fin = rest.slot.hora_fin.strftime("%H:%M")
+            desc = f"Restricción de {get_profe(pid)}: No disponible de {h_ini} a {h_fin}."
+
+            resultados.append(ResultadoDeteccion(
+                tipo=TipoConflicto.INCUMPLIMIENTO_RESTRICCION,
+                severidad=SeveridadConflicto.NO_BLOQUEANTE,
+                sesion_id=s1.id,
+                sesion_2_id=None,
+                profesor_id=pid,
+                restriccion_id=rest.id,
                 descripcion=desc,
                 hash_deteccion="temp"
             ))

@@ -10,12 +10,13 @@ from typing import List, Tuple
 from collections import defaultdict
 from datetime import time
 
-from core.conflictos.types import SesionRef
+from core.conflictos.types import SesionRef, RestriccionRef
 
 # Definición de Primitivas de Retorno (Tuplas crudas)
 SolapamientoProfesor = Tuple[SesionRef, SesionRef, int] # (Sesión A, Sesión B, Profesor ID)
 SolapamientoAula = Tuple[SesionRef, SesionRef, int] # (Sesión A, Sesión B, Aula ID)
 SolapamientoGrupo = Tuple[SesionRef, SesionRef, int, str] # (Sesión A, Sesión B, Asignatura ID común o 0, Motivo específico) 
+IncumplimientoRestriccion = Tuple[SesionRef, RestriccionRef, int] # (Sesión infractora, Restricción incumplida, Profesor ID)
 
 
 # Motor Matemático Temporal
@@ -138,12 +139,48 @@ def detectar_solapamientos_grupos(sesiones: List[SesionRef]) -> List[Solapamient
     return conflictos
 
 
+# Reglas de Restricciones
+
+def detectar_incumplimiento_restricciones(
+    sesiones: List[SesionRef], 
+    restricciones: List[RestriccionRef]
+) -> List[IncumplimientoRestriccion]:
+    """
+    Detecta si una sesión ha sido programada en una franja horaria donde 
+    el profesor tiene una restricción de disponibilidad.
+    """
+    conflictos = []
+    
+    restricciones_por_profesor = defaultdict(list)
+    for r in restricciones:
+        restricciones_por_profesor[r.profesor_id].append(r)
+        
+    for s in sesiones:
+        if not s.profesor_ids or not s.slot:
+            continue
+            
+        for pid in s.profesor_ids:
+            if pid in restricciones_por_profesor:
+                for r in restricciones_por_profesor[pid]:
+                    if s.slot.dia_semana == r.slot.dia_semana:
+                        hay_solape = _solapamiento_horas(
+                            s.slot.hora_inicio, s.slot.hora_fin,
+                            r.slot.hora_inicio, r.slot.hora_fin
+                        )
+                        
+                        if hay_solape:
+                            conflictos.append((s, r, pid))
+                            
+    return conflictos
+
+
 # Fachada Principal
 
-def detectar_todos_los_conflictos_basicos(sesiones: List[SesionRef]):
+def detectar_todos_los_conflictos_basicos(sesiones: List[SesionRef], restricciones: List[RestriccionRef] = None):
     """Ejecuta todas las reglas matemáticas en orden."""
     s_aula = detectar_solapamientos_aula(sesiones)
     s_prof = detectar_solapamientos_profesor(sesiones)
     s_grupo = detectar_solapamientos_grupos(sesiones)
+    s_restriccion = detectar_incumplimiento_restricciones(sesiones, restricciones)
     
-    return s_aula, s_prof, s_grupo
+    return s_aula, s_prof, s_grupo, s_restriccion

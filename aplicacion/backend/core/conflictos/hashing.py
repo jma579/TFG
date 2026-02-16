@@ -31,6 +31,9 @@ def generar_hash_conflicto(resultado: ResultadoDeteccion) -> str:
         
     elif resultado.tipo == TipoConflicto.SOLAPAMIENTO_GRUPO:
         return _hash_solapamiento_grupo(resultado)
+    
+    elif resultado.tipo == TipoConflicto.INCUMPLIMIENTO_RESTRICCION:
+        return _hash_unario(resultado, recurso_id=resultado.restriccion_id)
         
     else:
         return _hash_generico(resultado)
