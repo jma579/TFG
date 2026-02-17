@@ -96,3 +96,20 @@ async def actualizar_estado_conflicto(
         conflicto_id=id,
         estado_in=body,
     )
+
+
+@router.post(
+    "/analizar",
+    status_code=status.HTTP_200_OK,
+    summary="Analizar y sincronizar todos los conflictos del sistema",
+    description="Ejecuta el motor de conflictos sobre todos los horarios y sincroniza los resultados en la BD usando Smart Merge."
+)
+async def analizar_sistema_global(
+    db: Session = Depends(get_db),
+):
+    """
+    Dispara la detección global de conflictos.
+    Devuelve un diccionario con el resumen de eliminados, insertados y el total actual.
+    """
+    stats = conflicto_service.analizar_sistema_global(db)
+    return stats
