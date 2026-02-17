@@ -18,18 +18,17 @@ import {
   VisibilityState,
 } from '@tanstack/react-table';
 import { 
+  Activity,
   Bookmark,
   BookOpen, 
   Building2, 
   CalendarDays, 
   Clock, 
-  Users,
   Loader2,
-  Activity,
-  type LucideIcon
-} from 'lucide-react';
-import * as React from 'react';
+  type LucideIcon,
+  Users} from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,7 +42,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { ConflictoOut, SesionResumen, analizarConflictosGlobales } from '@/lib/api/conflictos';
+import { analizarConflictosGlobales,ConflictoOut, SesionResumen } from '@/lib/api/conflictos';
 import { cn } from '@/lib/utils';
 
 
