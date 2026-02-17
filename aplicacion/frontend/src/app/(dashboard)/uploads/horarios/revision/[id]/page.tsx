@@ -747,6 +747,24 @@ export default function RevisionHorarioPage({ params }: Props) {
 
   const handleConfirm = async () => {
     if (!horario || !item) return;
+    
+    // 1. Validar integridad localmente antes de enviar
+    const hasInvalidSessions = horario.horarios?.some(tabla => 
+      tabla.sesiones.some(s => {
+        if (!s.hora_inicio || !s.hora_fin) return false;
+        return s.hora_inicio >= s.hora_fin;
+      })
+    );
+
+    if (hasInvalidSessions) {
+      toast({ 
+        title: 'Error de validación',
+        description: 'No se puede confirmar: Hay sesiones con horarios inválidos (inicio >= fin). Por favor, corrígelas en la rejilla.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsConfirming(true);
     setConfirmError(null); 
     try {

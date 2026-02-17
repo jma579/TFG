@@ -107,6 +107,16 @@ class SesionBase(BaseModel):
                 raise ValueError("'hora_inicio' debe ser anterior a 'hora_fin'")
         
         return self
+    
+    @model_validator(mode='after')
+    def validate_horas(self) -> 'SesionBase':
+        if self.hora_inicio and self.hora_fin:
+            if self.hora_inicio >= self.hora_fin:
+                raise ValueError("La hora de inicio debe ser estrictamente anterior a la hora de fin")
+        if self.inicio and self.fin:
+            if self.inicio >= self.fin:
+                raise ValueError("La fecha/hora de inicio debe ser anterior a la de fin")
+        return self
 
 
 class SesionCreate(SesionBase):
