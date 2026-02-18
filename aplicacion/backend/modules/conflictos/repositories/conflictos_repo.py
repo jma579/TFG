@@ -116,6 +116,62 @@ class ConflictosRepository:
             
         return conflictos_orm
     
+    def sync_conflictos_global(
+        self,
+        db: Session,
+        resultados_engine: List[ResultadoDeteccion]
+    ) -> dict:
+        """
+        Sincroniza todos los conflictos a nivel global usando Smart Merge por hash.
+        Conserva el estado de los conflictos existentes.
+        """
+        # Obtener los hashes de los conflictos actuales en BD
+        conflictos_actuales = db.query(Conflicto.hash_deteccion).all()
+        hashes_db = {c.hash_deteccion for c in conflictos_actuales}
+        
+        # Obtener los hashes detectados por el motor
+        diccionario_resultados = {res.hash_deteccion: res for res in resultados_engine}
+        hashes_motor = set(diccionario_resultados.keys())
+        
+        # Calcular diferencias usando operaciones de conjuntos
+        hashes_a_eliminar = hashes_db - hashes_motor
+        hashes_a_insertar = hashes_motor - hashes_db
+        
+        # Eliminar los resueltos (los que ya no detecta el motor)
+        if hashes_a_eliminar:
+            db.query(Conflicto).filter(
+                Conflicto.hash_deteccion.in_(hashes_a_eliminar)
+            ).delete(synchronize_session=False)
+            
+        # Insertar los nuevos (los que el motor detecta y no estaban en BD)
+        conflictos_orm = []
+        for hash_nuevo in hashes_a_insertar:
+            res = diccionario_resultados[hash_nuevo]
+            nuevo_conflicto = Conflicto(
+                tipo=res.tipo,
+                severidad=res.severidad,
+                estado=EstadoConflicto.POR_REVISAR,
+                descripcion=res.descripcion,
+                hash_deteccion=res.hash_deteccion,
+                sesion_id=res.sesion_id,
+                sesion_2_id=res.sesion_2_id,
+                profesor_id=res.profesor_id,
+                aula_id=res.aula_id,
+                restriccion_id=getattr(res, 'restriccion_id', None)
+            )
+            conflictos_orm.append(nuevo_conflicto)
+            
+        if conflictos_orm:
+            db.add_all(conflictos_orm)
+            
+        db.flush()
+        
+        return {
+            "eliminados": len(hashes_a_eliminar),
+            "insertados": len(hashes_a_insertar),
+            "total_actual": len(hashes_motor)
+        }
+    
     def delete(self, db: Session, id: int) -> bool:
         """Elimina un conflicto específico por su ID."""
         eliminados = db.query(Conflicto).filter(Conflicto.id == id).delete()

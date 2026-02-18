@@ -135,7 +135,8 @@ export function InteractiveScheduleGrid({
           const rowStart = timeToSlotIndex(session.start, startMin, stepMin) + 2;
           const rowEnd = timeToSlotIndex(session.end, startMin, stepMin) + 2;
 
-          if (rowEnd <= rowStart) return null;
+          const isInvalidDuration = rowEnd <= rowStart;
+          const actualRowEnd = isInvalidDuration ? rowStart + 1 : rowEnd;
 
           const layout = layoutById.get(String(session.id)) ?? ({ lane: 0, lanes: 1 } as LayoutInfo);
           const widthPercent = 100 / layout.lanes;
@@ -157,10 +158,11 @@ export function InteractiveScheduleGrid({
                 !isDraggable && !isClickable ? 'cursor-default' : '',
                 isClickable && !isDraggable ? 'cursor-pointer hover:shadow-md' : '',
                 isDragging ? 'pointer-events-none opacity-80 z-0' : '',
+                isInvalidDuration && 'border-destructive bg-destructive/20 animate-pulse ring-2 ring-destructive',
                 session.hasConflict && 'ring-2 ring-red-500 border-red-600'
               )}
               style={{
-                gridRow: `${rowStart} / ${rowEnd}`,
+                gridRow: `${rowStart} / ${actualRowEnd}`,
                 gridColumn: dayIndex + 2,
                 width: `calc(${widthPercent}% - 4px)`,
                 marginLeft: `calc(${leftPercent}% + 2px)`,
@@ -175,6 +177,13 @@ export function InteractiveScheduleGrid({
               {session.hasConflict && (
                 <div className="absolute top-0.5 right-0.5 z-20 bg-white/90 rounded-full p-[1px] shadow-sm ring-1 ring-red-100">
                   <AlertTriangle className="h-3 w-3 text-red-600 stroke-[2.5px]" />
+                </div>
+              )}
+
+              {isInvalidDuration && (
+                <div className="flex items-center gap-1 text-destructive font-bold">
+                  <AlertTriangle className="h-3 w-3" />
+                  <span>ERROR HORARIO</span>
                 </div>
               )}
 

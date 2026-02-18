@@ -14,6 +14,7 @@ from modules.conflictos.schemas.conflicto import (
     ConflictoEstadoUpdateIn,
 )
 from modules.conflictos.repositories.conflictos_repo import conflictos_repository
+from core.conflictos.engine import conflict_engine
 
 
 class ConflictoService:
@@ -107,6 +108,19 @@ class ConflictoService:
                 detail=f"Conflicto {conflicto_id} no encontrado",
             )
         db.commit()
+
+    def analizar_sistema_global(self, db: Session) -> dict:
+        """Escanea todos los horarios y sincroniza los conflictos globales."""
+        # Forzamos a SQLAlchemy a olvidar la caché (importante para evitar Identity Map)
+        db.expunge_all()
+        # Ejecutar el motor para todo el sistema
+        resultados_totales = conflict_engine.detect_conflicts_for_range(db)
+        # Sincronizar inteligentemente en BD (Smart Merge)
+        stats = conflictos_repository.sync_conflictos_global(db, resultados_totales)
+        # Consolidar la transacción
+        db.commit()
+        
+        return stats
 
 
 conflicto_service = ConflictoService()

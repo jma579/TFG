@@ -53,6 +53,12 @@ export type ConflictoListResponse = {
   size: number;
 };
 
+export type AnalisisConflictosResponse = {
+  eliminados: number;
+  insertados: number;
+  total_actual: number;
+};
+
 export type ConflictoListFilters = {
   tipo?: ConflictoTipo;
   severidad?: ConflictoSeveridad;
@@ -79,4 +85,8 @@ export async function listConflictos(
 
 export async function resolverConflicto(id: number): Promise<ConflictoOut> {
   return api.patch(`/v0/conflictos/${id}`, { estado: 'solucionado' });
+}
+
+export async function analizarConflictosGlobales(): Promise<AnalisisConflictosResponse> {
+  return api.post('/v0/conflictos/analizar'); 
 }

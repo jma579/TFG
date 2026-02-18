@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, Cross2Icon,PlusCircledIcon } from '@radix-ui/react-icons';
+import { CheckIcon, Cross2Icon, PlusCircledIcon } from '@radix-ui/react-icons';
 import {
   Column,
   ColumnDef,
@@ -18,13 +18,16 @@ import {
   VisibilityState,
 } from '@tanstack/react-table';
 import { 
+  Activity,
   Bookmark,
   BookOpen, 
   Building2, 
   CalendarDays, 
   Clock, 
-  LucideIcon, 
+  Loader2,
+  type LucideIcon,
   Users} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +41,8 @@ import { Separator } from '@/components/ui/separator';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { ConflictoOut, SesionResumen } from '@/lib/api/conflictos';
+import { useToast } from '@/hooks/use-toast';
+import { analizarConflictosGlobales,ConflictoOut, SesionResumen } from '@/lib/api/conflictos';
 import { cn } from '@/lib/utils';
 
 
@@ -222,6 +226,32 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [expanded, setExpanded] = React.useState({});
 
+  // --- NUEVOS HOOKS PARA EL ANÁLISIS GLOBAL ---
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true);
+    try {
+      const stats = await analizarConflictosGlobales();
+      toast({
+        title: "Análisis completado",
+        description: `Detectados ${stats.insertados} conflictos nuevos. Se han resuelto ${stats.eliminados}. Total activos: ${stats.total_actual}.`,
+      });
+      router.refresh(); 
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Error de análisis",
+        description: "Hubo un problema al ejecutar el motor de conflictos en el servidor.",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  // ----------------------------------------------
+
   const table = useReactTable({
     data,
     columns,
@@ -258,10 +288,10 @@ export function DataTable<TData, TValue>({
               column={table.getColumn("tipo")}
               title="Tipo"
               options={[
-                { label: "Solape Aula", value: "SOLAPAMIENTO_AULA" },
-                { label: "Solape Profesor", value: "SOLAPAMIENTO_PROFESOR" },
-                { label: "Grupo/Plan", value: "SOLAPAMIENTO_GRUPO" },
-                { label: "Restricción", value: "INTERFERENCIA_RESTRICCION" },
+                { label: "Solape Aula", value: "solapamiento_aula" },
+                { label: "Solape Profesor", value: "solapamiento_profesor" },
+                { label: "Grupo/Plan", value: "solapamiento_grupo" },
+                { label: "Restricción", value: "incumplimiento_restriccion" }, 
               ]}
             />
           )}
@@ -270,10 +300,9 @@ export function DataTable<TData, TValue>({
               column={table.getColumn("severidad")}
               title="Severidad"
               options={[
-                { label: "Crítico", value: "CRITICA" },
-                { label: "Error", value: "ERROR" },
-                { label: "Warning", value: "WARNING" },
-                { label: "Info", value: "INFO" },
+                { label: "Crítico", value: "critico" },
+                { label: "No Bloqueante", value: "no_bloqueante" },
+                { label: "Leve", value: "leve" }, 
               ]}
             />
           )}
@@ -283,6 +312,21 @@ export function DataTable<TData, TValue>({
             </Button>
           )}
         </div>
+
+        <Button 
+          onClick={handleAnalyze} 
+          disabled={isAnalyzing}
+          size="sm"
+          className="ml-auto flex h-8 bg-slate-900 hover:bg-slate-800"
+        >
+          {isAnalyzing ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Activity className="mr-2 h-4 w-4" />
+          )}
+          Analizar Sistema
+        </Button>
+
       </div>
 
       <div className="rounded-md border bg-card">
