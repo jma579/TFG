@@ -43,6 +43,10 @@ yarn-error.log*
 # Artefactos generados durante las pruebas (Detectado en docs/)
 docs/test-artifacts/
 
+# Documentación y datos de prueba
+docs/Fichas/
+docs/Horarios/
+
 # Bases de datos locales (SQLite) si las usas en desarrollo
 *.sqlite3
 *.db
