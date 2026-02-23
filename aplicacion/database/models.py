@@ -55,7 +55,7 @@ class Asignatura(Base):
 
     # Relaciones
     grupos_docentes = relationship("GrupoDocente", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
-    programa_asignaturas = relationship("ProgramaAsignatura", back_populates="asignatura", passive_deletes=True)
+    programa_asignaturas = relationship("ProgramaAsignatura", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     profesores_asignaturas = relationship("ProfesorAsignatura", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
     aliases = relationship("AsignaturaAlias", back_populates="asignatura", cascade="all, delete-orphan", passive_deletes=True)
 
