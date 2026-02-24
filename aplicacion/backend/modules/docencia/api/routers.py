@@ -175,7 +175,7 @@ def get_sesiones(
     curso: Optional[int] = Query(None),
     periodo: Optional[Periodo] = Query(None),
     aula_id: Optional[int] = Query(None),
-    mencion_id: Optional[int] = Query(None)
+    mencion: Optional[str] = Query(None)
 ):
     items, total = sesion_service.get_multi(
         db, 
@@ -185,7 +185,7 @@ def get_sesiones(
         curso=curso,
         periodo=periodo,
         aula_id=aula_id,
-        mencion_id=mencion_id
+        mencion=mencion
     )
     
     # Calcular la página actual basada en skip y limit

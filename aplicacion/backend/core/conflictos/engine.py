@@ -53,7 +53,7 @@ class ConflictDetectionEngine:
                 .joinedload(GrupoDocente.asignatura)
                 .joinedload(Asignatura.profesores_asignaturas)
                 .joinedload(ProfesorAsignatura.profesor)
-        ).all()
+        ).populate_existing().all()
         
         sesiones_ref = []
         nombres_profesors = {}
@@ -130,6 +130,8 @@ class ConflictDetectionEngine:
         """Convierte una sesión de SQLAlchemy a SesionRef."""
         if not s.grupo_docente:
             raise ValueError(f"Sesión {s.id} sin grupo.")
+        if not s.grupo_docente.asignatura:
+            raise ValueError(f"Sesión {s.id} pertenece al grupo {s.grupo_docente.id} el cual no tiene asignatura cargada.")
         
         slot = None
         if s.dia_semana:

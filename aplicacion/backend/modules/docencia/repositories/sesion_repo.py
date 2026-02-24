@@ -54,20 +54,24 @@ class SesionRepository:
         curso: Optional[int] = None,
         periodo: Optional[Periodo] = None,
         aula_id: Optional[int] = None,
-        mencion_id: Optional[int] = None
+        mencion: Optional[str] = None
     ) -> Tuple[List[Sesion], int]:
         """Recupera sesiones con filtros avanzados. """
         query = db.query(Sesion).join(Sesion.grupo_docente).join(GrupoDocente.asignatura)
+        query = query.join(Asignatura.programa_asignaturas)
 
-        if programa_id or curso or mencion_id:
+        if programa_id or curso or mencion:
             query = query.join(Asignatura.programa_asignaturas)
             
             if programa_id:
                 query = query.filter(ProgramaAsignatura.programa_id == programa_id)
             if curso:
                 query = query.filter(ProgramaAsignatura.curso == curso)
-            if mencion_id:
-                query = query.filter(ProgramaAsignatura.mencion_id == mencion_id)
+            if mencion:
+                query = query.join(
+                    Mencion, 
+                    ProgramaAsignatura.mencion_id == Mencion.id
+                ).filter(Mencion.nombre == mencion)
 
         if periodo:
             query = query.filter(Asignatura.periodo == periodo)
