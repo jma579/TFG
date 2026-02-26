@@ -109,7 +109,7 @@ class HorarioDataNormalizer:
         )
 
     def _normalize_sesion(self, sesion: ParsedSesion) -> Optional[NormalizedSesionHorarioData]:
-        """Normaliza una sesión de horario individual."""
+        """Normaliza una sesión de horario individual respetando ediciones manuales."""
         if not sesion.asignatura or sesion.asignatura == "DESCONOCIDA":
             return None
         if "(*)" in sesion.asignatura:
@@ -123,7 +123,14 @@ class HorarioDataNormalizer:
         aula_nom = self._normalize_aula(sesion.aula)
         aula_tipo = self._infer_aula_tipo(aula_nom)
 
-        grupo_cod, tipo_grupo = self.infer_grupo_y_tipo(sesion.grupo, aula_nom)
+        tipo_manual_str = getattr(sesion, 'tipo', None) or getattr(sesion, 'tipo_grupo', None)
+        tipo_manual_enum = self._parse_tipo_manual(tipo_manual_str)
+
+        if tipo_manual_enum:
+            grupo_cod = self._limpiar_codigo_grupo(sesion.grupo)
+            tipo_grupo = tipo_manual_enum
+        else:
+            grupo_cod, tipo_grupo = self.infer_grupo_y_tipo(sesion.grupo, aula_nom)
 
         return NormalizedSesionHorarioData(
             asignatura_nombre=asignatura_nom,
@@ -139,6 +146,26 @@ class HorarioDataNormalizer:
         )
 
 
+    def _parse_tipo_manual(self, tipo_str: Optional[str]) -> Optional[TipoGrupoDocente]:
+        """Traduce el string del frontend (ej. 'PRÁCTICAS DE LABORATORIO') al Enum interno."""
+        if not tipo_str:
+            return None
+            
+        tipo_upper = tipo_str.upper()
+        if "LABORATORIO" in tipo_upper:
+            return TipoGrupoDocente.LABORATORIO
+        if "AULA" in tipo_upper or "PRACTICA" in tipo_upper or "PRÁCTICA" in tipo_upper:
+            return TipoGrupoDocente.PRACTICA
+        if "TEOR" in tipo_upper:
+            return TipoGrupoDocente.TEORIA
+            
+        return None
+
+    def _limpiar_codigo_grupo(self, grupo_str: Optional[str]) -> str:
+        """Limpia el código de grupo (ej. 'Grupo 1' -> '1') sin inferir su tipo."""
+        grupo_raw = (grupo_str or "").strip()
+        grupo_limpio = re.sub(r'^(GRUPO|GR\.|G\.)\s*', '', grupo_raw, flags=re.IGNORECASE)
+        return grupo_limpio.replace(" ", "").strip()
 
     def _normalize_nombre(self, text: str) -> str:
         """Normaliza un nombre de asignatura o programa."""
